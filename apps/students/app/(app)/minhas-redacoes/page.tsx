@@ -21,7 +21,7 @@ export default async function MyEssaysPage() {
         </div>
 
         <Link href="/temas">
-          <Button className="rounded-full h-14 gap-2 w-full sm:w-auto px-6 shadow-lg shadow-yellow-400/20 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold">
+          <Button className="rounded-full h-14 gap-2 w-full sm:w-auto px-6 shadow-lg shadow-yellow-400/20 bg-yellow-400 hover:bg-yellow-500 font-bold">
             <Plus className="size-5" />
             Enviar nova redação
           </Button>
@@ -35,7 +35,7 @@ export default async function MyEssaysPage() {
         <button className="size-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-900 transition-colors disabled:opacity-50">
           <ChevronLeft className="size-5" />
         </button>
-        <button className="size-10 flex items-center justify-center rounded-full bg-[#EBC84C] text-slate-900 font-bold">
+        <button className="size-10 flex items-center justify-center rounded-full bg-[#EBC84C] font-bold">
           1
         </button>
         <button className="size-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-900 transition-colors">

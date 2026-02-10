@@ -24,7 +24,7 @@ export function EssayCard({ essay }: EssayCardProps) {
           />
         </div>
 
-        <h3 className="font-bold text-slate-900 text-lg leading-snug mb-3 line-clamp-2">
+        <h3 className="font-bold text-lg leading-snug mb-3 line-clamp-2">
           {essay.title}
         </h3>
 

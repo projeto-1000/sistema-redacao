@@ -1,7 +1,6 @@
 import { CreditBalance } from "@/components/credit-balance";
 import { StatCard } from "@/components/stat-card";
-import { Button } from "@repo/ui/components/button";
-import { BookOpen, FileCheck, FileText, Plus, TrendingUp, Upload } from "lucide-react";
+import { BookOpen, FileCheck, FileText, NotebookPen, TrendingUp } from "lucide-react";
 import { SectionCard } from "@/components/section-card";
 import { CompetenceList } from "@/components/competence-list";
 import { EvolutionGraph } from "@/components/evolution-graph";
@@ -19,7 +18,7 @@ export default async function DashboardPage() {
       title: "Enviar Nova Redação",
       description: "Escolha um tema ou envie um texto livre para correção imediata.",
       buttonText: "Começar Agora",
-      icon: Upload,
+      icon: NotebookPen,
       variant: "primary" as const,
       href: '/temas'
     },
@@ -46,7 +45,7 @@ export default async function DashboardPage() {
 
       <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-red">
         <div className="flex flex-col text-center md:text-left">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-3xl font-bold tracking-tight">
             Olá, {data.user.firstName}!
           </h1>
           <p className="text-slate-500 text-md mt-1">

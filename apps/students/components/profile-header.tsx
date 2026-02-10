@@ -41,7 +41,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
           <div className="flex flex-col md:flex-row w-full md:justify-between items-center md:items-start gap-4">
 
             <div className="flex flex-col items-center md:items-start gap-2">
-              <h2 className="text-3xl font-extrabold text-slate-900">
+              <h2 className="text-3xl font-extrabold">
                 {user.name}
               </h2>
 

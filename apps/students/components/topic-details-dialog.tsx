@@ -17,19 +17,11 @@ import { BookOpenText, FileText, Info, NotebookPen, AlertCircle } from "lucide-r
 import Link from "next/link";
 import type { EssayTopic, MotivationalText, EssayTopicDetail } from "@repo/types";
 import { getTopicDetails } from "@/services/get-topics";
-
-// ✅ CORREÇÃO: Importar da Server Action, NUNCA do service direto
-
-
-// ❌ REMOVA ESTA LINHA SE ELA EXISTIR:
-// import { getEssayById } from "@/services/get-essays"; 
-
 interface TopicDetailsDialogProps {
   topic: EssayTopic;
   children: React.ReactNode;
 }
 
-// ... (Componentes de Skeleton e Item mantêm-se iguais) ...
 function MotivatingTextSkeleton() {
   return (
     <div className="mb-8 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
@@ -77,11 +69,9 @@ export function TopicDetailsDialog({ topic, children }: TopicDetailsDialogProps)
   const [details, setDetails] = useState<EssayTopicDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Carrega os dados APENAS quando o dialog abre
   useEffect(() => {
     if (isOpen && !details) {
       setLoading(true);
-      // Chama a Server Action
       getTopicDetails(topic.id)
         .then((data) => {
           setDetails(data);
@@ -103,23 +93,20 @@ export function TopicDetailsDialog({ topic, children }: TopicDetailsDialogProps)
 
       <DialogContent className="max-w-4xl w-[95vw] h-[90vh] md:max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col rounded-3xl border-0 outline-none focus:outline-none focus:ring-0 shadow-xl bg-white">
 
-        {/* Header */}
         <DialogHeader className="px-6 py-5 border-b border-slate-200 bg-white shrink-0">
           <div className="flex items-center gap-3">
-            <div className="bg-[#EBC84C] p-2 rounded-lg text-slate-900 shadow-sm shadow-yellow-200">
+            <div className="bg-[#EBC84C] p-2 rounded-lg shadow-sm shadow-yellow-200">
               <FileText className="size-5" />
             </div>
-            <DialogTitle className="text-xl font-extrabold text-slate-900">
+            <DialogTitle className="text-xl font-extrabold">
               Proposta de Redação
             </DialogTitle>
           </div>
         </DialogHeader>
 
-        {/* Scrollable Content */}
         <ScrollArea className="flex-1 min-h-0 bg-white">
           <div className="p-6 md:p-8 md:mx-2">
 
-            {/* Comando */}
             <div className="mb-8 p-6 bg-[#FFFDF5] border-l-4 border-[#EBC84C] rounded-r-2xl shadow-sm">
               <h5 className="text-[10px] font-bold uppercase tracking-widest text-[#8B781F] mb-3">
                 Comando da Proposta
@@ -136,7 +123,6 @@ export function TopicDetailsDialog({ topic, children }: TopicDetailsDialogProps)
             </div>
             <hr className="border-slate-100 my-2 mb-4" />
 
-            {/* Lista de Textos */}
             <div className="space-y-6">
               {loading ? (
                 <>
@@ -155,7 +141,6 @@ export function TopicDetailsDialog({ topic, children }: TopicDetailsDialogProps)
               )}
             </div>
 
-            {/* Instruções */}
             <div className="mt-10 p-6 rounded-2xl border border-slate-200 bg-slate-50">
               <div className="flex items-center gap-2 mb-3 text-slate-400">
                 <Info className="size-4" />
@@ -170,7 +155,6 @@ export function TopicDetailsDialog({ topic, children }: TopicDetailsDialogProps)
           </div>
         </ScrollArea>
 
-        {/* Footer */}
         <DialogFooter className="p-4 border-t border-slate-200 bg-white sm:justify-between items-center gap-4 shrink-0">
           <DialogClose asChild>
             <Button variant="ghost" className="font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full px-6">
@@ -179,7 +163,7 @@ export function TopicDetailsDialog({ topic, children }: TopicDetailsDialogProps)
           </DialogClose>
 
           <Link href={`/minhas-redacoes/nova-redacao?id=${topic.id}`} className="w-full sm:w-auto">
-            <Button className="w-full bg-primary font-bold rounded-full gap-4 h-12 shadow-lg shadow-yellow-500/10 text-slate-900">
+            <Button className="w-full bg-primary font-bold rounded-full gap-4 h-12 shadow-lg shadow-yellow-500/10">
               Iniciar Redação
               <NotebookPen className="size-4" />
             </Button>

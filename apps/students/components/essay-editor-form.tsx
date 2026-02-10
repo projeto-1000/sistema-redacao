@@ -38,7 +38,7 @@ export function EssayEditorForm({ topic }: EssayEditorFormProps) {
         <div className="flex flex-col md:flex-row md:items-center justify-between p-5 border-b border-slate-100 gap-4 bg-slate-50/30">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-bold text-slate-900 text-lg">
+              <h3 className="font-bold text-lg">
                 Folha de Redação
               </h3>
             </div>

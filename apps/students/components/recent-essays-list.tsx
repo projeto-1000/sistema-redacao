@@ -79,7 +79,9 @@ export function RecentEssaysList({ hasData = false, essays = [] }: RecentEssaysL
                 disabled={essay.status === "pending"}
                 className="w-full bg-accent text-secondary hover:bg-accent/80 hover:text-secondary font-bold rounded-xl h-10"
               >
-                Ver Detalhes
+                <Link href={`/minhas-redacoes/${essay.id}`}>
+                  Ver Detalhes
+                </Link>
               </Button>
             </div>
           ))}

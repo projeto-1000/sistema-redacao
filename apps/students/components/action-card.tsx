@@ -47,7 +47,7 @@ export function ActionCard({
       </div>
 
       <div className="flex-1 mb-4">
-        <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">
+        <h3 className="text-xl font-bold mb-3 tracking-tight">
           {title}
         </h3>
         <p className="text-sm text-slate-500 leading-relaxed max-w-60">

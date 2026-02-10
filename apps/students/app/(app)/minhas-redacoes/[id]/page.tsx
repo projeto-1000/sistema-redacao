@@ -38,7 +38,7 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
       <div className="mb-8">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Análise Detalhada: {data.title}</h1>
+            <h1 className="text-3xl font-extrabold mb-2">Análise Detalhada: {data.title}</h1>
             <p className="text-slate-500 font-medium text-sm flex items-center gap-2">
               Avaliação seguindo critérios oficiais do ENEM • <Calendar className="size-3" /> {formatDate(data.submission_date, 'long')}
             </p>
@@ -89,7 +89,7 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
               </div>
             </div>
 
-            <h2 className="text-xl font-bold text-center text-slate-900 mb-8 max-w-2xl mx-auto leading-tight">
+            <h2 className="text-xl font-bold text-center mb-8 max-w-2xl mx-auto leading-tight">
               {data.title}
             </h2>
 
@@ -104,7 +104,7 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
               <div className="bg-purple-100 p-2 rounded-lg text-purple-600">
                 <MessageSquareText className="size-5" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Comentário Geral do Corretor</h3>
+              <h3 className="text-lg font-bold">Comentário Geral do Corretor</h3>
             </div>
 
             {data.general_comment ? (
@@ -147,8 +147,8 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
                 <div key={comp.id} className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h5 className="font-bold text-slate-900 text-sm">{comp.name}</h5>
-                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">{comp.description}</p>
+                      <h5 className="font-bold text-sm">{comp.name}</h5>
+                      <p className="text-xs text-slate-400 font-medium mt-0.5">{comp.description}</p>
                     </div>
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${style.badge}`}>
                       {comp.score}/200

@@ -134,7 +134,7 @@ export function TopicsList({ topics }: TopicsListProps) {
               >
 
                 <div className="lg:col-span-6">
-                  <h4 className="font-bold text-slate-900  leading-snug group-hover:text-[#1E3A8A] transition-colors wrap-break-word">
+                  <h4 className="font-bold leading-snug group-hover:text-[#1E3A8A] transition-colors wrap-break-word">
                     {topic.title}
                   </h4>
 
@@ -183,12 +183,12 @@ export function TopicsList({ topics }: TopicsListProps) {
               <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="size-6 text-slate-300" />
               </div>
-              <h3 className="text-slate-900 font-bold text-lg mb-1">Nenhum tema encontrado</h3>
+              <h3 className="font-bold text-lg mb-1">Nenhum tema encontrado</h3>
               <p className="text-slate-500">Tente buscar por outros termos ou mude o filtro.</p>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }
