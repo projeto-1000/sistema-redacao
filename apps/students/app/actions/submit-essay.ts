@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 export type ActionState = {
   error?: string;
@@ -23,13 +22,13 @@ export async function submitEssay(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: "Você precisa estar logado para enviar." };
+    return { error: "Você precisa estar logado para enviar.", success: false };
   }
 
   const content = formData.get("content") as string;
 
   if (!content || content.length < 50) {
-    return { error: "A redação está muito curta." };
+    return { error: "A redação está muito curta.", success: false };
   }
 
   try {
@@ -44,14 +43,15 @@ export async function submitEssay(
 
     if (error) {
       console.error("Erro RPC:", error);
-      return { error: error.message };
+      return { error: error.message, success: false };
     }
   } catch (err) {
     console.error("Erro catch:", err);
-    return { error: "Erro interno ao enviar redação." };
+    return { error: "Erro interno ao enviar redação.", success: false };
   }
 
   revalidatePath("/minhas-redacoes");
   revalidatePath("/dashboard");
-  redirect("/minhas-redacoes");
+
+  return { success: true, error: "" };
 }

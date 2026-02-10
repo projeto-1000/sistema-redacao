@@ -1,22 +1,29 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import { Save, AlertCircle } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { submitEssay } from "@/app/actions/submit-essay";
 import { SubmitEssayButton } from "./submit-essay-button";
 import { EssayTopicDetail } from "@repo/types";
 interface EssayEditorFormProps {
-  topic: EssayTopicDetail
+  topic: EssayTopicDetail,
+  onSuccess: () => void;
 }
 
-export function EssayEditorForm({ topic }: EssayEditorFormProps) {
+export function EssayEditorForm({ topic, onSuccess }: EssayEditorFormProps) {
   const [text, setText] = useState("");
 
   const [state, formAction] = useActionState(
     submitEssay.bind(null, topic.id, topic.title, topic.axis),
-    { error: "" }
+    { error: "", success: false }
   );
+
+  useEffect(() => {
+    if (state?.success) {
+      onSuccess();
+    }
+  }, [state, onSuccess]);
 
   const MAX_CHARS = 10000;
   const MIN_CHARS = 100;
