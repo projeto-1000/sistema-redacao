@@ -40,10 +40,7 @@ export default function EssayPageClient({ essayTopic }: Props) {
             Ver Proposta e textos motivadores
           </Button>
 
-          <EssayEditorForm
-            topicTitle={essayTopic.title}
-            topicAxis={essayTopic.axis}
-          />
+          <EssayEditorForm topic={essayTopic} />
         </div>
       </div>
       <MobileMotivationalTexts

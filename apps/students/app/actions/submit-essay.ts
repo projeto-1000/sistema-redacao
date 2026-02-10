@@ -10,6 +10,7 @@ export type ActionState = {
 } | null;
 
 export async function submitEssay(
+  topic_id: string,
   title: string,
   axis: string,
   prevState: ActionState,
@@ -34,6 +35,7 @@ export async function submitEssay(
   try {
     const { error } = await supabase.rpc("submit_essay", {
       p_student_id: user.id,
+      p_topic_id: topic_id,
       p_title: title,
       p_thematic_axis: axis || "Geral",
       p_content: content,

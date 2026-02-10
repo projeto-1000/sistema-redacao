@@ -45,7 +45,7 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href={`/minhas-redacoes/nova-redacao?id=${data.id}`}>
+            <Link href={`/minhas-redacoes/nova-redacao?id=${data.topic_id}`}>
               <Button variant="outline" className="bg-white border-blue-200 text-blue-600 hover:bg-blue-50 font-bold gap-2 h-10 rounded-full">
                 <RotateCcw className="size-4" />
                 Refazer Redação

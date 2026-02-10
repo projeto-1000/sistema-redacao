@@ -5,17 +5,16 @@ import { Save, AlertCircle } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { submitEssay } from "@/app/actions/submit-essay";
 import { SubmitEssayButton } from "./submit-essay-button";
-
+import { EssayTopicDetail } from "@repo/types";
 interface EssayEditorFormProps {
-  topicTitle: string;
-  topicAxis: string;
+  topic: EssayTopicDetail
 }
 
-export function EssayEditorForm({ topicTitle, topicAxis }: EssayEditorFormProps) {
+export function EssayEditorForm({ topic }: EssayEditorFormProps) {
   const [text, setText] = useState("");
 
   const [state, formAction] = useActionState(
-    submitEssay.bind(null, topicTitle, topicAxis),
+    submitEssay.bind(null, topic.id, topic.title, topic.axis),
     { error: "" }
   );
 
@@ -31,8 +30,9 @@ export function EssayEditorForm({ topicTitle, topicAxis }: EssayEditorFormProps)
   return (
     <form action={formAction} className="flex flex-col h-full gap-4">
 
-      <input type="hidden" name="title" value={topicTitle} />
-      <input type="hidden" name="thematicAxis" value={topicAxis} />
+      <input type="hidden" name="topicId" value={topic.id} />
+      <input type="hidden" name="title" value={topic.title} />
+      <input type="hidden" name="thematicAxis" value={topic.axis} />
 
       <div className="bg-white rounded-3xl border border-slate-200 flex flex-col flex-1 shadow-sm overflow-hidden relative">
         <div className="flex flex-col md:flex-row md:items-center justify-between p-5 border-b border-slate-100 gap-4 bg-slate-50/30">
