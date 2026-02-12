@@ -150,7 +150,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false }: LoginForm
           <div className=" w-full mt-4 pt-4 border-t border-[#e8e4ce] text-center text-sm">
             <p>
               Ainda não tem uma conta?
-              <a className="text-primary font-bold hover:underline ml-1" href="#">Cadastre-se</a>
+              <a className="text-primary font-bold hover:underline ml-1" href="/signup">Cadastre-se</a>
             </p>
           </div>
         </CardFooter>

@@ -166,6 +166,12 @@ importers:
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@supabase/ssr':
+        specifier: ^0.8.0
+        version: 0.8.0(@supabase/supabase-js@2.93.3)
+      '@supabase/supabase-js':
+        specifier: ^2.93.3
+        version: 2.93.3
       next:
         specifier: 16.0.10
         version: 16.0.10(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -182,6 +188,9 @@ importers:
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
+      '@repo/hooks':
+        specifier: workspace:*
+        version: link:../../packages/hooks
       '@repo/prettier-config':
         specifier: workspace:*
         version: link:../../packages/prettier-config
@@ -191,6 +200,9 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      '@repo/validators':
+        specifier: workspace:*
+        version: link:../../packages/validators
       '@tailwindcss/postcss':
         specifier: ^4.1.5
         version: 4.1.16
