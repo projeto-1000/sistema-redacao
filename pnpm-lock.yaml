@@ -166,12 +166,18 @@ importers:
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@repo/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@supabase/ssr':
         specifier: ^0.8.0
         version: 0.8.0(@supabase/supabase-js@2.93.3)
       '@supabase/supabase-js':
         specifier: ^2.93.3
         version: 2.93.3
+      lucide-react:
+        specifier: ^0.563.0
+        version: 0.563.0(react@19.2.0)
       next:
         specifier: 16.0.10
         version: 16.0.10(react-dom@19.2.0(react@19.2.0))(react@19.2.0)

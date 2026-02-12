@@ -12,11 +12,13 @@
   },
   "dependencies": {
     "@repo/ui": "workspace:*",
+    "@repo/utils": "workspace:*",
     "next": "16.0.10",
     "react": "^19.2.0",
     "react-dom": "^19.1.0",
     "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.93.3"
+    "@supabase/supabase-js": "^2.93.3",
+    "lucide-react": "^0.563.0"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^15.4.6",
