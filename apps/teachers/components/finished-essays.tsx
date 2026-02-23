@@ -4,65 +4,58 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   Search,
-  Clock,
   ArrowRight,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  FileText
+  CalendarCheck
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 
 // --- MOCK DATA ---
-const MOCK_DATA = [
+const MOCK_FINISHED_DATA = [
   {
-    id: 1,
-    student: "Ana Silva",
-    topic: "O impacto da IA na educação brasileira e seus desafios contemporâneos",
-    submissionDate: "12/10/2023",
-    deadline: "12h restantes",
-    status: "urgent",
+    id: 101,
+    student: "Lucas Oliveira",
+    topic: "O estigma associado às doenças mentais na sociedade brasileira",
+    correctedDate: "20/10/2023",
+    score: 920,
   },
   {
-    id: 2,
-    student: "Carlos Souza",
-    topic: "Desafios da Mobilidade Urbana nos grandes centros",
-    submissionDate: "11/10/2023",
-    deadline: "2 dias",
-    status: "warning",
+    id: 102,
+    student: "Camila Fernandes",
+    topic: "Democratização do acesso ao cinema no Brasil",
+    correctedDate: "18/10/2023",
+    score: 880,
   },
   {
-    id: 3,
-    student: "Mariana Oliveira",
-    topic: "Preservação da Amazônia e Identidade Nacional",
-    submissionDate: "10/10/2023",
-    deadline: "3 dias",
-    status: "normal",
+    id: 103,
+    student: "Pedro Henrique",
+    topic: "Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil",
+    correctedDate: "15/10/2023",
+    score: 960,
   },
   {
-    id: 4,
-    student: "João Pedro",
-    topic: "Saúde Mental no Século XXI: O papel das redes sociais",
-    submissionDate: "09/10/2023",
-    deadline: "4 dias",
-    status: "normal",
+    id: 104,
+    student: "Juliana Costa",
+    topic: "Manipulação do comportamento do usuário pelo controle de dados na internet",
+    correctedDate: "12/10/2023",
+    score: 740,
   },
   {
-    id: 5,
-    student: "Beatriz Costa",
-    topic: "Insegurança alimentar no Brasil",
-    submissionDate: "08/10/2023",
-    deadline: "5 dias",
-    status: "normal",
+    id: 105,
+    student: "Rafael Souza",
+    topic: "Caminhos para combater a intolerância religiosa no Brasil",
+    correctedDate: "10/10/2023",
+    score: 420,
   },
 ];
 
-
-export function PendingEssays() {
+export function FinishedEssays() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredEssays = useMemo(() => {
-    return MOCK_DATA.filter((essay) => {
+    return MOCK_FINISHED_DATA.filter((essay) => {
       const searchLower = searchTerm.toLowerCase();
       return (
         essay.student.toLowerCase().includes(searchLower) ||
@@ -71,38 +64,24 @@ export function PendingEssays() {
     });
   }, [searchTerm]);
 
-  // Função auxiliar para renderizar o Badge de Prazo
-  const renderStatusBadge = (status: string, text: string) => {
-    let classes = "border-slate-200 text-slate-600 bg-slate-50"; // Default (Normal)
-
-    if (status === 'urgent') {
-      classes = "border-red-200 text-red-700 bg-red-50";
-    } else if (status === 'warning') {
-      classes = "border-amber-200 text-amber-700 bg-amber-50";
-    }
-
-    return (
-      <div className={`
-        inline-flex px-3 py-1.5 text-[10px] font-bold uppercase rounded-full border tracking-wide 
-        whitespace-nowrap items-center justify-center gap-1.5 ${classes}
-      `}>
-        <Clock className="size-3" />
-        {text}
-      </div>
-    );
+  // Função auxiliar para definir a cor do texto da nota
+  const getScoreColor = (score: number) => {
+    if (score >= 900) return "text-green-600";
+    if (score >= 700) return "text-blue-600";
+    if (score >= 500) return "text-amber-500";
+    return "text-red-600";
   };
-
   return (
     <div className="min-h-screen flex flex-col w-full">
 
       {/* --- BARRA DE BUSCA E FILTROS --- */}
-      <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex flex-col lg:flex-row items-center gap-2">
+      <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 text-red flex flex-col lg:flex-row items-center gap-2">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Pesquisar por aluno ou tema..."
-            className="w-full h-12 pl-11 pr-4 rounded-xl text-sm font-medium text-slate-700 bg-slate-50 border-none outline-none focus:ring-2 focus:ring-amber-400/50 placeholder:text-slate-400 transition-all"
+            placeholder="Pesquisar por aluno ou tema corrigido..."
+            className="w-full h-12 pl-11 pr-4 rounded-xl text-sm font-medium text-slate-700 bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-400/50 placeholder:text-slate-400 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -111,8 +90,8 @@ export function PendingEssays() {
         {/* Filtros */}
         <div className="flex w-full lg:w-auto gap-2 overflow-x-auto pb-2 lg:pb-0 px-2 lg:px-0">
           <button className="flex items-center gap-2 px-4 h-12 bg-slate-50 hover:bg-slate-100 rounded-xl text-sm font-bold text-slate-600 whitespace-nowrap transition-colors border border-transparent hover:border-slate-200">
-            <Clock className="size-4 text-slate-400" />
-            Prazo
+            <CalendarCheck className="size-4 text-slate-400" />
+            Data de Correção
             <ChevronDown className="size-3 ml-1 text-slate-400" />
           </button>
         </div>
@@ -120,22 +99,21 @@ export function PendingEssays() {
 
       {filteredEssays.length > 0 ? (
         <>
-          <div className="rounded-4xl border border-slate-200 overflow-hidden shadow-sm mt-8">
+          <div className="rounded-4xl bg-white border border-slate-200 overflow-hidden shadow-sm mt-8">
 
             {/* Header da Tabela */}
             <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-5 border-b border-slate-100 bg-slate-50/50">
               <div className="col-span-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Aluno
               </div>
-              <div className="col-span-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+
+              <div className="col-span-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Tema da Redação
               </div>
               <div className="col-span-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Prazo
+                Nota Final
               </div>
-              <div className="col-span-1 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Ação
-              </div>
+
             </div>
 
             {/* Corpo da Tabela */}
@@ -155,15 +133,16 @@ export function PendingEssays() {
                       <h4 className="font-bold text-sm leading-snug group-hover:text-[#1E3A8A] transition-colors">
                         {essay.student}
                       </h4>
-
-                      <span className="text-xs text-slate-400 ">
-                        Enviado em {essay.submissionDate}
+                      <span className="text-xs text-slate-400">
+                        Corrigida em {essay.correctedDate}
                       </span>
                     </div>
                   </div>
 
                   {/* Coluna 2: Tema */}
-                  <div className="lg:col-span-5 mt-2 lg:mt-0">
+
+                  <div className="lg:col-span-4">
+                    {/* <div className="lg:col-span-4 mt-2 lg:mt-0"> */}
                     <span className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
                       Tema
                     </span>
@@ -172,19 +151,27 @@ export function PendingEssays() {
                     </p>
                   </div>
 
-                  {/* Coluna 3: Prazo (Badge) */}
-                  <div className="lg:col-span-2 flex lg:justify-center">
-                    {renderStatusBadge(essay.status, essay.deadline)}
+                  {/* Coluna 3: Nota (Estilo Tipográfico + Cores) */}
+                  <div className="lg:col-span-2 flex items-baseline lg:justify-center gap-1">
+                    <span className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest block mr-2">
+                      Nota:
+                    </span>
+                    <span className={`text-xl font-black tracking-tight ${getScoreColor(essay.score)}`}>
+                      {essay.score}
+                    </span>
+                    <span className="text-sm font-medium text-slate-400">
+                      / 1000
+                    </span>
                   </div>
 
                   {/* Coluna 4: Ação */}
-                  <div className="lg:col-span-1 flex justify-end">
+                  <div className="lg:col-span-2 flex justify-end">
                     <Button
                       asChild
-                      className="rounded-full font-bold shadow-sm h-9 whitespace-nowrap transition-transform"
+                      className="rounded-full font-bold shadow-sm h-9 whitespace-nowrap"
                     >
-                      <Link href={`/editor/${essay.id}`}>
-                        Corrigir
+                      <Link href={`/editor/${essay.id}?view=true`}>
+                        Ver Correção
                         <ArrowRight className="size-4 ml-1.5" />
                       </Link>
                     </Button>
@@ -194,8 +181,8 @@ export function PendingEssays() {
               ))}
             </div>
 
-
           </div>
+
           {/* TODO: Paginação */}
           <div className="flex justify-center items-center gap-2 mt-8">
             <button className="size-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-900 transition-colors disabled:opacity-50">
@@ -212,19 +199,15 @@ export function PendingEssays() {
       ) : (
         <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center animate-in fade-in duration-500 mt-8">
           <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-            {searchTerm ? (
-              <Search className="size-8 text-slate-300" />
-            ) : (
-              <FileText className="size-8 text-slate-300" />
-            )}
+            <CalendarCheck className="size-8 text-slate-300" />
           </div>
           <h3 className="text-lg font-bold text-slate-800 mb-1">
-            {searchTerm ? "Nenhum resultado encontrado" : "Nenhuma redação por aqui"}
+            {searchTerm ? "Nenhum resultado encontrado" : "Nenhuma correção finalizada"}
           </h3>
           <p className="text-slate-500 text-sm max-w-xs leading-relaxed">
             {searchTerm
               ? `Não encontramos nada para "${searchTerm}". Tente buscar por outro aluno ou tema.`
-              : "Ainda não há nenhuma redação para correção."}
+              : "Você ainda não finalizou nenhuma correção."}
           </p>
         </div>
       )}
