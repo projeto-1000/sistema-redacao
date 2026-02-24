@@ -4,7 +4,9 @@
 @tailwind utilities;
 
 @theme {
-  --color-blue-1000: #2a8af6;
-  --color-purple-1000: #a853ba;
-  --color-red-1000: #e92a67;
+  --color-comp-1: #CC3725;
+  --color-comp-2: #0052CC;
+  --color-comp-3: #FFC400;
+  --color-comp-4: #00875A;
+  --color-comp-5: #8755DE;
 }
