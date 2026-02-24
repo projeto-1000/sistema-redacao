@@ -91,8 +91,8 @@ export default function GradedEssayPage({ params }: { params: { id: string } }) 
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-
+    // <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="px-4 md:px-10 lg:px-12 py-4">
       {/* HEADER DA PÁGINA */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
         <div>
@@ -154,7 +154,7 @@ export default function GradedEssayPage({ params }: { params: { id: string } }) 
               </div>
               <h3 className="text-lg font-black">Comentário Geral do Corretor</h3>
             </div>
-            <div className="space-y-4 text-slate-600 leading-relaxed text-sm">
+            <div className="space-y-4 text-slate-600 leading-relaxed">
               {MOCK_DATA.generalComment.split("\n\n").map((para, i) => (
                 <p key={i}>{para}</p>
               ))}
