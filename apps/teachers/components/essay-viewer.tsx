@@ -5,26 +5,20 @@ import { X, Trash2 } from "lucide-react";
 import { useGradingStore } from "@/stores/use-grading-store";
 
 const HIGHLIGHT_STYLES = {
-  c1: "bg-comp-1/10 border-b-2 border-comp-1 text-slate-900",
-  c2: "bg-comp-2/10 border-b-2 border-comp-2 text-slate-900",
-  c3: "bg-comp-3/20 border-b-2 border-comp-3 text-slate-900",
-  c4: "bg-comp-4/10 border-b-2 border-comp-4 text-slate-900",
-  c5: "bg-comp-5/10 border-b-2 border-comp-5 text-slate-900",
+  c1: "bg-comp-1/10 border-b-2 border-comp-1",
+  c2: "bg-comp-2/10 border-b-2 border-comp-2",
+  c3: "bg-comp-3/20 border-b-2 border-comp-3",
+  c4: "bg-comp-4/10 border-b-2 border-comp-4",
+  c5: "bg-comp-5/10 border-b-2 border-comp-5",
 };
 
-const COMP_BUTTONS: { id: keyof typeof HIGHLIGHT_STYLES; bg: string; text?: string }[] = [
+const COMP_BUTTONS: { id: keyof typeof HIGHLIGHT_STYLES; bg: string }[] = [
   { id: "c1", bg: "bg-comp-1" },
   { id: "c2", bg: "bg-comp-2" },
   { id: "c3", bg: "bg-comp-3" },
   { id: "c4", bg: "bg-comp-4" },
   { id: "c5", bg: "bg-comp-5" },
 ];
-
-interface Highlight {
-  id: string;
-  text: string;
-  compId: keyof typeof HIGHLIGHT_STYLES;
-}
 
 interface PopoverState {
   top: number;
@@ -46,7 +40,10 @@ interface EssayViewerProps {
 }
 
 export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps) {
-  const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const highlights = useGradingStore((state) => state.highlights);
+  const addHighlightStore = useGradingStore((state) => state.addHighlight);
+  const removeHighlightStore = useGradingStore((state) => state.removeHighlight);
+
   const [popover, setPopover] = useState<PopoverState | null>(null);
 
   const activeHighlightComp = useGradingStore((state) => state.activeHighlightComp);
@@ -81,10 +78,11 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
       if (activeHighlightComp) {
         const compKey = activeHighlightComp.toLowerCase() as keyof typeof HIGHLIGHT_STYLES;
 
-        setHighlights((prev) => [
-          ...prev.filter((h) => !selectedText.includes(h.text)),
-          { id: crypto.randomUUID(), text: selectedText, compId: compKey }
-        ]);
+        addHighlightStore({
+          id: crypto.randomUUID(),
+          text: selectedText,
+          compId: compKey
+        });
 
         setActiveHighlightComp(null);
         selection.removeAllRanges();
@@ -104,7 +102,7 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
     }, 50);
   };
 
-  const handleMarkClick = (e: React.MouseEvent, highlight: Highlight) => {
+  const handleMarkClick = (e: React.MouseEvent, highlight: any) => {
     e.stopPropagation();
     const target = e.target as HTMLElement;
     const rects = target.getClientRects();
@@ -128,28 +126,29 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
     if (!popover) return;
 
     if (popover.existingId) {
-      setHighlights((prev) =>
-        prev.map((h) => (h.id === popover.existingId ? { ...h, compId } : h))
-      );
-    } else {
-      setHighlights((prev) => [
-        ...prev.filter((h) => !popover.text.includes(h.text)),
-        { id: crypto.randomUUID(), text: popover.text, compId }
-      ]);
+      // Se já existe, removemos para adicionar a versão atualizada (ou você pode criar um updateHighlight na store)
+      removeHighlightStore(popover.existingId);
     }
+
+    addHighlightStore({
+      id: crypto.randomUUID(),
+      text: popover.text,
+      compId
+    });
 
     window.getSelection()?.removeAllRanges();
     setPopover(null);
   };
 
   const removeHighlight = (id: string) => {
-    setHighlights((prev) => prev.filter((h) => h.id !== id));
+    removeHighlightStore(id);
     window.getSelection()?.removeAllRanges();
     setPopover(null);
   };
 
   const renderParagraph = (paragraphText: string) => {
     let result: React.ReactNode[] = [paragraphText];
+
     const sortedHighlights = [...highlights].sort((a, b) => b.text.length - a.text.length);
 
     sortedHighlights.forEach((highlight) => {
@@ -163,7 +162,7 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
               newResult.push(
                 <mark
                   key={`${highlight.id}-${index}`}
-                  className={`cursor-pointer transition-opacity hover:opacity-80 pb-0.5 rounded-sm ${HIGHLIGHT_STYLES[highlight.compId]}`}
+                  className={`cursor-pointer transition-opacity hover:opacity-80 pb-0.5 rounded-sm ${HIGHLIGHT_STYLES[highlight.compId as keyof typeof HIGHLIGHT_STYLES]}`}
                   onClick={(e) => handleMarkClick(e, highlight)}
                 >
                   {highlight.text}
@@ -242,7 +241,7 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
 
             <h2 className="text-2xl font-black mb-8 leading-tight text-slate-900">{essay.title}</h2>
 
-            <div className="space-y-6 text-slate-800 text-lg leading-relaxed text-justify selection:bg-amber-200 selection:text-amber-900">
+            <div className="space-y-6 text-slate-800 text-lg leading-relaxed text-justify wrap-break-word selection:bg-amber-200 selection:text-amber-900">
               {essay.text.split("\n\n").map((paragraph, idx) => (
                 <p key={idx}>{renderParagraph(paragraph)}</p>
               ))}

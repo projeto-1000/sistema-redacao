@@ -30,7 +30,7 @@ export function formatDate(
   }
 
   if (style === "long") {
-    return format(dateObj, "d 'de' MMMM, yyyy", { locale: ptBR });
+    return format(dateObj, "d 'de' MMMM", { locale: ptBR });
   }
 
   if (style === "full") {

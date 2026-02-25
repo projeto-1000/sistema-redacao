@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/server";
 
 export type EssayStatus = "pending" | "correcting" | "done" | "cancelled";
-
 interface GetEssaysParams {
   status: EssayStatus;
   limit?: number;

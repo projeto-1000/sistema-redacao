@@ -71,3 +71,13 @@ export interface Competencies {
   score: number;
   comment: string | null;
 }
+export interface CorrectionPayload {
+  scores: Record<string, number | null>;
+  comments: Record<string, string>;
+  general_comment: string;
+  highlights: {
+    id: string;
+    text: string;
+    compId: string;
+  }[];
+}
