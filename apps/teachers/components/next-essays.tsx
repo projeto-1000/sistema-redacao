@@ -1,8 +1,7 @@
-import { createClient } from "@/lib/server";
+import { getEssaysByStatus } from "@/services/essays";
 import { getDeadlineInfo, getHolidays } from "@repo/utils";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-
 
 const STATUS_STYLES = {
   urgent: {
@@ -26,20 +25,7 @@ const STATUS_STYLES = {
 };
 
 export async function NextEssays() {
-  const supabase = await createClient();
-
-  const { data: essays } = await supabase
-    .from("essays")
-    .select(`
-      id,
-      title,
-      created_at,
-      student:profiles!essays_student_id_fkey(full_name)
-    `)
-    .eq("status", "pending")
-    .order("created_at", { ascending: true })
-    .limit(3);
-
+  const essays = await getEssaysByStatus({ status: 'pending', limit: 3 });
   if (!essays || essays.length === 0) {
     return (
       <div className="p-8 text-center text-slate-500 w-full">
