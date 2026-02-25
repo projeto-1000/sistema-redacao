@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/server";
-import { getDeadlineInfo } from "@repo/utils";
+import { getDeadlineInfo, getHolidays } from "@repo/utils";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -48,13 +48,15 @@ export async function NextEssays() {
     );
   }
 
+  const holidays = await getHolidays();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {essays.map((essay) => {
         const studentName = (essay.student as unknown as { full_name: string })?.full_name || "Aluno(a)";
         const initials = studentName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
 
-        const deadlineInfo = getDeadlineInfo(essay.created_at);
+        const deadlineInfo = getDeadlineInfo(essay.created_at, holidays);
         const style = STATUS_STYLES[deadlineInfo.status as keyof typeof STATUS_STYLES];
 
         return (
