@@ -32,9 +32,20 @@ interface EssayCorrectionClientProps {
 export function EssayCorrectionClient({ essay }: EssayCorrectionClientProps) {
   const [activeTab, setActiveTab] = useState<"text" | "proposal">("text");
 
+  const activeHighlightComp = useGradingStore((state) => state.activeHighlightComp);
+  const setActiveHighlightComp = useGradingStore((state) => state.setActiveHighlightComp);
+
   const generalComment = useGradingStore((state) => state.generalComment);
   const setGeneralComment = useGradingStore((state) => state.setGeneralComment);
   const resetStore = useGradingStore((state) => state.reset);
+
+  const onActivateHighlightMode = (compId: string) => {
+    if (activeHighlightComp === compId) {
+      setActiveHighlightComp(null);
+    } else {
+      setActiveHighlightComp(compId);
+    }
+  };
 
   useEffect(() => {
     return () => resetStore();
@@ -64,7 +75,7 @@ export function EssayCorrectionClient({ essay }: EssayCorrectionClientProps) {
         </div>
       </div>
 
-      <div className="flex-1 px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-20">
+      <div className="px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-20">
         <EssayViewer
           essay={essay}
           activeTab={activeTab}
@@ -76,13 +87,15 @@ export function EssayCorrectionClient({ essay }: EssayCorrectionClientProps) {
             <CompetencyCard
               key={comp.id}
               comp={comp}
+              isActiveForHighlight={activeHighlightComp === comp.id}
+              onActivateHighlightMode={onActivateHighlightMode}
             />
           ))}
 
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mb-32">
             <h3 className="font-bold mb-4">Comentário Geral</h3>
             <textarea
-              placeholder="Dê um feedback holístico para o aluno..."
+              placeholder="Dê um feedback para o aluno..."
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-700 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-amber-400/50 resize-none h-32"
               value={generalComment}
               onChange={(e) => setGeneralComment(e.target.value)}

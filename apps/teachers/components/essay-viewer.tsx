@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { X, Trash2 } from "lucide-react";
+import { useGradingStore } from "@/stores/use-grading-store";
 
 const HIGHLIGHT_STYLES = {
   c1: "bg-comp-1/10 border-b-2 border-comp-1 text-slate-900",
@@ -48,15 +49,16 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [popover, setPopover] = useState<PopoverState | null>(null);
 
+  const activeHighlightComp = useGradingStore((state) => state.activeHighlightComp);
+  const setActiveHighlightComp = useGradingStore((state) => state.setActiveHighlightComp);
+
   const contentRef = useRef<HTMLDivElement>(null);
 
   const calculatePopoverPosition = (rect: DOMRect, containerRect: DOMRect) => {
     const rawLeft = rect.left - containerRect.left + (rect.width / 2);
     const containerWidth = containerRect.width;
-
     const halfPopoverWidth = 150;
     const clampedLeft = Math.max(halfPopoverWidth, Math.min(rawLeft, containerWidth - halfPopoverWidth));
-
     const arrowOffset = rawLeft - clampedLeft;
 
     return {
@@ -69,13 +71,27 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
   const handleMouseUp = () => {
     setTimeout(() => {
       const selection = window.getSelection();
+      const selectedText = selection?.toString().trim();
 
-      if (!selection || selection.isCollapsed || selection.toString().trim() === "") {
+      if (!selection || selection.isCollapsed || !selectedText) {
         setPopover((prev) => (prev?.existingId ? prev : null));
         return;
       }
 
-      const text = selection.toString();
+      if (activeHighlightComp) {
+        const compKey = activeHighlightComp.toLowerCase() as keyof typeof HIGHLIGHT_STYLES;
+
+        setHighlights((prev) => [
+          ...prev.filter((h) => !selectedText.includes(h.text)),
+          { id: crypto.randomUUID(), text: selectedText, compId: compKey }
+        ]);
+
+        setActiveHighlightComp(null);
+        selection.removeAllRanges();
+        setPopover(null);
+        return;
+      }
+
       const range = selection.getRangeAt(0);
       const rects = range.getClientRects();
       const rect = rects.length > 0 ? rects[0] : range.getBoundingClientRect();
@@ -83,13 +99,7 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
 
       if (rect && containerRect && contentRef.current) {
         const { top, left, arrowOffset } = calculatePopoverPosition(rect, containerRect);
-
-        setPopover({
-          text,
-          top,
-          left,
-          arrowOffset,
-        });
+        setPopover({ text: selectedText, top, left, arrowOffset });
       }
     }, 50);
   };
@@ -103,7 +113,6 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
 
     if (rect && containerRect && contentRef.current) {
       const { top, left, arrowOffset } = calculatePopoverPosition(rect, containerRect);
-
       setPopover({
         text: highlight.text,
         existingId: highlight.id,
@@ -125,7 +134,7 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
     } else {
       setHighlights((prev) => [
         ...prev.filter((h) => !popover.text.includes(h.text)),
-        { id: Math.random().toString(), text: popover.text, compId }
+        { id: crypto.randomUUID(), text: popover.text, compId }
       ]);
     }
 
@@ -141,24 +150,20 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
 
   const renderParagraph = (paragraphText: string) => {
     let result: React.ReactNode[] = [paragraphText];
-
     const sortedHighlights = [...highlights].sort((a, b) => b.text.length - a.text.length);
 
     sortedHighlights.forEach((highlight) => {
       const newResult: React.ReactNode[] = [];
-
       result.forEach((part) => {
         if (typeof part === "string" && part.includes(highlight.text)) {
           const splitText = part.split(highlight.text);
-
           splitText.forEach((fragment, index) => {
             newResult.push(fragment);
             if (index < splitText.length - 1) {
               newResult.push(
                 <mark
                   key={`${highlight.id}-${index}`}
-                  className={`cursor-pointer transition-opacity hover:opacity-80 pb-0.5 ${HIGHLIGHT_STYLES[highlight.compId]}`}
-                  title="Clique para editar ou remover"
+                  className={`cursor-pointer transition-opacity hover:opacity-80 pb-0.5 rounded-sm ${HIGHLIGHT_STYLES[highlight.compId]}`}
                   onClick={(e) => handleMarkClick(e, highlight)}
                 >
                   {highlight.text}
@@ -172,111 +177,81 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
       });
       result = newResult;
     });
-
     return result;
   };
 
   return (
-    <div className="lg:col-span-7 bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-
+    <div className="lg:col-span-7 bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-fit">
       <div className="flex border-b border-slate-100 px-8 pt-6 gap-8">
         <button
           onClick={() => onTabChange("text")}
-          className={`pb-4 font-bold text-sm transition-colors border-b-2 ${activeTab === "text"
-            ? "border-primary"
-            : "border-transparent text-slate-400 hover:text-slate-600"
-            }`}
+          className={`pb-4 font-bold text-sm transition-colors border-b-2 ${activeTab === "text" ? "border-primary" : "border-transparent text-slate-400 hover:text-slate-600"}`}
         >
           Texto do Aluno
         </button>
         <button
           onClick={() => onTabChange("proposal")}
-          className={`pb-4 font-bold text-sm transition-colors border-b-2 ${activeTab === "proposal"
-            ? "border-primary"
-            : "border-transparent text-slate-400 hover:text-slate-600"
-            }`}
+          className={`pb-4 font-bold text-sm transition-colors border-b-2 ${activeTab === "proposal" ? "border-primary" : "border-transparent text-slate-400 hover:text-slate-600"}`}
         >
           Proposta de Redação
         </button>
       </div>
 
-      <div className="p-8 md:p-10 overflow-y-auto h-full" onMouseUp={handleMouseUp}>
+      <div className="p-8 md:p-10 overflow-y-auto min-h-[8vh]" onMouseUp={handleMouseUp}>
         {activeTab === "text" ? (
           <div className="max-w-prose mx-auto relative" ref={contentRef}>
-
             {popover && (
               <div
                 onMouseUp={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="absolute z-50 bg-[#0F172A] text-white px-3 py-2.5 rounded-xl shadow-xl flex items-center gap-2 transform -translate-x-1/2 -translate-y-full animate-in fade-in zoom-in-95 duration-200"
+                className="absolute z-50 bg-slate-900 text-white px-3 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 transform -translate-x-1/2 -translate-y-full mb-2 animate-in fade-in zoom-in-95 duration-200"
                 style={{ top: popover.top, left: popover.left }}
               >
-                <span className="text-xs font-bold mr-1 opacity-80">
-                  {popover.existingId ? "Alterar:" : "Avaliar:"}
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-50 mr-1">
+                  {popover.existingId ? "Alterar" : "Vincular"}
                 </span>
 
-                {COMP_BUTTONS.map((btn) => {
-                  const isActive = popover.compId === btn.id;
-                  return (
-                    <button
-                      key={btn.id}
-                      onClick={() => addHighlight(btn.id)}
-                      className={`
-                        size-6 rounded-full text-[10px] font-bold hover:scale-110 transition-all 
-                        ${btn.bg} ${btn.text || "text-white"}
-                        ${isActive ? "ring-2 ring-white ring-offset-2 ring-offset-[#0F172A] scale-110" : ""}
-                      `}
-                    >
-                      {btn.id.toUpperCase()}
-                    </button>
-                  );
-                })}
+                {COMP_BUTTONS.map((btn) => (
+                  <button
+                    key={btn.id}
+                    onClick={() => addHighlight(btn.id)}
+                    className={`size-7 rounded-full text-[10px] font-black hover:scale-110 transition-all ${btn.bg} text-white ${popover.compId === btn.id ? "ring-2 ring-white ring-offset-2 ring-offset-slate-900 scale-110" : "opacity-80 hover:opacity-100"}`}
+                  >
+                    {btn.id.toUpperCase()}
+                  </button>
+                ))}
 
                 <div className="w-px h-4 bg-slate-700 mx-1"></div>
 
                 {popover.existingId && (
-                  <button
-                    onClick={() => removeHighlight(popover.existingId!)}
-                    className="text-red-400 hover:text-red-300 transition-colors mr-1"
-                    title="Remover marcação"
-                  >
+                  <button onClick={() => removeHighlight(popover.existingId!)} className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors">
                     <Trash2 className="size-4" />
                   </button>
                 )}
 
-                <button
-                  onClick={() => {
-                    window.getSelection()?.removeAllRanges();
-                    setPopover(null);
-                  }}
-                  className="text-slate-400 hover:text-white transition-colors"
-                  title="Fechar"
-                >
+                <button onClick={() => { window.getSelection()?.removeAllRanges(); setPopover(null); }} className="p-1.5 text-slate-400 hover:bg-slate-700 rounded-lg transition-colors">
                   <X className="size-4" />
                 </button>
 
-                {/* NOVO: A seta agora usa a propriedade arrowOffset para deslizar independentemente do menu! */}
                 <div
-                  className="absolute -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-[#0F172A] rotate-45 transition-all duration-200"
+                  className="absolute -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-slate-900 rotate-45 transition-all duration-200"
                   style={{ left: `calc(50% + ${popover.arrowOffset}px)` }}
                 ></div>
               </div>
             )}
 
-            <h2 className="text-2xl font-black mb-8 leading-tight">{essay.title}</h2>
+            <h2 className="text-2xl font-black mb-8 leading-tight text-slate-900">{essay.title}</h2>
 
-            <div className="space-y-6 text-slate-700 text-base leading-relaxed text-justify selection:bg-amber-200 selection:text-amber-900">
+            <div className="space-y-6 text-slate-800 text-lg leading-relaxed text-justify selection:bg-amber-200 selection:text-amber-900">
               {essay.text.split("\n\n").map((paragraph, idx) => (
-                <p key={idx}>
-                  {renderParagraph(paragraph)}
-                </p>
+                <p key={idx}>{renderParagraph(paragraph)}</p>
               ))}
             </div>
-
           </div>
         ) : (
-          <div className="text-slate-500 text-center py-20 font-medium">
-            Aqui apareceria a imagem ou texto da proposta original do tema.
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
+            <div className="p-4 bg-slate-50 rounded-full"><Trash2 className="size-8 opacity-20" /></div>
+            <p className="font-medium">Proposta de redação não disponível.</p>
           </div>
         )}
       </div>

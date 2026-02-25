@@ -5,6 +5,9 @@ interface GradingState {
   comments: Record<string, string>;
   generalComment: string;
 
+  activeHighlightComp: string | null;
+  setActiveHighlightComp: (id: string | null) => void;
+
   setScore: (compId: string, score: number) => void;
   setComment: (compId: string, comment: string) => void;
   setGeneralComment: (comment: string) => void;
@@ -29,6 +32,9 @@ export const useGradingStore = create<GradingState>((set, get) => ({
     set((state) => ({ comments: { ...state.comments, [compId]: comment } })),
 
   setGeneralComment: (comment) => set({ generalComment: comment }),
+
+  activeHighlightComp: null,
+  setActiveHighlightComp: (id) => set({ activeHighlightComp: id }),
 
   reset: () => set(initialState),
 
