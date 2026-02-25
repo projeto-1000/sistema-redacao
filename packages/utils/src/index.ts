@@ -59,3 +59,55 @@ export function formatMonth(date: string | Date): string {
   const dateObj = getDateObject(date);
   return format(dateObj, "MMM", { locale: ptBR }).toUpperCase();
 }
+
+// --- Deadline correção --- //
+
+const DEADLINE_HOURS = 24; // Atualizado para 24h conforme a nova regra
+
+export type DeadlineStatus = "urgent" | "warning" | "normal";
+
+export interface DeadlineInfo {
+  status: DeadlineStatus;
+  label: string;
+  text: string;
+}
+
+export function getDeadlineInfo(createdAtString: string | Date): DeadlineInfo {
+  const createdAt = new Date(createdAtString);
+  
+  // 1. Adiciona 24 horas corridas inicialmente
+  let deadline = new Date(createdAt.getTime() + DEADLINE_HOURS * 60 * 60 * 1000);
+
+  // 2. Regra de dias úteis: pula Sábado e Domingo
+  if (deadline.getDay() === 6) { // Caiu no Sábado -> pula pra Segunda
+    deadline = new Date(deadline.getTime() + 48 * 60 * 60 * 1000);
+  } else if (deadline.getDay() === 0) { // Caiu no Domingo -> pula pra Segunda
+    deadline = new Date(deadline.getTime() + 24 * 60 * 60 * 1000);
+  }
+
+  const now = new Date();
+  const diffMs = deadline.getTime() - now.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+  // Atrasado
+  if (diffHours < 0) {
+    return { status: "urgent", label: "ATRASADA", text: "Vencido" };
+  }
+  
+  // Limites de alerta
+  if (diffHours <= 6) {
+    return { status: "urgent", label: "URGENTE", text: `${diffHours}h` };
+  }
+  if (diffHours <= 12) {
+    return { status: "warning", label: "ATENÇÃO", text: `${diffHours}h` };
+  }
+  
+  // Se faltam mais de 24h (por conta do salto do fim de semana)
+  if (diffHours >= 24) {
+    const diffDays = Math.floor(diffHours / 24);
+    return { status: "normal", label: "EM DIA", text: `${diffDays}d` };
+  }
+
+  // Normal em horas
+  return { status: "normal", label: "EM DIA", text: `${diffHours}h` };
+}
