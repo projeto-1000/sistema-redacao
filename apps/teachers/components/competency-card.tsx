@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@repo/ui/components/button";
-import { Textarea } from "@repo/ui/components/textarea"; // Ajuste o caminho se necessário
-import { useGradingStore } from "@/stores/use-grading-store"; // Ajuste o caminho
+import { Textarea } from "@repo/ui/components/textarea";
+import { useGradingStore } from "@/stores/use-grading-store";
 
 const SCORE_LEVELS = [0, 40, 80, 120, 160, 200];
 
@@ -16,14 +16,13 @@ const COMPETENCY_STYLES = {
 
 interface CompetencyCardProps {
   comp: {
-    id: string; // Ex: "c1"
+    id: string;
     title: string;
     description: string;
   };
 }
 
 export function CompetencyCard({ comp }: CompetencyCardProps) {
-  // Puxa do Zustand apenas o que pertence a este card
   const score = useGradingStore((state) => state.scores[comp.id.toLowerCase()]);
   const comment = useGradingStore((state) => state.comments[comp.id.toLowerCase()]);
 
@@ -34,7 +33,7 @@ export function CompetencyCard({ comp }: CompetencyCardProps) {
 
   return (
     <div className={`bg-white p-6 rounded-3xl shadow-sm border border-slate-200 border-l-[6px] ${style.border} transition-all`}>
-      <h3 className="font-bold">{comp.title}</h3>
+      <h3 className="font-bold">{`${comp.id}: ${comp.title}`}</h3>
       <p className="text-sm text-slate-500 mb-5">{comp.description}</p>
 
       <div className="flex flex-wrap gap-2 mb-4">
@@ -43,8 +42,8 @@ export function CompetencyCard({ comp }: CompetencyCardProps) {
             key={level}
             onClick={() => setScore(comp.id.toLowerCase(), level)}
             className={`flex-1 min-w-12 py-2 rounded-xl text-sm font-bold transition-all ${score === level
-                ? "scale-105 bg-amber-400 text-slate-900 shadow-md shadow-amber-200/50"
-                : "bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100"
+              ? "scale-105 bg-amber-400 text-slate-900 shadow-md shadow-amber-200/50"
+              : "bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100"
               }`}
           >
             {level}

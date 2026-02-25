@@ -3,7 +3,11 @@
 import { Button } from "@repo/ui/components/button";
 import { useGradingStore } from "@/stores/use-grading-store";
 
-export function StickyScore() {
+interface StickyScoreProps {
+  essayId: string;
+}
+
+export function StickyScore({ essayId }: StickyScoreProps) {
   const totalScore = useGradingStore((state) => state.getTotalScore());
   const canSave = useGradingStore((state) => state.canSave());
 

@@ -36,3 +36,40 @@ export async function getEssaysByStatus({ status, limit }: GetEssaysParams) {
 
   return data;
 }
+
+export async function getEssayById(id: string) {
+  const supabase = await createClient();
+
+  const { data: essay, error: essayError } = await supabase
+    .from("essays")
+    .select(
+      `
+      *,
+      student:profiles!essays_student_id_fkey(full_name)
+    `
+    )
+    .eq("id", id)
+    .single();
+
+  if (essayError || !essay) {
+    console.error(`🚨 Erro ao buscar redação por ID (${id}):`, essayError);
+    return null;
+  }
+
+  const { data: motivationalTexts, error: textsError } = await supabase
+    .from("motivational_texts")
+    .select("*")
+    .eq("topic_id", essay.topic_id);
+
+  if (textsError) {
+    console.error(
+      `⚠️ Erro ao buscar textos motivadores para o tema ${essay.topic_id}:`,
+      textsError
+    );
+  }
+
+  return {
+    ...essay,
+    motivational_texts: motivationalTexts || [],
+  };
+}
