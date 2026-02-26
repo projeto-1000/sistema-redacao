@@ -3,7 +3,6 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
 import { Toaster } from "sonner";
-// import { Toaster } from "@repo/ui/components/sonner";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -22,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={`${lexend.variable} font-sans antialiased`}>
+      <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
         {children}
         <Toaster position="top-right" />
       </body>

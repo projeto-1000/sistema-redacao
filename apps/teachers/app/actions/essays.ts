@@ -2,7 +2,6 @@
 import { createClient } from "@/lib/server";
 import { CorrectionPayload } from "@repo/types";
 import { revalidatePath } from "next/cache";
-
 interface FinishedEssayResponse {
   id: string;
   title: string;
@@ -17,22 +16,20 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
   const supabase = await createClient();
   console.log({ essayId });
   console.log({ payload });
-  // 1. Pegar o professor logado
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
 
-  // 2. Preparar os dados para o Supabase
   const { error } = await supabase
     .from("essays")
     .update({
       status: "done",
-      teacher_id: user.id, // ID do professor atual
+      teacher_id: user.id,
       correction_date: new Date().toISOString(),
       updated_at: new Date().toISOString(),
 
-      // Notas e Comentários
       score_c1: payload.scores.c1,
       score_c2: payload.scores.c2,
       score_c3: payload.scores.c3,
@@ -45,13 +42,13 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
       comment_c5: payload.comments.c5,
 
       general_comment: payload.general_comment,
-      highlights: payload.highlights, // O novo campo JSONB
+      highlights: payload.highlights,
     })
     .eq("id", essayId);
 
   if (error) throw error;
   console.log({ error });
-  // 3. Revalidar as rotas para atualizar as listagens
+
   revalidatePath("/dashboard");
   revalidatePath(`/corrigir-redacao/${essayId}`);
 
@@ -61,7 +58,6 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
 export async function getFinishedEssays() {
   const supabase = await createClient();
 
-  // 2. Usamos o .returns<T[]>() para tipar a promessa do Supabase
   const { data, error } = await supabase
     .from("essays")
     .select(
@@ -84,7 +80,6 @@ export async function getFinishedEssays() {
     return [];
   }
 
-  // 3. O map agora é 100% seguro e com autocomplete
   return data.map((essay) => ({
     id: essay.id,
     student: essay.student?.full_name ?? "Estudante",
@@ -110,7 +105,6 @@ export async function getGradedEssay(id: string) {
 
   if (error || !data) return null;
 
-  // Mapeamento para o formato da UI
   return {
     studentName: data.student?.full_name || "Estudante",
     submittedAt: data.correction_date,

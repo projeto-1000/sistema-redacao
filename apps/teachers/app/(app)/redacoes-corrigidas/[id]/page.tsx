@@ -26,7 +26,6 @@ export default async function GradedEssayPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  // Unwrapping params conforme exigência do Next.js 16
   const { id } = await params;
   const essay = await getGradedEssay(id);
 
