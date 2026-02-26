@@ -3,7 +3,6 @@
 import { Button } from "@repo/ui/components/button";
 import { useGradingStore } from "@/stores/use-grading-store";
 import { Highlighter, CheckCircle2 } from "lucide-react";
-import { Textarea } from "@repo/ui/components/textarea";
 
 const SCORE_LEVELS = [0, 40, 80, 120, 160, 200];
 
@@ -99,7 +98,7 @@ export function CompetencyCard({
         ))}
       </div>
 
-      <Textarea
+      <textarea
         placeholder={`Justifique a pontuação da ${comp.id.toUpperCase()}...`}
         className="bg-slate-50 border-slate-200 rounded-xl resize-none w-full p-2 h-24 focus-visible:ring-amber-400/50 placeholder:text-slate-400"
         value={comment}
