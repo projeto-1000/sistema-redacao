@@ -364,6 +364,9 @@ importers:
       '@repo/tailwind-config':
         specifier: workspace:*
         version: link:../tailwind-config
+      '@repo/types':
+        specifier: workspace:*
+        version: link:../types
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
