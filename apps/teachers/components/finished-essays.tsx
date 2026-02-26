@@ -11,58 +11,28 @@ import {
   CalendarCheck
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
+import { formatDate } from "@repo/utils";
 
-// --- MOCK DATA ---
-const MOCK_FINISHED_DATA = [
-  {
-    id: 101,
-    student: "Lucas Oliveira",
-    topic: "O estigma associado às doenças mentais na sociedade brasileira",
-    correctedDate: "20/10/2023",
-    score: 920,
-  },
-  {
-    id: 102,
-    student: "Camila Fernandes",
-    topic: "Democratização do acesso ao cinema no Brasil",
-    correctedDate: "18/10/2023",
-    score: 880,
-  },
-  {
-    id: 103,
-    student: "Pedro Henrique",
-    topic: "Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil",
-    correctedDate: "15/10/2023",
-    score: 960,
-  },
-  {
-    id: 104,
-    student: "Juliana Costa",
-    topic: "Manipulação do comportamento do usuário pelo controle de dados na internet",
-    correctedDate: "12/10/2023",
-    score: 740,
-  },
-  {
-    id: 105,
-    student: "Rafael Souza",
-    topic: "Caminhos para combater a intolerância religiosa no Brasil",
-    correctedDate: "10/10/2023",
-    score: 420,
-  },
-];
+interface EssayData {
+  id: string | number;
+  student: string;
+  topic: string;
+  correctedDate: string;
+  score: number;
+}
 
-export function FinishedEssays() {
+export function FinishedEssays({ initialData }: { initialData: EssayData[] }) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredEssays = useMemo(() => {
-    return MOCK_FINISHED_DATA.filter((essay) => {
+    return initialData.filter((essay) => {
       const searchLower = searchTerm.toLowerCase();
       return (
         essay.student.toLowerCase().includes(searchLower) ||
         essay.topic.toLowerCase().includes(searchLower)
       );
     });
-  }, [searchTerm]);
+  }, [searchTerm, initialData]);
 
   // Função auxiliar para definir a cor do texto da nota
   const getScoreColor = (score: number) => {
@@ -134,7 +104,7 @@ export function FinishedEssays() {
                         {essay.student}
                       </h4>
                       <span className="text-xs text-slate-400">
-                        Corrigida em {essay.correctedDate}
+                        Corrigida em {formatDate(essay.correctedDate, 'numeric')}
                       </span>
                     </div>
                   </div>
@@ -170,7 +140,7 @@ export function FinishedEssays() {
                       asChild
                       className="rounded-full font-bold shadow-sm h-9 whitespace-nowrap"
                     >
-                      <Link href={`/editor/${essay.id}?view=true`}>
+                      <Link href={`/redacoes-corrigidas/${essay.id}`}>
                         Ver Correção
                         <ArrowRight className="size-4 ml-1.5" />
                       </Link>

@@ -3,6 +3,16 @@ import { createClient } from "@/lib/server";
 import { CorrectionPayload } from "@repo/types";
 import { revalidatePath } from "next/cache";
 
+interface FinishedEssayResponse {
+  id: string;
+  title: string;
+  correction_date: string | null;
+  total_score: number | null;
+  student: {
+    full_name: string | null;
+  } | null;
+}
+
 export async function saveEssayCorrection(essayId: string, payload: CorrectionPayload) {
   const supabase = await createClient();
   console.log({ essayId });
@@ -46,4 +56,82 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
   revalidatePath(`/corrigir-redacao/${essayId}`);
 
   return { success: true };
+}
+
+export async function getFinishedEssays() {
+  const supabase = await createClient();
+
+  // 2. Usamos o .returns<T[]>() para tipar a promessa do Supabase
+  const { data, error } = await supabase
+    .from("essays")
+    .select(
+      `
+      id,
+      title,
+      correction_date,
+      total_score,
+      student:profiles!essays_student_id_fkey (
+        full_name
+      )
+    `
+    )
+    .eq("status", "done")
+    .order("correction_date", { ascending: false })
+    .returns<FinishedEssayResponse[]>();
+
+  if (error || !data) {
+    console.error("Erro ao buscar redações:", error);
+    return [];
+  }
+
+  // 3. O map agora é 100% seguro e com autocomplete
+  return data.map((essay) => ({
+    id: essay.id,
+    student: essay.student?.full_name ?? "Estudante",
+    topic: essay.title,
+    correctedDate: essay.correction_date ?? "",
+    score: essay.total_score ?? 0,
+  }));
+}
+
+export async function getGradedEssay(id: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("essays")
+    .select(
+      `
+      *,
+      student:profiles!essays_student_id_fkey(full_name)
+    `
+    )
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+
+  // Mapeamento para o formato da UI
+  return {
+    studentName: data.student?.full_name || "Estudante",
+    submittedAt: data.correction_date,
+    title: data.title,
+    totalScore: data.total_score,
+    text: data.content,
+    highlights: data.highlights || [],
+    scores: {
+      c1: data.score_c1,
+      c2: data.score_c2,
+      c3: data.score_c3,
+      c4: data.score_c4,
+      c5: data.score_c5,
+    },
+    comments: {
+      c1: data.comment_c1,
+      c2: data.comment_c2,
+      c3: data.comment_c3,
+      c4: data.comment_c4,
+      c5: data.comment_c5,
+    },
+    generalComment: data.general_comment,
+  };
 }

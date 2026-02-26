@@ -1,10 +1,11 @@
 import { FinishedEssays } from "@/components/finished-essays";
+import { getFinishedEssays } from "@/app/actions/essays";
 
-export default function FinishedEssaysPage() {
+export default async function FinishedEssaysPage() {
+  const initialData = await getFinishedEssays();
 
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-4">
-      {/* Título da Página */}
+    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-4">
       <div className="mb-8">
         <h2 className="text-3xl font-extrabold tracking-tight mb-2">
           Redações Corrigidas
@@ -14,7 +15,7 @@ export default function FinishedEssaysPage() {
         </p>
       </div>
 
-      <FinishedEssays />
+      <FinishedEssays initialData={initialData} />
     </div>
   );
 }
