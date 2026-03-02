@@ -27,8 +27,17 @@ interface PopoverState {
   text: string;
   existingId?: string;
   compId?: keyof typeof HIGHLIGHT_STYLES;
+  startIndex?: number;
+  endIndex?: number;
 }
 
+interface HighlightData {
+  id: string;
+  text: string;
+  compId: string;
+  startIndex: number;
+  endIndex: number;
+}
 interface EssayViewerProps {
   essay: {
     id: string;
@@ -43,13 +52,13 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
   const highlights = useGradingStore((state) => state.highlights);
   const addHighlightStore = useGradingStore((state) => state.addHighlight);
   const removeHighlightStore = useGradingStore((state) => state.removeHighlight);
-
-  const [popover, setPopover] = useState<PopoverState | null>(null);
-
   const activeHighlightComp = useGradingStore((state) => state.activeHighlightComp);
   const setActiveHighlightComp = useGradingStore((state) => state.setActiveHighlightComp);
 
+  const [popover, setPopover] = useState<PopoverState | null>(null);
+
   const contentRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
 
   const calculatePopoverPosition = (rect: DOMRect, containerRect: DOMRect) => {
     const rawLeft = rect.left - containerRect.left + (rect.width / 2);
@@ -65,15 +74,38 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
     };
   };
 
-  const handleMouseUp = () => {
+  const getAbsoluteOffset = (range: Range) => {
+    const root = textRef.current;
+    if (!root) return { start: 0, end: 0 };
+
+    const preSelectionRange = range.cloneRange();
+    preSelectionRange.selectNodeContents(root);
+    preSelectionRange.setEnd(range.startContainer, range.startOffset);
+
+    const start = preSelectionRange.toString().length;
+    return {
+      start,
+      end: start + range.toString().length
+    };
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+
     setTimeout(() => {
       const selection = window.getSelection();
       const selectedText = selection?.toString().trim();
 
       if (!selection || selection.isCollapsed || !selectedText) {
-        setPopover((prev) => (prev?.existingId ? prev : null));
+        const isClickingHighlight = (e.target as HTMLElement).tagName === 'MARK';
+        if (!isClickingHighlight) {
+          setPopover((prev) => (prev?.existingId ? prev : null));
+        }
         return;
       }
+
+      const range = selection.getRangeAt(0);
+      const { start, end } = getAbsoluteOffset(range);
 
       if (activeHighlightComp) {
         const compKey = activeHighlightComp.toLowerCase() as keyof typeof HIGHLIGHT_STYLES;
@@ -81,7 +113,9 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
         addHighlightStore({
           id: crypto.randomUUID(),
           text: selectedText,
-          compId: compKey
+          compId: compKey,
+          startIndex: start,
+          endIndex: end
         });
 
         setActiveHighlightComp(null);
@@ -90,20 +124,21 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
         return;
       }
 
-      const range = selection.getRangeAt(0);
       const rects = range.getClientRects();
       const rect = rects.length > 0 ? rects[0] : range.getBoundingClientRect();
       const containerRect = contentRef.current?.getBoundingClientRect();
 
       if (rect && containerRect && contentRef.current) {
         const { top, left, arrowOffset } = calculatePopoverPosition(rect, containerRect);
-        setPopover({ text: selectedText, top, left, arrowOffset });
+        setPopover({ text: selectedText, top, left, arrowOffset, startIndex: start, endIndex: end });
       }
     }, 50);
   };
 
-  const handleMarkClick = (e: React.MouseEvent, highlight: any) => {
+  const handleMarkClick = (e: React.MouseEvent, highlight: HighlightData) => {
     e.stopPropagation();
+    e.preventDefault();
+
     const target = e.target as HTMLElement;
     const rects = target.getClientRects();
     const rect = rects.length > 0 ? rects[0] : target.getBoundingClientRect();
@@ -114,7 +149,9 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
       setPopover({
         text: highlight.text,
         existingId: highlight.id,
-        compId: highlight.compId,
+        compId: highlight.compId as keyof typeof HIGHLIGHT_STYLES,
+        startIndex: highlight.startIndex,
+        endIndex: highlight.endIndex,
         top,
         left,
         arrowOffset,
@@ -126,14 +163,15 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
     if (!popover) return;
 
     if (popover.existingId) {
-      // Se já existe, removemos para adicionar a versão atualizada (ou você pode criar um updateHighlight na store)
       removeHighlightStore(popover.existingId);
     }
 
     addHighlightStore({
       id: crypto.randomUUID(),
       text: popover.text,
-      compId
+      compId,
+      startIndex: popover.startIndex!,
+      endIndex: popover.endIndex!
     });
 
     window.getSelection()?.removeAllRanges();
@@ -146,37 +184,48 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
     setPopover(null);
   };
 
-  const renderParagraph = (paragraphText: string) => {
-    let result: React.ReactNode[] = [paragraphText];
+  const renderContent = () => {
+    const fullText = essay.text;
+    const sortedHighlights = [...highlights].sort((a, b) => a.startIndex - b.startIndex);
 
-    const sortedHighlights = [...highlights].sort((a, b) => b.text.length - a.text.length);
+    const elements: React.ReactNode[] = [];
+    let lastIndex = 0;
 
-    sortedHighlights.forEach((highlight) => {
-      const newResult: React.ReactNode[] = [];
-      result.forEach((part) => {
-        if (typeof part === "string" && part.includes(highlight.text)) {
-          const splitText = part.split(highlight.text);
-          splitText.forEach((fragment, index) => {
-            newResult.push(fragment);
-            if (index < splitText.length - 1) {
-              newResult.push(
-                <mark
-                  key={`${highlight.id}-${index}`}
-                  className={`cursor-pointer transition-opacity hover:opacity-80 pb-0.5 rounded-sm ${HIGHLIGHT_STYLES[highlight.compId as keyof typeof HIGHLIGHT_STYLES]}`}
-                  onClick={(e) => handleMarkClick(e, highlight)}
-                >
-                  {highlight.text}
-                </mark>
-              );
-            }
-          });
-        } else {
-          newResult.push(part);
-        }
-      });
-      result = newResult;
+    sortedHighlights.forEach((hl) => {
+      if (hl.startIndex > lastIndex) {
+        elements.push(fullText.slice(lastIndex, hl.startIndex));
+      }
+
+      elements.push(
+        <mark
+          key={hl.id}
+          className={`cursor-pointer transition-opacity hover:opacity-80 pb-0.5 rounded-sm ${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]}`}
+          onClick={(e) => handleMarkClick(e, hl)}
+        >
+          {fullText.slice(hl.startIndex, hl.endIndex)}
+        </mark>
+      );
+      lastIndex = hl.endIndex;
     });
-    return result;
+
+    elements.push(fullText.slice(lastIndex));
+
+    const paragraphs: React.ReactNode[][] = [[]];
+    elements.forEach((el) => {
+      if (typeof el === "string") {
+        const parts = el.split(/\r?\n\r?\n/);
+        parts.forEach((part, i) => {
+          if (i > 0) paragraphs.push([]);
+          paragraphs[paragraphs.length - 1]!.push(part);
+        });
+      } else {
+        paragraphs[paragraphs.length - 1]!.push(el);
+      }
+    });
+
+    return paragraphs.map((pContent, idx) => (
+      <p key={idx}>{pContent}</p>
+    ));
   };
 
   return (
@@ -241,10 +290,11 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
 
             <h2 className="text-2xl font-black mb-8 leading-tight text-slate-900">{essay.title}</h2>
 
-            <div className="space-y-6 text-slate-800 text-lg leading-relaxed text-justify wrap-break-word selection:bg-amber-200 selection:text-amber-900">
-              {essay.text.split("\n\n").map((paragraph, idx) => (
-                <p key={idx}>{renderParagraph(paragraph)}</p>
-              ))}
+            <div
+              ref={textRef}
+              className="space-y-6 text-slate-800 text-lg leading-relaxed text-justify wrap-break-word selection:bg-amber-200 selection:text-amber-900"
+            >
+              {renderContent()}
             </div>
           </div>
         ) : (
