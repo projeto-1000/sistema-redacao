@@ -18,7 +18,7 @@ export function Logo({ variant = "default", className = "", ...props }: LogoProp
     <img
       src={LOGO_PATHS[variant]}
       alt="Logo Projeto 1000"
-      className={`object-fit h-12 ${className}`}
+      className={`object-fit ${className}`}
       {...props}
     />
   );

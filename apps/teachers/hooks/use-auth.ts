@@ -9,6 +9,7 @@ export function useAuth() {
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const login = async (data: LoginSchema) => {
     try {
@@ -26,8 +27,7 @@ export function useAuth() {
       router.refresh();
       router.push("/dashboard");
     } catch (error: any) {
-      console.log(`Erro ao entrar: ${error.message}`);
-      throw new Error(error.message);
+      setAuthError(error.message);
     } finally {
       setIsLoggingIn(false);
     }
@@ -64,6 +64,7 @@ export function useAuth() {
 
   return {
     login,
+    authError,
     register,
     isLoggingIn,
     isRegistering,

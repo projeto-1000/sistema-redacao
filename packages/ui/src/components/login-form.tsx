@@ -1,12 +1,15 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { AlertCircleIcon, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./form";
 import { Input } from "./input";
 import { Button } from "./button";
 import { loginSchema, type LoginSchema } from "@repo/validators";
 import { useState } from "react";
+import { Logo } from "./logo";
+import { Alert, AlertDescription, AlertTitle } from "./alert";
+import { getErrorContent } from "@repo/utils";
 
 type AppType = "admin" | "teacher" | "student";
 
@@ -29,12 +32,15 @@ interface LoginFormProps {
   appType: AppType;
   onSubmit: (values: LoginSchema) => Promise<void>;
   isSubmitting?: boolean;
+  error: string | null
 }
 
-export function LoginForm({ appType, onSubmit, isSubmitting = false }: LoginFormProps) {
+export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   const texts = APP_CONFIG[appType];
+
+  const errorContent = getErrorContent(error);
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -52,25 +58,22 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false }: LoginForm
   };
 
   return (
-    <div className="w-full max-w-[480px] flex flex-col items-center">
+    <div className="w-full max-w-[500px] flex flex-col items-center">
 
-      <div className="mb-8 flex flex-col items-center gap-3">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Projeto 1000
-        </h1>
-      </div>
+      <Logo variant="full" className="h-22 mb-8" />
 
-      <Card className="w-full bg-white rounded-xl shadow-xl border border-[#e8e4ce]/30 p-8 md:p-10">
-        <CardHeader className="mb-8 text-center">
-          <CardTitle className="text-2xl font-bold leading-tight mb-2">
+      <Card className="w-full bg-white rounded-xl shadow-xl border border-[#e8e4ce]/30 p-8 md:p-4">
+
+        <CardHeader className="mb-2 text-center">
+          <CardTitle className="text-2xl font-bold leading-tight">
             {texts.title}
           </CardTitle>
-          <CardDescription className="text-[#9c8e49] text-sm">
+          <CardDescription className="text-[#9c8e49]">
             {texts.description}
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="p-0">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
 
@@ -101,6 +104,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false }: LoginForm
                       <div className="relative">
                         <Input
                           className="w-full rounded-3xl border-[#e8e4ce] h-12 p-3.5 focus:ring-1 focus:ring-primary"
+                          // className="w-full rounded-3xl border-[#e8e4ce] h-12 p-3.5 focus:ring-1 focus:ring-primary"
                           type={showPassword ? "text" : "password"}
                           placeholder="******"
                           {...field}
@@ -121,6 +125,9 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false }: LoginForm
                       </div>
                     </FormControl>
                     <FormMessage />
+                    <a className="hover:underline text-right text-sm text-[#9c8e49]" href="#">
+                      Esqueceu sua senha?
+                    </a>
                   </FormItem>
                 )}
               />
@@ -143,18 +150,25 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false }: LoginForm
           </Form>
         </CardContent>
 
+        {errorContent && (
+          <Alert variant="destructive" className="max-w-md text-left">
+            <AlertCircleIcon />
+            <AlertTitle>{errorContent.title}</AlertTitle>
+            <AlertDescription>
+              {errorContent.description}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <CardFooter className="flex flex-col justify-center">
-          <a className="hover:underline text-sm" href="#">
-            Esqueceu sua senha?
-          </a>
-          <div className=" w-full mt-4 pt-4 border-t border-[#e8e4ce] text-center text-sm">
+          <div className=" w-full pt-4 border-t border-[#e8e4ce] text-center">
             <p>
               Ainda não tem uma conta?
               <a className="text-primary font-bold hover:underline ml-1" href="/signup">Cadastre-se</a>
             </p>
           </div>
         </CardFooter>
-      </Card >
+      </Card>
     </div >
   );
 }

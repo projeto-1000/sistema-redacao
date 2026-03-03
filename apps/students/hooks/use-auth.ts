@@ -1,35 +1,43 @@
-import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { createClient } from "@/lib/client";
 import { LoginSchema, RegisterSchema } from "@repo/validators";
 import { useRouter } from "next/navigation";
 
-// TODO: fazer tratamento correto dos erros
 export function useAuth() {
   const supabase = createClient();
   const router = useRouter();
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginSchema) => {
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const login = async (data: LoginSchema) => {
+    try {
+      setIsLoggingIn(true);
+
+      const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
 
-      if (error) throw new Error(error.message);
-      return authData;
-    },
-    onSuccess: () => {
-      router.push("/dashboard");
-      router.refresh();
-    },
-    onError: (error) => {
-      alert(`Erro ao entrar: ${error.message}`);
-    },
-  });
+      if (error) {
+        throw error;
+      }
 
-  const registerMutation = useMutation({
-    mutationFn: async (data: RegisterSchema) => {
-      const { data: authData, error } = await supabase.auth.signUp({
+      router.refresh();
+      router.push("/dashboard");
+    } catch (error: any) {
+      setAuthError(error.message);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const register = async (data: RegisterSchema) => {
+    try {
+      setIsRegistering(true);
+
+      const { error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -40,22 +48,25 @@ export function useAuth() {
         },
       });
 
-      if (error) throw new Error(error.message);
-      return authData;
-    },
-    // TODO: entender o fluxo de cadastro: entra direto ou precisa confirmar algo no e-mail? como será gerenciada a assinatura?
-    onSuccess: () => {
+      if (error) {
+        throw error;
+      }
+
+      router.refresh();
       router.push("/dashboard");
-    },
-    onError: (error) => {
-      alert(`Erro ao criar conta: ${error.message}`);
-    },
-  });
+    } catch (error: any) {
+      console.log(`Erro ao criar conta: ${error.message}`);
+      throw new Error(error.message);
+    } finally {
+      setIsRegistering(false);
+    }
+  };
 
   return {
-    login: loginMutation.mutateAsync,
-    register: registerMutation.mutateAsync,
-    isLoggingIn: loginMutation.isPending,
-    isRegistering: registerMutation.isPending,
+    login,
+    authError,
+    register,
+    isLoggingIn,
+    isRegistering,
   };
 }
