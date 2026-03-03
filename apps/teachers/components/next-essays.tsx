@@ -3,8 +3,15 @@ import { getDeadlineInfo, getHolidays } from "@repo/utils";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
+//TODO: melhorar isso aqui 
 const STATUS_STYLES = {
   urgent: {
+    border: "border-l-red-500",
+    badgeBg: "bg-red-100",
+    badgeText: "text-red-700",
+    timeText: "text-red-500",
+  },
+  expired: {
     border: "border-l-red-500",
     badgeBg: "bg-red-100",
     badgeText: "text-red-700",
@@ -26,6 +33,7 @@ const STATUS_STYLES = {
 
 export async function NextEssays() {
   const essays = await getEssaysByStatus({ status: 'pending', limit: 3 });
+
   if (!essays || essays.length === 0) {
     return (
       <div className="p-8 text-center text-slate-500 w-full">
@@ -71,7 +79,11 @@ export async function NextEssays() {
 
               {/* Tempo Restante */}
               <div className="text-right shrink-0">
-                <span className="text-[10px] font-medium text-slate-400 block mb-0.5">Restam</span>
+                {deadlineInfo.status !== "expired" && (
+                  <span className="text-[10px] font-medium text-slate-400 block mb-0.5">
+                    {deadlineInfo.text === '1h' ? 'Resta' : 'Restam'}
+                  </span>
+                )}
                 <span className={`text-2xl font-bold leading-none ${style.timeText}`}>
                   {deadlineInfo.text}
                 </span>

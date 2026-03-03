@@ -1,6 +1,6 @@
 const DEADLINE_HOURS = 24;
 
-export type DeadlineStatus = "urgent" | "warning" | "normal";
+export type DeadlineStatus = "urgent" | "warning" | "normal" | "expired";
 
 export interface DeadlineInfo {
   status: DeadlineStatus;
@@ -47,7 +47,7 @@ export function getDeadlineInfo(date: string | Date, holidays: string[] = []): D
   // Dá o salto inicial de 24 horas
   let deadline = new Date(createdAt.getTime() + DEADLINE_HOURS * 60 * 60 * 1000);
 
-  // A MÁGICA: Enquanto for Fim de Semana (0=Dom, 6=Sáb) OU Feriado, empurra +24h!
+  // Enquanto for Fim de Semana (0=Dom, 6=Sáb) OU Feriado, empurra +24h!
   while (deadline.getDay() === 0 || deadline.getDay() === 6 || isHoliday(deadline, holidays)) {
     deadline = new Date(deadline.getTime() + 24 * 60 * 60 * 1000);
   }
@@ -58,7 +58,7 @@ export function getDeadlineInfo(date: string | Date, holidays: string[] = []): D
 
   // Atrasado
   if (diffHours < 0) {
-    return { status: "urgent", label: "ATRASADA", text: "Vencido" };
+    return { status: "expired", label: "ATRASADA", text: "Vencido" };
   }
   
   // Alertas
