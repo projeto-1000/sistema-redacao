@@ -43,7 +43,7 @@ export function PendingEssaysClient({ initialEssays }: PendingEssaysClientProps)
   const renderStatusBadge = (status: string, text: string, label: string) => {
     let classes = "border-blue-500 text-blue-700 bg-blue-100"; // Default (Normal)
 
-    if (status === 'urgent') {
+    if (status === 'urgent' || status === 'expired') {
       classes = "border-red-500 text-red-700 bg-red-100";
     } else if (status === 'warning') {
       classes = "border-amber-400 text-amber-700 bg-amber-100";
