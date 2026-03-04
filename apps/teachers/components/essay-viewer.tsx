@@ -209,23 +209,7 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
     });
 
     elements.push(fullText.slice(lastIndex));
-
-    const paragraphs: React.ReactNode[][] = [[]];
-    elements.forEach((el) => {
-      if (typeof el === "string") {
-        const parts = el.split(/\r?\n\r?\n/);
-        parts.forEach((part, i) => {
-          if (i > 0) paragraphs.push([]);
-          paragraphs[paragraphs.length - 1]!.push(part);
-        });
-      } else {
-        paragraphs[paragraphs.length - 1]!.push(el);
-      }
-    });
-
-    return paragraphs.map((pContent, idx) => (
-      <p key={idx}>{pContent}</p>
-    ));
+    return elements;
   };
 
   return (
@@ -292,9 +276,7 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
 
             <div
               ref={textRef}
-              className="space-y-6 text-slate-800 text-lg leading-relaxed text-justify wrap-break-word selection:bg-slate-300"
-            //TODO: REMOVE COMMENT
-            // className="space-y-6 text-slate-800 text-lg leading-relaxed text-justify wrap-break-word selection:bg-amber-200 selection:text-amber-900"
+              className="text-slate-800 text-lg leading-relaxed text-justify wrap-break-word whitespace-pre-wrap selection:bg-slate-300"
             >
               {renderContent()}
             </div>

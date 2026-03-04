@@ -77,8 +77,7 @@ export function StickyScore({ essayId }: StickyScoreProps) {
       <Button
         onClick={handleSave}
         disabled={!canSave || isSaving}
-        className={`font-bold rounded-2xl px-6 h-12 transition-all ${canSave && !isSaving ? "shadow-lg shadow-amber-200" : "bg-slate-100 text-slate-400"
-          }`}
+        className="font-bold rounded-2xl px-6 h-12 transition-all shadow-lg shadow-amber-200"
       >
         {isSaving ? (
           <>
