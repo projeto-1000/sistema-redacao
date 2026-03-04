@@ -1,6 +1,6 @@
 import React from "react";
 
-type LogoVariant = "default" | "full" | "icon";
+type LogoVariant = "default" | "icon";
 
 interface LogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   variant?: LogoVariant;
@@ -8,7 +8,6 @@ interface LogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 
 const LOGO_PATHS: Record<LogoVariant, string> = {
   default: "/logo.svg",
-  full: "/logo-full.svg",
   icon: "/logo-icon.svg",
 };
 
