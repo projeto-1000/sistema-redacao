@@ -292,7 +292,9 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
 
             <div
               ref={textRef}
-              className="space-y-6 text-slate-800 text-lg leading-relaxed text-justify wrap-break-word selection:bg-amber-200 selection:text-amber-900"
+              className="space-y-6 text-slate-800 text-lg leading-relaxed text-justify wrap-break-word selection:bg-slate-300"
+            //TODO: REMOVE COMMENT
+            // className="space-y-6 text-slate-800 text-lg leading-relaxed text-justify wrap-break-word selection:bg-amber-200 selection:text-amber-900"
             >
               {renderContent()}
             </div>
