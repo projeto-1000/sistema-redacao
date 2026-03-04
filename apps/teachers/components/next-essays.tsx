@@ -45,7 +45,7 @@ export async function NextEssays() {
   const holidays = await getHolidays();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {essays.map((essay) => {
         const studentName = (essay.student as unknown as { full_name: string })?.full_name || "Aluno(a)";
         const initials = studentName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
@@ -60,9 +60,9 @@ export async function NextEssays() {
           >
             {/* Header do Card */}
             <div className="flex justify-between items-start mb-4 gap-2">
-              <div className="flex gap-3 min-w-0">
+              <div className="flex gap-2 min-w-0">
                 {/* Avatar */}
-                <div className="size-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
+                <div className="size-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
                   {initials}
                 </div>
 
@@ -84,6 +84,7 @@ export async function NextEssays() {
                     {deadlineInfo.text === '1h' ? 'Resta' : 'Restam'}
                   </span>
                 )}
+
                 <span className={`text-2xl font-bold leading-none ${style.timeText}`}>
                   {deadlineInfo.text}
                 </span>
