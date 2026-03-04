@@ -60,7 +60,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
   return (
     <div className="w-full max-w-[500px] flex flex-col items-center">
 
-      <Logo variant="full" className="h-22 mb-8" />
+      <Logo className="h-22 mb-8" />
 
       <Card className="w-full bg-white rounded-xl shadow-xl border border-[#e8e4ce]/30 p-8 md:p-4">
 
