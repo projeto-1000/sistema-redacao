@@ -29,6 +29,7 @@ interface PopoverState {
   compId?: keyof typeof HIGHLIGHT_STYLES;
   startIndex?: number;
   endIndex?: number;
+  segments?: { start: number; end: number; text: string }[];
 }
 
 interface HighlightData {
@@ -106,6 +107,36 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
 
       const range = selection.getRangeAt(0);
       const { start, end } = getAbsoluteOffset(range);
+
+      let segments = [{ start, end }];
+
+      for (const hl of highlights) {
+        const newSegments: { start: number; end: number }[] = [];
+
+        for (const seg of segments) {
+          if (hl.endIndex <= seg.start || hl.startIndex >= seg.end) {
+            newSegments.push(seg);
+          } else {
+            if (seg.start < hl.startIndex) {
+              newSegments.push({ start: seg.start, end: hl.startIndex });
+            }
+            if (seg.end > hl.endIndex) {
+              newSegments.push({ start: hl.endIndex, end: seg.end });
+            }
+          }
+        }
+        segments = newSegments;
+      }
+
+      const validSegments = segments
+        .map(seg => ({ ...seg, text: essay.text.substring(seg.start, seg.end) }))
+        .filter(seg => seg.text.trim().length > 0);
+
+      if (validSegments.length === 0) {
+        selection.removeAllRanges();
+        setPopover(null);
+        return;
+      }
 
       if (activeHighlightComp) {
         const compKey = activeHighlightComp.toLowerCase() as keyof typeof HIGHLIGHT_STYLES;
@@ -186,14 +217,19 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
 
   const renderContent = () => {
     const fullText = essay.text;
+
     const sortedHighlights = [...highlights].sort((a, b) => a.startIndex - b.startIndex);
 
     const elements: React.ReactNode[] = [];
     let lastIndex = 0;
 
     sortedHighlights.forEach((hl) => {
-      if (hl.startIndex > lastIndex) {
-        elements.push(fullText.slice(lastIndex, hl.startIndex));
+      const renderStart = Math.max(hl.startIndex, lastIndex);
+
+      if (renderStart >= hl.endIndex) return;
+
+      if (renderStart > lastIndex) {
+        elements.push(fullText.slice(lastIndex, renderStart));
       }
 
       elements.push(
@@ -202,9 +238,10 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
           className={`cursor-pointer transition-opacity hover:opacity-80 pb-0.5 rounded-sm ${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]}`}
           onClick={(e) => handleMarkClick(e, hl)}
         >
-          {fullText.slice(hl.startIndex, hl.endIndex)}
+          {fullText.slice(renderStart, hl.endIndex)}
         </mark>
       );
+
       lastIndex = hl.endIndex;
     });
 
@@ -276,7 +313,7 @@ export function EssayViewer({ essay, activeTab, onTabChange }: EssayViewerProps)
 
             <div
               ref={textRef}
-              className="text-slate-800 text-lg leading-relaxed text-justify wrap-break-word whitespace-pre-wrap selection:bg-slate-300"
+              className="text-slate-800 text-lg leading-relaxed text-justify wrap-break-word whitespace-pre-wrap selection:bg-slate-200 selection:font-bold"
             >
               {renderContent()}
             </div>

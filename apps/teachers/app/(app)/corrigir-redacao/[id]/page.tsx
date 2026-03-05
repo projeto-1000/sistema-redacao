@@ -6,7 +6,7 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function CorrigirRedacaoPage({ params }: PageProps) {
+export default async function EssayCorrectionPage({ params }: PageProps) {
   const { id } = await params;
 
   const essay = await getEssayById(id);
@@ -17,7 +17,7 @@ export default async function CorrigirRedacaoPage({ params }: PageProps) {
 
   const formattedEssay = {
     id: essay.id,
-    student: (essay.student as any)?.full_name || "Aluno(a)",
+    student: essay.student.full_name || "Aluno(a)",
     topic: essay.title,
     title: essay.title,
     text: essay.content,
