@@ -12,12 +12,14 @@ interface HeaderProps {
   items: NavItem[];
   activePath?: string;
   onLogout: () => void;
+  variant?: 'default' | 'admin'
 }
 
 export function Header({
   items,
   activePath = '',
   onLogout,
+  variant = 'default'
 }: HeaderProps) {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -40,7 +42,7 @@ export function Header({
                 className={`
                   py-1 border-b-2 transition-colors duration-300
                   ${isActive
-                    ? "text-gray-900 border-yellow-400 font-bold"
+                    ? `text-gray-900 ${variant === 'default' ? 'border-yellow-400' : 'border-secondary'} font-bold`
                     : "text-gray-600 border-transparent hover:text-primary"
                   }
                 `}
@@ -84,7 +86,7 @@ export function Header({
                   className={`
                     px-4 py-3 rounded-md text-sm font-medium transition-colors
                     ${isActive
-                      ? "text-primary font-bold"
+                      ? `${variant === 'default' ? 'text-primary' : 'text-secondary'} font-bold`
                       : "text-gray-600 hover:bg-slate-50 hover:text-primary"
                     }
                   `}

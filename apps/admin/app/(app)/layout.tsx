@@ -16,9 +16,7 @@ export default function AppLayout({
 
   const navItems = [
     { label: "Início", href: "/inicio" },
-    // { label: "Temas", href: "/temas" },
-    // { label: "Minhas Redações", href: "/minhas-redacoes" },
-    // { label: "Meu perfil", href: "/perfil" },
+    { label: 'Alunos', href: '/alunos' }
   ];
 
   const handleLogout = async () => {
@@ -33,6 +31,7 @@ export default function AppLayout({
         items={navItems}
         activePath={pathname}
         onLogout={handleLogout}
+        variant="admin"
       />
 
       <main className="flex-1 w-full p-6 md:p-8 bg-slate-50">
