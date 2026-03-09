@@ -43,7 +43,7 @@ export function Header({
                   py-1 border-b-2 transition-colors duration-300
                   ${isActive
                     ? `text-gray-900 ${variant === 'default' ? 'border-yellow-400' : 'border-secondary'} font-bold`
-                    : "text-gray-600 border-transparent hover:text-primary"
+                    : `text-gray-600 border-transparent ${variant === 'default' ? 'hover:text-primary' : 'hover:text-secondary'}`
                   }
                 `}
               >
@@ -87,7 +87,7 @@ export function Header({
                     px-4 py-3 rounded-md text-sm font-medium transition-colors
                     ${isActive
                       ? `${variant === 'default' ? 'text-primary' : 'text-secondary'} font-bold`
-                      : "text-gray-600 hover:bg-slate-50 hover:text-primary"
+                      : `text-gray-600 hover:bg-slate-50 ${variant === 'default' ? 'hover:text-primary' : 'hover:text-secondary'}`
                     }
                   `}
                 >
