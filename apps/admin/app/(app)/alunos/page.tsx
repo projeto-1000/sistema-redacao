@@ -117,8 +117,8 @@ export default function ManageStudentsPage() {
 
         {/* Cabeçalho Desktop (Escondido no Mobile) */}
         <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-4 border-b border-slate-100 bg-slate-50/50">
-          <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estudante</div>
-          <div className="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</div>
+          <div className="col-span-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aluno</div>
+          <div className="col-span-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</div>
           <div className="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Plano</div>
           <div className="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Créditos</div>
           <div className="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vigência</div>
@@ -134,7 +134,7 @@ export default function ManageStudentsPage() {
             >
 
               {/* Estudante */}
-              <div className="col-span-1 lg:col-span-3 flex items-center gap-4">
+              <div className="col-span-1 lg:col-span-4 flex items-center gap-4">
                 <div className={`size-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${student.avatarBg}`}>
                   {student.initials}
                 </div>
@@ -145,7 +145,7 @@ export default function ManageStudentsPage() {
               </div>
 
               {/* Status */}
-              <div className="col-span-1 lg:col-span-2 flex flex-row lg:flex-col items-center lg:items-start justify-between lg:justify-center mt-2 lg:mt-0">
+              <div className="col-span-1 lg:col-span-1 flex flex-row lg:flex-col items-center lg:items-start justify-between lg:justify-center mt-2 lg:mt-0">
                 <span className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
                 <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${student.status === "ATIVO" ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
                   }`}>
