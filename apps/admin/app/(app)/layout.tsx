@@ -16,7 +16,8 @@ export default function AppLayout({
 
   const navItems = [
     { label: "Início", href: "/inicio" },
-    { label: 'Alunos', href: '/alunos' }
+    { label: 'Alunos', href: '/alunos' },
+    { label: 'Temas', href: '/temas' },
   ];
 
   const handleLogout = async () => {
