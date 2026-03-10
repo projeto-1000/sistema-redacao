@@ -11,6 +11,7 @@ import {
   Eye
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
+import Link from "next/link";
 
 // Mocks baseados no Figma
 const themesData = [
@@ -59,9 +60,11 @@ export default function ThemesCatalogPage() {
               Padronização e organização do banco de temas ENEM.
             </p>
           </div>
-          <Button className="font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-full h-11 px-6 shadow-sm w-full sm:w-auto">
-            <Plus className="size-4 mr-2" />
-            Adicionar Novo Tema
+          <Button asChild className="font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-full h-11 px-6 shadow-sm w-full sm:w-auto">
+            <Link href='/temas/novo-tema'>
+              <Plus className="size-4 mr-2" />
+              Adicionar Novo Tema
+            </Link>
           </Button>
         </div>
 
