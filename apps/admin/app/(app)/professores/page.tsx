@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
+import Link from "next/link";
 
 // Mocks baseados no Figma
 const teachersData = [
@@ -37,9 +38,11 @@ export default function TeachersManagementPage() {
               </p>
             </div>
             {/* Mantido no azul padrão do painel, substituindo o amarelo do design */}
-            <Button className="font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-full h-11 px-6 shadow-sm w-full sm:w-auto">
-              <Plus className="size-4 mr-2" />
-              Adicionar Novo Professor
+            <Button asChild className="font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-full h-11 px-6 shadow-sm w-full sm:w-auto">
+              <Link href='/'>
+                <Plus className="size-4 mr-2" />
+                Adicionar Novo Professor
+              </Link>
             </Button>
           </div>
 
@@ -107,8 +110,8 @@ export default function TeachersManagementPage() {
                   <div className="col-span-1 lg:col-span-2 flex justify-between lg:block">
                     <span className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
                     <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${teacher.status === "Ativo" ? "bg-emerald-50 text-emerald-600" :
-                        teacher.status === "Pendente" ? "bg-amber-50 text-amber-600" :
-                          "bg-slate-100 text-slate-500"
+                      teacher.status === "Pendente" ? "bg-amber-50 text-amber-600" :
+                        "bg-slate-100 text-slate-500"
                       }`}>
                       {teacher.status}
                     </span>
