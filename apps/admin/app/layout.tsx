@@ -22,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body className={`${lexend.variable} font-sans antialiased`}>
+      <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
         <TooltipProvider>
           {children}
         </TooltipProvider>
