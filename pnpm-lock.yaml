@@ -47,6 +47,9 @@ importers:
       react-dom:
         specifier: ^19.1.0
         version: 19.2.0(react@19.2.0)
+      recharts:
+        specifier: ^3.7.0
+        version: 3.7.0(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react-is@16.13.1)(react@19.2.0)(redux@5.0.1)
     devDependencies:
       '@next/eslint-plugin-next':
         specifier: ^15.4.6
