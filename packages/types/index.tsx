@@ -81,3 +81,13 @@ export interface CorrectionPayload {
     compId: string;
   }[];
 }
+
+export type EssayType = {
+  id: string;
+  student: string;
+  topic: string;
+  submissionDate: string;
+  deadline: string;
+  status: "urgent" | "warning" | "normal" | "expired";
+  deadlineLabel: string;
+};
