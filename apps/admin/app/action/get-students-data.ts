@@ -1,15 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import { StudentListItem } from "../types";
+import { GetStudentsFilters, StudentListItem } from "../types";
 import { revalidatePath } from "next/cache";
-
-type GetStudentsFilters = {
-  search?: string;
-  status?: string;
-  from?: string;
-  to?: string;
-};
 
 export async function getStudentsCount(): Promise<number> {
   const supabase = await createClient();

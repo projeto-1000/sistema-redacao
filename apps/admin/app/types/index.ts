@@ -11,3 +11,11 @@ export type StudentListItem = {
   validityEnd?: string;
   validityType?: string;
 };
+
+export type GetStudentsFilters = {
+  search?: string;
+  status?: string;
+  plan?: string;
+  from?: string;
+  to?: string;
+};

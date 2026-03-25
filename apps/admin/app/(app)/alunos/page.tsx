@@ -1,7 +1,8 @@
 import { getStudentsCount, getStudentsList } from "@/app/action/get-students-data";
+import { ExportCsvButton } from "@/components/export-csv-button";
 import { StudentTable } from "@/components/student-table";
 import { Button } from "@repo/ui/components/button";
-import { Upload, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 export default async function StudentsPage({
   searchParams,
@@ -41,10 +42,13 @@ export default async function StudentsPage({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 rounded-xl h-10 ">
+          {/* <Button variant="outline" className="font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 rounded-xl h-10 ">
             <Upload className="size-4 mr-2" />
             Exportar CSV
-          </Button>
+          </Button> */}
+
+          <ExportCsvButton filters={filters} />
+
           <Button className="font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 shadow-sm">
             <Plus className="size-4 mr-2" />
             Novo Aluno
