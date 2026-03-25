@@ -27,12 +27,19 @@ export async function getStudentsCount(): Promise<number> {
   return count || 0;
 }
 
-export async function getStudentsList(filters?: GetStudentsFilters): Promise<StudentListItem[]> {
+export async function getStudentsList(
+  filters?: GetStudentsFilters,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ data: StudentListItem[]; totalPages: number }> {
   const supabase = await createClient();
+
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
 
   let query = supabase
     .from("profiles")
-    .select(`id, full_name, email, status, avatar_url`)
+    .select(`id, full_name, email, status, avatar_url`, { count: "exact" })
     .eq("role", "STUDENT");
 
   if (filters?.search) {
@@ -55,14 +62,19 @@ export async function getStudentsList(filters?: GetStudentsFilters): Promise<Stu
     query = query.lte("created_at", filters.to);
   }
 
-  const { data, error } = await query.order("full_name", { ascending: true });
+  const { data, count, error } = await query
+    .range(rangeStart, rangeEnd)
+    .order("full_name", { ascending: true });
 
   if (error) {
     console.error("Erro ao buscar lista de alunos:", error);
-    return [];
+    return { data: [], totalPages: 0 };
   }
 
-  return data as StudentListItem[];
+  return {
+    data: data as StudentListItem[],
+    totalPages: count ? Math.ceil(count / limit) : 0,
+  };
 }
 
 export async function updateStudentStatus(studentId: string, currentStatus: string) {

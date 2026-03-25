@@ -17,10 +17,16 @@ export default async function StudentsPage({
     to: typeof resolvedParams?.to === 'string' ? resolvedParams.to : undefined,
   };
 
-  const [totalCount, studentList] = await Promise.all([
+  const page = Number(resolvedParams?.page) || 1;
+
+  const perPage = 10
+
+  const [totalCount, studentsResponse] = await Promise.all([
     getStudentsCount(),
-    getStudentsList(filters)
+    getStudentsList(filters, page, perPage)
   ]);
+
+  const { data: studentList, totalPages } = studentsResponse;
 
   return (
     <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-8">
@@ -39,14 +45,14 @@ export default async function StudentsPage({
             <Upload className="size-4 mr-2" />
             Exportar CSV
           </Button>
-          <Button className="font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10  shadow-sm">
+          <Button className="font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 shadow-sm">
             <Plus className="size-4 mr-2" />
             Novo Aluno
           </Button>
         </div>
       </div>
 
-      <StudentTable students={studentList} />
+      <StudentTable students={studentList} totalPages={totalPages} />
     </div>
   );
 }

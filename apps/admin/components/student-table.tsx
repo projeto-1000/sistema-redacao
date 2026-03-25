@@ -4,12 +4,14 @@ import { TableFilterBar } from "@repo/ui/components/table-filter-bar";
 import { StudentListItem } from "@/app/types";
 import { StudentTableRow } from "./student-table-row";
 import { useStudentFilters } from "@/hooks/use-student-filters";
+import { TablePagination } from "./table-pagination";
 
 interface StudentTableProps {
   students: StudentListItem[];
+  totalPages: number;
 }
 
-export function StudentTable({ students }: StudentTableProps) {
+export function StudentTable({ students, totalPages }: StudentTableProps) {
   const {
     searchTerm,
     setSearchTerm,
@@ -50,6 +52,10 @@ export function StudentTable({ students }: StudentTableProps) {
               <StudentTableRow key={student.id} student={student} />
             ))
           )}
+        </div>
+
+        <div className={`px-8 py-4 border-t border-slate-100 bg-slate-50 ${totalPages === 1 ? 'hidden' : 'block'}`}>
+          <TablePagination totalPages={totalPages} />
         </div>
 
       </div>

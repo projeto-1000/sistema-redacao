@@ -30,17 +30,11 @@ export function useStudentFilters() {
     if (debouncedSearch) params.set("search", debouncedSearch);
     else params.delete("search");
 
-    if (statusFilter && statusFilter !== "all") {
-      params.set("status", statusFilter);
-    } else {
-      params.delete("status");
-    }
+    if (statusFilter && statusFilter !== "all") params.set("status", statusFilter);
+    else params.delete("status");
 
-    if (planFilter && planFilter !== "all") {
-      params.set("plan", planFilter);
-    } else {
-      params.delete("plan");
-    }
+    if (planFilter && planFilter !== "all") params.set("plan", planFilter);
+    else params.delete("plan");
 
     if (dateRange?.from) params.set("from", dateRange.from.toISOString());
     else params.delete("from");
@@ -52,7 +46,8 @@ export function useStudentFilters() {
     const newQueryString = params.toString();
 
     if (currentQueryString !== newQueryString) {
-      router.replace(`${pathname}?${newQueryString}`, { scroll: false });
+      params.delete("page");
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     }
   }, [debouncedSearch, statusFilter, planFilter, dateRange, pathname, router, searchParams]);
 
@@ -84,11 +79,5 @@ export function useStudentFilters() {
     },
   ];
 
-  return {
-    searchTerm,
-    setSearchTerm,
-    dateRange,
-    setDateRange,
-    filterOptions,
-  };
+  return { searchTerm, setSearchTerm, dateRange, setDateRange, filterOptions };
 }
