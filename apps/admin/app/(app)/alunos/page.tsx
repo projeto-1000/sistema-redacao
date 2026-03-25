@@ -42,10 +42,6 @@ export default async function StudentsPage({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {/* <Button variant="outline" className="font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 rounded-xl h-10 ">
-            <Upload className="size-4 mr-2" />
-            Exportar CSV
-          </Button> */}
 
           <ExportCsvButton filters={filters} />
 

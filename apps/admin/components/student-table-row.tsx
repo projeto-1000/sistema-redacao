@@ -7,6 +7,7 @@ import { Button } from "@repo/ui/components/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/components/tooltip";
 import { StudentListItem } from "@/app/types";
 import { updateStudentStatus } from "@/app/action/get-students-data";
+import Link from "next/link";
 
 const STATUS_MAP = {
   active: { label: "ATIVO", colors: "bg-emerald-50 text-emerald-600" },
@@ -99,8 +100,12 @@ export function StudentTableRow({ student }: { student: StudentListItem }) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                <Eye className="size-4.5" />
+              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                asChild
+              >
+                <Link href={`/alunos/${optimisticStudent.id}`}>
+                  <Eye className="size-4.5" />
+                </Link>
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-slate-900 text-white font-medium text-xs rounded-lg border-none">

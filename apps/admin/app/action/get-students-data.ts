@@ -70,14 +70,23 @@ export async function getStudentsList(
   };
 }
 
-export async function updateStudentStatus(studentId: string, currentStatus: string) {
-  console.log("🟡 Iniciando atualização para o aluno:", studentId, "Status atual:", currentStatus);
+export async function getStudentById(studentId: string) {
+  const supabase = await createClient();
 
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", studentId).single();
+
+  if (error || !data) {
+    console.error("Erro ao buscar detalhes do aluno:", error);
+    return null;
+  }
+
+  return data;
+}
+
+export async function updateStudentStatus(studentId: string, currentStatus: string) {
   const supabase = await createClient();
   const newStatus = currentStatus === "active" ? "blocked" : "active";
 
-  // O .select() no final é crucial: ele força o Supabase a devolver a linha alterada.
-  // Se o RLS bloquear, ele devolve erro ou um array vazio.
   const { data, error } = await supabase
     .from("profiles")
     .update({ status: newStatus })
@@ -89,12 +98,125 @@ export async function updateStudentStatus(studentId: string, currentStatus: stri
     throw new Error(error.message);
   }
 
-  // Se o RLS bloqueou silenciosamente, o data vem vazio
   if (!data || data.length === 0) {
     console.error("❌ ERRO RLS: Nenhuma linha foi atualizada. Verifique as políticas do Supabase!");
     throw new Error("Bloqueado por RLS ou aluno não encontrado.");
   }
 
   console.log("✅ Atualizado com sucesso no banco:", data);
-  revalidatePath("/alunos"); // Força a tela a buscar os dados novos
+  revalidatePath("/alunos");
+}
+
+export async function getStudentStats(studentId: string) {
+  const supabase = await createClient();
+
+  const { data: essays, error } = await supabase
+    .from("essays")
+    .select("total_score, status, created_at")
+    .eq("student_id", studentId)
+    .order("created_at", { ascending: false });
+
+  //TODO: melhorar aqui
+  const defaultStats = {
+    totalEssays: 0,
+    averageScore: 0,
+    lastScore: "--" as string | number,
+    lastScoreTime: "Sem histórico",
+    totalTrend: "0 este mês",
+    averageTrend: "0% vs mês passado",
+    submittedThisMonth: 0,
+    percentChange: 0,
+  };
+
+  if (error || !essays || essays.length === 0) {
+    return defaultStats;
+  }
+
+  const totalEssays = essays.length;
+  const gradedEssays = essays.filter((e) => e.status === "done");
+
+  let averageScore = 0;
+  let lastScore: string | number = "--";
+  let lastScoreTime = "Sem correções";
+
+  if (gradedEssays.length > 0) {
+    const totalScore = gradedEssays.reduce((acc, curr) => acc + (Number(curr.total_score) || 0), 0);
+    averageScore = Math.round(totalScore / gradedEssays.length);
+
+    const lastGraded = gradedEssays[0];
+    lastScore = lastGraded?.total_score || "--";
+
+    if (lastGraded?.created_at) {
+      const rtf = new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" });
+      const diffInMs = new Date(lastGraded.created_at).getTime() - new Date().getTime();
+      const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
+
+      lastScoreTime = diffInDays === 0 ? "Hoje" : rtf.format(diffInDays, "day");
+    }
+  }
+
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  let prevMonth = currentMonth - 1;
+  let prevYear = currentYear;
+  if (prevMonth < 0) {
+    prevMonth = 11;
+    prevYear--;
+  }
+
+  const submittedThisMonth = essays.filter((e) => {
+    if (!e.created_at) return false;
+    const d = new Date(e.created_at);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  }).length;
+
+  const totalTrend = submittedThisMonth > 0 ? `+${submittedThisMonth} este mês` : "0 este mês";
+
+  const getAverageForMonth = (month: number, year: number) => {
+    const monthGraded = gradedEssays.filter((e) => {
+      if (!e.created_at) return false;
+      const d = new Date(e.created_at);
+      return d.getMonth() === month && d.getFullYear() === year;
+    });
+
+    if (monthGraded.length === 0) return 0;
+    const sum = monthGraded.reduce((acc, curr) => acc + (Number(curr.total_score) || 0), 0);
+    return sum / monthGraded.length;
+  };
+
+  const currentMonthAvg = getAverageForMonth(currentMonth, currentYear);
+  const prevMonthAvg = getAverageForMonth(prevMonth, prevYear);
+
+  let averageTrend = "Sem notas recentes";
+  let percentChange;
+
+  if (prevMonthAvg === 0 && currentMonthAvg > 0) {
+    averageTrend = "Sem nota no mês anterior";
+  } else if (prevMonthAvg > 0 && currentMonthAvg === 0) {
+    averageTrend = "Nenhuma redação este mês";
+  } else if (prevMonthAvg > 0 && currentMonthAvg > 0) {
+    const diff = currentMonthAvg - prevMonthAvg;
+    percentChange = Math.round((diff / prevMonthAvg) * 100);
+
+    if (percentChange === 0) {
+      averageTrend = "Média mantida";
+    } else if (percentChange > 0) {
+      averageTrend = `+${percentChange}% vs mês passado`;
+    } else {
+      averageTrend = `${percentChange}% vs mês passado`;
+    }
+  }
+
+  return {
+    totalEssays,
+    averageScore,
+    lastScore,
+    lastScoreTime,
+    submittedThisMonth,
+    totalTrend,
+    percentChange,
+    averageTrend,
+  };
 }
