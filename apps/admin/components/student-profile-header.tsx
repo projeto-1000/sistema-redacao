@@ -1,8 +1,6 @@
-import Image from "next/image";
-import { Button } from "@repo/ui/components/button"; // Ajuste o caminho se necessário
-import { Avatar } from "@repo/ui/components/avatar";
 
-// Definimos exatamente o que esse componente precisa receber
+import { Button } from "@repo/ui/components/button";
+import { Avatar } from "@repo/ui/components/avatar";
 interface StudentProfileHeaderProps {
   student: {
     name: string;
@@ -26,7 +24,6 @@ export function StudentProfileHeader({ student }: StudentProfileHeaderProps) {
   return (
     <div className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden">
 
-      {/* Parte Superior: Dados básicos */}
       <div className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
           <Avatar src={student.avatarUrl} name={student.name} className="size-20 rounded-full" />
@@ -47,10 +44,8 @@ export function StudentProfileHeader({ student }: StudentProfileHeaderProps) {
 
       <div className="h-px bg-slate-200 w-full" />
 
-      {/* Parte Inferior: Planos e Créditos */}
       <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
 
-        {/* Assinatura */}
         <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-100">
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Dados da Assinatura</h3>
           <div className="flex items-center gap-2 mb-2">
@@ -67,7 +62,6 @@ export function StudentProfileHeader({ student }: StudentProfileHeaderProps) {
           </p>
         </div>
 
-        {/* Créditos Professor */}
         <div className="p-8 flex flex-col items-center justify-center bg-slate-100">
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Créditos Professor</h3>
           <div className="size-20 rounded-full border-[6px] border-amber-200/40 flex items-center justify-center">
@@ -75,14 +69,12 @@ export function StudentProfileHeader({ student }: StudentProfileHeaderProps) {
           </div>
         </div>
 
-        {/* Créditos IA */}
         <div className="p-8 flex flex-col items-center justify-center bg-slate-100">
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Créditos IA</h3>
           <div className="size-20 rounded-full border-[6px] border-blue-100 flex items-center justify-center">
             <span className="text-3xl font-black text-blue-600">{student.credits.ia}</span>
           </div>
         </div>
-
       </div>
     </div>
   );
