@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { cn } from "../lib/utils";
 
 interface AvatarProps {
   src?: string | null;
@@ -6,8 +7,7 @@ interface AvatarProps {
   className?: string;
 }
 
-export function Avatar({ src, name, className = "size-11" }: AvatarProps) {
-
+export function Avatar({ src, name, className }: AvatarProps) {
   const initials = name
     .split(' ')
     .map(n => n[0])
@@ -16,13 +16,18 @@ export function Avatar({ src, name, className = "size-11" }: AvatarProps) {
     .toUpperCase();
 
   return (
-    <div className={`relative overflow-hidden rounded-full shrink-0 flex items-center justify-center font-bold text-sm bg-slate-100 text-[#1E3A8A] border border-slate-200 ${className}`}>
+    <div className={cn(
+      "relative overflow-hidden rounded-full shrink-0 flex items-center justify-center font-bold bg-slate-100 text-[#1E3A8A] border border-slate-200",
+      "size-11 text-sm",
+      className
+    )}
+    >
       {src ? (
         <Image
           src={src}
           alt={name}
           fill
-          sizes="(max-width: 768px) 100vw, 44px"
+          sizes="(max-width: 768px) 100vw, 100px"
           className="object-cover"
         />
       ) : (

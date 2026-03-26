@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Button } from "@repo/ui/components/button"; // Ajuste o caminho se necessário
+import { Avatar } from "@repo/ui/components/avatar";
 
 // Definimos exatamente o que esse componente precisa receber
 interface StudentProfileHeaderProps {
@@ -28,13 +29,7 @@ export function StudentProfileHeader({ student }: StudentProfileHeaderProps) {
       {/* Parte Superior: Dados básicos */}
       <div className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-          <Image
-            src={student.avatarUrl}
-            alt={`Avatar de ${student.name}`}
-            className="size-20 rounded-full object-cover"
-            height={100}
-            width={100}
-          />
+          <Avatar src={student.avatarUrl} name={student.name} className="size-20 rounded-full" />
           <div>
             <h1 className="text-2xl font-black text-slate-900">{student.name}</h1>
             <p className="text-sm font-medium text-slate-500 mt-1">
