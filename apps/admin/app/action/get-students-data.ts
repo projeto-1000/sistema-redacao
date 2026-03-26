@@ -220,3 +220,56 @@ export async function getStudentStats(studentId: string) {
     averageTrend,
   };
 }
+
+export async function getStudentEssays(
+  studentId: string,
+  page: number = 1,
+  limit: number = 5,
+  statusFilter: "all" | "done" | "pending" = "all",
+  dateFilter?: string
+) {
+  const supabase = await createClient();
+
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
+
+  let query = supabase
+    .from("essays")
+    .select(`id, title, thematic_axis, status, total_score, created_at`, { count: "exact" })
+    .eq("student_id", studentId);
+
+  if (statusFilter === "done") {
+    query = query.eq("status", "done");
+  } else if (statusFilter === "pending") {
+    query = query.eq("status", "pending");
+  }
+
+  if (dateFilter) {
+    const startOfDay = `${dateFilter}T00:00:00.000Z`;
+    const endOfDay = `${dateFilter}T23:59:59.999Z`;
+    query = query.gte("created_at", startOfDay).lte("created_at", endOfDay);
+  }
+
+  const { data, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(rangeStart, rangeEnd);
+
+  if (error) {
+    console.error("Erro ao buscar redações do aluno:", error);
+    return { data: [], totalPages: 0 };
+  }
+
+  const formattedData = data.map((essay) => ({
+    id: essay.id,
+    title: essay.title,
+    theme: essay.thematic_axis,
+    date: new Date(essay.created_at).toLocaleDateString("pt-BR"),
+    status: essay.status === "done" ? "Corrigido" : "Pendente",
+    score: essay.total_score > 0 ? essay.total_score : "--",
+  }));
+
+  return {
+    data: formattedData,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+  };
+}
