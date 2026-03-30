@@ -6,6 +6,7 @@ import { Avatar } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
 import { Eye, UserCheck, UserX } from "lucide-react";
+import Link from "next/link";
 import { startTransition, useOptimistic } from "react";
 
 const STATUS_MAP = {
@@ -83,8 +84,12 @@ export function TeachersTableRow({ teacher }: { teacher: TeacherListItem }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                  <Eye className="size-4.5" />
+                  className="h-9 w-9 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+
+                >
+                  <Link href={`/professores/${optimisticTeacher.id}`}>
+                    <Eye className="size-4.5" />
+                  </Link>
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="bg-slate-900 text-white font-medium text-xs rounded-lg border-none">

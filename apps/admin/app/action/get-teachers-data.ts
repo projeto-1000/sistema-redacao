@@ -41,6 +41,19 @@ export async function getTeachers(
   };
 }
 
+export async function getTeacherById(teacherId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", teacherId).single();
+
+  if (error || !data) {
+    console.error("Erro ao buscar detalhes do aluno:", error);
+    return null;
+  }
+
+  return data;
+}
+
 export async function updateTeacherStatus(teacherId: string, currentStatus: string) {
   const supabase = await createClient();
 
