@@ -45,7 +45,7 @@ export default async function StudentsPage({
 
           <ExportCsvButton filters={filters} />
 
-          <Button className="font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 shadow-sm">
+          <Button variant='secondary' className="font-bold rounded-xl h-10 shadow-sm">
             <Plus className="size-4 mr-2" />
             Novo Aluno
           </Button>

@@ -19,3 +19,18 @@ export type GetStudentsFilters = {
   from?: string;
   to?: string;
 };
+
+export type TeachersListItem = {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url: string;
+  status: string;
+  total: number;
+  currentMonth: number;
+};
+
+export type GetTeachersFilters = {
+  search?: string;
+  status?: string;
+};

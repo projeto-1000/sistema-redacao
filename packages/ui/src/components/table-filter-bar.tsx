@@ -9,7 +9,6 @@ import { useState } from "react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./select";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./tooltip";
 
-
 export interface FilterOption {
   id: string;
   label: string;
