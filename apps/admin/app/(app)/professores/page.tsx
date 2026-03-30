@@ -2,18 +2,26 @@ import { Plus } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import Link from "next/link";
 import { TeachersTable } from "@/components/teachers-table";
-import { TeachersTableFilters } from "@/components/teachers-table-filter";
+import { getTeachers } from "@/app/action/get-teachers-data";
 
 export default async function TeachersManagementPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const resolvedSearchParams = await searchParams;
+  const resolvedParams = await searchParams;
 
-  const currentPage = Number(resolvedSearchParams.page) || 1;
-  const searchQuery = (resolvedSearchParams.search as string) || "";
-  const statusFilter = (resolvedSearchParams.status as string) || "";
+  const filters = {
+    search: typeof resolvedParams?.search === 'string' ? resolvedParams.search : undefined,
+    status: typeof resolvedParams?.status === 'string' ? resolvedParams.status : undefined,
+  }
+
+  const page = Number(resolvedParams?.page) || 1;
+
+  const perPage = 10
+
+  const { data: teachers, totalPages } = await getTeachers(filters, page, perPage);
+
 
   return (
     <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-8">
@@ -36,12 +44,9 @@ export default async function TeachersManagementPage({
         </Button>
       </div>
 
-      <TeachersTableFilters />
-
       <TeachersTable
-        currentPage={currentPage}
-        searchQuery={searchQuery}
-        statusFilter={statusFilter}
+        teachers={teachers}
+        totalPages={totalPages}
       />
     </div>
   );

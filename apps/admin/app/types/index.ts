@@ -20,7 +20,7 @@ export type GetStudentsFilters = {
   to?: string;
 };
 
-export type TeachersListItem = {
+export type TeacherListItem = {
   id: string;
   full_name: string;
   email: string;
