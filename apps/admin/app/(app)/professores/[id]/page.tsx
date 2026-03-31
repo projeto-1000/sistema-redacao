@@ -1,11 +1,6 @@
 import Link from "next/link";
 import {
   ChevronRight,
-  Lock,
-  Pencil,
-  CreditCard,
-  Calendar,
-  BarChart2,
   Search,
   X,
   CheckCircle2,
@@ -17,18 +12,7 @@ import { Button } from "@repo/ui/components/button";
 import { getTeacherById } from "@/app/action/get-teachers-data";
 import { notFound } from "next/navigation";
 import TeacherProfileHeader from "@/components/teacher-profile-header";
-
-// Mocks baseados no Figma
-const profData = {
-  name: "Carlos Andrade",
-  email: "carlos.andrade@email.com",
-  initials: "CA",
-  id: "#PROF-2024-89",
-  status: "Ativo",
-  since: "15/01/2024",
-  monthStats: { total: 142, onTime: 138, late: 4, trend: "+8% vs anterior" },
-  totalStats: { total: 1245, onTime: 1200, late: 45 }
-};
+import TeacherStatsCards from "@/components/teacher-stats-cards";
 
 const historyData = [
   { id: 1, initials: "MS", name: "Maria Silva", email: "maria.silva@email.com", theme: "Mobilidade Urbana no Século XXI", axis: "MEIO AMBIENTE & CIDADE", score: "920", status: "Corrigida", statusColor: "text-emerald-600 bg-emerald-50", onTime: true, date: "09 Out 2023", time: "14:30h" },
@@ -67,7 +51,7 @@ export default async function TeacherProfilePage({
     <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-8">
 
       <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-        <Link href="/admin/professores" className="hover:text-blue-600 transition-colors">Gestão de Professores</Link>
+        <Link href="/professores" className="hover:text-blue-600 transition-colors">Gestão de Professores</Link>
         <ChevronRight className="size-4" />
         <span className="text-blue-600">Histórico Detalhado</span>
       </div>
@@ -77,67 +61,7 @@ export default async function TeacherProfilePage({
       {/* =========================================
             CARDS DE ESTATÍSTICAS (MÊS E TOTAL)
         ========================================= */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        {/* Mês Corrente */}
-        <div className="bg-white border border-slate-200 rounded-[2rem] p-6 md:p-8 shadow-sm">
-          <div className="flex items-start justify-between mb-4">
-            <div className="size-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Calendar className="size-5" />
-            </div>
-            <span className="bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase px-3 py-1.5 rounded-full tracking-wider">
-              {profData.monthStats.trend}
-            </span>
-          </div>
-          <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1">Mês Corrente (Outubro)</h3>
-          <div className="flex items-baseline gap-2 mb-6">
-            <span className="text-4xl font-black text-slate-900">{profData.monthStats.total}</span>
-            <span className="text-sm font-bold text-slate-400">redações corrigidas</span>
-          </div>
-
-          {/* Barra de Progresso Customizada */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-wider">
-              <span className="text-emerald-500">{profData.monthStats.onTime} No Prazo</span>
-              <span className="text-red-500">{profData.monthStats.late} Em Atraso</span>
-            </div>
-            <div className="h-2 w-full flex rounded-full overflow-hidden bg-slate-100">
-              <div className="bg-emerald-500 h-full" style={{ width: '97%' }}></div>
-              <div className="bg-red-500 h-full" style={{ width: '3%' }}></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Total Acumulado */}
-        <div className="bg-white border border-slate-200 rounded-[2rem] p-6 md:p-8 shadow-sm">
-          <div className="flex items-start justify-between mb-4">
-            <div className="size-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-              <BarChart2 className="size-5" />
-            </div>
-            <span className="bg-slate-100 text-slate-600 text-[10px] font-black uppercase px-3 py-1.5 rounded-full tracking-wider">
-              Histórico Geral
-            </span>
-          </div>
-          <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Acumulado</h3>
-          <div className="flex items-baseline gap-2 mb-6">
-            <span className="text-4xl font-black text-slate-900">{profData.totalStats.total.toLocaleString()}</span>
-            <span className="text-sm font-bold text-slate-400">correções realizadas</span>
-          </div>
-
-          {/* Barra de Progresso Customizada */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-wider">
-              <span className="text-emerald-500">{profData.totalStats.onTime.toLocaleString()} No Prazo</span>
-              <span className="text-red-500">{profData.totalStats.late} Em Atraso</span>
-            </div>
-            <div className="h-2 w-full flex rounded-full overflow-hidden bg-slate-100">
-              <div className="bg-emerald-500 h-full" style={{ width: '96%' }}></div>
-              <div className="bg-red-500 h-full" style={{ width: '4%' }}></div>
-            </div>
-          </div>
-        </div>
-
-      </div>
+      <TeacherStatsCards teacherId={teacherData.id} />
 
       {/* =========================================
             GRÁFICOS (MOCKS VISUAIS SVG)
@@ -341,8 +265,6 @@ export default async function TeacherProfilePage({
           </div>
         </div>
       </div>
-
-
     </div>
   );
 }

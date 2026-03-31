@@ -34,3 +34,18 @@ export type GetTeachersFilters = {
   search?: string;
   status?: string;
 };
+
+export type TeacherStats = {
+  monthStats: {
+    total: number;
+    onTime: number;
+    late: number;
+    trendText: string;
+    isPositiveTrend: boolean;
+  };
+  totalStats: {
+    total: number;
+    onTime: number;
+    late: number;
+  };
+};

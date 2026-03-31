@@ -54,18 +54,69 @@ export async function getTeacherById(teacherId: string) {
   return data;
 }
 
+export async function getTeacherStats(teacherId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("get_teacher_performance_stats", {
+    p_teacher_id: teacherId,
+  });
+
+  if (error || !data) {
+    console.error("Erro ao buscar estatísticas do professor:", error);
+    return null;
+  }
+
+  const {
+    total,
+    total_on_time,
+    total_late,
+    current_month_total,
+    current_month_on_time,
+    current_month_late,
+    last_month_total,
+  } = data;
+
+  let trendText = "Sem dados anteriores";
+  let isPositiveTrend = true;
+
+  if (last_month_total > 0) {
+    const diff = current_month_total - last_month_total;
+    const percentage = Math.round((diff / last_month_total) * 100);
+
+    isPositiveTrend = percentage >= 0;
+    const sign = isPositiveTrend ? "+" : "";
+    trendText = `${sign}${percentage}% vs anterior`;
+  } else if (current_month_total > 0 && last_month_total === 0) {
+    trendText = "+100% vs anterior";
+    isPositiveTrend = true;
+  }
+
+  return {
+    monthStats: {
+      total: current_month_total,
+      onTime: current_month_on_time,
+      late: current_month_late,
+      trendText,
+      isPositiveTrend,
+    },
+    totalStats: {
+      total: total,
+      onTime: total_on_time,
+      late: total_late,
+    },
+  };
+}
+
 export async function updateTeacherStatus(teacherId: string, currentStatus: string) {
   const supabase = await createClient();
 
-  // Se estiver ativo, bloqueia. Se estiver qualquer outra coisa (bloqueado/inativo), ativa.
   const newStatus = currentStatus === "active" ? "blocked" : "active";
 
-  // ⚠️ Importante: Atualizamos a tabela original "profiles", e não a View!
   const { error } = await supabase
     .from("profiles")
     .update({ status: newStatus })
     .eq("id", teacherId)
-    .eq("role", "TEACHER"); // Garantia extra de segurança
+    .eq("role", "TEACHER");
 
   if (error) {
     console.error("Erro ao alterar status do professor:", error.message);

@@ -19,7 +19,6 @@ export function EssayTableFilters() {
   const currentUrlDate = searchParams.get("date");
   const selectedDate = currentUrlDate ? new Date(`${currentUrlDate}T12:00:00`) : undefined;
 
-  // --- HANDLER DO STATUS ---
   const handleStatusFilter = (status: string) => {
     const params = new URLSearchParams(searchParams.toString());
 
@@ -32,7 +31,6 @@ export function EssayTableFilters() {
     params.set("page", "1");
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
-
 
   const handleDateSelect = (date: Date | undefined) => {
     const params = new URLSearchParams(searchParams.toString());
