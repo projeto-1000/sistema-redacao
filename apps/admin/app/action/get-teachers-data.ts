@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import { GetTeachersFilters, TeacherListItem } from "../types";
+import { AverageTimeRange, GetTeachersFilters, TeacherChartData, TeacherListItem } from "../types";
 import { revalidatePath } from "next/cache";
 
 export async function getTeachers(
@@ -126,4 +126,38 @@ export async function updateTeacherStatus(teacherId: string, currentStatus: stri
   revalidatePath("/professores");
 
   return { success: true };
+}
+
+export async function getTeacherChartsData(teacherId: string): Promise<TeacherChartData[] | null> {
+  const supabase = await createClient();
+
+  const { data: scoreData, error: scoreError } = await supabase.rpc(
+    "get_teacher_score_distribution",
+    {
+      p_teacher_id: teacherId,
+    }
+  );
+
+  if (scoreError) {
+    console.error("Erro ao buscar dados de distribuição de notas:", scoreError);
+    return null;
+  }
+
+  return scoreData;
+}
+
+export async function getAverageTime(teacherId: string, range: AverageTimeRange) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("get_teacher_average_time", {
+    p_teacher_id: teacherId,
+    p_range: range,
+  });
+
+  if (error) {
+    console.error("Erro ao buscar tempo médio de correção:", error);
+    return 0; // Fallback seguro
+  }
+
+  return data as number;
 }

@@ -9,10 +9,12 @@ import {
   FileText
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
-import { getTeacherById } from "@/app/action/get-teachers-data";
+import { getTeacherById, getTeacherChartsData } from "@/app/action/get-teachers-data";
 import { notFound } from "next/navigation";
 import TeacherProfileHeader from "@/components/teacher-profile-header";
 import TeacherStatsCards from "@/components/teacher-stats-cards";
+import ScoreDistributionChart from "@/components/score-distribution-chart";
+import AverageTimeCard from "@/components/average-time-card";
 
 const historyData = [
   { id: 1, initials: "MS", name: "Maria Silva", email: "maria.silva@email.com", theme: "Mobilidade Urbana no Século XXI", axis: "MEIO AMBIENTE & CIDADE", score: "920", status: "Corrigida", statusColor: "text-emerald-600 bg-emerald-50", onTime: true, date: "09 Out 2023", time: "14:30h" },
@@ -33,6 +35,7 @@ export default async function TeacherProfilePage({
   const teacherId = resolvedParams.id;
 
   const teacher = await getTeacherById(teacherId);
+  const chartsData = await getTeacherChartsData(resolvedParams.id);
 
   if (!teacher) {
     notFound();
@@ -58,82 +61,13 @@ export default async function TeacherProfilePage({
 
       <TeacherProfileHeader teacher={teacherData} />
 
-      {/* =========================================
-            CARDS DE ESTATÍSTICAS (MÊS E TOTAL)
-        ========================================= */}
-      <TeacherStatsCards teacherId={teacherData.id} />
+      <TeacherStatsCards teacherId={teacherId} />
 
-      {/* =========================================
-            GRÁFICOS (MOCKS VISUAIS SVG)
-        ========================================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ScoreDistributionChart data={chartsData || []} />
 
-        {/* Gráfico 1: Evolução Média */}
-        <div className="bg-white border border-slate-200 rounded-[2rem] p-6 md:p-8 shadow-sm">
-          <div className="flex items-start justify-between mb-8">
-            <div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Evolução da média atribuída</h3>
-              <p className="text-[10px] font-bold text-slate-400 mt-0.5">Média das notas dadas pelo professor</p>
-            </div>
-            <div className="flex items-center bg-slate-100 p-1 rounded-full">
-              <button className="px-3 py-1 rounded-full text-[10px] font-black bg-white text-blue-600 shadow-sm uppercase tracking-wider">7 Dias</button>
-              <button className="px-3 py-1 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-wider">30 Dias</button>
-              <button className="px-3 py-1 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-wider">6 Meses</button>
-            </div>
-          </div>
-
-          {/* Mock do Gráfico (SVG Line Chart) */}
-          <div className="relative h-40 w-full border-b border-dashed border-slate-200">
-            <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-              <polyline
-                points="0,80 15,85 30,60 45,70 60,40 75,50 90,20 100,25"
-                fill="none"
-                stroke="#3b82f6"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <div className="flex justify-between mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
-          </div>
-        </div>
-
-        {/* Gráfico 2: Tempo Médio */}
-        <div className="bg-white border border-slate-200 rounded-[2rem] p-6 md:p-8 shadow-sm">
-          <div className="flex items-start justify-between mb-8">
-            <div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Evolução do tempo médio</h3>
-              <p className="text-[10px] font-bold text-slate-400 mt-0.5">Tempo médio de correção (horas)</p>
-            </div>
-            <div className="flex items-center bg-slate-100 p-1 rounded-full">
-              <button className="px-3 py-1 rounded-full text-[10px] font-black bg-white text-amber-500 shadow-sm uppercase tracking-wider">7 Dias</button>
-              <button className="px-3 py-1 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-wider">30 Dias</button>
-              <button className="px-3 py-1 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-wider">6 Meses</button>
-            </div>
-          </div>
-
-          {/* Mock do Gráfico (SVG Line Chart) */}
-          <div className="relative h-40 w-full border-b border-dashed border-slate-200">
-            <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-              <polyline
-                points="0,50 15,40 30,55 45,60 60,80 75,70 90,85 100,80"
-                fill="none"
-                stroke="#eab308"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <div className="flex justify-between mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
-          </div>
-        </div>
-
+        <AverageTimeCard teacherId={teacherId} />
       </div>
-
       {/* =========================================
             TABELA: HISTÓRICO DE CORREÇÕES
         ========================================= */}

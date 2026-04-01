@@ -49,3 +49,10 @@ export type TeacherStats = {
     late: number;
   };
 };
+
+export type TeacherChartData = {
+  range: string;
+  count: number;
+};
+
+export type AverageTimeRange = "current_month" | "30d" | "60d" | "90d";
