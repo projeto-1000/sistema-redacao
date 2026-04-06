@@ -56,3 +56,25 @@ export type TeacherChartData = {
 };
 
 export type AverageTimeRange = "current_month" | "30d" | "60d" | "90d";
+
+export type TeacherEssayListItem = {
+  id: string;
+  student_id: string;
+  student_name: string;
+  email: string;
+  avatar_url: string | null;
+  title: string;
+  thematic_axis: string;
+  total_score: number;
+  status: string;
+  is_on_late: boolean;
+  correction_date: string;
+};
+
+export type GetTeacherEssayFilters = {
+  search?: string;
+  status?: string;
+  delivery?: string;
+  from?: string;
+  to?: string;
+};

@@ -1,7 +1,14 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import { AverageTimeRange, GetTeachersFilters, TeacherChartData, TeacherListItem } from "../types";
+import {
+  AverageTimeRange,
+  GetTeacherEssayFilters,
+  GetTeachersFilters,
+  TeacherChartData,
+  TeacherEssayListItem,
+  TeacherListItem,
+} from "../types";
 import { revalidatePath } from "next/cache";
 
 export async function getTeachers(
@@ -160,4 +167,92 @@ export async function getAverageTime(teacherId: string, range: AverageTimeRange)
   }
 
   return data as number;
+}
+
+export async function getTeacherEssays(
+  teacherId: string,
+  page: number = 1,
+  limit: number = 5,
+  filters?: GetTeacherEssayFilters
+): Promise<{ essays: TeacherEssayListItem[]; totalPages: number }> {
+  const supabase = await createClient();
+
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
+
+  let query = supabase
+    // .from("essays")
+    .from("essays_with_delivery")
+    .select(
+      `id, 
+      student_id, 
+      title, 
+      thematic_axis, 
+      status, 
+      correction_date,
+      total_score, 
+      due_date, 
+      is_on_late,
+      student:profiles!essays_student_id_fkey (
+      full_name,
+      avatar_url, 
+      email
+    )
+      `,
+      { count: "exact" }
+    )
+    .eq("teacher_id", teacherId);
+  // .in("status", ["done", "under_correction", "returned"]);
+
+  if (filters?.search) {
+    query = query.or(`full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`, {
+      foreignTable: "profiles",
+    });
+  }
+
+  if (filters?.status && filters.status !== "all") {
+    query = query.eq("status", filters.status);
+  }
+
+  if (filters?.delivery && filters.delivery !== "all") {
+    const isLate = filters.delivery === "late";
+    query = query.eq("is_on_late", isLate);
+  }
+
+  if (filters?.from) {
+    query = query.gte("created_at", filters.from);
+  }
+
+  if (filters?.to) {
+    query = query.lte("created_at", filters.to);
+  }
+
+  const { data, count, error } = await query
+    .range(rangeStart, rangeEnd)
+    .order("correction_date", { ascending: false });
+
+  if (error || !data) {
+    console.error(error);
+    return { essays: [], totalPages: 0 };
+  }
+  const essays = data.map((essay) => {
+    const { student, ...rest } = essay;
+    const studentData = student as unknown as {
+      full_name: string;
+      avatar_url: string;
+      email: string;
+    };
+
+    return {
+      ...rest,
+      student_name: studentData.full_name,
+      avatar_url: studentData.avatar_url,
+      email: studentData.email,
+    };
+  });
+
+  return {
+    essays,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+  };
 }
