@@ -56,16 +56,17 @@ export function ActionCard({
       </div>
 
 
-      <Link href={href}>
-        <Button
-          className={cn(
-            "w-full py-6 rounded-2xl font-bold transition-all shadow-lg",
-            style.button
-          )}
-        >
+      <Button
+        asChild
+        className={cn(
+          "w-full h-12 rounded-2xl font-bold shadow-lg",
+          style.button
+        )}
+      >
+        <Link href={href}>
           {buttonText}
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </div>
   );
 }

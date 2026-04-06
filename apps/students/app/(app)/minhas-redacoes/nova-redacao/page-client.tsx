@@ -33,7 +33,7 @@ export default function EssayPageClient({ essayTopic }: Props) {
           </p>
           <div className="flex flex-col sm:flex-row mt-8 gap-4 w-full sm:w-auto">
             <Button asChild variant="outline" className="h-12 rounded-full border-slate-300">
-              <Link href="/dashboard">Voltar ao Início</Link>
+              <Link href="/inicio">Voltar ao Início</Link>
             </Button>
             <Button asChild className="h-12 rounded-full shadow-lg shadow-blue-600/20">
               <Link href="/minhas-redacoes">

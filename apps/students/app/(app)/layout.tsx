@@ -15,7 +15,7 @@ export default function AppLayout({
   const supabase = createClient();
 
   const navItems = [
-    { label: "Início", href: "/dashboard" },
+    { label: "Início", href: "/inicio" },
     { label: "Temas", href: "/temas" },
     { label: "Minhas Redações", href: "/minhas-redacoes" },
     { label: "Meu perfil", href: "/perfil" },

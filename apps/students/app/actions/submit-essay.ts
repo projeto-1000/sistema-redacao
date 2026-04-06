@@ -51,7 +51,7 @@ export async function submitEssay(
   }
 
   revalidatePath("/minhas-redacoes");
-  revalidatePath("/dashboard");
+  revalidatePath("/inicio");
 
   return { success: true, error: "" };
 }
