@@ -22,7 +22,7 @@ export async function getDashboardData() {
       .from("essays")
       .select("created_at, total_score")
       .eq("student_id", user.id)
-      .eq("status", "done")
+      .eq("status", "corrected")
       .order("created_at", { ascending: true }),
   ]);
 
@@ -31,7 +31,9 @@ export async function getDashboardData() {
   const recentEssays = recentRes.data || [];
   const history = historyRes.data || [];
 
-  const lastGradedEssay = recentEssays.find((essay) => essay.status === "done");
+  console.log(stats);
+
+  const lastGradedEssay = recentEssays.find((essay) => essay.status === "corrected");
 
   return {
     user: {
@@ -65,7 +67,7 @@ export async function getDashboardData() {
         id: essay.id,
         title: essay.title,
         date: formatDate(essay.submission_date, "short"),
-        status: essay.status as "pending" | "done",
+        status: essay.status as "pending" | "corrected",
         score: essay.total_score ?? undefined,
       })),
     },

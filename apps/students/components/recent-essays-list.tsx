@@ -8,7 +8,7 @@ interface Essay {
   id: string;
   title: string;
   date: string;
-  status: "pending" | "done";
+  status: "pending" | "corrected";
   score?: number;
 }
 

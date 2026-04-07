@@ -71,9 +71,9 @@ export function EssayList({ initialEssays }: EssayListProps) {
       {filteredEssays.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {filteredEssays.map((essay) => {
-            const isDone = essay.status === "done";
+            const isCorrected = essay.status === "corrected";
 
-            if (isDone) {
+            if (isCorrected) {
               return (
                 <Link
                   key={essay.id}
