@@ -25,7 +25,7 @@ export function useAuth() {
       }
 
       router.refresh();
-      router.push("/dashboard");
+      router.push("/inicio");
     } catch (error: any) {
       setAuthError(error.message);
     } finally {
@@ -53,7 +53,7 @@ export function useAuth() {
       }
 
       router.refresh();
-      router.push("/dashboard");
+      router.push("/inicio");
     } catch (error: any) {
       console.log(`Erro ao criar conta: ${error.message}`);
       throw new Error(error.message);
