@@ -35,7 +35,7 @@ export interface UserData {
   avatarUrl: string | null;
 }
 
-export type EssayStatus = "draft" | "pending" | "correcting" | "corrected" | "returned";
+export type EssayStatus = "draft" | "pending" | "correcting" | "corrected" | "returned" | "draft";
 
 export interface Essay {
   id: string;

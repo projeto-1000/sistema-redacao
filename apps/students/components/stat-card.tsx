@@ -4,8 +4,8 @@ interface StatCardProps {
   title: string;
   value?: number;
   maxValue?: number;
-  helperText?: string;
-  variant?: "yellow" | "blue";
+  helperText: string;
+  variant: "yellow" | "blue";
   trendText?: string;
 }
 
@@ -33,7 +33,7 @@ export function StatCard({
 
         <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
           <Info className="size-3.5" />
-          {helperText || "Sua nota aparecerá aqui"}
+          {helperText}
         </div>
       </div>
     );
