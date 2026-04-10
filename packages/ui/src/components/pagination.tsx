@@ -6,8 +6,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@repo/ui/lib/utils"
-import { buttonVariants, type Button } from "@repo/ui/components/button"
-import Link from "next/link"
+import { Button } from "./button"
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -40,29 +39,30 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 
 type PaginationLinkProps = {
   isActive?: boolean
-} & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<typeof Link>
+} & Pick<React.ComponentProps<typeof Button>, "size" | "variant"> &
+  React.ComponentProps<"a">
 
 function PaginationLink({
   className,
   isActive,
   size = "icon",
+  variant,
   ...props
 }: PaginationLinkProps) {
   return (
-    <Link
-      aria-current={isActive ? "page" : undefined}
-      data-slot="pagination-link"
-      data-active={isActive}
-      className={cn(
-        buttonVariants({
-          variant: isActive ? "outline" : "ghost",
-          size,
-        }),
-        className
-      )}
-      {...props}
-    />
+    <Button
+      asChild
+      variant={variant ?? (isActive ? "outline" : "ghost")}
+      size={size}
+      className={cn(className)}
+    >
+      <a
+        aria-current={isActive ? "page" : undefined}
+        data-slot="pagination-link"
+        data-active={isActive}
+        {...props}
+      />
+    </Button>
   )
 }
 
@@ -78,7 +78,7 @@ function PaginationPrevious({
       {...props}
     >
       <ChevronLeftIcon />
-      <span className="hidden sm:block">Previous</span>
+      <span className="hidden sm:block">Anterior</span>
     </PaginationLink>
   )
 }
@@ -94,7 +94,7 @@ function PaginationNext({
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
       {...props}
     >
-      <span className="hidden sm:block">Next</span>
+      <span className="hidden sm:block">Próxima</span>
       <ChevronRightIcon />
     </PaginationLink>
   )
@@ -112,7 +112,7 @@ function PaginationEllipsis({
       {...props}
     >
       <MoreHorizontalIcon className="size-4" />
-      <span className="sr-only">More pages</span>
+      <span className="sr-only">Mais Páginas</span>
     </span>
   )
 }

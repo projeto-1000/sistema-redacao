@@ -39,8 +39,7 @@ export function formatDate(
   }
 
   const formattedShort = format(dateObj, "d 'de' MMM, yyyy", { locale: ptBR });
-  return formattedShort.replace(/ de ([a-z])/g, (match) => match.toUpperCase());
-}
+return formattedShort.replace(/ de ([a-z])/g, (_, match) => ` de ${match.toUpperCase()}`);}
 
 export function formatMonth(date: string | Date): string {
   const dateObj = getDateObject(date);

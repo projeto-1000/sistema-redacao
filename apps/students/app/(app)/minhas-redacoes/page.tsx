@@ -1,12 +1,22 @@
 import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
-import { getUserEssays } from "@/services/get-essays";
-import { EssayList } from "@/components/essay-list";
+import { Plus } from "lucide-react";
+import { EssayGrid } from "@/components/essay-grid";
+import { EssayFiltersBar } from "@/components/essay-filters-bar";
+import { Suspense } from "react";
+import { Skeleton } from "@repo/ui/components/skeleton";
+import { parseFilters } from "@/utils/parse-filters";
 
-export default async function MyEssaysPage() {
+export default async function MyEssaysPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedParams = await searchParams;
 
-  const essays = await getUserEssays();
+  const filters = parseFilters(resolvedParams);
+  const page = Number(resolvedParams?.page) || 1;
+  const suspenseKey = JSON.stringify(resolvedParams);
 
   return (
     <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4">
@@ -20,28 +30,23 @@ export default async function MyEssaysPage() {
           </p>
         </div>
 
-        <Link href="/temas">
-          <Button className="rounded-full h-14 gap-2 w-full sm:w-auto px-6 shadow-lg shadow-yellow-400/20 bg-yellow-400 hover:bg-yellow-500 font-bold">
+        <Button asChild
+          className="rounded-3xl h-12 w-full sm:w-auto  shadow-lg shadow-yellow-400/20 font-bold">
+          <Link href="/temas">
             <Plus className="size-5" />
             Enviar nova redação
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
-      <EssayList initialEssays={essays} />
+      <EssayFiltersBar />
 
-      {/* TODO: Paginação (Pode ficar aqui ou dentro da lista, dependendo da estratégia) */}
-      <div className="flex justify-center items-center gap-2 mt-8">
-        <button className="size-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-900 transition-colors disabled:opacity-50">
-          <ChevronLeft className="size-5" />
-        </button>
-        <button className="size-10 flex items-center justify-center rounded-full bg-[#EBC84C] font-bold">
-          1
-        </button>
-        <button className="size-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-900 transition-colors">
-          <ChevronRight className="size-5" />
-        </button>
-      </div>
+      <Suspense
+        key={suspenseKey}
+        fallback={<Skeleton className="rounded-3xl min-h-[250px] bg-slate-200 mt-6" />}
+      >
+        <EssayGrid filters={filters} page={page} />
+      </Suspense>
     </div>
   );
 }

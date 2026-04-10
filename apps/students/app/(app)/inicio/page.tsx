@@ -5,15 +5,12 @@ import { SectionCard } from "@/components/section-card";
 import { CompetenceList } from "@/components/competence-list";
 import { EvolutionGraph } from "@/components/evolution-graph";
 import { RecentEssaysList } from "@/components/recent-essays-list";
-import { getRecentEssays, getStudentHistory, getStudentMetrics, getStudentProfile } from "@/services/get-dashboard-data";
+import { getStudentHistory, getStudentMetrics, getStudentProfile } from "@/services/get-dashboard-data";
 import { ActionCard } from "@/components/action-card";
 import { createClient } from "@/lib/server";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { Suspense } from "react";
-
-
-//TODO: refatorar aqui pra colocar cada chamada dentro de seu respectivo componente. 
 
 export default async function DashboardPage() {
   const actions = [
@@ -50,10 +47,11 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const profileData = await getStudentProfile(user.id)
-  const metrics = await getStudentMetrics(user.id)
-  const history = await getStudentHistory(user.id)
-  const recentEssays = await getRecentEssays(user.id)
+  const [profileData, metrics, history] = await Promise.all([
+    getStudentProfile(user.id),
+    getStudentMetrics(user.id),
+    getStudentHistory(user.id)
+  ])
 
   return (
     <div className="space-y-8 px-4 md:px-10 lg:px-12 py-4">
@@ -109,7 +107,7 @@ export default async function DashboardPage() {
           <SectionCard
             title="Média por Competência"
             icon={FileText}
-            hasData={recentEssays.hasEssays}
+            hasData={metrics.totalEssays > 0}
             emptyDescription="Envie sua primeira redação para ver o detalhamento por competência."
           >
             <CompetenceList scores={metrics.competenceScores} />
@@ -126,15 +124,11 @@ export default async function DashboardPage() {
             <EvolutionGraph data={history.evolutionData} />
           </SectionCard>
         </Suspense>
-
       </div>
 
       <Suspense fallback={
         <Skeleton className="rounded-3xl min-h-[250px] bg-slate-200" />}>
-        <RecentEssaysList
-          hasData={recentEssays.hasEssays}
-          essays={recentEssays.essays}
-        />
+        <RecentEssaysList />
       </Suspense>
 
     </div >
