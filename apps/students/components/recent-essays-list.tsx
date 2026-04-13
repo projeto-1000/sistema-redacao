@@ -2,10 +2,10 @@ import { FilePenLine, FileText } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import Link from "next/link";
 import { EssayCard } from "./essay-card";
-import { getStudentEssays } from "@/services/get-essays";
+import { getStudentEssays } from "@/app/actions/get-essays";
 
 export async function RecentEssaysList() {
-  const { data: essays } = await getStudentEssays({ limit: 3 })
+  const { essays } = await getStudentEssays({ limit: 3 })
 
   return (
 

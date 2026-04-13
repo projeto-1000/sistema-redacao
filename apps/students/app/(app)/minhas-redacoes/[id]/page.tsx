@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
 import { RotateCcw, Plus, Calendar, MessageSquareText, Star } from "lucide-react";
-import { getEssayById } from "@/services/get-essays";
+import { getEssayById } from "@/app/actions/get-essays";
 import { formatDate } from "@repo/utils";
 import { mapEssayToCompetencies } from "@/utils/essay-mapper";
 

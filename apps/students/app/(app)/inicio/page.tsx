@@ -5,7 +5,7 @@ import { SectionCard } from "@/components/section-card";
 import { CompetenceList } from "@/components/competence-list";
 import { EvolutionGraph } from "@/components/evolution-graph";
 import { RecentEssaysList } from "@/components/recent-essays-list";
-import { getStudentHistory, getStudentMetrics, getStudentProfile } from "@/services/get-dashboard-data";
+import { getStudentHistory, getStudentMetrics, getStudentProfile } from "@/app/actions/get-dashboard-data";
 import { ActionCard } from "@/components/action-card";
 import { createClient } from "@/lib/server";
 import { redirect } from "next/navigation";
@@ -54,7 +54,7 @@ export default async function DashboardPage() {
   ])
 
   return (
-    <div className="space-y-8 px-4 md:px-10 lg:px-12 py-4">
+    <div className="space-y-8 min-h-screen px-4 md:px-10 lg:px-12 py-4">
 
       <Suspense fallback={
         <Skeleton className="h-12 w-full rounded-lg bg-slate-200" />

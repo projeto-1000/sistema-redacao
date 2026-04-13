@@ -1,5 +1,5 @@
 
-import { getStudentEssays } from "@/services/get-essays";
+import { getStudentEssays } from "@/app/actions/get-essays";
 import { EssayCard } from "./essay-card";
 import { Search, FileText, CircleAlert } from "lucide-react";
 import { TablePagination } from "./table-pagination";

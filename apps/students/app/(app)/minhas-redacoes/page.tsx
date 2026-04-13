@@ -5,7 +5,7 @@ import { EssayGrid } from "@/components/essay-grid";
 import { EssayFiltersBar } from "@/components/essay-filters-bar";
 import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
-import { parseFilters } from "@/utils/parse-filters";
+import { parseEssaysFilters } from "@/utils/parse-filters";
 
 export default async function MyEssaysPage({
   searchParams,
@@ -14,7 +14,7 @@ export default async function MyEssaysPage({
 }) {
   const resolvedParams = await searchParams;
 
-  const filters = parseFilters(resolvedParams);
+  const filters = parseEssaysFilters(resolvedParams);
   const page = Number(resolvedParams?.page) || 1;
   const suspenseKey = JSON.stringify(resolvedParams);
 

@@ -3,7 +3,7 @@ import { EvolutionGraph } from "@/components/evolution-graph";
 import { ProfileHeader } from "@/components/profile-header";
 import { SectionCard } from "@/components/section-card";
 import { UserStats } from "@/components/user-stats";
-import { getProfileData } from "@/services/profile";
+import { getProfileData } from "@/app/actions/profile";
 import { FileText, TrendingUp } from "lucide-react";
 import { redirect } from "next/navigation";
 

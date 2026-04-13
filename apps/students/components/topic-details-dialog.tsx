@@ -13,13 +13,13 @@ import {
 import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { Button } from "@repo/ui/components/button";
 import { Skeleton } from "@repo/ui/components/skeleton";
-import { BookOpenText, FileText, Info, NotebookPen, AlertCircle } from "lucide-react";
+import { BookOpenText, FileText, Info, NotebookPen, AlertCircle, Eye } from "lucide-react";
 import Link from "next/link";
 import type { EssayTopic, MotivationalText, EssayTopicDetail } from "@repo/types";
-import { getTopicDetails } from "@/services/get-topics";
+import { getTopicDetails } from "@/app/actions/get-topics";
 interface TopicDetailsDialogProps {
   topic: EssayTopic;
-  children: React.ReactNode;
+  // children: React.ReactNode;
 }
 
 function MotivatingTextSkeleton() {
@@ -64,7 +64,7 @@ function MotivatingTextItem({ item }: { item: MotivationalText }) {
   );
 }
 
-export function TopicDetailsDialog({ topic, children }: TopicDetailsDialogProps) {
+export function TopicDetailsDialog({ topic }: TopicDetailsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [details, setDetails] = useState<EssayTopicDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,7 +88,13 @@ export function TopicDetailsDialog({ topic, children }: TopicDetailsDialogProps)
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {children}
+        <Button
+          variant="outline"
+          className="rounded-full text-xs font-bold h-10 border-slate-200 text-[#1E3A8A] hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 whitespace-nowrap"
+        >
+          Ver Proposta
+          <Eye className="size-4.5" />
+        </Button>
       </DialogTrigger>
 
       <DialogContent className="max-w-4xl w-[95vw] h-[90vh] md:max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col rounded-3xl border-0 outline-none focus:outline-none focus:ring-0 shadow-xl bg-white">
@@ -162,12 +168,13 @@ export function TopicDetailsDialog({ topic, children }: TopicDetailsDialogProps)
             </Button>
           </DialogClose>
 
-          <Link href={`/minhas-redacoes/nova-redacao?id=${topic.id}`} className="w-full sm:w-auto">
-            <Button className="w-full bg-primary font-bold rounded-full gap-4 h-12 shadow-lg shadow-yellow-500/10">
+          <Button asChild
+            className="w-full bg-primary font-bold rounded-full gap-4 h-12 shadow-lg shadow-yellow-500/10">
+            <Link href={`/minhas-redacoes/nova-redacao?id=${topic.id}`} className="w-full sm:w-auto">
               Iniciar Redação
               <NotebookPen className="size-4" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </DialogFooter>
 
       </DialogContent>

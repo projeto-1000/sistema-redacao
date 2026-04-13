@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { EssayTopicDetail } from "@repo/types";
-import { getTopicDetails } from "@/services/get-topics";
+import { getTopicDetails } from "@/app/actions/get-topics";
 
 import EssayPageClient from "./page-client"; // Novo Client Component
 import { AlertCircle } from "lucide-react";

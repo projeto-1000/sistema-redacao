@@ -1,4 +1,4 @@
-import { EssayStatus } from "@repo/types";
+import { EssayStatus, ThematicAxis } from "@repo/types";
 
 export interface EssayListItem {
   id: string;
@@ -16,4 +16,9 @@ export interface EssaysFilter {
   thematicAxis?: string;
   from?: string;
   to?: string;
+}
+
+export interface TopicsFilter {
+  search?: string;
+  axis?: ThematicAxis | "Todos";
 }

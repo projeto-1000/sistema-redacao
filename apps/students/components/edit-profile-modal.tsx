@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from "@repo/ui/components/dialog";
 import { User, Camera, Loader2 } from "lucide-react";
-import { updateProfile } from "@/services/update-profile";
+import { updateProfile } from "@/app/actions/update-profile";
 
 interface UserData {
   name: string;
