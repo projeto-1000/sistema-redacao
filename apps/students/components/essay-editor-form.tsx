@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import { useState, useActionState } from "react";
 import { Save, AlertCircle } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { submitEssay } from "@/app/actions/submit-essay";
@@ -8,23 +8,17 @@ import { SubmitEssayButton } from "./submit-essay-button";
 import { EssayTopicDetail } from "@repo/types";
 interface EssayEditorFormProps {
   topic: EssayTopicDetail,
-  onSuccess: () => void;
 }
 
-export function EssayEditorForm({ topic, onSuccess }: EssayEditorFormProps) {
+export function EssayEditorForm({ topic }: EssayEditorFormProps) {
   const [text, setText] = useState("");
 
   const [state, formAction] = useActionState(
     submitEssay.bind(null, topic.id, topic.title, topic.axis),
-    { error: "", success: false }
+    null
   );
 
-  useEffect(() => {
-    if (state?.success) {
-      onSuccess();
-    }
-  }, [state, onSuccess]);
-
+  //TODO: definir caracteres mínimos
   const MAX_CHARS = 10000;
   const MIN_CHARS = 100;
   const charCount = text.length;
@@ -58,7 +52,7 @@ export function EssayEditorForm({ topic, onSuccess }: EssayEditorFormProps) {
         </div>
 
 
-        {state.error && (
+        {state?.error && (
           <div className="mx-6 mt-6 p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-2 text-red-600 text-sm font-medium animate-in slide-in-from-top-2">
             <AlertCircle className="size-4 shrink-0" />
             {state.error}

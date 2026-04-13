@@ -1,12 +1,10 @@
 import { redirect } from "next/navigation";
-import type { EssayTopicDetail } from "@repo/types";
-import { getTopicDetails } from "@/app/actions/get-topics";
-
-import EssayPageClient from "./page-client"; // Novo Client Component
 import { AlertCircle } from "lucide-react";
+import { getTopicDetails } from "@/app/actions/get-topics";
+import { EssayWorkspace } from "@/components/essay-workspace";
 
 type Props = {
-  searchParams: Promise<{ id?: string }>;
+  searchParams: Promise<{ id: string, success: string }>;
 };
 
 export default async function NewEssayPage(props: Props) {
@@ -16,12 +14,12 @@ export default async function NewEssayPage(props: Props) {
   if (!topicId) {
     redirect("/temas");
   }
+  const isSuccess = searchParams.success === "true";
+  const essayTopic = await getTopicDetails(topicId);
 
-  const data = await getTopicDetails(topicId);
-
-  if (!data) {
+  if (!essayTopic) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] text-slate-500">
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] text-slate-500 animate-in fade-in duration-500">
         <AlertCircle className="w-10 h-10 mb-4 text-red-400" />
         <h2 className="text-lg font-bold text-slate-800">Tema não encontrado</h2>
         <p className="text-sm">O ID fornecido é inválido ou o tema foi removido.</p>
@@ -29,7 +27,5 @@ export default async function NewEssayPage(props: Props) {
     );
   }
 
-  const essayTopic = data as EssayTopicDetail;
-
-  return <EssayPageClient essayTopic={essayTopic} />;
+  return <EssayWorkspace essayTopic={essayTopic} isSuccess={isSuccess} />;
 }

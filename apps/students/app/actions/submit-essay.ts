@@ -2,11 +2,11 @@
 
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation"; // 1. Importamos o redirect
 
 export type ActionState = {
   error?: string;
-  success?: boolean;
-} | null;
+} | null; // 2. Removemos o 'success' do tipo, pois o sucesso será um redirecionamento!
 
 export async function submitEssay(
   topic_id: string,
@@ -22,13 +22,14 @@ export async function submitEssay(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: "Você precisa estar logado para enviar.", success: false };
+    return { error: "Você precisa estar logado para enviar." };
   }
 
   const content = formData.get("content") as string;
 
-  if (!content || content.length < 50) {
-    return { error: "A redação está muito curta.", success: false };
+  //TODO: definir caracteres mínimos
+  if (!content || content.length < 100) {
+    return { error: "A redação está muito curta. Mínimo de 100 caracteres." };
   }
 
   try {
@@ -43,15 +44,14 @@ export async function submitEssay(
 
     if (error) {
       console.error("Erro RPC:", error);
-      return { error: error.message, success: false };
+      return { error: error.message };
     }
   } catch (err) {
     console.error("Erro catch:", err);
-    return { error: "Erro interno ao enviar redação.", success: false };
+    return { error: "Erro interno ao enviar redação." };
   }
 
   revalidatePath("/minhas-redacoes");
   revalidatePath("/inicio");
-
-  return { success: true, error: "" };
+  redirect(`/minhas-redacoes/nova-redacao?id=${topic_id}&success=true`);
 }
