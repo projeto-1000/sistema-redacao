@@ -54,10 +54,9 @@ export function Header({
         </nav>
 
         <Button
-          variant="ghost"
           size="sm"
           onClick={onLogout}
-          className="text-red-500 hover:text-red-700 hover:bg-red-50 gap-2 font-bold"
+          className="bg-transparent text-red-500 hover:text-red-700 hover:bg-red-50 gap-2 font-bold"
         >
           <LogOut className="w-4 h-4" />
           Sair
@@ -99,10 +98,9 @@ export function Header({
             <div className="h-px bg-slate-100 my-2" />
 
             <Button
-              variant="ghost"
               size="sm"
               onClick={onLogout}
-              className="justify-start px-4 py-3 text-red-500 hover:text-red-700 hover:bg-red-50 gap-2 w-full font-bold"
+              className="justify-start px-4 py-3 bg-transparent text-red-500 hover:text-red-700 hover:bg-red-50 gap-2 w-full font-bold"
             >
               <LogOut className="w-4 h-4" />
               Sair
