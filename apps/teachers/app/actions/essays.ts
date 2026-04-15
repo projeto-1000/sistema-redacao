@@ -14,8 +14,6 @@ interface FinishedEssayResponse {
 
 export async function saveEssayCorrection(essayId: string, payload: CorrectionPayload) {
   const supabase = await createClient();
-  console.log({ essayId });
-  console.log({ payload });
 
   const {
     data: { user },
@@ -58,6 +56,15 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
 export async function getFinishedEssays() {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    console.error("Usuário não autenticado ao tentar buscar redações.");
+    return [];
+  }
+
   const { data, error } = await supabase
     .from("essays")
     .select(
@@ -71,7 +78,8 @@ export async function getFinishedEssays() {
       )
     `
     )
-    .eq("status", "done")
+    .eq("status", "corrected")
+    .eq("teacher_id", user.id)
     .order("correction_date", { ascending: false })
     .returns<FinishedEssayResponse[]>();
 
