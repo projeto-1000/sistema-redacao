@@ -1,41 +1,23 @@
-import { useCallback, useEffect, useState } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
+import { useUrlFilters } from "@repo/hooks";
 import type { ThematicAxis } from "@repo/types";
 
 export function useTopicsFilters() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { getFilter, setFilters } = useUrlFilters();
 
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+  const [searchTerm, setSearchTerm] = useState(getFilter("search"));
   const [debouncedSearch] = useDebounce(searchTerm, 500);
 
-  const setFilter = useCallback(
-    (key: string, value: string | null) => {
-      const currentQueryString = searchParams.toString();
-      const params = new URLSearchParams(currentQueryString);
-
-      if (value && value !== "Todos") {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-
-      const newQueryString = params.toString();
-
-      if (currentQueryString !== newQueryString) {
-        router.replace(`${pathname}?${newQueryString}`, { scroll: false });
-      }
-    },
-    [pathname, router, searchParams]
-  );
-
   useEffect(() => {
-    setFilter("search", debouncedSearch || null);
-  }, [debouncedSearch, setFilter]);
+    setFilters({ search: debouncedSearch || null });
+  }, [debouncedSearch, setFilters]);
 
-  const axisFilter = (searchParams.get("axis") as ThematicAxis | "Todos") || "Todos";
+  const axisFilter = (getFilter("axis") as ThematicAxis | "Todos") || "Todos";
+
+  const setFilter = (key: string, value: string | null) => {
+    setFilters({ [key]: value === "Todos" ? "" : value });
+  };
 
   return { searchTerm, setSearchTerm, axisFilter, setFilter };
 }

@@ -81,7 +81,7 @@ export function TableFilterBar({
   };
 
   const adminCalendarClasses = {
-    day: 'hover:bg-accent hover:text-accent-foreground',
+    day: 'hover:bg-accent hover:text-accent-foreground rounded-md',
     range_start: 'rounded-md rounded-l-md bg-secondary text-white',
     range_middle: 'rounded-none bg-accent text-accent-foreground',
     range_end: 'bg-secondary rounded-md rounded-r-md text-white',
@@ -89,8 +89,13 @@ export function TableFilterBar({
     focused: 'group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50'
   }
 
-  //TODO: configurar default classes
-  const defaultCalendarClasses = {}
+  const defaultCalendarClasses = {
+    today: 'text-amber-600',
+    day: 'hover:bg-primary',
+    range_start: 'rounded-md rounded-l-md bg-primary',
+    range_middle: 'rounded-none bg-primary/20',
+    range_end: 'bg-primary rounded-md rounded-r-md',
+  }
 
   return (
     <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-8 flex items-center gap-2 relative z-10" >

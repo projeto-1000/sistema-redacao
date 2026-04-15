@@ -2,11 +2,11 @@
 
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation"; // 1. Importamos o redirect
+import { redirect } from "next/navigation";
 
 export type ActionState = {
   error?: string;
-} | null; // 2. Removemos o 'success' do tipo, pois o sucesso será um redirecionamento!
+} | null;
 
 export async function submitEssay(
   topic_id: string,

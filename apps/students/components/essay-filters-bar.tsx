@@ -8,13 +8,12 @@ export function EssayFiltersBar() {
 
   return (
     <TableFilterBar
-      searchPlaceholder="Buscar por nome, e-mail ou CPF..."
+      searchPlaceholder="Buscar por título, eixo temático ou palavra chave..."
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
       filters={filterOptions}
       dateRange={dateRange}
       onDateRangeChange={setDateRange}
-      theme="admin"
     />
   );
 }

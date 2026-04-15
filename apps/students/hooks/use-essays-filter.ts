@@ -3,60 +3,31 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { DateRange } from "react-day-picker";
 import { Activity, Layers } from "lucide-react";
+import { useUrlFilters } from "@repo/hooks";
 
 export function useEssayFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { getFilter, setFilters } = useUrlFilters();
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const [debouncedSearch] = useDebounce(searchTerm, 500);
 
-  const setFilter = useCallback(
-    (key: string, value: string | null) => {
-      const params = new URLSearchParams(searchParams.toString());
-
-      if (value && value !== "all") {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-
-      params.delete("page");
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    },
-    [pathname, router, searchParams]
-  );
-
   useEffect(() => {
-    setFilter("search", debouncedSearch || null);
-  }, [debouncedSearch, setFilter]);
+    setFilters({ search: debouncedSearch || null });
+  }, [debouncedSearch, setFilters]);
 
-  const setDateRange = useCallback(
-    (range: DateRange | undefined) => {
-      const params = new URLSearchParams(searchParams.toString());
+  const setDateRange = (range: DateRange | undefined) => {
+    setFilters({
+      from: range?.from ? range.from.toISOString() : null,
+      to: range?.to ? range.to.toISOString() : null,
+    });
+  };
 
-      if (range?.from) {
-        params.set("from", range.from.toISOString());
-      } else {
-        params.delete("from");
-      }
-
-      if (range?.to) {
-        params.set("to", range.to.toISOString());
-      } else {
-        params.delete("to");
-      }
-
-      params.delete("page");
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    },
-    [pathname, router, searchParams]
-  );
-
-  const statusFilter = searchParams.get("status") || "all";
-  const thematicAxisFilter = searchParams.get("thematicAxis") || "all";
-  const totalScoreFilter = searchParams.get("totalScore") || "all";
+  const statusFilter = searchParams.get("status") || "";
+  const thematicAxisFilter = searchParams.get("thematicAxis") || "";
+  const totalScoreFilter = searchParams.get("totalScore") || "";
 
   const dateRange: DateRange | undefined =
     searchParams.get("from") || searchParams.get("to")
@@ -72,7 +43,7 @@ export function useEssayFilters() {
       label: "Status",
       value: statusFilter,
       icon: Activity,
-      onChange: (val: string) => setFilter("status", val),
+      onChange: (val: string) => setFilters({ status: val }),
       options: [
         { label: "Todos", value: "all" },
         { label: "Rascunho", value: "draft" },
@@ -87,7 +58,7 @@ export function useEssayFilters() {
       label: "Tema",
       value: thematicAxisFilter,
       icon: Layers,
-      onChange: (val: string) => setFilter("thematicAxis", val),
+      onChange: (val: string) => setFilters({ thematicAxis: val }),
       options: [
         { label: "Todos", value: "all" },
         { label: "Meio Ambiente", value: "Meio Ambiente" },
@@ -105,7 +76,7 @@ export function useEssayFilters() {
       label: "Nota",
       value: totalScoreFilter,
       icon: Layers,
-      onChange: (val: string) => setFilter("totalScore", val),
+      onChange: (val: string) => setFilters({ totalScore: val }),
       options: [
         { label: "Todas as notas", value: "all" },
         { label: "900 a 1000", value: "900-1000" },
