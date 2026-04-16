@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-interface Highlight {
+export interface Highlight {
   id: string;
   text: string;
   compId: string;
@@ -15,6 +15,7 @@ interface GradingState {
   highlights: Highlight[];
   activeHighlightComp: string | null;
   setActiveHighlightComp: (id: string | null) => void;
+  setHighlights: (highlights: Highlight[]) => void; // A NOSSA NOVA FUNÇÃO AQUI
   addHighlight: (highlight: Highlight) => void;
   removeHighlight: (id: string) => void;
   setScore: (compId: string, score: number) => void;
@@ -35,6 +36,9 @@ const initialState = {
 
 export const useGradingStore = create<GradingState>((set, get) => ({
   ...initialState,
+
+  // Substitui a lista inteira (Usado pelo novo algoritmo de limpeza de sobreposição)
+  setHighlights: (highlights) => set({ highlights }),
 
   addHighlight: (highlight) =>
     set((state) => ({
@@ -57,7 +61,9 @@ export const useGradingStore = create<GradingState>((set, get) => ({
     })),
 
   setGeneralComment: (comment) => set({ generalComment: comment }),
+
   setActiveHighlightComp: (id) => set({ activeHighlightComp: id }),
+
   reset: () => set(initialState),
 
   getTotalScore: () => {
@@ -70,6 +76,7 @@ export const useGradingStore = create<GradingState>((set, get) => ({
     const allScoresGiven = Object.values(scores).every((score) => score !== null);
     const allCommentsGiven = Object.values(comments).every((comment) => comment.trim().length >= 5);
     const hasGeneralComment = generalComment.trim().length >= 10;
+
     return allScoresGiven && allCommentsGiven && hasGeneralComment;
   },
 }));

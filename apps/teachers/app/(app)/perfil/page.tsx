@@ -1,4 +1,4 @@
-import { getProfileData } from "@/services/profile";
+import { getProfileData } from "@/app/actions/profile";
 import { ProfileClientContent } from "./_components/page-client";
 import { PageHeader } from "@repo/ui/components/page-header";
 

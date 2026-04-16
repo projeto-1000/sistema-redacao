@@ -1,6 +1,6 @@
 import { ActionCard } from "@/components/action-card";
 import { NextEssays } from "@/components/next-essays";
-import { getProfileData } from "@/services/profile";
+import { getProfileData } from "@/app/actions/profile";
 import { formatDate } from "@repo/utils";
 import { ArrowRight, Calendar, CheckCircle2, Clock, History, MoreHorizontal } from "lucide-react";
 import Link from "next/link";

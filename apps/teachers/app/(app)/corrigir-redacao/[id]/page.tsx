@@ -1,13 +1,13 @@
-import { getEssayById } from "@/services/essays";
+import { EssayCorrectionWorkspace } from "@/components/essay-correction-workspace";
+import { getEssayById } from "@/app/actions/essays";
 import { notFound } from "next/navigation";
-import { EssayCorrectionClient } from "./_components/essay-correction-client";
 
-interface PageProps {
+type Props = {
   params: Promise<{ id: string }>;
-}
+};
 
-export default async function EssayCorrectionPage({ params }: PageProps) {
-  const { id } = await params;
+export default async function EssayCorrectionPage(props: Props) {
+  const { id } = await props.params;
 
   const essay = await getEssayById(id);
 
@@ -15,15 +15,5 @@ export default async function EssayCorrectionPage({ params }: PageProps) {
     notFound();
   }
 
-  const formattedEssay = {
-    id: essay.id,
-    student: essay.student.full_name || "Aluno(a)",
-    topic: essay.title,
-    title: essay.title,
-    text: essay.content,
-    created_at: essay.created_at,
-    motivationalTexts: essay.motivational_texts
-  };
-
-  return <EssayCorrectionClient essay={formattedEssay} />;
+  return <EssayCorrectionWorkspace essay={essay} />;
 }

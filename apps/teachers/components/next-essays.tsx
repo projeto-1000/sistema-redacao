@@ -1,4 +1,4 @@
-import { getEssaysByStatus } from "@/services/essays";
+import { getEssaysByStatus } from "@/app/actions/essays";
 import { getDeadlineInfo, getHolidays } from "@repo/utils";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";

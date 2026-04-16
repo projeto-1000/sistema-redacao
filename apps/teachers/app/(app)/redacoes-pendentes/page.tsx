@@ -1,6 +1,6 @@
 import { getHolidays, getDeadlineInfo, formatDate } from "@repo/utils";
 import { PendingEssaysClient } from "./page-client";
-import { getEssaysByStatus } from "@/services/essays";
+import { getEssaysByStatus } from "@/app/actions/essays";
 
 export default async function PendingEssaysPage() {
   const essays = await getEssaysByStatus({ status: 'pending' });

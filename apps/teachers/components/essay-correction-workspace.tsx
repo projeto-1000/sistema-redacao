@@ -4,10 +4,9 @@ import { CompetencyCard } from "@/components/competency-card";
 import { EssayViewer } from "@/components/essay-viewer";
 import { StickyScore } from "@/components/sticky-score";
 import { useGradingStore } from "@/stores/use-grading-store";
-import { MotivationalText } from "@repo/types";
 import { formatDate } from "@repo/utils";
 import { Calendar, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 const COMPETENCIES = [
   { id: "C1", title: "Domínio da Norma Culta", description: "Demonstrar domínio da modalidade escrita formal da língua portuguesa." },
@@ -17,20 +16,17 @@ const COMPETENCIES = [
   { id: "C5", title: "Proposta de Intervenção", description: "Elaborar proposta de intervenção detalhada respeitando os direitos humanos." },
 ];
 
-interface EssayCorrectionClientProps {
+interface EssayCorrectionWorkspaceProps {
   essay: {
     id: string;
     student: string;
-    topic: string;
     title: string;
-    text: string;
+    content: string;
     created_at: string,
-    motivationalTexts: MotivationalText[]
   };
 }
 
-export function EssayCorrectionClient({ essay }: EssayCorrectionClientProps) {
-  const [activeTab, setActiveTab] = useState<"text" | "proposal">("text");
+export function EssayCorrectionWorkspace({ essay }: EssayCorrectionWorkspaceProps) {
 
   const activeHighlightComp = useGradingStore((state) => state.activeHighlightComp);
   const setActiveHighlightComp = useGradingStore((state) => state.setActiveHighlightComp);
@@ -54,7 +50,7 @@ export function EssayCorrectionClient({ essay }: EssayCorrectionClientProps) {
   return (
     <div className="min-h-screen flex flex-col">
 
-      <div className="px-6 md:px-10 py-6 space-y-4">
+      <div className="px-2 md:px-10 py-6 space-y-4">
         <div>
           <h1 className="text-3xl font-extrabold ">
             Espaço de Correção
@@ -75,12 +71,8 @@ export function EssayCorrectionClient({ essay }: EssayCorrectionClientProps) {
         </div>
       </div>
 
-      <div className="px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-20">
-        <EssayViewer
-          essay={essay}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
+      <div className="px-2 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-20">
+        <EssayViewer essay={essay} />
 
         <div className="lg:col-span-5 flex flex-col gap-6 relative">
           {COMPETENCIES.map((comp) => (
@@ -95,6 +87,7 @@ export function EssayCorrectionClient({ essay }: EssayCorrectionClientProps) {
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mb-32">
             <h3 className="font-bold mb-4">Comentário Geral</h3>
             <textarea
+              suppressHydrationWarning
               placeholder="Dê um feedback para o aluno..."
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-700 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-amber-400/50 resize-none h-32"
               value={generalComment}

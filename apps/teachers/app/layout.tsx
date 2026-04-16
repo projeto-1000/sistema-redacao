@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR">
       <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
         {children}
         <Toaster position="top-right" />

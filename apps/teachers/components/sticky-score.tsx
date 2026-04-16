@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@repo/ui/components/button";
 import { useGradingStore } from "@/stores/use-grading-store";
-import { saveEssayCorrection } from "@/app/actions/essays";
+
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { saveEssayCorrection } from "@/app/actions/essays";
 interface StickyScoreProps {
   essayId: string;
 }
@@ -63,7 +64,8 @@ export function StickyScore({ essayId }: StickyScoreProps) {
   };
 
   return (
-    <div className="fixed lg:sticky bottom-6 right-6 lg:bottom-auto lg:top-6 lg:mt-[-120px] bg-white p-5 rounded-3xl shadow-2xl border border-slate-200 flex items-center justify-between gap-6 z-50 animate-in slide-in-from-bottom-10 lg:slide-in-from-right-10">
+
+    <div className="fixed bottom-6 left-4 right-4 md:left-auto md:right-6 lg:sticky lg:bottom-auto lg:top-6 lg:right-auto lg:mt-[-120px] bg-white p-5 rounded-3xl shadow-2xl border border-slate-200 flex items-center justify-between gap-6 z-50 animate-in slide-in-from-bottom-10 lg:slide-in-from-right-10">
       <div>
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
           Nota Total

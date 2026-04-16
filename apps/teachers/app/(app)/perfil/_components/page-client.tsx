@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@repo/ui/components/button";
 import { ProfileHeader } from "@repo/ui/components/profile-header";
 import { EditProfileModal } from "@repo/ui/components/edit-profile-modal";
-import { updateProfile } from "@/services/update-profile";
+import { updateProfile } from "@/app/actions/update-profile";
 import { UserData } from "@repo/types";
 
 export function ProfileClientContent({ user }: { user: UserData }) {

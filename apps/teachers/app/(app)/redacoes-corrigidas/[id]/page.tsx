@@ -1,25 +1,9 @@
-import { ArrowLeft, Calendar, ChartNoAxesColumn, MessageSquareText, Pencil, Star, User } from "lucide-react";
-import Link from "next/link";
+import { Calendar, ChartNoAxesColumn, MessageSquareText, Star, User } from "lucide-react";
 import { notFound } from "next/navigation";
-import { Button } from "@repo/ui/components/button";
 import { getGradedEssay } from "@/app/actions/essays";
-import { formatDate } from "@repo/utils";
+import { COMPETENCY_INFO, formatDate } from "@repo/utils";
+import { HighlightedText } from "@/components/highlighted-text";
 
-const HIGHLIGHT_STYLES = {
-  c1: "bg-comp-1/10 border-b-2 border-comp-1",
-  c2: "bg-comp-2/10 border-b-2 border-comp-2",
-  c3: "bg-comp-3/20 border-b-2 border-comp-3",
-  c4: "bg-comp-4/10 border-b-2 border-comp-4",
-  c5: "bg-comp-5/10 border-b-2 border-comp-5",
-};
-
-const COMPETENCY_INFO = [
-  { id: "c1", title: "C1: Norma Culta", desc: "Domínio da norma culta da língua escrita.", bg: "bg-comp-1/10", text: "text-comp-1", border: "border-comp-1" },
-  { id: "c2", title: "C2: Compreensão do Tema", desc: "Compreender a proposta e aplicar conceitos.", bg: "bg-comp-2/10", text: "text-comp-2", border: "border-comp-2" },
-  { id: "c3", title: "C3: Argumentação", desc: "Selecionar, relacionar e interpretar informações.", bg: "bg-comp-3/10", text: "text-[#B58500]", border: "border-comp-3" },
-  { id: "c4", title: "C4: Coesão", desc: "Conhecimento dos mecanismos linguísticos.", bg: "bg-comp-4/10", text: "text-comp-4", border: "border-comp-4" },
-  { id: "c5", title: "C5: Proposta de Intervenção", desc: "Elaborar proposta para o problema abordado.", bg: "bg-comp-5/10", text: "text-comp-5", border: "border-comp-5" },
-];
 
 export default async function GradedEssayPage({
   params
@@ -31,34 +15,40 @@ export default async function GradedEssayPage({
 
   if (!essay) return notFound();
 
-  const renderHighlightedText = (paragraph: string) => {
-    let result: React.ReactNode[] = [paragraph];
-    const sortedHighlights = [...essay.highlights].sort((a, b) => b.text.length - a.text.length);
+  // // A mesma Engine O(N) perfeita que usamos na tela de correção
+  // const renderContent = () => {
+  //   const fullText = essay.text;
+  //   const sortedHighlights = [...essay.highlights].sort((a, b) => a.startIndex - b.startIndex);
 
-    sortedHighlights.forEach((highlight) => {
-      const newResult: React.ReactNode[] = [];
-      result.forEach((part) => {
-        if (typeof part === "string" && part.includes(highlight.text)) {
-          const splitText = part.split(highlight.text);
-          splitText.forEach((fragment, index) => {
-            newResult.push(fragment);
-            if (index < splitText.length - 1) {
-              const styleClass = HIGHLIGHT_STYLES[highlight.compId as keyof typeof HIGHLIGHT_STYLES];
-              newResult.push(
-                <mark key={`${highlight.id}-${index}`} className={`${styleClass} pb-0.5`}>
-                  {highlight.text}
-                </mark>
-              );
-            }
-          });
-        } else {
-          newResult.push(part);
-        }
-      });
-      result = newResult;
-    });
-    return result;
-  };
+  //   const elements: React.ReactNode[] = [];
+  //   let lastIndex = 0;
+
+  //   sortedHighlights.forEach((hl) => {
+  //     // 1. Texto antes do highlight
+  //     if (hl.startIndex > lastIndex) {
+  //       elements.push(<span key={`text-${lastIndex}`}>{fullText.slice(lastIndex, hl.startIndex)}</span>);
+  //     }
+
+  //     // 2. O highlight
+  //     elements.push(
+  //       <mark
+  //         key={hl.id}
+  //         className={`${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]} pb-0.5 rounded-sm`}
+  //       >
+  //         {fullText.slice(hl.startIndex, hl.endIndex)}
+  //       </mark>
+  //     );
+
+  //     lastIndex = hl.endIndex;
+  //   });
+
+  //   // 3. O resto do texto
+  //   if (lastIndex < fullText.length) {
+  //     elements.push(<span key={`text-end`}>{fullText.slice(lastIndex)}</span>);
+  //   }
+
+  //   return elements;
+  // };
 
   return (
     <div className="px-4 md:px-10 lg:px-12 py-4">
@@ -77,22 +67,6 @@ export default async function GradedEssayPage({
             </div>
           </div>
         </div>
-
-        {/* <div className="flex items-center gap-3 shrink-0">
-          <Button variant="outline" asChild className="rounded-xl font-bold h-11 border-slate-200">
-            <Link href="/redacoes-corrigidas">
-              <ArrowLeft className="size-4 mr-2" />
-              Voltar
-            </Link>
-          </Button>
-
-          <Button asChild className="rounded-xl font-bold h-11">
-            <Link href={`/corrigir-redacao/${id}`}>
-              <Pencil className="size-4 mr-2" />
-              Editar Correção
-            </Link>
-          </Button>
-        </div> */}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
@@ -102,10 +76,10 @@ export default async function GradedEssayPage({
             <div className="px-8 py-6 border-b border-slate-100 uppercase tracking-widest text-[10px] font-bold text-slate-400">
               Texto do Aluno
             </div>
-            <div className="p-8 md:p-10 space-y-6 text-slate-700 text-justify text-lg leading-relaxed">
-              {essay.text.split("\n\n").map((paragraph: string, idx: number) => (
-                <p key={idx}>{renderHighlightedText(paragraph)}</p>
-              ))}
+            {/* O SEGREDO ESTÁ AQUI: whitespace-pre-wrap mantém os parágrafos sem quebrar os índices */}
+            <div className="p-8 md:p-10 text-slate-700 text-justify text-lg leading-relaxed whitespace-pre-wrap wrap-break-word">
+              {/* {renderContent()} */}
+              <HighlightedText text={essay.text} highlights={essay.highlights} />
             </div>
           </div>
 
@@ -116,10 +90,8 @@ export default async function GradedEssayPage({
               </div>
               <h3 className="text-lg font-black">Comentário Geral do Corretor</h3>
             </div>
-            <div className="space-y-4 text-slate-600 leading-relaxed">
-              {essay.generalComment.split("\n\n").map((para: string, i: number) => (
-                <p key={i}>{para}</p>
-              ))}
+            <div className="space-y-4 text-slate-600 leading-relaxed whitespace-pre-wrap">
+              {essay.generalComment}
             </div>
           </div>
         </div>
