@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Trash2 } from "lucide-react";
 import { useGradingStore } from "@/stores/use-grading-store";
-import { HIGHLIGHT_STYLES } from "@repo/utils";
+import { HIGHLIGHT_STYLES } from "@repo/ui/components/modules/essays/constants";
 
 const COMP_BUTTONS = [
   { id: "c1", bg: "bg-comp-1" },

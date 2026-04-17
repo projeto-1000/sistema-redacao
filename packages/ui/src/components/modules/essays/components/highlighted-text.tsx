@@ -1,8 +1,9 @@
 'use client'
 
-import { HIGHLIGHT_STYLES } from "@repo/utils";
+import React from "react";
+import { HIGHLIGHT_STYLES } from "../constants";
 
-interface Highlight {
+export interface Highlight {
   id: string;
   compId: string;
   startIndex: number;
@@ -23,15 +24,19 @@ export function HighlightedText({ text, highlights, onHighlightClick }: Highligh
 
   sortedHighlights.forEach((hl) => {
     if (hl.startIndex > lastIndex) {
-      elements.push(<span key={`text-${lastIndex}`}>{text.slice(lastIndex, hl.startIndex)}</span>);
+      elements.push(
+        <span key={`text-${lastIndex}`}>
+          {text.slice(lastIndex, hl.startIndex)}
+        </span>
+      );
     }
-
 
     elements.push(
       <mark
         key={hl.id}
         onClick={(e) => onHighlightClick?.(e, hl)}
-        className={`${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]} pb-0.5 rounded-sm ${onHighlightClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
+        className={`${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]} pb-0.5 rounded-sm ${onHighlightClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""
+          }`}
       >
         {text.slice(hl.startIndex, hl.endIndex)}
       </mark>
