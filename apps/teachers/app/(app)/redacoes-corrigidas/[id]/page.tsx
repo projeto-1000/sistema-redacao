@@ -4,7 +4,6 @@ import { getGradedEssay } from "@/app/actions/essays";
 import { COMPETENCY_INFO, formatDate } from "@repo/utils";
 import { HighlightedText } from "@/components/highlighted-text";
 
-
 export default async function GradedEssayPage({
   params
 }: {
@@ -15,44 +14,9 @@ export default async function GradedEssayPage({
 
   if (!essay) return notFound();
 
-  // // A mesma Engine O(N) perfeita que usamos na tela de correção
-  // const renderContent = () => {
-  //   const fullText = essay.text;
-  //   const sortedHighlights = [...essay.highlights].sort((a, b) => a.startIndex - b.startIndex);
-
-  //   const elements: React.ReactNode[] = [];
-  //   let lastIndex = 0;
-
-  //   sortedHighlights.forEach((hl) => {
-  //     // 1. Texto antes do highlight
-  //     if (hl.startIndex > lastIndex) {
-  //       elements.push(<span key={`text-${lastIndex}`}>{fullText.slice(lastIndex, hl.startIndex)}</span>);
-  //     }
-
-  //     // 2. O highlight
-  //     elements.push(
-  //       <mark
-  //         key={hl.id}
-  //         className={`${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]} pb-0.5 rounded-sm`}
-  //       >
-  //         {fullText.slice(hl.startIndex, hl.endIndex)}
-  //       </mark>
-  //     );
-
-  //     lastIndex = hl.endIndex;
-  //   });
-
-  //   // 3. O resto do texto
-  //   if (lastIndex < fullText.length) {
-  //     elements.push(<span key={`text-end`}>{fullText.slice(lastIndex)}</span>);
-  //   }
-
-  //   return elements;
-  // };
-
   return (
     <div className="px-4 md:px-10 lg:px-12 py-4">
-      {/* HEADER */}
+
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
         <div>
           <h1 className="text-3xl font-black mb-4">{essay.title}</h1>
@@ -70,15 +34,14 @@ export default async function GradedEssayPage({
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        {/* TEXTO E COMENTÁRIOS */}
+
         <div className="xl:col-span-7 space-y-8">
           <div className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="px-8 py-6 border-b border-slate-100 uppercase tracking-widest text-[10px] font-bold text-slate-400">
               Texto do Aluno
             </div>
-            {/* O SEGREDO ESTÁ AQUI: whitespace-pre-wrap mantém os parágrafos sem quebrar os índices */}
+
             <div className="p-8 md:p-10 text-slate-700 text-justify text-lg leading-relaxed whitespace-pre-wrap wrap-break-word">
-              {/* {renderContent()} */}
               <HighlightedText text={essay.text} highlights={essay.highlights} />
             </div>
           </div>
@@ -96,7 +59,6 @@ export default async function GradedEssayPage({
           </div>
         </div>
 
-        {/* NOTA E DESEMPENHO */}
         <div className="xl:col-span-5 space-y-6">
           <div className="bg-[#0F172A] rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 p-6 opacity-10">
@@ -141,6 +103,7 @@ export default async function GradedEssayPage({
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -123,7 +123,7 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
   if (error) throw error;
   console.log({ error });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/inicio");
   revalidatePath(`/corrigir-redacao/${essayId}`);
 
   return { success: true };
