@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
 import {
   Search,
   Clock,
@@ -9,9 +8,13 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  FileText
+  FileText,
+  Loader2
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
+import { startEssayCorrection } from "@/app/actions/essays";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type EssayType = {
   id: string;
@@ -58,6 +61,28 @@ export function PendingEssaysClient({ initialEssays }: PendingEssaysClientProps)
         {text}
       </div>
     );
+  };
+
+  const [startingEssayId, setStartingEssayId] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleStartCorrection = async (essayId: string) => {
+    if (startingEssayId) return; // Evita duplo clique
+    setStartingEssayId(essayId);
+
+    try {
+      const result = await startEssayCorrection(essayId);
+
+      if (result.success) {
+        router.push(`/corrigir-redacao/${essayId}`);
+      } else {
+        toast.error(result.error || "A redação já foi assumida por outro corretor.");
+        setStartingEssayId(null);
+      }
+    } catch (error) {
+      toast.error("Ocorreu um erro ao tentar iniciar a correção.");
+      setStartingEssayId(null);
+    }
   };
 
   return (
@@ -145,14 +170,13 @@ export function PendingEssaysClient({ initialEssays }: PendingEssaysClientProps)
                   {/* Coluna 4: Ação */}
                   <div className="lg:col-span-1 flex justify-end">
                     <Button
-                      asChild
+                      onClick={() => handleStartCorrection(essay.id)}
+                      disabled={startingEssayId === essay.id}
                       className="rounded-full font-bold shadow-sm h-9 whitespace-nowrap transition-transform"
+                      isLoading={startingEssayId === essay.id}
+                      loadingText="Iniciando..."
                     >
-                      {/* Ajustei o link para bater com a rota que usamos na dashboard */}
-                      <Link href={`/corrigir-redacao/${essay.id}`}>
-                        Corrigir
-                        <ArrowRight className="size-4 ml-1.5" />
-                      </Link>
+                      Corrigir <ArrowRight className="size-4 ml-1.5" />
                     </Button>
                   </div>
                 </div>

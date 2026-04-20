@@ -7,6 +7,15 @@ interface GetEssaysParams {
   status: EssayStatus;
   limit?: number;
 }
+interface FinishedEssayResponse {
+  id: string;
+  title: string;
+  correction_date: string | null;
+  total_score: number | null;
+  student: {
+    full_name: string | null;
+  } | null;
+}
 
 export async function getEssaysByStatus({ status, limit }: GetEssaysParams) {
   const supabase = await createClient();
@@ -76,16 +85,6 @@ export async function getEssayById(id: string) {
     student: student.full_name,
     motivational_texts: motivationalTexts || [],
   };
-}
-
-interface FinishedEssayResponse {
-  id: string;
-  title: string;
-  correction_date: string | null;
-  total_score: number | null;
-  student: {
-    full_name: string | null;
-  } | null;
 }
 
 export async function saveEssayCorrection(essayId: string, payload: CorrectionPayload) {
@@ -212,4 +211,41 @@ export async function getGradedEssay(id: string) {
     },
     generalComment: data.general_comment,
   };
+}
+
+export async function startEssayCorrection(essayId: string) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { success: false, error: "Usuário não autenticado." };
+    }
+
+    const { error: updateError } = await supabase
+      .from("essays")
+      .update({
+        teacher_id: user.id,
+        started_correction_at: new Date().toISOString(),
+        status: "correcting",
+      })
+      .eq("id", essayId)
+      .is("teacher_id", null);
+
+    if (updateError) {
+      console.error("🚨 Erro ao vincular professor:", updateError);
+      return { success: false, error: "Erro ao iniciar correção." };
+    }
+
+    revalidatePath("/redacoes-pendentes");
+
+    return { success: true };
+  } catch (error) {
+    console.error("🚨 Erro interno:", error);
+    return { success: false, error: "Erro inesperado do servidor." };
+  }
 }
