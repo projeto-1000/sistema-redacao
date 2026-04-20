@@ -17,20 +17,23 @@ export default async function GradedEssayPage({
 
   return (
     <div className="px-4 md:px-10 lg:px-12 py-4">
+
       <EssayHeader
         title={essay.title}
         date={essay.submittedAt}
         studentName={essay.studentName}
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         <EssayContent
           text={essay.text}
           highlights={essay.highlights}
           generalComment={essay.generalComment}
         />
 
-        <div className="xl:col-span-5 space-y-6">
+
+        <div className="lg:col-span-2 space-y-6">
           <EssayScoreCard
             totalScore={essay.totalScore}
           />

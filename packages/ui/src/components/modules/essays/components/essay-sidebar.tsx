@@ -8,7 +8,9 @@ export function EssayScoreCard({ totalScore }: { totalScore: number }) {
       <div className="absolute top-0 right-0 p-6 opacity-10">
         <Star className="size-20" />
       </div>
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nota total</p>
+      <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+        Nota total
+      </p>
       <div className="flex items-baseline gap-1">
         <span className="text-5xl font-extrabold text-[#EBC84C]">{totalScore}</span>
         <span className="text-xl text-slate-400 font-medium">/ 1000</span>
@@ -35,14 +37,14 @@ export function EssayCompetencies({ scores, comments }: EssayCompetenciesProps) 
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <h4 className="font-bold text-sm">{comp.title}</h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{comp.desc}</p>
+                  <p className="text-[12px] text-slate-500 mt-0.5">{comp.desc}</p>
                 </div>
                 <div className={`font-black text-sm px-2 py-1 rounded-md ${comp.bg} ${comp.text}`}>
                   {score}<span className="opacity-50 font-bold">/200</span>
                 </div>
               </div>
               <div className={`mt-3 border-l-3 ${comp.border} pl-4 py-1 text-sm text-slate-700 italic`}>
-                {`"${comment}"`}
+                {comment}
               </div>
               {comp.id !== "c5" && <div className="h-px w-full bg-slate-100 mt-6"></div>}
             </div>

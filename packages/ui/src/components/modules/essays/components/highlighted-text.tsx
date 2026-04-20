@@ -50,7 +50,7 @@ export function HighlightedText({ text, highlights, onHighlightClick }: Highligh
   }
 
   return (
-    <div className="text-slate-800 text-lg leading-relaxed text-justify whitespace-pre-wrap wrap-break-word">
+    <div className="p-8 md:p-10 text-slate-800 text-lg leading-relaxed text-justify whitespace-pre-wrap wrap-break-word">
       {elements}
     </div>
   );
