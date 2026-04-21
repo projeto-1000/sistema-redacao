@@ -1,6 +1,6 @@
 import { ChartNoAxesColumn, Star } from "lucide-react";
-import { COMPETENCY_INFO } from "../constants";
-import { EssayCompetenciesProps } from "../types";
+import { COMPETENCY_INFO } from "../../constants";
+import { EssayCompetenciesProps } from "../../types";
 
 export function EssayScoreCard({ totalScore }: { totalScore: number }) {
   return (

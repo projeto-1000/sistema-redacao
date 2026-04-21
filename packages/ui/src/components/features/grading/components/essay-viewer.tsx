@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { X, Trash2 } from "lucide-react";
-import { useGradingStore } from "@/stores/use-grading-store";
-import { HIGHLIGHT_STYLES } from "@repo/ui/components/modules/essays/constants";
+import { HIGHLIGHT_STYLES } from "../../constants";
 
 const COMP_BUTTONS = [
   { id: "c1", bg: "bg-comp-1" },
@@ -21,30 +20,39 @@ interface PopoverState {
   text: string;
   existingId?: string;
 }
+
+// 🔴 Exportamos a tipagem para o pai poder usar
+export interface Highlight {
+  id: string;
+  text: string;
+  compId: string;
+  startIndex: number;
+  endIndex: number;
+}
+
+// 🔴 O COMPONENTE AGORA EXIGE OS DADOS VIA PROPS
 interface EssayViewerProps {
   essay: {
     id: string;
     title: string;
     content: string;
   };
+  highlights: Highlight[];
+  activeHighlightComp: string | null;
+  onHighlightsChange: (newHighlights: Highlight[]) => void;
+  onActiveHighlightChange: (compId: string | null) => void;
 }
 
-export function EssayViewer({ essay }: EssayViewerProps) {
-  const highlights = useGradingStore((state) => state.highlights);
-  const activeHighlightComp = useGradingStore((state) => state.activeHighlightComp);
-  const setActiveHighlightComp = useGradingStore((state) => state.setActiveHighlightComp);
-  const setHighlights = useGradingStore((state) => state.setHighlights);
+export function EssayViewer({
+  essay,
+  highlights,
+  activeHighlightComp,
+  onHighlightsChange,
+  onActiveHighlightChange
+}: EssayViewerProps) {
 
   const [popover, setPopover] = useState<PopoverState | null>(null);
   const textRef = useRef<HTMLDivElement>(null);
-
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-  useEffect(() => {
-    setIsTouchDevice(
-      typeof window !== "undefined" &&
-      ('ontouchstart' in window || navigator.maxTouchPoints > 0)
-    );
-  }, []);
 
   const getAbsoluteRange = (selection: Selection) => {
     if (!textRef.current || selection.rangeCount === 0) return null;
@@ -66,7 +74,7 @@ export function EssayViewer({ essay }: EssayViewerProps) {
       return !isOverlapping;
     });
 
-    const newHighlight = {
+    const newHighlight: Highlight = {
       id: crypto.randomUUID(),
       text: selectedText,
       compId: compId.toLowerCase(),
@@ -74,15 +82,15 @@ export function EssayViewer({ essay }: EssayViewerProps) {
       endIndex
     };
 
-    setHighlights([...cleanHighlights, newHighlight]);
+    onHighlightsChange([...cleanHighlights, newHighlight]);
 
     window.getSelection()?.removeAllRanges();
     setPopover(null);
-    setActiveHighlightComp(null);
+    onActiveHighlightChange(null);
   };
 
   const handleRemoveHighlight = (id: string) => {
-    setHighlights(highlights.filter(h => h.id !== id));
+    onHighlightsChange(highlights.filter(h => h.id !== id));
     window.getSelection()?.removeAllRanges();
     setPopover(null);
   };
@@ -121,7 +129,7 @@ export function EssayViewer({ essay }: EssayViewerProps) {
     }, 100);
   };
 
-  const handleMarkClick = (e: React.MouseEvent, hl: any) => {
+  const handleMarkClick = (e: React.MouseEvent, hl: Highlight) => {
     e.stopPropagation();
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     setPopover({
@@ -165,7 +173,6 @@ export function EssayViewer({ essay }: EssayViewerProps) {
 
     return elements;
   };
-
 
   const renderPopoverContent = () => (
     <>
@@ -222,19 +229,19 @@ export function EssayViewer({ essay }: EssayViewerProps) {
       </div>
 
       {popover && (
-        isTouchDevice ? (
-          <div className="ignore-selection fixed z-9999 w-max bg-slate-900 text-white px-4 py-3 rounded-full shadow-2xl flex items-center justify-center gap-2 bottom-32 left-1/2 transform -translate-x-1/2 animate-in fade-in slide-in-from-bottom-6 duration-200 border border-slate-700/50">
+        <>
+          <div className="md:hidden ignore-selection fixed z-9999 w-max bg-slate-900 text-white px-4 py-3 rounded-full shadow-2xl flex items-center justify-center gap-2 bottom-40 left-1/2 transform -translate-x-1/2 animate-in fade-in slide-in-from-bottom-6 duration-200 border border-slate-700/50">
             {renderPopoverContent()}
           </div>
-        ) : (
+
           <div
-            className="ignore-selection fixed z-9999 w-max bg-slate-900 text-white px-3 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 transform -translate-x-1/2 -translate-y-full mb-2 animate-in fade-in zoom-in-95 duration-200"
+            className="hidden md:flex ignore-selection fixed z-9999 w-max bg-slate-900 text-white px-3 py-2.5 rounded-2xl shadow-2xl items-center gap-2 transform -translate-x-1/2 -translate-y-full mb-2 animate-in fade-in zoom-in-95 duration-200"
             style={{ top: popover.y, left: popover.x }}
           >
             {renderPopoverContent()}
             <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 rotate-45"></div>
           </div>
-        )
+        </>
       )}
     </div>
   );

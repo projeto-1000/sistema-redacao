@@ -72,7 +72,7 @@ export interface Competencies {
   comment: string | null;
 }
 export interface CorrectionPayload {
-  scores: Record<string, number | null>;
+  scores: Record<string, number>;
   comments: Record<string, string>;
   general_comment: string;
   highlights: {

@@ -1,9 +1,9 @@
 
 import { notFound } from "next/navigation";
 import { getGradedEssay } from "@/app/actions/essays";
-import EssayHeader from "@repo/ui/components/modules/essays/components/essay-header";
-import EssayContent from "@repo/ui/components/modules/essays/components/essay-content";
-import { EssayScoreCard, EssayCompetencies } from "@repo/ui/components/modules/essays/components/essay-sidebar";
+import EssayHeader from "@repo/ui/components/features/essays/components/essay-header";
+import EssayContent from "@repo/ui/components/features/essays/components/essay-content";
+import { EssayScoreCard, EssayCompetencies } from "@repo/ui/components/features/essays/components/essay-sidebar";
 
 export default async function GradedEssayPage({
   params

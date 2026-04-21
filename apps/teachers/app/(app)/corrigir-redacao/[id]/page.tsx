@@ -1,5 +1,5 @@
-import { EssayCorrectionWorkspace } from "@/components/essay-correction-workspace";
-import { getEssayById } from "@/app/actions/essays";
+import { getEssayById, saveEssayCorrection } from "@/app/actions/essays";
+import { EssayCorrectionWorkspace } from "@repo/ui/components/features/grading/components/essay-correction-workspace";
 import { notFound } from "next/navigation";
 
 type Props = {
@@ -15,5 +15,11 @@ export default async function EssayCorrectionPage(props: Props) {
     notFound();
   }
 
-  return <EssayCorrectionWorkspace essay={essay} />;
+  return (
+    <EssayCorrectionWorkspace
+      essay={essay}
+      onSaveCorrection={saveEssayCorrection}
+      redirectPath="/redacoes-corrigidas"
+    />)
+
 }

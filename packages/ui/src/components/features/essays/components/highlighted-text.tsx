@@ -1,7 +1,7 @@
 'use client'
 
 import React from "react";
-import { HIGHLIGHT_STYLES } from "../constants";
+import { HIGHLIGHT_STYLES } from "../../constants";
 
 export interface Highlight {
   id: string;

@@ -98,7 +98,7 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
   const { error } = await supabase
     .from("essays")
     .update({
-      status: "done",
+      status: "corrected",
       teacher_id: user.id,
       correction_date: new Date().toISOString(),
       updated_at: new Date().toISOString(),
