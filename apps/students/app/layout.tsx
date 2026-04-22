@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { TooltipProvider } from "@repo/ui/components/tooltip";
+import { Toaster } from "@repo/ui/components/sonner";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ReactQueryProvider>
           <TooltipProvider>
             {children}
+            <Toaster position="top-right" />
           </TooltipProvider>
         </ReactQueryProvider>
       </body>

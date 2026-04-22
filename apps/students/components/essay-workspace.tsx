@@ -9,13 +9,15 @@ import { EssayEditorForm } from "@/components/essay-editor-form";
 import { MotivationalTexts } from "@/components/motivational-texts";
 import MobileMotivationalTexts from "@/components/mobile-motivational-texts";
 import type { EssayTopicDetail } from "@repo/types";
+import { EssayDraft } from "@/types";
 
 interface EssayWorkspaceProps {
   essayTopic: EssayTopicDetail;
   isSuccess: boolean;
+  backup: EssayDraft | null;
 }
 
-export function EssayWorkspace({ essayTopic, isSuccess }: EssayWorkspaceProps) {
+export function EssayWorkspace({ essayTopic, isSuccess, backup }: EssayWorkspaceProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (isSuccess) {
@@ -70,7 +72,7 @@ export function EssayWorkspace({ essayTopic, isSuccess }: EssayWorkspaceProps) {
             Ver Proposta e textos motivadores
           </Button>
 
-          <EssayEditorForm topic={essayTopic} />
+          <EssayEditorForm topic={essayTopic} backup={backup} />
         </div>
       </div>
 

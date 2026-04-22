@@ -1,15 +1,31 @@
+'use client'
 
+import { deleteDraftEssay } from "@/app/actions/essay-drafts";
 import { EssayListItem } from "@/types";
 import { Button } from "@repo/ui/components/button";
 import { ThemeBadge } from "@repo/ui/components/theme-badge";
 import { formatDate } from "@repo/utils";
-import { Calendar1Icon } from "lucide-react";
+import { ArrowRight, Calendar1Icon, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "@repo/ui/components/alert-dialog";
+import { useTransition } from "react";
 interface EssayCardProps {
   essay: EssayListItem;
 }
 
 export function EssayCard({ essay }: EssayCardProps) {
+  const isDraft = essay.status === "draft";
 
   const STATUS_MAP = {
     pending: { label: 'Pendente', textColor: 'text-primary' },
@@ -21,6 +37,23 @@ export function EssayCard({ essay }: EssayCardProps) {
 
   const { label, textColor } = STATUS_MAP[essay.status] || STATUS_MAP.pending;
 
+  const [isPending, startTransition] = useTransition();
+  const onConfirmDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    startTransition(async () => {
+      try {
+        const result = await deleteDraftEssay(essay.id);
+
+        if (result.success) {
+          toast.success("Rascunho excluído com sucesso.");
+        }
+      } catch (error) {
+        console.error("Falha ao excluir:", error);
+        toast.error("Erro ao excluir rascunho. Tente novamente.");
+      }
+    });
+  };
   return (
     <div className="flex flex-col p-6 rounded-3xl border border-border bg-white shadow-sm hover:shadow-md transition-shadow h-full">
       <div className="flex-1">
@@ -64,16 +97,59 @@ export function EssayCard({ essay }: EssayCardProps) {
         )}
       </div>
 
-      <Button
-        asChild={essay.status !== 'pending'}
-        variant="ghost"
-        disabled={essay.status !== 'corrected'}
-        className="w-full bg-accent text-secondary hover:bg-accent/80 hover:text-secondary font-bold rounded-xl h-10"
-      >
-        <Link href={`/minhas-redacoes/${essay.id}`}>
-          Ver Detalhes
-        </Link>
-      </Button>
-    </div>
+      {isDraft ? (
+        <div className="flex gap-2 w-full">
+          <Button
+            asChild
+            className="flex-1 bg-amber-100 text-amber-700 hover:bg-amber-200 font-bold rounded-xl h-10 gap-2"
+          >
+            <Link href={`/minhas-redacoes/nova-redacao?id=${essay.topic_id}`}>
+              Continuar Redação <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button className="h-10 bg-red-100 shrink-0 hover:bg-red-200 transition-colors rounded-lg">
+                <Trash2 className="size-4 text-red-600" />
+              </Button>
+            </AlertDialogTrigger>
+
+            <AlertDialogContent className="rounded-3xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir rascunho?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação não pode ser desfeita. Você perderá todo o progresso feito nesta redação até agora.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="rounded-xl font-bold">Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={onConfirmDelete}
+                  disabled={isPending}
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold"
+                >
+                  {isPending ? "Excluindo..." : "Sim, excluir"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+        </div>
+      ) : (
+        <Button
+          asChild
+          variant="ghost"
+          disabled={essay.status === "pending" || essay.status === "correcting"}
+          className="w-full bg-accent text-secondary hover:bg-accent/80 font-bold rounded-xl h-10"
+        >
+          <Link href={`/minhas-redacoes/${essay.id}`}>
+            Ver Correção
+          </Link>
+        </Button>
+      )
+      }
+
+    </div >
   );
 }

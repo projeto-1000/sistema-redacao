@@ -7,6 +7,7 @@ export interface EssayListItem {
   status: EssayStatus;
   total_score: number;
   thematic_axis: string;
+  topic_id: string;
 }
 
 export interface EssaysFilter {
@@ -21,4 +22,10 @@ export interface EssaysFilter {
 export interface TopicsFilter {
   search?: string;
   axis?: ThematicAxis | "Todos";
+}
+
+export interface EssayDraft {
+  id: string;
+  content: string;
+  updated_at: string;
 }

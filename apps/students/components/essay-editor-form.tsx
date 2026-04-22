@@ -1,17 +1,26 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Save, AlertCircle } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { submitEssay } from "@/app/actions/submit-essay";
 import { SubmitEssayButton } from "./submit-essay-button";
 import { EssayTopicDetail } from "@repo/types";
+import { useEssayEditor } from "@/hooks/use-essay-editor";
+import { saveDraft } from "@/app/actions/essay-drafts";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { EssayDraft } from "@/types";
+
 interface EssayEditorFormProps {
   topic: EssayTopicDetail,
+  backup: EssayDraft | null;
 }
 
-export function EssayEditorForm({ topic }: EssayEditorFormProps) {
-  const [text, setText] = useState("");
+export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
+  const [isSaving, setIsSaving] = useState(false)
+  const router = useRouter()
+  const { content: text, setContent: setText, clearAutoSave } = useEssayEditor(topic.id, backup);
 
   const [state, formAction] = useActionState(
     submitEssay.bind(null, topic.id, topic.title, topic.axis),
@@ -27,6 +36,33 @@ export function EssayEditorForm({ topic }: EssayEditorFormProps) {
   const isOverLimit = charCount > MAX_CHARS;
   const isTooShort = charCount < MIN_CHARS;
   const progressColor = isOverLimit ? "bg-red-500" : "bg-primary";
+
+  const handleSaveDraft = async () => {
+    setIsSaving(true)
+    try {
+      const result = await saveDraft(
+        topic.id,
+        text,
+        topic.title,
+        topic.axis,
+        backup?.id
+      );
+
+      if (result.success) {
+        clearAutoSave()
+        toast.success("Rascunho salvo com sucesso!", {
+          description: "Você pode continuar editando quando quiser.",
+        });
+
+        router.push("/minhas-redacoes");
+      }
+    } catch (error) {
+      toast.error("Erro ao salvar rascunho", {
+        description: "Tente novamente em instantes.",
+      });
+      console.error(error);
+    }
+  };
 
   return (
     <form action={formAction} className="flex flex-col h-full gap-4">
@@ -101,7 +137,8 @@ export function EssayEditorForm({ topic }: EssayEditorFormProps) {
           <Button
             type="button"
             variant="outline"
-            disabled={isTooShort}
+            disabled={text === "" || isSaving === true}
+            onClick={handleSaveDraft}
             className="w-full sm:w-auto font-bold rounded-full h-12 px-6 gap-2"
           >
             <Save className="size-4" />

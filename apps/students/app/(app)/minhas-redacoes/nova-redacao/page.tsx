@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { getTopicDetails } from "@/app/actions/get-topics";
 import { EssayWorkspace } from "@/components/essay-workspace";
+import { getTemporaryBackup } from "@/app/actions/essay-drafts";
+import { EssayDraft } from "@/types";
 
 type Props = {
   searchParams: Promise<{ id: string, success: string }>;
@@ -15,7 +17,18 @@ export default async function NewEssayPage(props: Props) {
     redirect("/temas");
   }
   const isSuccess = searchParams.success === "true";
+
   const essayTopic = await getTopicDetails(topicId);
+
+  let backup = null;
+  if (essayTopic && !isSuccess) {
+    backup = await getTemporaryBackup(topicId);
+  }
+
+  const draftData: EssayDraft | null = backup ? {
+    content: backup.content,
+    updated_at: backup.updated_at
+  } : null;
 
   if (!essayTopic) {
     return (
@@ -27,5 +40,5 @@ export default async function NewEssayPage(props: Props) {
     );
   }
 
-  return <EssayWorkspace essayTopic={essayTopic} isSuccess={isSuccess} />;
+  return <EssayWorkspace essayTopic={essayTopic} isSuccess={isSuccess} backup={draftData} />;
 }
