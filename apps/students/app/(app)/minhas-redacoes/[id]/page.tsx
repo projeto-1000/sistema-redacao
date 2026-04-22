@@ -1,68 +1,51 @@
-import Link from "next/link";
-import { Button } from "@repo/ui/components/button";
-import { RotateCcw, Plus, Calendar, MessageSquareText, Star } from "lucide-react";
 import { getEssayById } from "@/app/actions/get-essays";
-import { formatDate } from "@repo/utils";
-import { mapEssayToCompetencies } from "@/utils/essay-mapper";
-
-const COMPETENCY_STYLES = {
-  1: {
-    badge: "bg-[#FFEDEA] text-[#CC3725]",
-    border: "border-[#CC3725]",
-  },
-  2: {
-    badge: "bg-[#E6F0FF] text-[#0052CC]",
-    border: "border-[#0052CC]",
-  },
-  3: {
-    badge: "bg-[#FFF9E6] text-[#B58500]",
-    border: "border-[#FFC400]",
-  },
-  4: {
-    badge: "bg-[#E3FCEF] text-[#006644]",
-    border: "border-[#00875A]",
-  },
-  5: {
-    badge: "bg-[#F3E9FF] text-[#6E40C9]",
-    border: "border-[#8755DE]",
-  }
-};
+import EssayHeader from "@repo/ui/components/features/essays/components/essay-header";
+import EssayContent from "@repo/ui/components/features/essays/components/essay-content";
+import { EssayCompetencies, EssayScoreCard } from "@repo/ui/components/features/essays/components/essay-sidebar";
+import { notFound } from "next/navigation";
 
 export default async function EssayFeedbackPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const data = await getEssayById(id)
-  const competencies = mapEssayToCompetencies(data);
+  const essay = await getEssayById(id)
+
+  if (!essay) return notFound();
+
+  const bestScores = Object.keys(essay.scores).filter(
+    (key) => essay.scores[key as keyof typeof essay.scores] === 200
+  );
 
   return (
     <div className="px-4 md:px-10 lg:px-12 py-4">
-      <div className="mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div>
-            <h1 className="text-3xl font-extrabold mb-2">Análise Detalhada: {data.title}</h1>
-            <p className="text-slate-500 font-medium text-sm flex items-center gap-2">
-              Avaliação seguindo critérios oficiais do ENEM • <Calendar className="size-3" /> {formatDate(data.submission_date, 'long')}
-            </p>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <Link href={`/minhas-redacoes/nova-redacao?id=${data.topic_id}`}>
-              <Button variant="outline" className="bg-white border-blue-200 text-blue-600 hover:bg-blue-50 font-bold gap-2 h-10 rounded-full">
-                <RotateCcw className="size-4" />
-                Refazer Redação
-              </Button>
-            </Link>
+      <EssayHeader
+        title={essay.title}
+        date={essay.correctedAt}
+      />
 
-            <Link href="/temas">
-              <Button className="font-bold gap-2 h-10 rounded-full shadow-md shadow-yellow-500/10">
-                <Plus className="size-4" />
-                Nova Redação
-              </Button>
-            </Link>
-          </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+        <EssayContent
+          text={essay.text}
+          highlights={essay.highlights}
+          generalComment={essay.generalComment}
+          bestScores={bestScores}
+
+        />
+
+
+        <div className="lg:col-span-2 space-y-6">
+          <EssayScoreCard
+            totalScore={essay.totalScore}
+          />
+
+          <EssayCompetencies
+            scores={essay.scores}
+            comments={essay.comments}
+          />
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      </div>
+      {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
@@ -90,11 +73,11 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
             </div>
 
             <h2 className="text-xl font-bold text-center mb-8 max-w-2xl mx-auto leading-tight">
-              {data.title}
+              {essay.title}
             </h2>
 
             <p className="prose prose-slate whitespace-pre-line max-w-none text-slate-600 text-justify text-lg">
-              {data.content}
+              {essay.content}
             </p>
 
           </div>
@@ -107,9 +90,9 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
               <h3 className="text-lg font-bold">Comentário Geral do Corretor</h3>
             </div>
 
-            {data.general_comment ? (
+            {essay.general_comment ? (
               <p className="text-slate-600 leading-relaxed text-sm md:text-base">
-                {data.general_comment}
+                {essay.general_comment}
               </p>
             ) : (
               <p className="text-slate-400 italic text-sm bg-slate-50 p-4 rounded-xl border border-slate-100">
@@ -129,7 +112,7 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
             </p>
             <div className="flex items-baseline gap-1">
               <span className="text-5xl font-extrabold text-[#EBC84C]">
-                {data.total_score}
+                {essay.total_score}
               </span>
               <span className="text-xl text-slate-400 font-medium">/ 1000</span>
             </div>
@@ -165,7 +148,7 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
             })}
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

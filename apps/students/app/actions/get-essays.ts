@@ -90,17 +90,38 @@ export async function getEssayById(essayId: string) {
 
   if (!user) return null;
 
-  const { data, error } = await supabase
+  const { data: essay, error } = await supabase
     .from("essays")
     .select("*")
     .eq("id", essayId)
     .eq("student_id", user.id)
     .single();
 
-  if (error || !data) {
+  if (error || !essay) {
     console.error("Redação não encontrada ou acesso negado");
     return null;
   }
 
-  return data;
+  return {
+    correctedAt: essay.correction_date,
+    title: essay.title,
+    totalScore: essay.total_score,
+    text: essay.content,
+    highlights: essay.highlights || [],
+    scores: {
+      c1: essay.score_c1,
+      c2: essay.score_c2,
+      c3: essay.score_c3,
+      c4: essay.score_c4,
+      c5: essay.score_c5,
+    },
+    comments: {
+      c1: essay.comment_c1,
+      c2: essay.comment_c2,
+      c3: essay.comment_c3,
+      c4: essay.comment_c4,
+      c5: essay.comment_c5,
+    },
+    generalComment: essay.general_comment,
+  };
 }

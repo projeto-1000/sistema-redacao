@@ -15,6 +15,10 @@ export default async function GradedEssayPage({
 
   if (!essay) return notFound();
 
+  const bestScores = Object.keys(essay.scores).filter(
+    (key) => essay.scores[key as keyof typeof essay.scores] === 200
+  );
+
   return (
     <div className="px-4 md:px-10 lg:px-12 py-4">
 
@@ -30,6 +34,7 @@ export default async function GradedEssayPage({
           text={essay.text}
           highlights={essay.highlights}
           generalComment={essay.generalComment}
+          bestScores={bestScores}
         />
 
 

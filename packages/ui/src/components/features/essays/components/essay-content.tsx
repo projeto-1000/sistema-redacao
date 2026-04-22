@@ -1,18 +1,44 @@
-import { MessageSquareText } from "lucide-react";
+import { Award, MessageSquareText } from "lucide-react";
 import { Highlight, HighlightedText } from "./highlighted-text";
-
+import { COMPETENCY_INFO } from "../../constants";
 interface EssayContentProps {
   text: string;
   highlights: Highlight[];
   generalComment: string;
+  bestScores: string[]
 }
 
-export default function EssayContent({ text, highlights, generalComment }: EssayContentProps) {
+export default function EssayContent({ text, highlights, generalComment, bestScores }: EssayContentProps) {
   return (
     <div className="lg:col-span-3 space-y-8">
       <div className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="px-8 py-6 border-b border-slate-100 uppercase tracking-widest text-[10px] font-bold text-slate-400">
-          Texto do Aluno
+
+        <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
+          <span className="uppercase tracking-widest text-[10px] font-bold text-slate-400">
+            Texto do Aluno
+          </span>
+
+          {bestScores.length > 0 && (
+            <div className="flex flex-wrap gap-2 items-center">
+              <Award className="size-4 text-amber-400 mr-1" />
+
+              {bestScores.map((scoreId) => {
+                const info = COMPETENCY_INFO.find((comp) => comp.id === scoreId);
+                if (!info) return null;
+
+                const competencyName = info.title.split(":")[1]?.trim()
+
+                return (
+                  <span
+                    key={info.id}
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${info.bg} ${info.text} ${info.border}`}
+                  >
+                    {competencyName}
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <HighlightedText text={text} highlights={highlights} />
