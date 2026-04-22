@@ -14,7 +14,7 @@ interface CompetenceListProps {
 
 export function CompetenceList({ scores }: CompetenceListProps) {
   return (
-    <div className="w-full space-y-5 px-2">
+    <div className="w-full space-y-5">
       {COMPETENCES.map((item) => {
         const score = scores[item.id] || 0;
         const max = 200;
@@ -22,13 +22,16 @@ export function CompetenceList({ scores }: CompetenceListProps) {
 
         return (
           <div key={item.id} className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-end text-sm">
+            <div className="flex justify-between md:items-center min-w-max text-sm gap-2">
               <span className="font-bold text-foreground/80">
-                <span className="text-foreground font-extrabold mr-1">{item.id}:</span>
+                <strong className="text-foreground font-extrabold mr-1.5">
+                  {item.id}:
+                </strong>
                 {item.label}
               </span>
-              <span className="font-bold">
-                <span className="text-md text-primary">
+
+              <span className="font-bold md:w-min lg:w-max">
+                <span className="text-primary">
                   {score}
                 </span>
                 <span className="text-muted-foreground/60 text-xs ml-0.5">

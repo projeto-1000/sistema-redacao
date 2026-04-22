@@ -39,7 +39,7 @@ export function ActionCard({
 
   return (
     <div className="relative flex flex-col p-4 sm:p-6 md:p-4 lg:p-6 bg-white border border-slate-100 rounded-4xl shadow-sm transition-all hover:shadow-md h-full">
-      <div className="flex md:block items-center gap-2">
+      <div className="flex md:block items-center gap-2 mb-4 md:mb-0">
         <div className={cn("w-8 h-8 md:w-14 md:h-14 rounded-full flex items-center justify-center md:mb-4", style.iconBg)}>
           <Icon className={cn("size-4.5 md:size-6", style.iconColor)} />
         </div>
@@ -50,7 +50,7 @@ export function ActionCard({
 
       </div>
 
-      <p className="text-sm text-slate-500 leading-relaxed mb-4">
+      <p className="text-sm text-slate-500 leading-relaxed mb-6 md:mb-4">
         {description}
       </p>
 

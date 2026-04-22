@@ -61,7 +61,7 @@ export default async function DashboardPage() {
         <Skeleton className="h-12 w-full rounded-lg bg-slate-200" />
       }>
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex flex-col text-center md:text-left">
+          <div className="flex flex-col text-left">
             <h1 className="text-3xl font-bold tracking-tight">
               Olá, {profileData.firstName}!
             </h1>

@@ -17,7 +17,7 @@ export async function RecentEssaysList() {
         </h3>
         {essays.length > 0 && (
           <Link href="/minhas-redacoes">
-            <p className="text-sm font-bold text-secondary hover:underline">
+            <p className="text-sm font-bold text-secondary text-end hover:underline">
               Ver todas as redações
             </p>
           </Link>
