@@ -126,9 +126,6 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.93.3
         version: 2.93.3
-      '@tanstack/react-query':
-        specifier: ^5.90.20
-        version: 5.90.20(react@19.2.0)
       lucide-react:
         specifier: ^0.563.0
         version: 0.563.0(react@19.2.0)
@@ -1779,14 +1776,6 @@ packages:
 
   '@tailwindcss/postcss@4.1.16':
     resolution: {integrity: sha512-Qn3SFGPXYQMKR/UtqS+dqvPrzEeBZHrFA92maT4zijCVggdsXnDBMsPFJo1eArX3J+O+Gi+8pV4PkqjLCNBk3A==}
-
-  '@tanstack/query-core@5.90.20':
-    resolution: {integrity: sha512-OMD2HLpNouXEfZJWcKeVKUgQ5n+n3A2JFmBaScpNDUqSrQSjiveC7dKMe53uJUg1nDG16ttFPz2xfilz6i2uVg==}
-
-  '@tanstack/react-query@5.90.20':
-    resolution: {integrity: sha512-vXBxa+qeyveVO7OA0jX1z+DeyCA4JKnThKv411jd5SORpBKgkcVnYKCiBgECvADvniBX7tobwBmg01qq9JmMJw==}
-    peerDependencies:
-      react: ^18 || ^19
 
   '@types/d3-array@3.2.2':
     resolution: {integrity: sha512-hOLWVbm7uRza0BYXpIIW5pxfrKe0W+D5lrFiAEYR+pb6w3N2SwSMaJbXdUfSEv+dT4MfHBLtn5js0LAWaO6otw==}
@@ -4701,13 +4690,6 @@ snapshots:
       '@tailwindcss/oxide': 4.1.16
       postcss: 8.5.6
       tailwindcss: 4.1.16
-
-  '@tanstack/query-core@5.90.20': {}
-
-  '@tanstack/react-query@5.90.20(react@19.2.0)':
-    dependencies:
-      '@tanstack/query-core': 5.90.20
-      react: 19.2.0
 
   '@types/d3-array@3.2.2': {}
 
