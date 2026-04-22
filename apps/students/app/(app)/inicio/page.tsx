@@ -12,18 +12,20 @@ import { redirect } from "next/navigation";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { Suspense } from "react";
 
+
 export default async function DashboardPage() {
+
   const actions = [
     {
-      title: "Enviar Nova Redação",
+      title: "Nova Redação",
       description: "Escolha um tema ou envie um texto livre para correção imediata.",
       buttonText: "Começar Agora",
       icon: NotebookPen,
-      variant: "primary" as const,
+      variant: "default" as const,
       href: '/temas'
     },
     {
-      title: "Ver Temas Disponíveis",
+      title: "Temas Disponíveis",
       description: "Explore centenas de propostas de redação nos moldes do ENEM.",
       buttonText: "Explorar Temas",
       icon: BookOpen,
@@ -55,7 +57,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8 min-h-screen px-4 md:px-10 lg:px-12 py-4">
-
       <Suspense fallback={
         <Skeleton className="h-12 w-full rounded-lg bg-slate-200" />
       }>
