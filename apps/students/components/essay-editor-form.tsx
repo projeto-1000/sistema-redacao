@@ -65,26 +65,21 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
   };
 
   return (
-    <form action={formAction} className="flex flex-col h-full gap-4">
+    <form suppressHydrationWarning action={formAction} className="flex flex-col h-full gap-4">
 
       <input type="hidden" name="topicId" value={topic.id} />
       <input type="hidden" name="title" value={topic.title} />
       <input type="hidden" name="thematicAxis" value={topic.axis} />
 
-      <div className="bg-white rounded-3xl border border-slate-200 flex flex-col flex-1 shadow-sm overflow-hidden relative">
-        <div className="flex flex-col md:flex-row md:items-center justify-between p-5 border-b border-slate-100 gap-4 bg-slate-50/30">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-bold text-lg">
-                Folha de Redação
-              </h3>
-            </div>
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
-              <span className="bg-[#EBC84C]/20 text-[#8B781F] px-2 py-0.5 rounded-md flex items-center gap-1">
-                Custa 1 crédito
-              </span>
-            </div>
-          </div>
+      <div className="bg-white rounded-3xl border border-slate-200 flex flex-col flex-1 shadow-sm overflow-hidden">
+        <div className="flex flex-row md:items-center justify-between p-5 border-b border-slate-100 gap-4 bg-slate-50/30">
+          <h3 className="font-bold text-lg md:mb-1">
+            Folha de Redação
+          </h3>
+
+          <span className="bg-[#EBC84C]/20 text-[#8B781F] px-2 md:py-1 rounded-md flex items-center text-[8px] md:text-[10px] font-bold uppercase tracking-wider">
+            Custa 1 crédito
+          </span>
         </div>
 
 
@@ -101,9 +96,10 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
           </label>
 
           <textarea
+            suppressHydrationWarning
             id="essay-text"
             name="content"
-            className="flex-1 w-full resize-none outline-none text-slate-700 leading-relaxed placeholder:text-slate-300 text-base font-medium bg-transparent"
+            className="flex-1 w-full resize-y outline-none text-slate-700 leading-relaxed placeholder:text-slate-300 text-base font-medium bg-transparent"
             placeholder="Primeiro, escreva sua redação à mão, como no dia da prova. Depois, transcreva-a aqui."
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -147,6 +143,6 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
 
         </div>
       </div>
-    </form>
+    </form >
   );
 }

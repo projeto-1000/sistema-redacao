@@ -56,7 +56,7 @@ export default async function DashboardPage() {
   ])
 
   return (
-    <div className="space-y-8 min-h-screen px-4 md:px-10 lg:px-12 py-4">
+    <div className="space-y-8 min-h-screen px-2 md:px-10 lg:px-12 py-4">
       <Suspense fallback={
         <Skeleton className="h-12 w-full rounded-lg bg-slate-200" />
       }>

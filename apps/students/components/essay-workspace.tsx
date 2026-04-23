@@ -64,23 +64,18 @@ export function EssayWorkspace({ essayTopic, isSuccess, backup }: EssayWorkspace
 
         {/* Painel Direito: Editor e Botão Mobile */}
         <div className="flex-1 h-full flex flex-col min-w-0">
-          <Button
-            onClick={() => setIsOpen(true)}
-            className="flex lg:hidden mb-4 pt-4 pb-4 h-fit border border-slate-200 rounded-2xl bg-white hover:bg-slate-100 text-slate-700 font-bold justify-start"
-          >
-            <FileText className="size-7 bg-[#EBC84C] p-1 rounded-lg shadow-sm shadow-yellow-200 shrink-0 text-slate-900" />
-            Ver Proposta e textos motivadores
-          </Button>
+
+          <MobileMotivationalTexts
+            isOpen={isOpen}
+            onClose={setIsOpen}
+            topic={essayTopic}
+          />
 
           <EssayEditorForm topic={essayTopic} backup={backup} />
         </div>
       </div>
 
-      <MobileMotivationalTexts
-        isOpen={isOpen}
-        onClose={setIsOpen}
-        topic={essayTopic}
-      />
+
     </div>
   );
 }

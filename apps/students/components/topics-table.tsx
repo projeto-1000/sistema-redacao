@@ -62,7 +62,7 @@ export async function TopicsTable({ filters }: TopicsTableProps) {
         {topics.map((topic) => (
           <div
             key={topic.id}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-8 py-5 items-center hover:bg-slate-50 transition-colors group"
+            className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 md:px-8 py-5 items-center hover:bg-slate-50 transition-colors group"
           >
             <div className="lg:col-span-6">
               <h4 className="font-bold leading-snug group-hover:text-[#1E3A8A] transition-colors wrap-break-word">
@@ -83,12 +83,12 @@ export async function TopicsTable({ filters }: TopicsTableProps) {
               />
             </div>
 
-            <div className="lg:col-span-3 flex flex-row gap-2 justify-end mt-4 lg:mt-0">
+            <div className="lg:col-span-3 flex flex-row gap-2 justify-between lg:justify-end mt-4 lg:mt-0">
               <TopicDetailsDialog topic={topic} />
 
               <Button
                 asChild
-                className="rounded-full text-xs font-bold bg-primary shadow-sm h-10 whitespace-nowrap"
+                className="rounded-full text-xs font-bold bg-primary shadow-sm h-10 whitespace-nowrap w-1/2 md:w-fit"
               >
                 <Link href={`/minhas-redacoes/nova-redacao?id=${topic.id}`}>
                   Iniciar Redação
