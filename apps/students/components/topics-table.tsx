@@ -47,13 +47,13 @@ export async function TopicsTable({ filters }: TopicsTableProps) {
   return (
     <div className="rounded-4xl bg-white border border-slate-200 overflow-hidden shadow-sm mt-8">
       <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-5 border-b border-slate-100 bg-slate-50/50">
-        <div className="col-span-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <div className="col-span-5 xl:col-span-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Título do Tema
         </div>
         <div className="col-span-3 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Eixo Temático
         </div>
-        <div className="col-span-3 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <div className="col-span-4 xl:col-span-3 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Ação
         </div>
       </div>
@@ -64,7 +64,7 @@ export async function TopicsTable({ filters }: TopicsTableProps) {
             key={topic.id}
             className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 md:px-8 py-5 items-center hover:bg-slate-50 transition-colors group"
           >
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-5 xl:col-span-6">
               <h4 className="font-bold leading-snug group-hover:text-[#1E3A8A] transition-colors wrap-break-word">
                 {topic.title}
               </h4>
@@ -78,17 +78,17 @@ export async function TopicsTable({ filters }: TopicsTableProps) {
 
             <div className="hidden lg:flex lg:col-span-3 justify-center px-2">
               <ThemeBadge
-                className="w-full max-w-40 px-2 py-1.5 text-[10px] font-bold uppercase rounded-full border tracking-wide h-auto whitespace-normal text-center flex items-center justify-center min-h-7 leading-tight"
+                className="w-full max-w-40 md:max-w-30 lg:max-w-40 px-2 py-1.5 text-[10px] font-bold uppercase rounded-full border tracking-wide h-auto whitespace-normal text-center flex items-center justify-center min-h-7 leading-tight"
                 value={topic.axis}
               />
             </div>
 
-            <div className="lg:col-span-3 flex flex-row gap-2 justify-between lg:justify-end mt-4 lg:mt-0">
+            <div className="lg:col-span-4 xl:col-span-3 flex flex-row gap-2 justify-between md:justify-end mt-4 lg:mt-0">
               <TopicDetailsDialog topic={topic} />
 
               <Button
                 asChild
-                className="rounded-full text-xs font-bold bg-primary shadow-sm h-10 whitespace-nowrap w-1/2 md:w-fit"
+                className="rounded-full text-xs font-bold bg-primary shadow-sm h-10 whitespace-nowrap w-1/2 md:w-fit shrink-0"
               >
                 <Link href={`/minhas-redacoes/nova-redacao?id=${topic.id}`}>
                   Iniciar Redação
