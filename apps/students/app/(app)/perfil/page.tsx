@@ -15,7 +15,7 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen p-6 md:px-20 items-center">
+    <div className="min-h-screen px-2 md:px-10 lg:px-12 py-4">
 
       <ProfileHeader user={data.user} />
 

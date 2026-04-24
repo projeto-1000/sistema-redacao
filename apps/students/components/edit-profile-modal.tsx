@@ -7,8 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogTrigger,
 } from "@repo/ui/components/dialog";
-import { User, Camera, Loader2 } from "lucide-react";
+import { User, Camera, Loader2, UserCog } from "lucide-react";
 import { updateProfile } from "@/app/actions/update-profile";
 
 interface UserData {
@@ -21,9 +22,10 @@ interface EditProfileModalProps {
   isOpen: boolean;
   onClose: (open: boolean) => void;
   initialData: UserData;
+  onClick: () => void
 }
 
-export function EditProfileModal({ isOpen, onClose, initialData }: EditProfileModalProps) {
+export function EditProfileModal({ isOpen, onClose, initialData, onClick }: EditProfileModalProps) {
   const [name, setName] = useState(initialData.name);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialData.avatarUrl);
   const [avatarFile, setAvatarFile] = useState<File | null>()
@@ -74,6 +76,16 @@ export function EditProfileModal({ isOpen, onClose, initialData }: EditProfileMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogTrigger asChild>
+        <Button
+          suppressHydrationWarning
+          onClick={onClick}
+          className="rounded-xl font-bold h-11"
+        >
+          <UserCog className="size-5 mr-2" />
+          Editar informações
+        </Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] rounded-4xl p-8">
         <DialogHeader>
           <DialogTitle className="text-xl font-extrabold text-center">

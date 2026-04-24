@@ -8,6 +8,7 @@ import { Calendar } from "@repo/ui/components/calendar";
 import { useState } from "react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./select";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./tooltip";
+import { cn } from "../lib/utils";
 
 export interface FilterOption {
   id: string;
@@ -27,6 +28,7 @@ interface TableFilterBarProps {
   dateRange?: DateRange;
   onDateRangeChange?: (date: DateRange | undefined) => void;
   theme?: "default" | "admin";
+  className?: string;
 }
 
 export function TableFilterBar({
@@ -37,6 +39,7 @@ export function TableFilterBar({
   dateRange,
   onDateRangeChange,
   theme = 'default',
+  className
 }: TableFilterBarProps) {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
@@ -98,22 +101,25 @@ export function TableFilterBar({
   }
 
   return (
-    <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-8 flex items-center gap-2 relative z-10" >
-
-      <div className="relative flex-1 w-full">
+    <div className={cn(
+      "bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-8 flex gap-2 relative z-10",
+      "flex-col items-stretch lg:flex-row lg:items-center",
+      className
+    )}>
+      <div className="relative flex-1 min-w-0 w-full">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
         <input
+          suppressHydrationWarning
           type="text"
           placeholder={searchPlaceholder}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full h-12 pl-11 pr-4 rounded-xl text-sm font-medium text-slate-700 bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 transition-all"
-
+          className={`w-full h-12 pl-11 pr-4 rounded-xl text-sm font-medium text-slate-700 bg-slate-50 border-none outline-none focus:ring-2 ${theme === 'default' ? 'focus:ring-primary' : 'focus:ring-blue-500'} placeholder:text-slate-400 transition-all`}
         />
 
       </div>
 
-      <div className="flex items-center gap-2 w-auto" >
+      <div className="flex items-center gap-2 shrink-0 overflow-x-auto scrollbar-hide max-w-full pb-1 lg:pb-0">
         {filters.map((filter) => {
           const Icon = filter.icon;
           const selectedLabel = filter.options?.find(opt => opt.value === filter.value)?.label || filter.value;
@@ -151,84 +157,85 @@ export function TableFilterBar({
             </Select>
           );
         })}
+        {onDateRangeChange && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="h-12 flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors shrink-0 border border-transparent hover:border-slate-200 outline-none">
+                <CalendarDays className="size-3.5 text-slate-400" />
+                <span className={`text-xs font-bold text-slate-400 uppercase tracking-wider ${dateRange === undefined ? 'flex' : 'hidden lg:block'}`}>
+                  Data:
+                </span>
+
+                <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                  <p className={dateRange === undefined ? 'hidden' : 'flex'}>
+                    {formatDisplayDate()}
+                  </p>
+                  <ChevronDown className="size-3.5 text-slate-400 ml-1" />
+                </span>
+              </button>
+            </PopoverTrigger>
+
+            <PopoverContent className="w-auto p-0 shadow-lg rounded-xl border-slate-200" align="end">
+
+              <div className="flex flex-wrap p-3 gap-2 justify-between border-b rounded-t-xl border-slate-100 bg-slate-50/50">
+                {[
+                  { label: "7 dias", value: 7 },
+                  { label: "30 dias", value: 30 },
+                  { label: "60 dias", value: 60 },
+                ].map((preset) => (
+                  <button
+                    key={preset.value}
+                    onClick={() => setPreset(preset.value)}
+                    className={`flex-1 text-sm font-medium border py-2 rounded-md text-center transition-colors ${selectedDay === preset.value
+                      ? 'bg-blue-50 border-blue-200 text-blue-600'
+                      : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-100'
+                      }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="p-2">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  month={currentMonth}
+                  onMonthChange={setCurrentMonth}
+                  onSelect={(range) => {
+                    setSelectedDay(null);
+                    if (onDateRangeChange) onDateRangeChange(range);
+                  }}
+                  locale={ptBR}
+                  resetOnSelect
+                  classNames={theme === "admin" ? adminCalendarClasses : defaultCalendarClasses}
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+
+        {hasActiveFilters && (
+          <>
+            <div className="hidden lg:block w-px h-6 bg-slate-200 mx-1 shrink-0"></div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleClearFilters}
+                  className=" h-12 px-3 bg-red-50 hover:bg-red-100/80 transition-colors rounded-lg flex items-center justify-center shrink-0"
+                >
+                  <X className="size-4 text-red-500" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-slate-900 text-white font-medium text-xs rounded-lg border-none">
+                <p>Limpar filtros</p>
+              </TooltipContent>
+            </Tooltip>
+          </>
+        )}
       </div>
 
-      {onDateRangeChange && (
-        <Popover>
-          <PopoverTrigger asChild>
-            <button className="h-12 flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors shrink-0 border border-transparent hover:border-slate-200 outline-none">
-              <CalendarDays className="size-3.5 text-slate-400" />
-              <span className={`text-xs font-bold text-slate-400 uppercase tracking-wider ${dateRange === undefined ? 'flex' : 'hidden lg:block'}`}>
-                Data:
-              </span>
 
-              <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                <p className={dateRange === undefined ? 'hidden' : 'flex'}>
-                  {formatDisplayDate()}
-                </p>
-                <ChevronDown className="size-3.5 text-slate-400 ml-1" />
-              </span>
-            </button>
-          </PopoverTrigger>
-
-          <PopoverContent className="w-auto p-0 shadow-lg rounded-xl border-slate-200" align="end">
-
-            <div className="flex flex-wrap p-3 gap-2 justify-between border-b rounded-t-xl border-slate-100 bg-slate-50/50">
-              {[
-                { label: "7 dias", value: 7 },
-                { label: "30 dias", value: 30 },
-                { label: "60 dias", value: 60 },
-              ].map((preset) => (
-                <button
-                  key={preset.value}
-                  onClick={() => setPreset(preset.value)}
-                  className={`flex-1 text-sm font-medium border py-2 rounded-md text-center transition-colors ${selectedDay === preset.value
-                    ? 'bg-blue-50 border-blue-200 text-blue-600'
-                    : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-100'
-                    }`}
-                >
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="p-2">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                month={currentMonth}
-                onMonthChange={setCurrentMonth}
-                onSelect={(range) => {
-                  setSelectedDay(null);
-                  if (onDateRangeChange) onDateRangeChange(range);
-                }}
-                locale={ptBR}
-                resetOnSelect
-                classNames={theme === "admin" ? adminCalendarClasses : defaultCalendarClasses}
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
-      )}
-
-      {hasActiveFilters && (
-        <>
-          <div className="hidden lg:block w-px h-6 bg-slate-200 mx-1 shrink-0"></div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleClearFilters}
-                className=" h-12 px-3 bg-red-50 hover:bg-red-100/80 transition-colors rounded-lg flex items-center justify-center shrink-0"
-              >
-                <X className="size-4 text-red-500" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-slate-900 text-white font-medium text-xs rounded-lg border-none">
-              <p>Limpar filtros</p>
-            </TooltipContent>
-          </Tooltip>
-        </>
-      )}
     </div>
   );
 }

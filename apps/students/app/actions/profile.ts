@@ -51,6 +51,9 @@ export async function getProfileData() {
       totalEssays: stats?.total_essays || 0,
       averageScore: Math.round(stats?.average_total_score || 0),
       bestScore: stats?.best_score || 0,
+      bestCompetence: stats?.best_competence,
+      scoreTrend: stats?.score_trend || 0,
+      essaysTrend: stats?.essays_trend || 0,
     },
     hasData: (stats?.total_essays || 0) > 0,
   };

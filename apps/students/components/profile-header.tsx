@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
-import { User, Mail, UserCog, LockKeyhole } from "lucide-react";
-import { CreditBalance } from "@/components/credit-balance";
+import { User, Mail, CreditCard } from "lucide-react";
 import { EditProfileModal } from "@/components/edit-profile-modal";
-import { ResetPasswordModal } from "@/components/reset-password-modal";
 import { UserData } from "@repo/types";
 import Image from "next/image";
+import { CreditsCard } from "./credits-card";
 interface ProfileHeaderProps {
   user: UserData;
 }
@@ -18,55 +17,72 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
 
   return (
     <>
-      <div className="rounded-3xl p-8 md:p-10 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-8 md:gap-12 relative overflow-hidden bg-white">
+      <div className="rounded-4xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 relative overflow-hidden bg-white">
 
+        {/* 1. FOTO DE PERFIL */}
         <div className="shrink-0 relative">
-          <div className="size-32 md:size-40 rounded-full bg-slate-100 border-4 border-white shadow-md flex items-center justify-center overflow-hidden">
+          <div className="size-28 md:size-32 rounded-full bg-slate-50 border-4 border-white shadow-md flex items-center justify-center overflow-hidden">
             {user.avatarUrl ? (
-
               <Image
                 src={user.avatarUrl}
                 alt="Foto de perfil"
-                width={200}
-                height={200}
+                width={128}
+                height={128}
                 className="w-full h-full object-cover"
               />
             ) : (
-              <User className="size-16 text-slate-300" />
+              <User className="size-12 text-slate-300" />
             )}
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col gap-4 items-center md:items-start text-center md:text-left w-full">
-          <div className="flex flex-col md:flex-row w-full md:justify-between items-center md:items-start gap-4">
+        <div className="flex-1 flex flex-col w-full gap-6">
 
-            <div className="flex flex-col items-center md:items-start gap-2">
-              <h2 className="text-3xl font-extrabold">
+          <div className="flex flex-col xl:flex-row xl:justify-between items-center xl:items-start gap-6 w-full">
+            <div className="flex flex-col items-center xl:items-start gap-1 md:gap-2 text-center xl:text-left">
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
                 {user.name}
               </h2>
 
-              <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100 font-medium">
-                <Mail className="size-3.5" />
+              <a
+                href="#!"
+                onClick={(e) => e.preventDefault()}
+                className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 font-medium text-sm cursor-default"
+              >
+                <Mail className="size-3.5 md:size-4" />
                 {user.email}
-              </div>
+              </a>
             </div>
 
-            <CreditBalance amount={user.credits} />
+
+            <div className="shrink-0">
+              <CreditsCard credits={user.credits} />
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            <Button
+          <div className="flex flex-wrap justify-center xl:justify-start gap-3 w-full mt-auto">
+
+            <EditProfileModal
+              isOpen={isEditOpen}
+              onClose={setIsEditOpen}
+              initialData={user}
               onClick={() => setIsEditOpen(true)}
-              className="rounded-full font-bold h-11 px-6 shadow-md shadow-yellow-500/10"
+            />
+
+
+            <Button
+              variant="outline"
+              className="rounded-xl font-bold h-11 border-slate-200 text-slate-700 transition-colors"
             >
-              <UserCog className="size-4.5 mr-2" />
-              Editar informações
+              <CreditCard className="size-5 mr-2 text-slate-400" />
+              Gerenciar assinatura
             </Button>
-            {/* TODO: reset de senha */}
+
+            {/* TODO: */}
             {/* <Button
               onClick={() => setIsResetOpen(true)}
               variant="ghost"
-              className="font-bold text-slate-600 bg-slate-100 hover:text-slate-900 hover:bg-slate-200 rounded-full h-11 px-6"
+              className="font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full h-11 px-6"
             >
               <LockKeyhole className="size-4.5 mr-2" />
               Redefinir senha
@@ -75,11 +91,6 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
         </div>
       </div>
 
-      <EditProfileModal
-        isOpen={isEditOpen}
-        onClose={setIsEditOpen}
-        initialData={user}
-      />
 
       {/* <ResetPasswordModal
         isOpen={isResetOpen}
@@ -87,5 +98,6 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
         userEmail={user.email}
       /> */}
     </>
+
   );
 }
