@@ -6,7 +6,7 @@ import { DeadlineStatus } from "@repo/types";
 import { Avatar } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button"
 import { formatDate, getDeadlineStatus } from "@repo/utils";
-import { ArrowRight, Clock, FileClock, Hourglass } from "lucide-react"
+import { ArrowRight, Clock, Hourglass } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";

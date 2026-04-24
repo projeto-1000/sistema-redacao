@@ -1,6 +1,3 @@
-import { formatDate, getDeadlineStatus } from "@repo/utils";
-import { PendingEssaysClient } from "./page-client";
-import { getEssaysByStatus } from "@/app/actions/essays";
 import { parsePendingEssaysFilters } from "@/utils/parse-filters";
 import { PendingEssayFiltersBar } from "@/components/pending-essays-filters-bar";
 import { Suspense } from "react";
@@ -30,6 +27,7 @@ export default async function PendingEssaysPage({
       </div>
 
       <PendingEssayFiltersBar />
+
       <Suspense
         key={suspenseKey}
         fallback={<Skeleton className="rounded-3xl min-h-[250px] bg-slate-200 mt-6" />}

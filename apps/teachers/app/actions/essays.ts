@@ -188,8 +188,16 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
     })
     .eq("id", essayId);
 
-  if (error) throw error;
-  console.log({ error });
+  if (error) {
+    console.error("Erro ao salvar correção:", error);
+    return { success: false, error: "Não foi possível salvar a correção final." };
+  }
+
+  await supabase
+    .from("correction_drafts")
+    .delete()
+    .eq("essay_id", essayId)
+    .eq("teacher_id", user.id);
 
   revalidatePath("/inicio");
   revalidatePath(`/corrigir-redacao/${essayId}`);

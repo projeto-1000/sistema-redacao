@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Calendar, User } from "lucide-react";
 import { formatDate } from "@repo/utils";
 import { CompetencyCard } from "./competency-card";
@@ -26,25 +26,74 @@ interface EssayCorrectionWorkspaceProps {
     content: string;
     created_at: string;
   };
-  onSaveCorrection: (essayId: string, payload: CorrectionPayload) => Promise<{ success: boolean; error?: string }>;
+  initialDraft?: CorrectionPayload | null;
+  onAutoSave?: (payload: CorrectionPayload) => void;
+  onSaveCorrection: (payload: CorrectionPayload) => Promise<{ success: boolean; error?: string }>;
   redirectPath: string;
 }
 
 export function EssayCorrectionWorkspace({
   essay,
+  initialDraft,
+  onAutoSave,
   onSaveCorrection,
   redirectPath
 }: EssayCorrectionWorkspaceProps) {
   const router = useRouter();
 
-  const [scores, setScores] = useState<Record<string, number>>({ c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 });
-  const [comments, setComments] = useState<Record<string, string>>({ c1: "", c2: "", c3: "", c4: "", c5: "" });
-  const [generalComment, setGeneralComment] = useState("");
+  const [scores, setScores] = useState<Record<string, number>>(
+    initialDraft?.scores || { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 }
+  );
 
-  const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [comments, setComments] = useState<Record<string, string>>(
+    initialDraft?.comments || { c1: "", c2: "", c3: "", c4: "", c5: "" }
+  );
+
+  const [generalComment, setGeneralComment] = useState(
+    initialDraft?.general_comment || ""
+  );
+
+  const [highlights, setHighlights] = useState<Highlight[]>(
+    (initialDraft?.highlights as Highlight[]) || []
+  );
+
   const [activeHighlightComp, setActiveHighlightComp] = useState<string | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
+
+  const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const payload: CorrectionPayload = {
+      scores: {
+        c1: scores.c1 || 0,
+        c2: scores.c2 || 0,
+        c3: scores.c3 || 0,
+        c4: scores.c4 || 0,
+        c5: scores.c5 || 0,
+      },
+      comments,
+      general_comment: generalComment,
+      highlights: highlights.map(h => ({
+        id: h.id,
+        text: h.text,
+        compId: h.compId,
+        startIndex: h.startIndex,
+        endIndex: h.endIndex
+      }))
+    };
+
+    const timer = setTimeout(() => {
+      onAutoSave?.(payload);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [scores, comments, generalComment, highlights, onAutoSave]);
 
 
   const totalScore = Object.values(scores).reduce((acc, curr) => acc + curr, 0);
@@ -78,7 +127,7 @@ export function EssayCorrectionWorkspace({
     };
 
     try {
-      const result = await onSaveCorrection(essay.id, payloadToSave);
+      const result = await onSaveCorrection(payloadToSave);
       if (result.success) {
         toast.success("Redação corrigida com sucesso!");
         router.push(redirectPath);
