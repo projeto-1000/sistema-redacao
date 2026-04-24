@@ -37,7 +37,7 @@ export async function submitEssay(
       p_student_id: user.id,
       p_topic_id: topic_id,
       p_title: title,
-      p_thematic_axis: axis || "Geral",
+      p_thematic_axis: axis,
       p_content: content,
       p_cost: 1,
     });

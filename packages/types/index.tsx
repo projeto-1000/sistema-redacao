@@ -91,3 +91,5 @@ export type EssayType = {
   status: "urgent" | "warning" | "normal" | "expired";
   deadlineLabel: string;
 };
+
+export type DeadlineStatus = "urgent" | "warning" | "normal" | "expired";

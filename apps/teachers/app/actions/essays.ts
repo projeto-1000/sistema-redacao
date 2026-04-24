@@ -1,10 +1,15 @@
 "use server";
 
 import { createClient } from "@/lib/server";
+import { PendingEssayListItem, PendingEssaysFilter } from "@/types";
 import { CorrectionPayload, EssayStatus } from "@repo/types";
+import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
-interface GetEssaysParams {
-  status: EssayStatus;
+import { redirect } from "next/navigation";
+interface GetPendingEssaysParams {
+  status: EssayStatus | EssayStatus[];
+  filters?: PendingEssaysFilter;
+  page?: number;
   limit?: number;
 }
 interface FinishedEssayResponse {
@@ -17,34 +22,98 @@ interface FinishedEssayResponse {
   } | null;
 }
 
-export async function getEssaysByStatus({ status, limit }: GetEssaysParams) {
+export async function getEssaysByStatus({
+  status,
+  filters,
+  page = 1,
+  limit = 10,
+}: GetPendingEssaysParams): Promise<{
+  essays: PendingEssayListItem[];
+  totalPages: number;
+  error: PostgrestError | null;
+}> {
   const supabase = await createClient();
 
-  let query = supabase
-    .from("essays")
-    .select(
-      `
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
+
+  let query = supabase.from("essays").select(
+    `
       id,
       title,
+      thematic_axis,
       created_at,
-      student:profiles!essays_student_id_fkey(full_name)
-    `
-    )
-    .eq("status", status)
-    .order("created_at", { ascending: true });
+      due_date,
+      status,
+      submission_date,
+      student:profiles!essays_student_id_fkey(full_name, avatar_url)
+    `,
+    { count: "exact" }
+  );
 
   if (limit) {
     query = query.limit(limit);
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    console.error(`🚨 Erro ao buscar redações (${status}):`, error);
-    return [];
+  if (Array.isArray(status)) {
+    query = query.in("status", status);
+  } else {
+    query = query.eq("status", status);
   }
 
-  return data;
+  if (filters?.search) {
+    query = query.or(`title.ilike.%${filters.search}%,thematic_axis.ilike.%${filters.search}%`);
+  }
+
+  if (filters?.from || filters?.to) {
+    const startRange = filters.from ? new Date(filters.from) : new Date();
+    const endRange = new Date(filters.to || (filters.from as string));
+
+    endRange.setUTCHours(23, 59, 59, 999);
+
+    query = query
+      .gte("created_at", startRange.toISOString())
+      .lte("created_at", endRange.toISOString());
+  }
+
+  const { data, count, error } = await query
+    .range(rangeStart, rangeEnd)
+    .order("due_date", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar redações:", error);
+    return { essays: [], totalPages: 0, error };
+  }
+
+  const essays = data.map((essay) => {
+    const { student, ...rest } = essay;
+    const studentData = student as unknown as {
+      full_name: string;
+      avatar_url: string;
+      email: string;
+    };
+
+    return {
+      ...rest,
+      student_name: studentData.full_name,
+      avatar_url: studentData.avatar_url,
+      email: studentData.email,
+    };
+  });
+
+  return {
+    essays: essays,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+    error: error || null,
+  };
 }
 
 export async function getEssayById(id: string) {

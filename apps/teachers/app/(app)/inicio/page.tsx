@@ -7,6 +7,7 @@ import Link from "next/link";
 
 export default async function DashboardPage() {
   const data = await getProfileData()
+
   if (!data) return null;
 
   return (

@@ -23,3 +23,30 @@ export const COMPETENCY_STYLES = {
   c4: { border: "border-l-comp-4", activeBg: "bg-comp-4/5", cardHighlight: 'ring-comp-4 border-comp-4', btnHighlight: 'bg-comp-4 hover:bg-comp-4/70 text-white' },
   c5: { border: "border-l-comp-5", activeBg: "bg-comp-5/5", cardHighlight: 'ring-comp-5 border-comp-5', btnHighlight: 'bg-comp-5 hover:bg-comp-5/70 text-white' },
 };
+
+export const DEADLINE_STATUS_STYLES = {
+  urgent: {
+    border: "border-l-red-500",
+    badgeBg: "bg-red-100",
+    badgeText: "text-red-700",
+    timeText: "text-red-500",
+  },
+  expired: {
+    border: "border-l-red-500",
+    badgeBg: "bg-red-100",
+    badgeText: "text-red-700",
+    timeText: "text-red-500",
+  },
+  warning: {
+    border: "border-l-amber-400",
+    badgeBg: "bg-amber-100",
+    badgeText: "text-amber-700",
+    timeText: "text-amber-400",
+  },
+  normal: {
+    border: "border-l-blue-500",
+    badgeBg: "bg-blue-100",
+    badgeText: "text-blue-700",
+    timeText: "text-blue-600",
+  },
+};

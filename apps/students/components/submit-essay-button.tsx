@@ -2,7 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 import { Button } from "@repo/ui/components/button";
-import { Send, Loader2 } from "lucide-react";
+import { Send } from "lucide-react";
 
 export function SubmitEssayButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
@@ -12,18 +12,11 @@ export function SubmitEssayButton({ disabled }: { disabled: boolean }) {
       type="submit"
       disabled={disabled || pending}
       className="w-full sm:w-auto bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-full h-12 shadow-lg shadow-green-500/20 gap-2 transition-all hover:scale-105"
+      isLoading={pending}
+      loadingText="Enviando..."
     >
-      {pending ? (
-        <>
-          <Loader2 className="size-4 animate-spin" />
-          Enviando...
-        </>
-      ) : (
-        <>
-          Enviar para Correção
-          <Send className="size-4" />
-        </>
-      )}
+      Enviar para Correção
+      <Send className="size-4" />
     </Button>
   );
 }
