@@ -4,7 +4,7 @@ import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export type ActionState = {
+type ActionState = {
   error?: string;
 } | null;
 
