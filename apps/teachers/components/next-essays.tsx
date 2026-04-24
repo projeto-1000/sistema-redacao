@@ -1,6 +1,7 @@
 import { getEssaysByStatus } from "@/app/actions/essays";
+import { EmptyState } from "@repo/ui/components/empty-state";
 import { getDeadlineInfo, getHolidays } from "@repo/utils";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileCheck } from "lucide-react";
 import Link from "next/link";
 
 //TODO: melhorar isso aqui 
@@ -36,9 +37,11 @@ export async function NextEssays() {
 
   if (!essays || essays.length === 0) {
     return (
-      <div className="p-8 text-center text-slate-500 w-full">
-        Nenhuma redação pendente no momento.
-      </div>
+      <EmptyState
+        icon={FileCheck}
+        title="Fila de correções em dia"
+        description="Todas as redações recebidas já foram avaliadas. Novos textos aparecerão aqui assim que forem enviados pelos alunos."
+      />
     );
   }
 
