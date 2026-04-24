@@ -20,14 +20,13 @@ interface EvolutionGraphProps {
 }
 
 export function EvolutionGraph({ data }: EvolutionGraphProps) {
-  const [timeRange, setTimeRange] = useState<"3M" | "6M">("6M");
+  const [timeRange, setTimeRange] = useState<"3M" | "6M">("3M");
 
-  // Filtro visual simples (apenas para exemplo de interatividade)
   const displayData = timeRange === "3M" ? data.slice(-3) : data;
 
   return (
     <div className="w-full h-full flex flex-col">
-      {/* Seletor de Período (Topo Direito) */}
+
       <div className="flex justify-end gap-2 mb-4">
         {["3 Meses", "6 Meses"].map((label) => {
           const value = label.startsWith("3") ? "3M" : "6M";
@@ -50,11 +49,9 @@ export function EvolutionGraph({ data }: EvolutionGraphProps) {
         })}
       </div>
 
-      {/* Área do Gráfico */}
-      <div className="w-full h-[200px] -ml-4">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full h-[200px] -ml-4 min-w-0">
+        <ResponsiveContainer width="100%" height={200}>
           <LineChart data={displayData}>
-            {/* Linhas de grade horizontais bem sutis */}
             <CartesianGrid
               vertical={false}
               strokeDasharray="3 3"
@@ -68,6 +65,7 @@ export function EvolutionGraph({ data }: EvolutionGraphProps) {
               tickLine={false}
               tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }}
               dy={10}
+              padding={{ left: 15, right: 15 }}
             />
 
             <Tooltip
@@ -81,9 +79,10 @@ export function EvolutionGraph({ data }: EvolutionGraphProps) {
             />
 
             <Line
+              name="Nota média"
               type="monotone"
               dataKey="score"
-              stroke="hsl(var(--secondary))" // Usa a variável CSS azul
+              stroke="hsl(var(--secondary))"
               strokeWidth={4}
               dot={{
                 r: 6,

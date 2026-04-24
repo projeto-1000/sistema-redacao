@@ -1,6 +1,5 @@
 import { UserData } from "@repo/types";
 import { createClient } from "@/lib/server";
-import { formatMonth } from "@repo/utils";
 
 export async function getProfileData() {
   const supabase = await createClient();
@@ -10,7 +9,7 @@ export async function getProfileData() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [profileRes, statsRes, historyRes] = await Promise.all([
+  const [profileRes, statsRes] = await Promise.all([
     supabase
       .from("profiles")
       .select("full_name, credits_balance, avatar_url")
@@ -27,7 +26,11 @@ export async function getProfileData() {
 
   const profile = profileRes.data;
   const stats = statsRes.data;
-  const history = historyRes.data || [];
+
+  const { data: evolutionGraph } = await supabase.rpc("get_student_evolution", {
+    p_user_id: user.id,
+    p_months_count: 6,
+  });
 
   return {
     user: {
@@ -43,14 +46,16 @@ export async function getProfileData() {
       C4: Math.round(stats?.avg_c4 || 0),
       C5: Math.round(stats?.avg_c5 || 0),
     },
-    evolution: history.map((item) => ({
-      month: formatMonth(item.created_at),
-      score: item.total_score || 0,
-    })),
+    evolution:
+      evolutionGraph?.map((item: { month_text: string; average_score: number }) => ({
+        month: item.month_text,
+        score: item.average_score,
+      })) || [],
     globalStats: {
       totalEssays: stats?.total_essays || 0,
       averageScore: Math.round(stats?.average_total_score || 0),
       bestScore: stats?.best_score || 0,
+      lastScore: stats?.last_score,
       bestCompetence: stats?.best_competence,
       scoreTrend: stats?.score_trend || 0,
       essaysTrend: stats?.essays_trend || 0,
