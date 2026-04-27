@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: "5mb",
+      allowedOrigins: ["localhost:3001", "j7flrdqb-3001.brs.devtunnels.ms"],
     },
   },
   images: {

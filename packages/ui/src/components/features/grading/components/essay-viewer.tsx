@@ -20,8 +20,6 @@ interface PopoverState {
   text: string;
   existingId?: string;
 }
-
-// 🔴 Exportamos a tipagem para o pai poder usar
 export interface Highlight {
   id: string;
   text: string;
@@ -29,8 +27,6 @@ export interface Highlight {
   startIndex: number;
   endIndex: number;
 }
-
-// 🔴 O COMPONENTE AGORA EXIGE OS DADOS VIA PROPS
 interface EssayViewerProps {
   essay: {
     id: string;
@@ -214,15 +210,18 @@ export function EssayViewer({
       </div>
 
       <div
-        className="p-6 md:p-10 overflow-y-auto min-h-[50vh]"
+        className="p-4 md:p-10 overflow-y-auto min-h-[50vh]"
         onMouseUp={handleSelectionEnd}
         onTouchEnd={handleSelectionEnd}
       >
-        <h2 className="text-xl md:text-2xl font-black mb-8 leading-tight">{essay.title}</h2>
+        <h2 className="text-lg md:text-2xl font-black mb-8 leading-tight text-center">
+          {essay.title}
+        </h2>
 
         <div
           ref={textRef}
           className="text-slate-800 text-base md:text-lg leading-relaxed text-justify wrap-break-word whitespace-pre-wrap selection:bg-amber-200/50"
+        // className="text-slate-800 text-base md:text-lg leading-relaxed text-justify wrap-break-word whitespace-pre-wrap selection:bg-amber-200/50"
         >
           {renderContent()}
         </div>

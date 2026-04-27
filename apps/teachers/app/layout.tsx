@@ -1,5 +1,5 @@
-import "@repo/ui/styles.css";
 import "./globals.css";
+import "@repo/ui/styles.css";
 import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
 import { Toaster } from "sonner";
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
         {children}
         <Toaster position="top-right" />

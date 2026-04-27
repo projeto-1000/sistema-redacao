@@ -1,8 +1,6 @@
 "use client";
 
 import { Button } from "@repo/ui/components/button";
-import { Loader2 } from "lucide-react";
-
 interface StickyScoreProps {
   totalScore: number;
   canSave: boolean;
@@ -24,24 +22,19 @@ export function StickyScore({
           Nota Total
         </span>
         <div className="flex items-baseline gap-1">
-          <span className="text-4xl font-black tracking-tight">{totalScore}</span>
-          <span className="text-lg font-bold text-slate-300">/ 1000</span>
+          <span className="text-3xl md:text-4xl font-black tracking-tight">{totalScore}</span>
+          <span className="text-[18px] font-bold text-slate-300">/ 1000</span>
         </div>
       </div>
 
       <Button
         onClick={onSave}
         disabled={!canSave || isSaving}
-        className="font-bold rounded-2xl px-6 h-12 transition-all shadow-lg shadow-amber-200"
+        className="font-bold rounded-2xl px-6 h-12 transition-all shadow-lg"
+        isLoading={isSaving}
+        loadingText="Salvando..."
       >
-        {isSaving ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Salvando...
-          </>
-        ) : (
-          "Salvar Correção"
-        )}
+        Enviar Correção
       </Button>
     </div>
   );
