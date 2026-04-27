@@ -86,6 +86,6 @@ export function TablePagination({ totalPages }: TablePaginationProps) {
         </PaginationItem>
 
       </PaginationContent>
-    </Pagination >
+    </Pagination>
   );
 }

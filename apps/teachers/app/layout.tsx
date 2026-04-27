@@ -1,3 +1,4 @@
+import { TooltipProvider } from "@repo/ui/components/tooltip";
 import "./globals.css";
 import "@repo/ui/styles.css";
 import type { Metadata } from "next";
@@ -22,8 +23,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
-        {children}
-        <Toaster position="top-right" />
+        <TooltipProvider>
+          {children}
+          <Toaster position="top-right" />
+        </TooltipProvider>
+
       </body>
     </html>
   );

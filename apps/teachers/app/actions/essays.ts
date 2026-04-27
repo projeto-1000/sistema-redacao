@@ -1,7 +1,12 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import { PendingEssayListItem, PendingEssaysFilter } from "@/types";
+import {
+  GradedEssayListItem,
+  GradedEssaysFilter,
+  PendingEssayListItem,
+  PendingEssaysFilter,
+} from "@/types";
 import { CorrectionPayload, EssayStatus } from "@repo/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
@@ -12,14 +17,10 @@ interface GetPendingEssaysParams {
   page?: number;
   limit?: number;
 }
-interface FinishedEssayResponse {
-  id: string;
-  title: string;
-  correction_date: string | null;
-  total_score: number | null;
-  student: {
-    full_name: string | null;
-  } | null;
+interface GetGradedEssaysParams {
+  filters?: GradedEssaysFilter;
+  page?: number;
+  limit?: number;
 }
 
 export async function getEssaysByStatus({
@@ -137,22 +138,9 @@ export async function getEssayById(id: string) {
 
   const { student, ...essayData } = essay;
 
-  const { data: motivationalTexts, error: textsError } = await supabase
-    .from("motivational_texts")
-    .select("*")
-    .eq("topic_id", essay.topic_id);
-
-  if (textsError) {
-    console.error(
-      `⚠️ Erro ao buscar textos motivadores para o tema ${essay.topic_id}:`,
-      textsError
-    );
-  }
-
   return {
     ...essayData,
     student: student.full_name,
-    motivational_texts: motivationalTexts || [],
   };
 }
 
@@ -205,7 +193,15 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
   return { success: true };
 }
 
-export async function getFinishedEssays() {
+export async function getGradedEssays({
+  filters,
+  page = 1,
+  limit = 10,
+}: GetGradedEssaysParams): Promise<{
+  essays: GradedEssayListItem[];
+  totalPages: number;
+  error: PostgrestError | null;
+}> {
   const supabase = await createClient();
 
   const {
@@ -213,40 +209,72 @@ export async function getFinishedEssays() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    console.error("Usuário não autenticado ao tentar buscar redações.");
-    return [];
+    redirect("/login");
   }
 
-  const { data, error } = await supabase
-    .from("essays")
-    .select(
-      `
-      id,
-      title,
-      correction_date,
-      total_score,
-      student:profiles!essays_student_id_fkey (
-        full_name
-      )
-    `
-    )
-    .eq("status", "corrected")
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
+
+  let query = supabase
+    .from("vw_teacher_essays")
+    .select("*", { count: "exact" })
     .eq("teacher_id", user.id)
-    .order("correction_date", { ascending: false })
-    .returns<FinishedEssayResponse[]>();
+    .eq("status", "corrected");
 
-  if (error || !data) {
-    console.error("Erro ao buscar redações:", error);
-    return [];
+  if (filters?.search) {
+    const searchTerm = `%${filters.search}%`;
+    query = query.or(
+      `title.ilike.${searchTerm},thematic_axis.ilike.${searchTerm},student_name.ilike.${searchTerm}`
+    );
   }
 
-  return data.map((essay) => ({
-    id: essay.id,
-    student: essay.student?.full_name ?? "Estudante",
-    topic: essay.title,
-    correctedDate: essay.correction_date ?? "",
-    score: essay.total_score ?? 0,
-  }));
+  if (filters?.search) {
+    query = query.or(
+      `title.ilike.%${filters.search}%,thematic_axis.ilike.%${filters.search},student_name.ilike.${filters.search}%`
+    );
+  }
+
+  if (filters?.from || filters?.to) {
+    const startRange = filters.from ? new Date(filters.from) : new Date();
+    const endRange = new Date(filters.to || (filters.from as string));
+
+    endRange.setUTCHours(23, 59, 59, 999);
+
+    query = query
+      .gte("created_at", startRange.toISOString())
+      .lte("created_at", endRange.toISOString());
+  }
+
+  const { data, count, error } = await query
+    .range(rangeStart, rangeEnd)
+    .order("due_date", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar redações:", error);
+    return { essays: [], totalPages: 0, error };
+  }
+
+  // const essays = data.map((essay) => {
+  //   const { student, ...rest } = essay;
+  //   const studentData = student as unknown as {
+  //     full_name: string;
+  //     avatar_url: string;
+  //     email: string;
+  //   };
+
+  //   return {
+  //     ...rest,
+  //     student_name: studentData.full_name,
+  //     avatar_url: studentData.avatar_url,
+  //     email: studentData.email,
+  //   };
+  // });
+
+  return {
+    essays: data,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+    error: error || null,
+  };
 }
 
 export async function getGradedEssay(id: string) {

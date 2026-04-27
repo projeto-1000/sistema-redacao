@@ -160,7 +160,9 @@ export function TableFilterBar({
         {onDateRangeChange && (
           <Popover>
             <PopoverTrigger asChild>
-              <button className="h-12 flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors shrink-0 border border-transparent hover:border-slate-200 outline-none">
+              <button
+                suppressHydrationWarning
+                className="h-12 flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors shrink-0 border border-transparent hover:border-slate-200 outline-none">
                 <CalendarDays className="size-3.5 text-slate-400" />
                 <span className={`text-xs font-bold text-slate-400 uppercase tracking-wider ${dateRange === undefined ? 'flex' : 'hidden lg:block'}`}>
                   Data:
