@@ -3,6 +3,7 @@ import { PendingEssayFiltersBar } from "@/components/pending-essays-filters-bar"
 import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import PendingEssaysGrid from "@/components/pending-essays-grid";
+import { PageHeader } from "@repo/ui/components/page-header";
 
 export default async function PendingEssaysPage({
   searchParams,
@@ -16,15 +17,11 @@ export default async function PendingEssaysPage({
   const suspenseKey = JSON.stringify(resolvedParams);
 
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-4">
-      <div className="mb-8">
-        <h2 className="text-3xl font-extrabold tracking-tight mb-2">
-          Redações Pendentes
-        </h2>
-        <p className="text-[#8B8265]">
-          Lista de redações enviadas e prontas para serem corrigidas.
-        </p>
-      </div>
+    <div className="min-h-screen px-2 md:px-10 lg:px-12 py-4 space-y-4">
+      <PageHeader
+        title="Redações Pendentes"
+        subtitle="Lista de redações enviadas e prontas para serem corrigidas."
+      />
 
       <PendingEssayFiltersBar />
 
