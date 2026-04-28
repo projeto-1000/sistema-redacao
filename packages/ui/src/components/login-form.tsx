@@ -104,7 +104,6 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
                       <div className="relative">
                         <Input
                           className="w-full rounded-3xl border-[#e8e4ce] h-12 p-3.5 focus:ring-1 focus:ring-primary"
-                          // className="w-full rounded-3xl border-[#e8e4ce] h-12 p-3.5 focus:ring-1 focus:ring-primary"
                           type={showPassword ? "text" : "password"}
                           placeholder="******"
                           {...field}

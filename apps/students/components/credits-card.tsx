@@ -8,28 +8,29 @@ interface TeacherCreditsCardProps {
 
 export function CreditsCard({ credits }: TeacherCreditsCardProps) {
   return (
-    <div className="flex items-center gap-4 p-3 pr-4 bg-white border border-slate-200 rounded-2xl shadow-sm w-full md:w-auto">
-      <div className="p-2.5 bg-[#FFF9E6] text-[#EBC84C] rounded-xl shrink-0">
-        <Coins className="size-5" />
-      </div>
-
-      <div className="flex flex-col pr-4 border-r border-slate-100">
-        <span className="font-bold text-slate-400 text-[10px] uppercase tracking-wider mb-0.5">
-          Créditos
-        </span>
-        <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-extrabold tracking-tight leading-none">
-            {credits}
+    <div className="flex items-center md:gap-4 p-3 bg-white border border-slate-200 rounded-2xl shadow-sm w-auto justify-between">
+      <div className="flex gap-2 md:gap-4">
+        <div className="p-2.5  bg-[#FFF9E6] text-[#EBC84C] rounded-xl">
+          <Coins className="size-5" />
+        </div>
+        <div className="flex flex-col">
+          <span className="font-bold text-slate-400 text-[10px] uppercase tracking-wider mb-0.5">
+            Créditos
           </span>
-          <span className="text-xs font-medium text-slate-400">
-            disponíveis
-          </span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-extrabold tracking-tight leading-none">
+              {credits}
+            </span>
+            <span className="text-xs font-medium text-slate-400">
+              disponíveis
+            </span>
+          </div>
         </div>
       </div>
 
       <Button
         variant="ghost"
-        className="h-8 px-3 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-lg shrink-0"
+        className="h-8 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-lg"
       >
         Adicionar
         <Plus className="size-3.5 ml-1" />

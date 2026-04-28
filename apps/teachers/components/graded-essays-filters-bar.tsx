@@ -1,10 +1,11 @@
 "use client"
 
-import { usePendingEssayFilters } from "@/hooks/use-pending-essays-filters";
+
+import { useGradedEssayFilters } from "@/hooks/use-graded-essays-filters";
 import { TableFilterBar } from "@repo/ui/components/table-filter-bar";
 
 export function GradedEssayFiltersBar() {
-  const { searchTerm, setSearchTerm, dateRange, setDateRange } = usePendingEssayFilters();
+  const { searchTerm, setSearchTerm, dateRange, setDateRange } = useGradedEssayFilters();
 
   return (
     <TableFilterBar

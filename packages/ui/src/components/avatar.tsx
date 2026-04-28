@@ -18,7 +18,7 @@ export function Avatar({ src, name, className }: AvatarProps) {
   return (
     <div className={cn(
       "relative overflow-hidden rounded-full shrink-0 flex items-center justify-center font-bold bg-slate-100 text-[#1E3A8A] border border-slate-200",
-      "size-11 text-sm",
+      "size-11 text-sm md:size-12 md:text-base",
       className
     )}
     >
@@ -31,7 +31,7 @@ export function Avatar({ src, name, className }: AvatarProps) {
           className="object-cover"
         />
       ) : (
-        <span>{initials}</span>
+        <span className="leading-none">{initials}</span>
       )}
     </div>
   );

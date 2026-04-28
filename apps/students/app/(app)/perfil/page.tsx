@@ -1,11 +1,14 @@
 import { CompetenceList } from "@/components/competence-list";
 import { EvolutionGraph } from "@/components/evolution-graph";
-import { ProfileHeader } from "@/components/profile-header";
+
 import { SectionCard } from "@/components/section-card";
 import { UserStats } from "@/components/user-stats";
 import { getProfileData } from "@/app/actions/profile";
 import { FileText, TrendingUp } from "lucide-react";
 import { redirect } from "next/navigation";
+import { PageHeader } from "@repo/ui/components/page-header";
+import { ProfileHeader } from "@repo/ui/components/profile-header";
+import { CreditsCard } from "@/components/credits-card";
 
 export default async function ProfilePage() {
   const data = await getProfileData();
@@ -14,39 +17,44 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
+  const { user, globalStats, competencies, evolution, hasData } = data
+
   return (
-    <div className="min-h-screen px-2 md:px-10 lg:px-12 py-4">
+    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-6">
 
-      <ProfileHeader user={data.user} />
+      <ProfileHeader
+        user={user}
+        creditBalanceComponent={
+          <CreditsCard credits={user.credits} />
+        }
+        secondaryAction={{
+          label: "Gerenciar assinatura",
+          href: "/checkout/upgrade"
+        }} />
 
-      <div className="my-6">
-        <h2 className="text-3xl font-extrabold tracking-tight mb-2">
-          Minhas Estatísticas
-        </h2>
-        <p className="text-[#8B8265]">
-          Acompanhe seu progresso.
-        </p>
-      </div>
-
-      <UserStats stats={data.globalStats} />
+      <PageHeader
+        title='Meu perfil'
+        subtitle='Acompanhe seu progresso e gerencie suas informações.'
+      />
+      <UserStats stats={globalStats} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
         <SectionCard
           title="Média por Competência"
           icon={FileText}
-          hasData={data.hasData}
+          hasData={hasData}
           emptyDescription="Envie sua primeira redação para ver o detalhamento por competência."
         >
-          <CompetenceList scores={data.competencies} />
+          <CompetenceList scores={competencies} />
         </SectionCard>
 
         <SectionCard
           title="Evolução no Tempo"
           icon={TrendingUp}
-          hasData={data.hasData}
+          hasData={hasData}
           emptyDescription="Seu gráfico de progresso será gerado automaticamente."
         >
-          <EvolutionGraph data={data.evolution} />
+          <EvolutionGraph data={evolution} />
         </SectionCard>
       </div>
     </div>

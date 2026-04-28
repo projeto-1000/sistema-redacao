@@ -33,6 +33,7 @@ export interface UserData {
   email: string;
   credits: number;
   avatarUrl: string | null;
+  role: 'STUDENT' | 'TEACHER' | 'ADMIN'
 }
 
 export type EssayStatus = "draft" | "pending" | "correcting" | "corrected" | "returned" | "draft";
