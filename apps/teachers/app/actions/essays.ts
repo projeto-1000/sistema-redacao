@@ -2,12 +2,13 @@
 
 import { createClient } from "@/lib/server";
 import {
+  CorrectionPayload,
+  EssayStatus,
   GradedEssayListItem,
   GradedEssaysFilter,
   PendingEssayListItem,
   PendingEssaysFilter,
-} from "@/types";
-import { CorrectionPayload, EssayStatus } from "@repo/types";
+} from "@repo/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";

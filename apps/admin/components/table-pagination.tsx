@@ -46,15 +46,13 @@ export function TablePagination({ totalPages }: TablePaginationProps) {
   const visiblePages = getVisiblePages(currentPage, totalPages);
 
   return (
-
-    <Pagination className="justify-end w-full">
-      <PaginationContent>
+    <Pagination className="justify-center w-full">
+      <PaginationContent className="gap-2">
 
         <PaginationItem>
           <PaginationPrevious
             href={currentPage > 1 ? createPageURL(currentPage - 1) : "#"}
-            className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
-            scroll={false}
+            className={currentPage <= 1 ? "rounded-full h-10 w-10 pointer-events-none opacity-50" : ""}
           />
         </PaginationItem>
 
@@ -64,9 +62,10 @@ export function TablePagination({ totalPages }: TablePaginationProps) {
               <PaginationEllipsis />
             ) : (
               <PaginationLink
+                variant={currentPage === page ? 'secondary' : 'ghost'}
                 href={createPageURL(page as number)}
                 isActive={currentPage === page}
-                scroll={false}
+                className={`rounded-full h-10 w-10 ${currentPage === page ? 'font-bold' : 'border-none font-normal'} `}
               >
                 {page}
               </PaginationLink>
@@ -77,12 +76,11 @@ export function TablePagination({ totalPages }: TablePaginationProps) {
         <PaginationItem>
           <PaginationNext
             href={currentPage < totalPages ? createPageURL(currentPage + 1) : "#"}
-            className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
-            scroll={false}
+            className={currentPage >= totalPages ? "rounded-full h-10 w-10 pointer-events-none opacity-50" : ""}
           />
         </PaginationItem>
 
       </PaginationContent>
-    </Pagination >
+    </Pagination>
   );
 }

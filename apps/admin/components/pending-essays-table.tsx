@@ -1,15 +1,17 @@
-import { getEssaysByStatus } from "@/app/actions/essays";
+import { getEssaysByStatus } from "@/app/action/essays";
 import PendingEssaysRow from "./pending-essays-row";
-import { CircleAlert, FileText, Search } from "lucide-react";
-import { TablePagination } from "./table-pagination";
 import { PendingEssaysFilter } from "@repo/types";
 
-interface PendingEssaysProps {
+import { CircleAlert, FileText, Search } from "lucide-react";
+import { TablePagination } from "./table-pagination";
+
+interface PendingEssaysTableProps {
+  showHeader?: boolean
   filters?: PendingEssaysFilter;
   page: number
 }
 
-export default async function PendingEssaysGrid({ filters, page }: PendingEssaysProps) {
+export default async function PendingEssaysTable({ showHeader = false, filters, page }: PendingEssaysTableProps) {
   const { essays, totalPages, error } = await getEssaysByStatus({ status: ['pending', 'correcting'], filters, page });
 
   const searchTerm = filters?.search
@@ -27,12 +29,11 @@ export default async function PendingEssaysGrid({ filters, page }: PendingEssays
         <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
           {searchTerm
             ? `Não encontramos nada para "${searchTerm}". Tente buscar por outro título ou eixo temático.`
-            : "Você ainda não enviou nenhuma redação para correção."}
+            : "Não há redações na fila para correção."}
         </p>
       </div>
     );
   }
-
 
   if (error) {
     return (
@@ -51,31 +52,31 @@ export default async function PendingEssaysGrid({ filters, page }: PendingEssays
   return (
     <>
       <div className="rounded-4xl border border-slate-200 overflow-hidden shadow-sm mt-8 bg-white">
-        <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-5 border-b border-slate-100 bg-slate-50/50">
-          <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Aluno
+        {showHeader && (
+          <div className="flex justify-between items-center p-8">
+            <h3 className="text-lg font-bold">Fila de Correção</h3>
+            <button className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+              Ver fila completa
+            </button>
           </div>
-          <div className="col-span-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Tema da Redação
-          </div>
-          <div className="col-span-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Prazo
-          </div>
-          <div className="col-span-2 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Ação
-          </div>
+        )}
+
+        <div className={`hidden lg:grid grid-cols-12 gap-4 px-8 pb-5 border-b border-slate-100 ${showHeader === true ? 'bg-transparent pb-5' : 'bg-slate-50/50 py-5'}`}>
+          {/* <div className={`hidden lg:grid grid-cols-12 gap-4 px-8 ${type === 'admin' ? 'pb-5' : 'py-5'} border-b border-slate-100 ${type === 'admin' ? 'bg-transparent' : 'bg-slate-50/50'}`}> */}
+          <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aluno</div>
+          <div className="col-span-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tema da Redação</div>
+          <div className="col-span-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Prazo</div>
+          <div className="col-span-2 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ação</div>
         </div>
 
         {essays.map((essay) => (
           <PendingEssaysRow key={essay.id} essay={essay} />
         ))}
-
       </div>
 
       <div>
         <TablePagination totalPages={totalPages} />
       </div>
-
     </>
   )
 }

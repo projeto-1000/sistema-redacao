@@ -1,14 +1,15 @@
 'use client'
 
-import { startEssayCorrection } from "@/app/actions/essays";
-import { DeadlineInfo, PendingEssayListItem } from "@repo/types";
-import { Avatar } from "@repo/ui/components/avatar";
+import { startEssayCorrection } from "@/app/action/essays"
+import { DeadlineInfo, PendingEssayListItem } from "@repo/types"
+import { Avatar } from "@repo/ui/components/avatar"
 import { Button } from "@repo/ui/components/button"
-import { formatDate, getDeadlineStatus } from "@repo/utils";
-import { ArrowRight, Clock, Hourglass } from "lucide-react"
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { formatDate, getDeadlineStatus } from "@repo/utils"
 import { toast } from "sonner";
+import { ArrowRight, Hourglass, Clock } from "lucide-react"
+import { useRouter } from "next/navigation";
+import { useState } from "react"
+
 interface PendingEssaysRowProps {
   essay: PendingEssayListItem;
 }
@@ -52,12 +53,12 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
         toast.error(result.error || "A redação já foi assumida por outro corretor.");
         setStartingEssayId(null);
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Ocorreu um erro ao tentar iniciar a correção.");
       setStartingEssayId(null);
     }
   };
-
 
   return (
     <div className="divide-y divide-slate-100">

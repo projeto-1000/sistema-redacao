@@ -32,6 +32,16 @@ export default async function StudentsPage({
   return (
     <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-8">
 
+      {/* <PageHeader 
+  title="Alunos"
+  variant="admin"
+  subtitle={
+    <>
+      Base de dados central: <span className="font-bold text-secondary">{totalCount} alunos</span> cadastrados
+    </>
+  }
+/> */}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight mb-2">
