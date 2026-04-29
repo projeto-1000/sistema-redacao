@@ -10,7 +10,6 @@ export function GradedEssayFiltersBar() {
   return (
     <TableFilterBar
       theme="admin"
-      className="flex-row items-center"
       searchPlaceholder="Buscar por título, eixo temático ou palavra chave..."
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}

@@ -8,7 +8,6 @@ export function PendingEssayFiltersBar() {
 
   return (
     <TableFilterBar
-      className="flex-row items-center"
       searchPlaceholder="Buscar por título, eixo temático ou palavra chave..."
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}

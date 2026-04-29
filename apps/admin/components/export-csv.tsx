@@ -9,14 +9,14 @@ interface ExportCsvButtonProps<T> {
   action: (payload: T) => Promise<string>;
   payload: T;
   fileName: string;
-  // hasActiveFilters?: boolean;
+  className?: string
 }
 
 export function ExportCsvButton<T>({
   action,
   payload,
   fileName,
-  // hasActiveFilters = false,
+  className = ''
 }: ExportCsvButtonProps<T>) {
   const [isExporting, setIsExporting] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
@@ -63,7 +63,7 @@ export function ExportCsvButton<T>({
         variant="outline"
         onClick={handleClick}
         disabled={isExporting}
-        className="rounded-xl font-bold h-10"
+        className={`rounded-xl font-bold h-10 ${className}`}
         isLoading={isExporting}
         loadingText="Exportando..."
       >

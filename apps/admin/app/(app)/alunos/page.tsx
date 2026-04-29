@@ -41,9 +41,10 @@ export default async function StudentsPage({
           action={exportStudentsCsvAction}
           payload={filters}
           fileName="alunos_admin"
+          className="w-full sm:w-fit"
         />
 
-        <Button asChild className="rounded-xl font-bold h-10" variant="secondary">
+        <Button asChild className="rounded-xl font-bold h-10 w-full sm:w-fit" variant="secondary">
           <Link href="/alunos/novo">
             <Plus className="size-4 mr-2" />
             Novo Aluno

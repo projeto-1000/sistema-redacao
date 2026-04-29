@@ -8,7 +8,6 @@ import { Calendar } from "@repo/ui/components/calendar";
 import { useState } from "react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./select";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./tooltip";
-import { cn } from "../lib/utils";
 
 export interface FilterOption {
   id: string;
@@ -28,19 +27,19 @@ interface TableFilterBarProps {
   dateRange?: DateRange;
   onDateRangeChange?: (date: DateRange | undefined) => void;
   theme?: "default" | "admin";
-  className?: string;
 }
 
-export function TableFilterBar({
-  searchPlaceholder,
-  searchTerm,
-  onSearchChange,
-  filters = [],
-  dateRange,
-  onDateRangeChange,
-  theme = 'default',
-  className
-}: TableFilterBarProps) {
+export function TableFilterBar(props: TableFilterBarProps) {
+  const {
+    searchPlaceholder,
+    searchTerm,
+    onSearchChange,
+    filters = [],
+    dateRange,
+    onDateRangeChange,
+    theme = 'default',
+  } = props;
+
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
@@ -48,6 +47,16 @@ export function TableFilterBar({
     searchTerm !== "" ||
     (dateRange?.from !== undefined) ||
     filters.some((filter) => filter.value !== "");
+
+
+  const countFilterItems = () => {
+    const baseFiltersCount = 1 + filters.length;
+    const hasDateRangeProp = 'dateRange' in props;
+
+    return hasDateRangeProp ? baseFiltersCount + 1 : baseFiltersCount;
+  };
+
+  const totalFilters = countFilterItems();
 
   const handleClearFilters = () => {
     onSearchChange("");
@@ -101,11 +110,7 @@ export function TableFilterBar({
   }
 
   return (
-    <div className={cn(
-      "bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-8 flex gap-2 relative z-10",
-      "flex-col items-stretch lg:flex-row lg:items-center",
-      className
-    )}>
+    <div className={`bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-8 flex gap-2 relative z-10 ${totalFilters > 2 ? 'flex-col' : 'flex-row'} md:flex-row`}>
       <div className="relative flex-1 min-w-0 w-full">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
         <input
@@ -157,6 +162,7 @@ export function TableFilterBar({
             </Select>
           );
         })}
+
         {onDateRangeChange && (
           <Popover>
             <PopoverTrigger asChild>
@@ -236,8 +242,6 @@ export function TableFilterBar({
           </>
         )}
       </div>
-
-
     </div>
   );
 }

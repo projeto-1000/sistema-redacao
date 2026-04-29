@@ -14,7 +14,6 @@ export function PendingEssayFiltersBar() {
       onSearchChange={setSearchTerm}
       dateRange={dateRange}
       onDateRangeChange={setDateRange}
-      className="flex-row items-center"
     />
   );
 }

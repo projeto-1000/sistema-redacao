@@ -30,7 +30,7 @@ export function PageHeader({
       </div>
 
       {children && (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 justify-between sm:justify-end">
           {children}
         </div>
       )}
