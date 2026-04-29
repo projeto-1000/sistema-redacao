@@ -215,7 +215,7 @@ export async function getGradedEssays({
 
   const { data, count, error } = await query
     .range(rangeStart, rangeEnd)
-    .order("correction_date", { ascending: true });
+    .order("correction_date", { ascending: false });
 
   if (error) {
     console.error("Erro ao buscar redações:", error);
@@ -226,5 +226,48 @@ export async function getGradedEssays({
     essays: data,
     totalPages: count ? Math.ceil(count / limit) : 0,
     error: error,
+  };
+}
+
+export async function getGradedEssay(id: string) {
+  const supabase = await createClient();
+
+  const { data: essay, error: essayError } = await supabase
+    .from("essays")
+    .select(
+      `
+      *,
+      student:profiles!essays_student_id_fkey(full_name),
+      teacher:profiles!essays_teacher_id_fkey(full_name)
+    `
+    )
+    .eq("id", id)
+    .single();
+
+  if (essayError || !essay) {
+    console.error(`🚨 Erro ao buscar redação por ID (${id}):`, essayError);
+    return null;
+  }
+
+  const { student, teacher, ...essayData } = essay;
+
+  return {
+    ...essayData,
+    student_name: student.full_name,
+    teacher_name: teacher.full_name,
+    scores: {
+      c1: essayData.score_c1,
+      c2: essayData.score_c2,
+      c3: essayData.score_c3,
+      c4: essayData.score_c4,
+      c5: essayData.score_c5,
+    },
+    comments: {
+      c1: essayData.comment_c1,
+      c2: essayData.comment_c2,
+      c3: essayData.comment_c3,
+      c4: essayData.comment_c4,
+      c5: essayData.comment_c5,
+    },
   };
 }

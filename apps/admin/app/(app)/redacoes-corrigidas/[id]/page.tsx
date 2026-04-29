@@ -1,9 +1,9 @@
 
 import { notFound } from "next/navigation";
-import { getGradedEssay } from "@/app/actions/essays";
 import EssayHeader from "@repo/ui/components/features/essays/components/essay-header";
 import EssayContent from "@repo/ui/components/features/essays/components/essay-content";
 import { EssayScoreCard, EssayCompetencies } from "@repo/ui/components/features/essays/components/essay-sidebar";
+import { getGradedEssay } from "@/app/action/essays";
 
 export default async function GradedEssayPage({
   params
@@ -11,6 +11,7 @@ export default async function GradedEssayPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params;
+
   const essay = await getGradedEssay(id);
 
   if (!essay) return notFound();
@@ -24,23 +25,23 @@ export default async function GradedEssayPage({
 
       <EssayHeader
         title={essay.title}
-        date={essay.submittedAt}
-        studentName={essay.studentName}
+        date={essay.correction_date}
+        studentName={essay.student_name}
+        teacherName={essay.teacher_name}
       />
-
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         <EssayContent
-          text={essay.text}
+          text={essay.content}
           highlights={essay.highlights}
-          generalComment={essay.generalComment}
+          generalComment={essay.general_comment}
           bestScores={bestScores}
         />
 
 
         <div className="lg:col-span-2 space-y-6">
           <EssayScoreCard
-            totalScore={essay.totalScore}
+            totalScore={essay.total_score}
           />
 
           <EssayCompetencies

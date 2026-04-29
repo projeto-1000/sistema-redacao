@@ -13,13 +13,13 @@ export default function EssayContent({ text, highlights, generalComment, bestSco
     <div className="lg:col-span-3 space-y-8">
       <div className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden">
 
-        <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
-          <span className="uppercase tracking-widest text-[10px] font-bold text-slate-400">
+        <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between w-full">
+          <span className="uppercase tracking-widest text-[10px] font-bold text-slate-400  sm:whitespace-nowrap text-left">
             Texto do Aluno
           </span>
 
           {bestScores.length > 0 && (
-            <div className="flex flex-wrap gap-2 items-center">
+            <div className="flex flex-wrap gap-2 items-center justify-end">
               <Award className="size-4 text-amber-400 mr-1" />
 
               {bestScores.map((scoreId) => {
@@ -31,7 +31,7 @@ export default function EssayContent({ text, highlights, generalComment, bestSco
                 return (
                   <span
                     key={info.id}
-                    className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${info.bg} ${info.text} ${info.border}`}
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider w-fit border ${info.bg} ${info.text} ${info.border}`}
                   >
                     {competencyName}
                   </span>
