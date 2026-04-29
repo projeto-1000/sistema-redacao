@@ -2,7 +2,7 @@
 
 import { useRef, ChangeEvent, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Camera, Loader2, Save } from "lucide-react";
+import { Camera, Save } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Avatar } from "@repo/ui/components/avatar";

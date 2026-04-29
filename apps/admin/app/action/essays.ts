@@ -1,7 +1,13 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import { EssayStatus, PendingEssayListItem, PendingEssaysFilter } from "@repo/types";
+import {
+  EssayStatus,
+  GradedEssayListItem,
+  GradedEssaysFilter,
+  PendingEssayListItem,
+  PendingEssaysFilter,
+} from "@repo/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -11,6 +17,12 @@ interface GetPendingEssaysParams {
   page?: number;
   limit?: number;
   correctionScope?: "personal" | "others";
+}
+
+interface GetGradedEssaysParams {
+  filters?: GradedEssaysFilter;
+  page?: number;
+  limit?: number;
 }
 
 export async function getEssaysByStatus({
@@ -154,4 +166,65 @@ export async function startEssayCorrection(essayId: string) {
     console.error("🚨 Erro interno:", error);
     return { success: false, error: "Erro inesperado do servidor." };
   }
+}
+
+export async function getGradedEssays({
+  filters,
+  page = 1,
+  limit = 10,
+}: GetGradedEssaysParams): Promise<{
+  essays: GradedEssayListItem[];
+  totalPages: number;
+  error: PostgrestError | null;
+}> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
+
+  let query = supabase
+    .from("vw_admin_essays")
+    .select("*", { count: "exact" })
+    .eq("status", "corrected");
+
+  if (filters?.search) {
+    const searchTerm = `%${filters.search}%`;
+    query = query.or(
+      `title.ilike.${searchTerm},thematic_axis.ilike.${searchTerm},student_name.ilike.${searchTerm},teacher_name.ilike.${searchTerm}`
+    );
+  }
+
+  if (filters?.from || filters?.to) {
+    const startRange = filters.from ? new Date(filters.from) : new Date();
+    const endRange = new Date(filters.to || (filters.from as string));
+
+    endRange.setUTCHours(23, 59, 59, 999);
+
+    query = query
+      .gte("created_at", startRange.toISOString())
+      .lte("created_at", endRange.toISOString());
+  }
+
+  const { data, count, error } = await query
+    .range(rangeStart, rangeEnd)
+    .order("correction_date", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar redações:", error);
+    return { essays: [], totalPages: 0, error };
+  }
+
+  return {
+    essays: data,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+    error: error,
+  };
 }

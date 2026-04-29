@@ -16,6 +16,8 @@ export default function AppLayout({
 
   const navItems = [
     { label: "Início", href: "/inicio" },
+    { label: "Redações Pendentes", href: "/redacoes-pendentes" },
+    { label: "Redações Corrigidas", href: "/redacoes-corrigidas" },
     { label: 'Alunos', href: '/alunos' },
     { label: 'Professores', href: '/professores' },
     { label: 'Temas', href: '/temas' },

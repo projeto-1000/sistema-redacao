@@ -1,20 +1,21 @@
 "use client"
 
-import { usePendingEssayFilters } from "@/hooks/use-pending-essays-filters";
+
+import { useGradedEssayFilters } from "@/hooks/use-graded-essays-filters";
 import { TableFilterBar } from "@repo/ui/components/table-filter-bar";
 
-export function PendingEssayFiltersBar() {
-  const { searchTerm, setSearchTerm, dateRange, setDateRange } = usePendingEssayFilters();
+export function GradedEssayFiltersBar() {
+  const { searchTerm, setSearchTerm, dateRange, setDateRange } = useGradedEssayFilters();
 
   return (
     <TableFilterBar
       theme="admin"
+      className="flex-row items-center"
       searchPlaceholder="Buscar por título, eixo temático ou palavra chave..."
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
       dateRange={dateRange}
       onDateRangeChange={setDateRange}
-      className="flex-row items-center"
     />
   );
 }

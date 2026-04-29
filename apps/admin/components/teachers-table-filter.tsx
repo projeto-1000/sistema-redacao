@@ -62,6 +62,7 @@ export function TeachersTableFilters() {
 
   return (
     <TableFilterBar
+      theme="admin"
       searchPlaceholder="Buscar por nome ou e-mail"
       searchTerm={searchTerm}
       onSearchChange={handleSearchChange}

@@ -134,4 +134,5 @@ export interface GradedEssayListItem {
   total_score: number
   student_name: string
   avatar_url: string
+  teacher_name?: string
 }

@@ -229,12 +229,6 @@ export async function getGradedEssays({
     );
   }
 
-  if (filters?.search) {
-    query = query.or(
-      `title.ilike.%${filters.search}%,thematic_axis.ilike.%${filters.search},student_name.ilike.${filters.search}%`
-    );
-  }
-
   if (filters?.from || filters?.to) {
     const startRange = filters.from ? new Date(filters.from) : new Date();
     const endRange = new Date(filters.to || (filters.from as string));
@@ -248,28 +242,12 @@ export async function getGradedEssays({
 
   const { data, count, error } = await query
     .range(rangeStart, rangeEnd)
-    .order("due_date", { ascending: true });
+    .order("correction_date", { ascending: true });
 
   if (error) {
     console.error("Erro ao buscar redações:", error);
     return { essays: [], totalPages: 0, error };
   }
-
-  // const essays = data.map((essay) => {
-  //   const { student, ...rest } = essay;
-  //   const studentData = student as unknown as {
-  //     full_name: string;
-  //     avatar_url: string;
-  //     email: string;
-  //   };
-
-  //   return {
-  //     ...rest,
-  //     student_name: studentData.full_name,
-  //     avatar_url: studentData.avatar_url,
-  //     email: studentData.email,
-  //   };
-  // });
 
   return {
     essays: data,

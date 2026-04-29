@@ -50,3 +50,10 @@ export const DEADLINE_STATUS_STYLES = {
     timeText: "text-blue-600",
   },
 };
+
+export const getScoreColor = (score: number) => {
+    if (score >= 900) return "text-green-600";
+    if (score >= 700) return "text-blue-600";
+    if (score >= 500) return "text-amber-500";
+    return "text-red-600";
+  };

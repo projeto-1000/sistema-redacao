@@ -14,7 +14,7 @@ export default function EssayHeader({ title, subtitle, date, studentName, childr
   return (
     <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-10">
       <div className="space-y-4">
-        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 leading-tight">
+        <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">
           {title}
         </h1>
 
@@ -40,7 +40,6 @@ export default function EssayHeader({ title, subtitle, date, studentName, childr
         </div>
       </div>
 
-      {/* Container de Ações (Botões) */}
       <div className="flex items-center gap-3 self-end lg:self-start">
         {children}
       </div>

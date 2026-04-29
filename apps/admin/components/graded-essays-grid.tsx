@@ -1,8 +1,9 @@
-import { getGradedEssays } from "@/app/actions/essays";
+
 import { CircleAlert, FileText, Search } from "lucide-react";
 import { TablePagination } from "./table-pagination";
 import GradedEssaysRow from "./graded-essays-row";
 import { GradedEssaysFilter } from "@repo/types";
+import { getGradedEssays } from "@/app/action/essays";
 
 interface GradedEssaysProps {
   filters?: GradedEssaysFilter;
@@ -53,21 +54,25 @@ export default async function GradedEssaysGrid({ filters, page }: GradedEssaysPr
           <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             Aluno
           </div>
-          <div className="lg:col-span-4 xl:col-span-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             Tema da Redação
           </div>
-          <div className="lg:col-span-2 xl:col-span-3 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Corretor
+          </div>
+          <div className="col-span-2 text-center lg:text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             Nota Final
           </div>
-          <div className="lg:col-span-3 xl:col-span-1 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="col-span-2 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             Ação
           </div>
         </div>
 
-        {essays.map((essay) => (
-          <GradedEssaysRow key={essay.id} essay={essay} />
-        ))}
-
+        <div className="divide-y divide-slate-100">
+          {essays.map((essay) => (
+            <GradedEssaysRow key={essay.id} essay={essay} />
+          ))}
+        </div>
       </div>
 
       <div>
