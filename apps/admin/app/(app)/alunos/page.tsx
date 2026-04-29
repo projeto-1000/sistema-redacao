@@ -1,8 +1,16 @@
-import { getStudentsCount, getStudentsList } from "@/app/action/get-students-data";
-import { ExportCsvButton } from "@/components/export-csv-button";
-import { StudentTable } from "@/components/student-table";
-import { Button } from "@repo/ui/components/button";
+import { exportStudentsCsvAction } from "@/app/action/export-students-csv";
+import { getStudentsCount } from "@/app/action/get-students-data";
+import { StudentsTable, } from "@/components/students-table";
+import StudentsFilterBar from "@/components/students-filter-bar";
+import { parseStudentsFilters } from "@/utils/parse-filters";
+import { PageHeader } from "@repo/ui/components/page-header";
+import { Skeleton } from "@repo/ui/components/skeleton";
 import { Plus } from "lucide-react";
+import { Suspense } from "react";
+import { ExportCsvButton } from "@/components/export-csv";
+import { Button } from "@repo/ui/components/button";
+import Link from "next/link";
+
 
 export default async function StudentsPage({
   searchParams,
@@ -10,59 +18,47 @@ export default async function StudentsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const resolvedParams = await searchParams;
-
-  const filters = {
-    search: typeof resolvedParams?.search === 'string' ? resolvedParams.search : undefined,
-    status: typeof resolvedParams?.status === 'string' ? resolvedParams.status : undefined,
-    from: typeof resolvedParams?.from === 'string' ? resolvedParams.from : undefined,
-    to: typeof resolvedParams?.to === 'string' ? resolvedParams.to : undefined,
-  };
-
   const page = Number(resolvedParams?.page) || 1;
+  const suspenseKey = JSON.stringify(resolvedParams);
+  const filters = parseStudentsFilters(resolvedParams);
 
-  const perPage = 10
+  const totalCount = await getStudentsCount()
 
-  const [totalCount, studentsResponse] = await Promise.all([
-    getStudentsCount(),
-    getStudentsList(filters, page, perPage)
-  ]);
-
-  const { data: studentList, totalPages } = studentsResponse;
 
   return (
     <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-8">
 
-      {/* <PageHeader 
-  title="Alunos"
-  variant="admin"
-  subtitle={
-    <>
-      Base de dados central: <span className="font-bold text-secondary">{totalCount} alunos</span> cadastrados
-    </>
-  }
-/> */}
-
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-extrabold tracking-tight mb-2">
-            Gerenciamento de Alunos
-          </h2>
-          <p className="text-slate-500">
+      <PageHeader
+        title=" Gerenciamento de Alunos"
+        variant="secondary"
+        subtitle={
+          <>
             Base de dados central: <span className="font-bold text-secondary">{totalCount} alunos</span> cadastrados
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
+          </>
+        }
+      >
+        <ExportCsvButton
+          action={exportStudentsCsvAction}
+          payload={filters}
+          fileName="alunos_admin"
+        />
 
-          <ExportCsvButton filters={filters} />
-
-          <Button variant='secondary' className="font-bold rounded-xl h-10 shadow-sm">
+        <Button asChild className="rounded-xl font-bold h-10" variant="secondary">
+          <Link href="/alunos/novo">
             <Plus className="size-4 mr-2" />
             Novo Aluno
-          </Button>
-        </div>
-      </div>
+          </Link>
+        </Button>
+      </PageHeader>
 
-      <StudentTable students={studentList} totalPages={totalPages} />
+      <StudentsFilterBar />
+
+      <Suspense
+        key={suspenseKey}
+        fallback={<Skeleton className="rounded-3xl min-h-[250px] bg-slate-200 mt-6" />}
+      >
+        <StudentsTable filters={filters} page={page} />
+      </Suspense>
     </div>
   );
 }

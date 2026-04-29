@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
         <TooltipProvider>
           {children}

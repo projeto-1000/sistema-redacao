@@ -1,4 +1,4 @@
-export type StudentListItem = {
+export type StudentsListItem = {
   id: string;
   full_name: string;
   email: string;

@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import { GetStudentsFilters, StudentListItem } from "../types";
+import { GetStudentsFilters, StudentsListItem } from "@/app/types";
 import { revalidatePath } from "next/cache";
 
 export async function getStudentsCount(): Promise<number> {
@@ -24,7 +24,7 @@ export async function getStudentsList(
   filters?: GetStudentsFilters,
   page: number = 1,
   limit: number = 10
-): Promise<{ data: StudentListItem[]; totalPages: number }> {
+): Promise<{ data: StudentsListItem[]; totalPages: number }> {
   const supabase = await createClient();
 
   const rangeStart = (page - 1) * limit;
@@ -65,7 +65,7 @@ export async function getStudentsList(
   }
 
   return {
-    data: data as StudentListItem[],
+    data: data as StudentsListItem[],
     totalPages: count ? Math.ceil(count / limit) : 0,
   };
 }

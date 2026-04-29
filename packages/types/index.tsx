@@ -136,3 +136,10 @@ export interface GradedEssayListItem {
   avatar_url: string
   teacher_name?: string
 }
+
+export interface StudentsFilter {
+  search?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+}

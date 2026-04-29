@@ -18,7 +18,7 @@ export default async function FinishedEssaysPage({
   return (
     <div className="min-h-screen px-2 md:px-10 lg:px-12 py-4 space-y-4">
       <PageHeader
-        variant="admin"
+        variant="secondary"
         title="Redações Corrigidas"
         subtitle="Acompanhe seu histórico de correções já realizadas."
       />

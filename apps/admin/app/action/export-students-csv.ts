@@ -33,7 +33,7 @@ export async function exportStudentsCsvAction(filters?: GetStudentsFilters) {
   if (error) throw new Error("Erro ao buscar dados para exportação");
 
   const columns = [
-    { header: "Nome do Estudante", key: (row: StudentExportRow) => row.full_name },
+    { header: "Nome do Aluno", key: (row: StudentExportRow) => row.full_name },
     { header: "E-mail", key: (row: StudentExportRow) => row.email },
     {
       header: "Status",

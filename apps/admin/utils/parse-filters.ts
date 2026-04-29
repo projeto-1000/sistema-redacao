@@ -1,4 +1,4 @@
-import { PendingEssaysFilter, GradedEssaysFilter } from "@repo/types";
+import { PendingEssaysFilter, GradedEssaysFilter, StudentsFilter } from "@repo/types";
 
 export type NextSearchParams = { [key: string]: string | string[] | undefined };
 
@@ -28,4 +28,18 @@ export function parseGradedEssaysFilters(params: NextSearchParams = {}): GradedE
 
     return acc;
   }, {} as GradedEssaysFilter);
+}
+
+export function parseStudentsFilters(params: NextSearchParams = {}): StudentsFilter {
+  const allowedKeys: (keyof StudentsFilter)[] = ["search", "status", "from", "to"];
+
+  return allowedKeys.reduce((acc, key) => {
+    const value = params[key];
+
+    if (typeof value === "string") {
+      acc[key] = value;
+    }
+
+    return acc;
+  }, {} as StudentsFilter);
 }
