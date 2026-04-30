@@ -1,3 +1,4 @@
+'use client'
 
 import { StudentProfile } from "@repo/types";
 import StudentSubscriptionCard from "./student-subscription-card";
