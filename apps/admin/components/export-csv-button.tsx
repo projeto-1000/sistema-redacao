@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Upload, Loader2 } from "lucide-react";
-import { exportStudentsCsvAction } from "@/app/action/export-students-csv";
+import { exportStudentsCsvAction } from "@/app/actions/export-students-csv";
 import { GetStudentsFilters } from "@/types";
 
 interface ExportCsvButtonProps {

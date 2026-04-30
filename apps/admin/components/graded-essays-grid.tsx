@@ -3,7 +3,7 @@ import { CircleAlert, FileText, Search } from "lucide-react";
 import { TablePagination } from "./table-pagination";
 import GradedEssaysRow from "./graded-essays-row";
 import { GradedEssaysFilter } from "@repo/types";
-import { getGradedEssays } from "@/app/action/essays";
+import { getGradedEssays } from "@/app/actions/essays";
 
 interface GradedEssaysProps {
   filters?: GradedEssaysFilter;

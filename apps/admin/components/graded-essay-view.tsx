@@ -1,4 +1,4 @@
-import { getGradedEssay } from "@/app/action/essays";
+import { getGradedEssay } from "@/app/actions/essays";
 import EssayHeader from "@repo/ui/components/features/essays/components/essay-header";
 import EssayContent from "@repo/ui/components/features/essays/components/essay-content";
 import { EssayScoreCard, EssayCompetencies } from "@repo/ui/components/features/essays/components/essay-sidebar";

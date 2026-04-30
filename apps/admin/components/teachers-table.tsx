@@ -1,28 +1,52 @@
-'use client'
-
-import { TeacherListItem } from "@/types";
-import { useTeachersFilters } from "@/hooks/use-teachers-filter";
-import { TableFilterBar } from "@repo/ui/components/table-filter-bar";
+import { TeachersFilters } from "@/types";
 import { TeachersTableRow } from "./teachers-table-row";
 import { TablePagination } from "./table-pagination";
+import { getTeachers } from "@/app/actions/teachers";
+import { CircleAlert, FileText, Search } from "lucide-react";
 interface TeacherTableProps {
-  teachers: TeacherListItem[];
-  totalPages: number;
+  filters?: TeachersFilters;
+  page: number
 }
 
-export function TeachersTable({ teachers, totalPages }: TeacherTableProps) {
-  const { searchTerm, setSearchTerm, filterOptions } = useTeachersFilters()
+export async function TeachersTable({ filters, page }: TeacherTableProps) {
+  const { teachers, totalPages, error } = await getTeachers({ filters, page })
+
+  const searchTerm = filters?.search
+
+  if (teachers.length === 0 && !error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center animate-in fade-in duration-500">
+        <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+          {searchTerm ? <Search className="size-8 text-slate-300" /> : <FileText className="size-8 text-slate-300" />}
+        </div>
+        <h3 className="text-lg font-bold text-slate-800 mb-1">
+          {searchTerm ? "Nenhum resultado encontrado" : "Nenhum professor por aqui"}
+        </h3>
+        <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
+          {searchTerm
+            ? `Não encontramos nada para "${searchTerm}". Tente buscar por outro nome, CPF ou e-mail`
+            : "Ainda não há professores cadastrados na plataforma"}
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center animate-in fade-in duration-500">
+        <CircleAlert className="size-14 bg-white rounded-full text-red-500 p-1 shadow-sm mb-4" />
+        <h3 className="text-lg font-bold text-red-600 mb-1">
+          Ocorreu um erro.
+        </h3>
+        <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
+          Não conseguimos carregar a lista de professores. Por favor, recarregue a página ou tente novamente em instantes.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <>
-      <TableFilterBar
-        searchPlaceholder="Buscar por nome, e-mail ou CPF..."
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        filters={filterOptions}
-        theme="admin"
-      />
-
       <div className="rounded-4xl border border-slate-200 overflow-hidden shadow-sm bg-white">
         <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-5 border-b border-slate-100 bg-white">
           <div className="col-span-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Professor</div>
@@ -34,20 +58,14 @@ export function TeachersTable({ teachers, totalPages }: TeacherTableProps) {
         </div>
 
         <div className="divide-y divide-slate-100">
-          {teachers.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">Nenhum aluno encontrado.</div>
-          ) : (
-            teachers.map((teacher) => (
-              <TeachersTableRow key={teacher.id} teacher={teacher} />
-            ))
-          )}
-        </div>
-
-
-        <div className={`px-8 py-4 border-t border-slate-100 bg-slate-50 ${totalPages === 1 ? 'hidden' : 'block'}`}>
-          <TablePagination totalPages={totalPages} />
+          {teachers?.map((teacher) => (
+            <TeachersTableRow key={teacher.id} teacher={teacher} />
+          ))}
         </div>
       </div>
+
+      <TablePagination totalPages={totalPages} />
+
     </>
   );
 }

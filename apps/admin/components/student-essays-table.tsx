@@ -2,7 +2,7 @@ import { TablePagination } from "@/components/table-pagination";
 import { EssayTableFilters } from "./essay-table-filters";
 import { StudentEssaysTableRow } from "./student-essays-row";
 import { StudentEssaysFilters } from "@/types";
-import { getStudentEssays } from "@/app/action/students";
+import { getStudentEssays } from "@/app/actions/students";
 
 interface StudentEssaysTableProps {
   studentId: string;

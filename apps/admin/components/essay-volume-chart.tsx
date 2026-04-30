@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import { getWeeklyVolumeData } from "@/app/action/get-weekly-volume-data";
+import { getWeeklyVolumeData } from "@/app/actions/get-weekly-volume-data";
 import { Loader2 } from "lucide-react";
 import {
   Select,

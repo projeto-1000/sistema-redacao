@@ -4,7 +4,7 @@ import { Eye, UserX, UserCheck, User, Bot } from "lucide-react";
 import { Avatar } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/components/tooltip";
-import { updateStudentStatus } from "@/app/action/students";
+import { updateStudentStatus } from "@/app/actions/students";
 import Link from "next/link";
 import { StudentsListItem } from "@/types";
 import { useToggleUserStatus } from "@/hooks/use-toggle-user-status";

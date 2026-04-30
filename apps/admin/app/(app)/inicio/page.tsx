@@ -1,4 +1,4 @@
-import { getWeeklyVolumeData } from "@/app/action/get-weekly-volume-data";
+import { getWeeklyVolumeData } from "@/app/actions/get-weekly-volume-data";
 import EssayVolumeChart from "@/components/essay-volume-chart";
 import GeneralMetrics from "@/components/general-metrics";
 import PendingEssaysTable from "@/components/pending-essays-table";

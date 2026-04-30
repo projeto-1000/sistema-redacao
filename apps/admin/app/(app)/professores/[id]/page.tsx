@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { getTeacherById, getTeacherChartsData, getTeacherEssays } from "@/app/action/get-teachers-data";
+import { getTeacherById, getTeacherChartsData, getTeacherEssays } from "@/app/actions/teachers";
 import { notFound } from "next/navigation";
 import TeacherProfileHeader from "@/components/teacher-profile-header";
 import TeacherStatsCards from "@/components/teacher-stats-cards";

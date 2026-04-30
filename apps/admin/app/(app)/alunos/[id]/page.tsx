@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { getStudentById } from "@/app/action/students";
+import { getStudentById } from "@/app/actions/students";
 import { notFound } from "next/navigation";
 import { StudentProfileHeader } from "@/components/student-profile-header";
 import { StudentStatsCards } from "@/components/student-stats-cards";
@@ -42,7 +42,7 @@ export default async function StudentProfilePage({
   const essayId = resolvedSearchParams?.essayId as string | undefined;
 
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-10">
+    <div className="min-h-screen px-4 md:px-10 lg:px-12 pb-8 space-y-10">
 
       <Button asChild variant='ghost' className="text-slate-500">
         <Link href="/alunos">

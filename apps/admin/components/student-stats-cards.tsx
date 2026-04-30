@@ -1,4 +1,4 @@
-import { getStudentStats } from "@/app/action/students";
+import { getStudentStats } from "@/app/actions/students";
 import { FileText, Medal, CheckCircle2, TrendingUp, TrendingDown } from "lucide-react";
 
 interface StudentStatsCardsProps {

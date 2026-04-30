@@ -1,4 +1,4 @@
-import { getDashboardMetrics } from "@/app/action/get-dashboard-metrics";
+import { getDashboardMetrics } from "@/app/actions/get-dashboard-metrics";
 import { TrendingUp, Users, CreditCard, TrendingDown, FileText } from "lucide-react";
 
 export default async function GeneralMetrics() {

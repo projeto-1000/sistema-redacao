@@ -10,12 +10,23 @@ import {
   TeacherListItem,
 } from "../../types";
 import { revalidatePath } from "next/cache";
+import { PostgrestError } from "@supabase/supabase-js";
 
-export async function getTeachers(
-  filters: GetTeachersFilters,
-  page: number = 1,
-  limit: number = 10
-) {
+interface GetTeachersParams {
+  filters?: GetTeachersFilters;
+  page?: number;
+  limit?: number;
+}
+
+export async function getTeachers({
+  filters,
+  page = 1,
+  limit = 10,
+}: GetTeachersParams = {}): Promise<{
+  teachers: TeacherListItem[];
+  totalPages: number;
+  error: PostgrestError | null;
+}> {
   const supabase = await createClient();
 
   const rangeStart = (page - 1) * limit;
@@ -38,13 +49,14 @@ export async function getTeachers(
     .range(rangeStart, rangeEnd);
 
   if (error) {
-    console.error("Erro ao buscar professores:", error);
-    return { data: [], totalPages: 0 };
+    console.error("Erro ao buscar lista de professores:", error);
+    return { teachers: [], totalPages: 0, error };
   }
 
   return {
-    data: data as TeacherListItem[],
+    teachers: data,
     totalPages: count ? Math.ceil(count / limit) : 0,
+    error: error,
   };
 }
 
@@ -116,23 +128,19 @@ export async function getTeacherStats(teacherId: string) {
 
 export async function updateTeacherStatus(teacherId: string, currentStatus: string) {
   const supabase = await createClient();
-
   const newStatus = currentStatus === "active" ? "blocked" : "active";
 
   const { error } = await supabase
     .from("profiles")
     .update({ status: newStatus })
-    .eq("id", teacherId)
-    .eq("role", "TEACHER");
+    .eq("id", teacherId);
 
   if (error) {
     console.error("Erro ao alterar status do professor:", error.message);
-    return { error: error.message };
+    throw new Error(error.message);
   }
 
   revalidatePath("/professores");
-
-  return { success: true };
 }
 
 export async function getTeacherChartsData(teacherId: string): Promise<TeacherChartData[] | null> {

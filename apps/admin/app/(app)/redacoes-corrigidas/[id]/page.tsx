@@ -1,6 +1,6 @@
 
 import { notFound } from "next/navigation";
-import { getGradedEssay } from "@/app/action/essays";
+import { getGradedEssay } from "@/app/actions/essays";
 import { GradedEssayView } from "@/components/graded-essay-view";
 
 export default async function GradedEssayPage({

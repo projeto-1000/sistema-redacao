@@ -1,6 +1,6 @@
 'use client'
 
-import { startEssayCorrection } from "@/app/action/essays"
+import { startEssayCorrection } from "@/app/actions/essays"
 import { DeadlineInfo, PendingEssayListItem } from "@repo/types"
 import { Avatar } from "@repo/ui/components/avatar"
 import { Button } from "@repo/ui/components/button"

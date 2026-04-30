@@ -1,4 +1,4 @@
-import { getEssaysByStatus } from "@/app/action/essays";
+import { getEssaysByStatus } from "@/app/actions/essays";
 import PendingEssaysRow from "./pending-essays-row";
 import { PendingEssaysFilter } from "@repo/types";
 

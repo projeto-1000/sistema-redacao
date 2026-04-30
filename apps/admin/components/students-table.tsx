@@ -1,4 +1,4 @@
-import { getStudents } from "@/app/action/students";
+import { getStudents } from "@/app/actions/students";
 import { CircleAlert, FileText, Search } from "lucide-react";
 import { TablePagination } from "./table-pagination";
 import { StudentsTableRow } from "./students-table-row";

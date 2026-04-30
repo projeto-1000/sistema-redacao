@@ -89,6 +89,14 @@ export type StudentEssaysFilters = {
   to?: string;
 };
 
+export type TeachersFilters = {
+  search?: string;
+  status?: string;
+  is_on_time?: string;
+  from?: string;
+  to?: string;
+};
+
 export type FetchErrorType = "NOT_FOUND" | "PERMISSION_DENIED" | "FETCH_ERROR";
 
 export interface StudentDataError {

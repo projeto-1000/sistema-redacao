@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Zap, Clock } from "lucide-react";
 import { AverageTimeRange } from "@/types";
-import { getAverageTime } from "@/app/action/get-teachers-data";
+import { getAverageTime } from "@/app/actions/teachers";
 
 interface AverageTimeCardProps {
   teacherId: string;
