@@ -9,6 +9,8 @@ import { Button } from "@repo/ui/components/button";
 import { parseStudentEssaysFilters } from "@/utils/parse-filters";
 import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
+import { ModalWrapper } from "@repo/ui/components/modal-wrapper";
+import { GradedEssayView } from "@/components/graded-essay-view";
 
 const creditsHistory = [
   { id: 1, date: "24/05/2024", type: "IA", action: "Uso em Redação", balance: "5 IA", isPositive: false },
@@ -37,6 +39,7 @@ export default async function StudentProfilePage({
   if (!student || error) {
     notFound();
   }
+  const essayId = resolvedSearchParams?.essayId as string | undefined;
 
   return (
     <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-10">
@@ -64,7 +67,7 @@ export default async function StudentProfilePage({
         page={page}
       />
 
-      <div className="bg-white rounded-4xl shadow-sm border border-slate-200 p-6 md:p-8">
+      {/* <div className="bg-white rounded-4xl shadow-sm border border-slate-200 p-6 md:p-8">
         <h2 className="text-xl font-black text-slate-900 mb-6">Histórico de Créditos</h2>
 
         <div className="w-full">
@@ -101,7 +104,16 @@ export default async function StudentProfilePage({
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
+      {essayId && (
+        <ModalWrapper
+          key={essayId}
+          param="essayId"
+          title="Visualizar Redação"
+        >
+          <GradedEssayView essayId={essayId} />
+        </ModalWrapper>
+      )}
     </div>
   );
 }

@@ -22,6 +22,10 @@ export function HighlightedText({ text, highlights, onHighlightClick }: Highligh
   const elements: React.ReactNode[] = [];
   let lastIndex = 0;
 
+  if (!text) {
+    return <p className="text-slate-500 italic">Texto da redação indisponível.</p>;
+  }
+
   sortedHighlights.forEach((hl) => {
     if (hl.startIndex > lastIndex) {
       elements.push(

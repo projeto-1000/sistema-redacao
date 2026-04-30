@@ -3,6 +3,7 @@ import { Button } from "@repo/ui/components/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@repo/ui/components/tooltip";
 import { formatDate } from "@repo/utils";
 import { StudentEssayItem } from "@/types";
+import Link from "next/link";
 
 
 const essayStatusConfig: Record<"pending" | "correcting" | "corrected" | "returned", { label: string; classes: string }> = {
@@ -64,8 +65,10 @@ export function StudentEssaysTableRow({ essay }: StudentEssaysTableRowProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button disabled={essay.status === 'correcting'} variant="ghost" size="icon" className="h-9 w-9 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                <Eye className="size-4.5" />
+              <Button asChild disabled={essay.status === 'correcting'} variant="ghost" size="icon" className="h-9 w-9 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                <Link href={`?essayId=${essay.id}`} scroll={false}>
+                  <Eye className="size-4.5" />
+                </Link>
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-slate-900 text-white font-medium text-xs rounded-lg border-none">
