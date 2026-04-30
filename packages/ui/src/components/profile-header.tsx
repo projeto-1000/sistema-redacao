@@ -54,16 +54,6 @@ export function ProfileHeader({ user, creditBalanceComponent, secondaryAction }:
             lg:col-start-3
             lg:row-start-1
           "
-        // className="
-        //   w-full sm:w-auto
-        //   justify-self-center
-        //   md:justify-self-start
-        //   xl:justify-self-end
-
-        //   md:col-start-2
-        //   xl:col-start-3
-        //   xl:row-start-1
-        // "
         >
           {creditBalanceComponent}
         </div>

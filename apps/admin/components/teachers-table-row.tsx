@@ -1,7 +1,7 @@
 'use client'
 
 import { updateTeacherStatus } from "@/app/action/get-teachers-data";
-import { TeacherListItem } from "@/app/types";
+import { TeacherListItem } from "@/types";
 import { Avatar } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";

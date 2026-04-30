@@ -9,8 +9,6 @@ const DEFAULT_ERROR: AppError = {
 };
 
  const APP_ERRORS: Record<string, AppError> = {
-  
-  // --- ERROS DE AUTENTICAÇÃO ---
   "unauthorized_role": {
     title: "Acesso negado",
     description: "Você não tem permissão para acessar esta área.",

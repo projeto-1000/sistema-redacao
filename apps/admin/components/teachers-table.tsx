@@ -1,6 +1,6 @@
 'use client'
 
-import { TeacherListItem } from "@/app/types";
+import { TeacherListItem } from "@/types";
 import { useTeachersFilters } from "@/hooks/use-teachers-filter";
 import { TableFilterBar } from "@repo/ui/components/table-filter-bar";
 import { TeachersTableRow } from "./teachers-table-row";

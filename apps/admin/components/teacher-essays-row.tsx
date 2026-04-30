@@ -1,4 +1,4 @@
-import { TeacherEssayListItem } from "@/app/types";
+import { TeacherEssayListItem } from "@/types";
 import { Avatar } from "@repo/ui/components/avatar";
 import { formatDate } from "@repo/utils";
 import { AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";

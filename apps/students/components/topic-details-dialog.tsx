@@ -19,7 +19,6 @@ import type { EssayTopic, MotivationalText, EssayTopicDetail } from "@repo/types
 import { getTopicDetails } from "@/app/actions/get-topics";
 interface TopicDetailsDialogProps {
   topic: EssayTopic;
-  // children: React.ReactNode;
 }
 
 function MotivatingTextSkeleton() {

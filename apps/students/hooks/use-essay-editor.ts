@@ -12,7 +12,6 @@ export function useEssayEditor(themeId: string, serverBackup: EssayBackup | null
   const [content, setContent] = useState<string>(serverBackup?.content || "");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Sincronização inicial (Hydration)
   useEffect(() => {
     const localContent = localStorage.getItem(`@backup:${themeId}`);
 
@@ -23,7 +22,6 @@ export function useEssayEditor(themeId: string, serverBackup: EssayBackup | null
     }
   }, [themeId, serverBackup]);
 
-  // 2. Auto-save para localStorage e Banco
   useEffect(() => {
     if (content === "" || content === serverBackup?.content) return;
 
@@ -44,12 +42,10 @@ export function useEssayEditor(themeId: string, serverBackup: EssayBackup | null
     };
   }, [content, themeId, serverBackup]);
 
-  // 3. NOVA FUNÇÃO: Faxina completa
   const clearAutoSave = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     localStorage.removeItem(`@backup:${themeId}`);
   };
 
-  // 4. Retorne a função de limpeza
   return { content, setContent, clearAutoSave };
 }

@@ -54,7 +54,6 @@ export function TablePagination({ totalPages }: TablePaginationProps) {
           <PaginationPrevious
             href={currentPage > 1 ? createPageURL(currentPage - 1) : "#"}
             className={currentPage <= 1 ? "rounded-full h-10 w-10 pointer-events-none opacity-50" : ""}
-          // scroll={false}
           />
         </PaginationItem>
 
@@ -68,8 +67,6 @@ export function TablePagination({ totalPages }: TablePaginationProps) {
                 href={createPageURL(page as number)}
                 isActive={currentPage === page}
                 className={`rounded-full h-10 w-10 ${currentPage === page ? 'font-bold' : 'border-none font-normal'} `}
-              // size={'lg'}
-              // scroll={false}
               >
                 {page}
               </PaginationLink>
@@ -81,7 +78,6 @@ export function TablePagination({ totalPages }: TablePaginationProps) {
           <PaginationNext
             href={currentPage < totalPages ? createPageURL(currentPage + 1) : "#"}
             className={currentPage >= totalPages ? "rounded-full h-10 w-10 pointer-events-none opacity-50" : ""}
-          // scroll={false}
           />
         </PaginationItem>
 

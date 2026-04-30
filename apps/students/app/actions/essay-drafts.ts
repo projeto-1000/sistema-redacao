@@ -49,7 +49,6 @@ export async function saveDraft(
     created_at: new Date().toISOString(),
   };
 
-  // Se recebemos o draftId, nós injetamos ele no objeto!
   if (draftId) {
     essayData.id = draftId;
   }

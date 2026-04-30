@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/server";
 
 import { generateCsv } from "@repo/utils";
-import { GetStudentsFilters } from "../types";
+import { GetStudentsFilters } from "../../types";
 
 type StudentExportRow = {
   full_name: string;

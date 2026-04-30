@@ -1,5 +1,5 @@
 import { getTeacherStats } from "@/app/action/get-teachers-data";
-import { TeacherStats } from "@/app/types";
+import { TeacherStats } from "@/types";
 import { BarChart2, Calendar } from "lucide-react";
 import { Progress } from "@repo/ui/components/progress";
 

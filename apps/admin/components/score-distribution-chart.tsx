@@ -1,7 +1,7 @@
 "use client";
 
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import { TeacherChartData } from "@/app/types";
+import { TeacherChartData } from "@/types";
 
 interface ScoreDistributionChartProps {
   data: TeacherChartData[];

@@ -8,7 +8,7 @@ import {
   TeacherChartData,
   TeacherEssayListItem,
   TeacherListItem,
-} from "../types";
+} from "../../types";
 import { revalidatePath } from "next/cache";
 
 export async function getTeachers(

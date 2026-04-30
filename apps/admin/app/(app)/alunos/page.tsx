@@ -1,5 +1,5 @@
 import { exportStudentsCsvAction } from "@/app/action/export-students-csv";
-import { getStudentsCount } from "@/app/action/get-students-data";
+import { getStudentsCount } from "@/app/action/students";
 import { StudentsTable, } from "@/components/students-table";
 import StudentsFilterBar from "@/components/students-filter-bar";
 import { parseStudentsFilters } from "@/utils/parse-filters";

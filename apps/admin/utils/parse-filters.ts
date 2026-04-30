@@ -1,4 +1,4 @@
-import { StudentEssaysFilters } from "@/app/types";
+import { StudentEssaysFilters } from "@/types";
 import { PendingEssaysFilter, GradedEssaysFilter, StudentsFilter } from "@repo/types";
 
 type NextSearchParams = { [key: string]: string | string[] | undefined };

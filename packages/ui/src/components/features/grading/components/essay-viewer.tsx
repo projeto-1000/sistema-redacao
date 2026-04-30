@@ -221,7 +221,6 @@ export function EssayViewer({
         <div
           ref={textRef}
           className="text-slate-800 text-base md:text-lg leading-relaxed text-justify wrap-break-word whitespace-pre-wrap selection:bg-amber-200/50"
-        // className="text-slate-800 text-base md:text-lg leading-relaxed text-justify wrap-break-word whitespace-pre-wrap selection:bg-amber-200/50"
         >
           {renderContent()}
         </div>

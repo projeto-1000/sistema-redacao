@@ -9,13 +9,13 @@ export const registerSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
-  confirmPassword: z.string().min(1, "Confirme sua senha"), // Precisa existir aqui
+  confirmPassword: z.string().min(1, "Confirme sua senha"), 
   role: z.enum(["STUDENT", "TEACHER", "ADMIN"]),
 })
 .refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
-  path: ["confirmPassword"], // <--- O SEGREDO ESTÁ AQUI
+  path: ["confirmPassword"],
 });
-// Inferência de Tipos (Isso gera o Type do TypeScript automaticamente a partir do Zod)
+
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type RegisterSchema = z.infer<typeof registerSchema>;

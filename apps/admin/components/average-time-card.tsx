@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Zap, Clock } from "lucide-react";
-import { AverageTimeRange } from "@/app/types";
+import { AverageTimeRange } from "@/types";
 import { getAverageTime } from "@/app/action/get-teachers-data";
 
 interface AverageTimeCardProps {

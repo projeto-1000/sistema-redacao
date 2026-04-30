@@ -26,14 +26,11 @@ export default async function StudentProfilePage({
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
   const studentId = resolvedParams.id;
-
-  const currentPage = Number(resolvedSearchParams.page) || 1;
-  const page = Number(resolvedSearchParams.page) || 1;
-  const statusFilter = (resolvedSearchParams.status as "all" | "done" | "pending") || "all";
+  const page = Number(resolvedSearchParams?.page) || 1;
 
   const suspenseKey = JSON.stringify(resolvedParams);
 
-  const filters = parseStudentEssaysFilters(resolvedParams);
+  const filters = parseStudentEssaysFilters(resolvedSearchParams);
 
   const { student, error } = await getStudentById(studentId);
 
@@ -42,7 +39,7 @@ export default async function StudentProfilePage({
   }
 
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-6">
+    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-10">
 
       <Button asChild variant='ghost' className="text-slate-500">
         <Link href="/alunos">
@@ -63,13 +60,10 @@ export default async function StudentProfilePage({
 
       <StudentEssaysTable
         studentId={studentId}
-        currentPage={currentPage}
-        statusFilter={statusFilter}
+        filters={filters}
+        page={page}
       />
 
-      {/* =========================================
-            TABELA: HISTÓRICO DE CRÉDITOS
-        ========================================= */}
       <div className="bg-white rounded-4xl shadow-sm border border-slate-200 p-6 md:p-8">
         <h2 className="text-xl font-black text-slate-900 mb-6">Histórico de Créditos</h2>
 
@@ -108,7 +102,6 @@ export default async function StudentProfilePage({
           </div>
         </div>
       </div>
-
     </div>
   );
 }

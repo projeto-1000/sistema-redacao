@@ -49,7 +49,6 @@ export function EssayWorkspace({ essayTopic, isSuccess, backup }: EssayWorkspace
     <div className="h-[calc(100vh-8rem)] flex flex-col max-w-full justify-normal animate-in fade-in duration-500">
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden gap-8">
 
-        {/* Painel Esquerdo: Textos Motivadores (Desktop) */}
         <div className="hidden lg:flex w-full lg:w-[450px] shrink-0 flex-col bg-white rounded-3xl border border-slate-200 overflow-hidden h-full shadow-sm z-10">
           <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2 text-[#1E3A8A] shrink-0">
             <FileText className="size-4" />
@@ -62,7 +61,6 @@ export function EssayWorkspace({ essayTopic, isSuccess, backup }: EssayWorkspace
           </ScrollArea>
         </div>
 
-        {/* Painel Direito: Editor e Botão Mobile */}
         <div className="flex-1 h-full flex flex-col min-w-0">
 
           <MobileMotivationalTexts

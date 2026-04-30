@@ -1,4 +1,4 @@
-import { StudentProfile } from "@repo/types";
+import { EssayStatus, StudentProfile } from "@repo/types";
 
 export type StudentsListItem = {
   id: string;
@@ -102,4 +102,13 @@ export interface GetStudentResult {
     subscription: StudentDataError | null;
     credits: StudentDataError | null;
   };
+}
+
+export interface StudentEssayItem {
+  id: string;
+  title: string;
+  thematic_axis: string;
+  status: EssayStatus;
+  total_score: number;
+  created_at: string;
 }

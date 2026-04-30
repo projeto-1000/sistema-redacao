@@ -6,7 +6,7 @@ import { TableFilterBar } from "@repo/ui/components/table-filter-bar";
 import { FileText, FileDown } from "lucide-react";
 import TeacherEssaysRow from "./teacher-essays-row";
 import { TablePagination } from "./table-pagination";
-import { TeacherEssayListItem } from "@/app/types";
+import { TeacherEssayListItem } from "@/types";
 
 interface TeacherEssayHistoryProps {
   essays: TeacherEssayListItem[];

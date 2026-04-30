@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Upload, Loader2 } from "lucide-react";
 import { exportStudentsCsvAction } from "@/app/action/export-students-csv";
-import { GetStudentsFilters } from "@/app/types";
+import { GetStudentsFilters } from "@/types";
 
 interface ExportCsvButtonProps {
   filters: GetStudentsFilters;
@@ -16,7 +16,6 @@ export function ExportCsvButton({ filters }: ExportCsvButtonProps) {
   const hasActiveFilters = !!(filters.search || filters.status || filters.from || filters.to);
 
   const handleExport = async () => {
-    // Aviso inteligente: só avisa se NÃO houver filtros
     if (!hasActiveFilters) {
       const confirm = window.confirm(
         "Você está exportando toda a base de alunos e isso pode demorar alguns instantes dependendo da quantidade de dados.\n\nDeseja continuar?"
@@ -27,14 +26,11 @@ export function ExportCsvButton({ filters }: ExportCsvButtonProps) {
     setIsExporting(true);
 
     try {
-      // 1. Chama a Server Action
       const csvString = await exportStudentsCsvAction(filters);
 
-      // 2. Transforma o texto do CSV num arquivo (Blob) no navegador
       const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
 
-      // 3. Cria um link invisível e simula o clique de download
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", `exportacao_alunos_${new Date().toISOString().split("T")[0]}.csv`);

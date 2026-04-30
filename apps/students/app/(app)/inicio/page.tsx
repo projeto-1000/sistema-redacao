@@ -64,7 +64,6 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          {/* <CreditBalance amount={user.credits} /> */}
           <CreditsCard credits={user.credits} />
         </div>
       </Suspense>

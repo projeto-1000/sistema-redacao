@@ -146,14 +146,11 @@ export function EssayCorrectionWorkspace({
     <div className="min-h-screen flex flex-col">
 
       <div className="space-y-4 mb-4 md:mb-6">
-        {/* <div className="px-2 md:px-10 py-6 space-y-4"> */}
         <h1 className="text-2xl md:text-3xl font-extrabold">
-          {/* <h1 className="text-3xl font-extrabold"> */}
           Espaço de Correção
         </h1>
 
         <div className="flex flex-col md:flex-row gap-2 md:gap-4 text-sm font-medium text-slate-600">
-          {/* <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600"> */}
           <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full w-fit">
             <User className="size-3 md:size-4 text-slate-400" /> {essay.student}
           </div>
@@ -164,7 +161,6 @@ export function EssayCorrectionWorkspace({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-20">
-        {/* <div className="px-2 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-20"> */}
 
         <EssayViewer
           essay={essay}
