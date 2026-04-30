@@ -1,12 +1,14 @@
 import Link from "next/link";
-import {
-  ArrowLeft
-} from "lucide-react";
-import { getStudentById } from "@/app/action/get-students-data";
+import { ArrowLeft } from "lucide-react";
+import { getStudentById } from "@/app/action/students";
 import { notFound } from "next/navigation";
 import { StudentProfileHeader } from "@/components/student-profile-header";
 import { StudentStatsCards } from "@/components/student-stats-cards";
 import { StudentEssaysTable } from "@/components/student-essays-table";
+import { Button } from "@repo/ui/components/button";
+import { parseStudentEssaysFilters } from "@/utils/parse-filters";
+import { Suspense } from "react";
+import { Skeleton } from "@repo/ui/components/skeleton";
 
 const creditsHistory = [
   { id: 1, date: "24/05/2024", type: "IA", action: "Uso em Redação", balance: "5 IA", isPositive: false },
@@ -26,49 +28,43 @@ export default async function StudentProfilePage({
   const studentId = resolvedParams.id;
 
   const currentPage = Number(resolvedSearchParams.page) || 1;
+  const page = Number(resolvedSearchParams.page) || 1;
   const statusFilter = (resolvedSearchParams.status as "all" | "done" | "pending") || "all";
-  const dateFilter = typeof resolvedSearchParams.date === "string" ? resolvedSearchParams.date : undefined;
 
-  const student = await getStudentById(studentId);
+  const suspenseKey = JSON.stringify(resolvedParams);
 
-  if (!student) {
+  const filters = parseStudentEssaysFilters(resolvedParams);
+
+  const { student, error } = await getStudentById(studentId);
+
+  if (!student || error) {
     notFound();
   }
 
-  const studentData = {
-    name: student.full_name,
-    id: student.id,
-    registrationDate: new Date(student.created_at).toLocaleDateString("pt-BR"),
-    email: student.email,
-    avatarUrl: student.avatar_url || null,
-    plan: {
-      status: student.status === "active" ? "Ativo" : student.status === "blocked" ? "Bloqueado" : "Inativo",
-      name: student.plan || "Plano Anual", // Mock
-      expiresAt: student.validityEnd ? new Date(student.validityEnd).toLocaleDateString("pt-BR") : "25/12/2024" // Mock
-    },
-    credits: {
-      professor: student.creditsProf || 10, // Mock
-      ia: student.creditsIA || 5 // Mock
-    },
-  };
-
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-8">
+    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-6">
 
-      <Link href="/alunos" className="inline-flex items-center text-sm font-bold text-slate-400 hover:text-blue-600 transition-colors">
-        <ArrowLeft className="size-4 mr-2" />
-        Voltar para lista de alunos
-      </Link>
+      <Button asChild variant='ghost' className="text-slate-500">
+        <Link href="/alunos">
+          <ArrowLeft className="size-4 mr-2" />
+          Voltar para lista de alunos
+        </Link>
+      </Button>
 
-      <StudentProfileHeader student={studentData} />
 
-      <StudentStatsCards studentId={studentData.id} />
+      <Suspense
+        key={suspenseKey}
+        fallback={<Skeleton className="rounded-3xl min-h-auto bg-slate-200 mt-6" />}
+      >
+        <StudentProfileHeader student={student} />
+      </Suspense>
+
+      <StudentStatsCards studentId={student.id} />
 
       <StudentEssaysTable
         studentId={studentId}
         currentPage={currentPage}
         statusFilter={statusFilter}
-        dateFilter={dateFilter}
       />
 
       {/* =========================================
@@ -112,7 +108,6 @@ export default async function StudentProfilePage({
           </div>
         </div>
       </div>
-
 
     </div>
   );

@@ -1,81 +1,59 @@
 
 import { Button } from "@repo/ui/components/button";
 import { Avatar } from "@repo/ui/components/avatar";
-interface StudentProfileHeaderProps {
-  student: {
-    name: string;
-    id: string;
-    registrationDate: string;
-    email: string;
-    avatarUrl: string;
-    plan: {
-      status: string;
-      name: string;
-      expiresAt: string;
-    };
-    credits: {
-      professor: number;
-      ia: number;
-    };
-  };
+import { Lock } from "lucide-react";
+import { formatDate } from "@repo/utils";
+import { USER_STATUS_MAP } from "@repo/constants";
+import { StudentProfile } from "@repo/types";
+import StudentSubscriptionCard from "./student-subscription-card";
+
+interface StudentsProfileHeaderProps {
+  student: StudentProfile
 }
 
-export function StudentProfileHeader({ student }: StudentProfileHeaderProps) {
-  return (
-    <div className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden">
+export function StudentProfileHeader({ student }: StudentsProfileHeaderProps) {
 
-      <div className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+  const currentStatus = USER_STATUS_MAP[student.status as keyof typeof USER_STATUS_MAP] || USER_STATUS_MAP.inactive;
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-4xl shadow-sm overflow-hidden">
+      <div className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-          <Avatar src={student.avatarUrl} name={student.name} className="size-20 rounded-full" />
-          <div>
-            <h1 className="text-2xl font-black text-slate-900">{student.name}</h1>
-            <p className="text-sm font-medium text-slate-500 mt-1">
-              ID: #{student.id} • Data de Cadastro: {student.registrationDate}
-            </p>
-            <p className="text-sm font-bold text-blue-600 mt-1">{student.email}</p>
+          <Avatar src={student.avatar_url} name={student.full_name}
+            className="size-30! text-2xl border-3 border-slate-200 shadow-md" />
+
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-black leading-none">{student.full_name}</h1>
+            <p className="text-sm font-medium text-slate-500">{student.email}</p>
+            <div className="flex items-center justify-center md:justify-start gap-3 text-xs font-bold pt-1">
+              <span className="flex items-center text-slate-500">
+                <Lock className="size-3.5 mr-1" /> ID: {student.id}
+              </span>
+              <span className="text-slate-300">|</span>
+              <span className={`text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider ${currentStatus.colors}`}>
+                {currentStatus.label}
+              </span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-500">Desde: {formatDate(student.created_at, 'numeric')}</span>
+            </div>
           </div>
         </div>
-        <div>
-          <Button className="font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-full h-10 px-6 shadow-sm w-full md:w-auto">
-            Editar dados
+
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          {/* <Button variant="outline" className="flex-1 md:flex-none h-11 rounded-full border-blue-200 text-blue-600 hover:bg-blue-50 font-bold px-6 transition-colors">
+            <Pencil className="size-4 mr-2" /> Editar Perfil
+          </Button> */}
+          <Button
+            variant="outline"
+            className="flex-1 md:flex-none h-10 rounded-xl border-slate-200 hover:bg-red-50 hover:text-red-500 font-bold transition-colors">
+            <Lock className="size-4 mr-2" /> Bloquear aluno
           </Button>
         </div>
       </div>
 
       <div className="h-px bg-slate-200 w-full" />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
-
-        <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-100">
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Dados da Assinatura</h3>
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider ${student.plan.status === "ATIVO" ? "bg-emerald-50 text-emerald-600" :
-              student.plan.status === "BLOQUEADO" ? "bg-red-50 text-red-600" :
-                "bg-slate-200 text-slate-600"
-              }`}>
-              {student.plan.status}
-            </span>
-            <span className="font-black text-slate-900 text-lg">{student.plan.name}</span>
-          </div>
-          <p className="text-sm font-medium text-slate-500">
-            Expira em: <span className="font-bold text-slate-900">{student.plan.expiresAt}</span>
-          </p>
-        </div>
-
-        <div className="p-8 flex flex-col items-center justify-center bg-slate-100">
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Créditos Professor</h3>
-          <div className="size-20 rounded-full border-[6px] border-amber-200/40 flex items-center justify-center">
-            <span className="text-3xl font-black text-amber-400">{student.credits.professor}</span>
-          </div>
-        </div>
-
-        <div className="p-8 flex flex-col items-center justify-center bg-slate-100">
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Créditos IA</h3>
-          <div className="size-20 rounded-full border-[6px] border-blue-100 flex items-center justify-center">
-            <span className="text-3xl font-black text-blue-600">{student.credits.ia}</span>
-          </div>
-        </div>
-      </div>
+      <StudentSubscriptionCard subscription={student.subscription} />
     </div>
   );
 }

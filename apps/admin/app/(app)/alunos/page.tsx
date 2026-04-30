@@ -24,7 +24,6 @@ export default async function StudentsPage({
 
   const totalCount = await getStudentsCount()
 
-
   return (
     <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-8">
 

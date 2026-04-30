@@ -1,6 +1,7 @@
+import { StudentEssaysFilters } from "@/app/types";
 import { PendingEssaysFilter, GradedEssaysFilter, StudentsFilter } from "@repo/types";
 
-export type NextSearchParams = { [key: string]: string | string[] | undefined };
+type NextSearchParams = { [key: string]: string | string[] | undefined };
 
 export function parsePendingEssaysFilters(params: NextSearchParams = {}): PendingEssaysFilter {
   const allowedKeys: (keyof PendingEssaysFilter)[] = ["search", "from", "to"];
@@ -42,4 +43,24 @@ export function parseStudentsFilters(params: NextSearchParams = {}): StudentsFil
 
     return acc;
   }, {} as StudentsFilter);
+}
+
+export function parseStudentEssaysFilters(params: NextSearchParams = {}): StudentEssaysFilters {
+  const allowedKeys: (keyof StudentEssaysFilters)[] = [
+    "search",
+    "status",
+    "is_on_time",
+    "from",
+    "to",
+  ];
+
+  return allowedKeys.reduce((acc, key) => {
+    const value = params[key];
+
+    if (typeof value === "string") {
+      acc[key] = value;
+    }
+
+    return acc;
+  }, {} as StudentEssaysFilters);
 }

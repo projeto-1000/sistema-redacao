@@ -28,12 +28,15 @@ export interface EssayTopicDetail extends EssayTopic {
   motivational_texts: MotivationalText[];
 }
 
+export type UserRole = "STUDENT" | "ADMIN" | "TEACHER";
+
+export type UserStatus = "active" | "inactive" | "blocked" | "pending";
 export interface UserData {
   name: string;
   email: string;
   credits: number;
   avatarUrl: string | null;
-  role: 'STUDENT' | 'TEACHER' | 'ADMIN'
+  role: UserRole
 }
 
 export type EssayStatus = "draft" | "pending" | "correcting" | "corrected" | "returned" | "draft";
@@ -142,4 +145,30 @@ export interface StudentsFilter {
   status?: string;
   from?: string;
   to?: string;
+}
+
+export type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'canceled' | 'unpaid';
+
+export type PlanTier = 'basic' | 'premium' | 'none';
+
+export interface StudentSubscription {
+  tier: PlanTier;
+  status: SubscriptionStatus;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  remaining_essays: number;
+  extra_credits: number;
+}
+
+export interface StudentProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  created_at: string;
+  status: UserStatus;
+  credits_balance: number;
+  avatar_url: string | null;
+  subscription: StudentSubscription;
 }

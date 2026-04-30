@@ -63,3 +63,47 @@ export async function getStudents({
     error: error,
   };
 }
+
+export async function getStudentById(studentId: string) {
+  const supabase = await createClient();
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", studentId)
+    .single();
+
+  if (profileError || !profile) {
+    return { student: null, error: "Perfil não encontrado", subscriptionError: null };
+  }
+
+  const [subRes, creditsRes] = await Promise.all([
+    supabase
+      .from("subscriptions")
+      .select(`tier, status, current_period_start, current_period_end, cancel_at_period_end`)
+      .eq("user_id", studentId)
+      .maybeSingle(),
+
+    supabase
+      .from("student_credits")
+      .select(`remaining_essays, extra_credits`)
+      .eq("user_id", studentId)
+      .maybeSingle(),
+  ]);
+
+  const subscriptionData = subRes.data
+    ? {
+        ...subRes.data,
+        remaining_essays: creditsRes.data?.remaining_essays ?? 0,
+        extra_credits: creditsRes.data?.extra_credits ?? 0,
+      }
+    : null;
+
+  return {
+    student: {
+      ...profile,
+      subscription: subscriptionData,
+    },
+    error: null,
+  };
+}

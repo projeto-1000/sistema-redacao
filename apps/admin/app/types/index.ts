@@ -1,3 +1,5 @@
+import { StudentProfile } from "@repo/types";
+
 export type StudentsListItem = {
   id: string;
   full_name: string;
@@ -78,3 +80,26 @@ export type GetTeacherEssayFilters = {
   from?: string;
   to?: string;
 };
+
+export type StudentEssaysFilters = {
+  search?: string;
+  status?: string;
+  is_on_time?: string;
+  from?: string;
+  to?: string;
+};
+
+export type FetchErrorType = "NOT_FOUND" | "PERMISSION_DENIED" | "FETCH_ERROR";
+
+export interface StudentDataError {
+  type: FetchErrorType;
+  message: string;
+}
+export interface GetStudentResult {
+  data: StudentProfile | null;
+  errors: {
+    profile: StudentDataError | null;
+    subscription: StudentDataError | null;
+    credits: StudentDataError | null;
+  };
+}

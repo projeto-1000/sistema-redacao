@@ -20,69 +20,6 @@ export async function getStudentsCount(): Promise<number> {
   return count || 0;
 }
 
-export async function getStudentsList(
-  filters?: GetStudentsFilters,
-  page: number = 1,
-  limit: number = 10
-): Promise<{ data: StudentsListItem[]; totalPages: number }> {
-  const supabase = await createClient();
-
-  const rangeStart = (page - 1) * limit;
-  const rangeEnd = rangeStart + limit - 1;
-
-  let query = supabase
-    .from("profiles")
-    .select(`id, full_name, email, status, avatar_url`, { count: "exact" })
-    .eq("role", "STUDENT");
-
-  if (filters?.search) {
-    query = query.or(`full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
-  }
-
-  if (filters?.status && filters.status !== "all") {
-    query = query.eq("status", filters.status);
-  }
-
-  // if (filters?.plan && filters.plan !== "all") {
-  //   query = query.eq("plan", filters.plan);
-  // }
-
-  if (filters?.from) {
-    query = query.gte("created_at", filters.from);
-  }
-
-  if (filters?.to) {
-    query = query.lte("created_at", filters.to);
-  }
-
-  const { data, count, error } = await query
-    .range(rangeStart, rangeEnd)
-    .order("full_name", { ascending: true });
-
-  if (error) {
-    console.error("Erro ao buscar lista de alunos:", error);
-    return { data: [], totalPages: 0 };
-  }
-
-  return {
-    data: data as StudentsListItem[],
-    totalPages: count ? Math.ceil(count / limit) : 0,
-  };
-}
-
-export async function getStudentById(studentId: string) {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.from("profiles").select("*").eq("id", studentId).single();
-
-  if (error || !data) {
-    console.error("Erro ao buscar detalhes do aluno:", error);
-    return null;
-  }
-
-  return data;
-}
-
 export async function updateStudentStatus(studentId: string, currentStatus: string) {
   const supabase = await createClient();
   const newStatus = currentStatus === "active" ? "blocked" : "active";

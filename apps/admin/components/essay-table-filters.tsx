@@ -91,6 +91,7 @@ export function EssayTableFilters() {
 
       <div className="flex items-center bg-slate-100 p-1 rounded-lg">
         <button
+          suppressHydrationWarning
           onClick={() => handleStatusFilter("all")}
           className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all whitespace-nowrap ${currentStatus === "all" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900 hover:bg-slate-200"
             }`}
@@ -98,6 +99,8 @@ export function EssayTableFilters() {
           Todos
         </button>
         <button
+          suppressHydrationWarning
+
           onClick={() => handleStatusFilter("done")}
           className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all whitespace-nowrap ${currentStatus === "done" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900 hover:bg-slate-200"
             }`}
@@ -105,6 +108,8 @@ export function EssayTableFilters() {
           Corrigidos
         </button>
         <button
+          suppressHydrationWarning
+
           onClick={() => handleStatusFilter("pending")}
           className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all whitespace-nowrap ${currentStatus === "pending" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900 hover:bg-slate-200"
             }`}
