@@ -1,10 +1,11 @@
-"use client";
+'use client'
 
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { TeacherChartData } from "@/types";
+import { AlertCircle, BarChart2 } from "lucide-react";
 
 interface ScoreDistributionChartProps {
-  data: TeacherChartData[];
+  data: TeacherChartData[] | null;
 }
 
 interface CustomTooltipProps {
@@ -16,6 +17,38 @@ interface CustomTooltipProps {
 }
 
 export default function ScoreDistributionChart({ data }: ScoreDistributionChartProps) {
+
+  if (!data) {
+    return (
+      <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-4xl p-6 md:p-8 flex flex-col items-center justify-center text-center shadow-sm min-h-[300px] h-full">
+        <div className="size-10 rounded-full bg-red-100/50 text-red-600 flex items-center justify-center mb-4">
+          <AlertCircle className="size-6" />
+        </div>
+        <h3 className="text-xs font-black text-red-800 uppercase tracking-widest mb-2">
+          Erro ao carregar gráfico
+        </h3>
+        <p className="text-slate-700 text-sm max-w-xs">
+          Não foi possível buscar a distribuição de notas no momento.
+        </p>
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-4xl p-6 md:p-8 flex flex-col items-center justify-center text-center min-h-[300px] h-full">
+        <div className="size-12 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-4">
+          <BarChart2 className="size-6" />
+        </div>
+        <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">
+          Gráfico Indisponível
+        </h3>
+        <p className="text-slate-400 text-sm max-w-xs">
+          Ainda não há volume de notas suficiente para gerar a distribuição estatística.
+        </p>
+      </div>
+    );
+  }
 
   const CustomBarTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length > 0) {
@@ -35,6 +68,7 @@ export default function ScoreDistributionChart({ data }: ScoreDistributionChartP
     }
     return null;
   };
+
   return (
     <div className="bg-white border border-slate-200 rounded-4xl p-6 md:p-8 shadow-sm flex flex-col">
       <div className="flex items-start justify-between mb-8">

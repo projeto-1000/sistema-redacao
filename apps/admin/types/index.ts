@@ -1,4 +1,4 @@
-import { EssayStatus, StudentProfile } from "@repo/types";
+import { EssayStatus } from "@repo/types";
 
 export type StudentsListItem = {
   id: string;
@@ -63,8 +63,8 @@ export type TeacherEssayListItem = {
   id: string;
   student_id: string;
   student_name: string;
-  email: string;
-  avatar_url: string | null;
+  student_email: string;
+  student_avatar: string | null;
   title: string;
   thematic_axis: string;
   total_score: number;
@@ -73,10 +73,11 @@ export type TeacherEssayListItem = {
   correction_date: string;
 };
 
-export type GetTeacherEssayFilters = {
+export type TeacherEssayFilters = {
   search?: string;
   status?: string;
   delivery?: string;
+  is_on_time?: string;
   from?: string;
   to?: string;
 };
@@ -92,25 +93,10 @@ export type StudentEssaysFilters = {
 export type TeachersFilters = {
   search?: string;
   status?: string;
-  is_on_time?: string;
+  delivery?: string;
   from?: string;
   to?: string;
 };
-
-export type FetchErrorType = "NOT_FOUND" | "PERMISSION_DENIED" | "FETCH_ERROR";
-
-export interface StudentDataError {
-  type: FetchErrorType;
-  message: string;
-}
-export interface GetStudentResult {
-  data: StudentProfile | null;
-  errors: {
-    profile: StudentDataError | null;
-    subscription: StudentDataError | null;
-    credits: StudentDataError | null;
-  };
-}
 
 export interface StudentEssayItem {
   id: string;

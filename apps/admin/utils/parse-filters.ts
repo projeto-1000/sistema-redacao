@@ -1,4 +1,4 @@
-import { StudentEssaysFilters, TeachersFilters } from "@/types";
+import { StudentEssaysFilters, TeachersFilters, TeacherEssayFilters } from "@/types";
 import { PendingEssaysFilter, GradedEssaysFilter, StudentsFilter } from "@repo/types";
 
 type NextSearchParams = { [key: string]: string | string[] | undefined };
@@ -77,4 +77,18 @@ export function parseTeachersFilters(params: NextSearchParams = {}): TeachersFil
 
     return acc;
   }, {} as TeachersFilters);
+}
+
+export function parseTeacherEssaysFilters(params: NextSearchParams = {}): TeacherEssayFilters {
+  const allowedKeys: (keyof TeachersFilters)[] = ["search", "status", "delivery", "from", "to"];
+
+  return allowedKeys.reduce((acc, key) => {
+    const value = params[key];
+
+    if (typeof value === "string") {
+      acc[key] = value;
+    }
+
+    return acc;
+  }, {} as TeacherEssayFilters);
 }

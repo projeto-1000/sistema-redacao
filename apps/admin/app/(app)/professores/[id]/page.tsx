@@ -1,12 +1,16 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-import { getTeacherById, getTeacherChartsData, getTeacherEssays } from "@/app/actions/teachers";
+import { ArrowLeft } from "lucide-react";
+import { getTeacherById, getTeacherChartsData } from "@/app/actions/teachers";
 import { notFound } from "next/navigation";
 import TeacherProfileHeader from "@/components/teacher-profile-header";
 import TeacherStatsCards from "@/components/teacher-stats-cards";
 import ScoreDistributionChart from "@/components/score-distribution-chart";
 import AverageTimeCard from "@/components/average-time-card";
-import TeacherEssayHistoryTable from "@/components/teacher-essay-history-table";
+import TeacherEssayTable from "@/components/teacher-essay-table";
+import { ModalWrapper } from "@repo/ui/components/modal-wrapper";
+import { GradedEssayView } from "@/components/graded-essay-view";
+import { parseTeacherEssaysFilters } from "@/utils/parse-filters";
+import { Button } from "@repo/ui/components/button";
 
 export default async function TeacherProfilePage({
   params,
@@ -18,53 +22,55 @@ export default async function TeacherProfilePage({
 
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
+  const page = Number(resolvedSearchParams?.page) || 1;
+  const filters = parseTeacherEssaysFilters(resolvedSearchParams);
+
   const teacherId = resolvedParams.id;
 
   const teacher = await getTeacherById(teacherId);
-  const chartsData = await getTeacherChartsData(resolvedParams.id);
-
-  const currentPage = Number(resolvedSearchParams.page) || 1;
-  const perPage = 5
-
-  const { essays, totalPages } = await getTeacherEssays(teacherId, currentPage, perPage)
 
   if (!teacher) {
     notFound();
   }
-
   const teacherData = {
-    name: teacher.full_name,
-    id: teacher.id,
-    status: teacher.status,
-    registrationDate: new Date(teacher.created_at).toLocaleDateString("pt-BR"),
-    email: teacher.email,
-    avatarUrl: teacher.avatar_url || null,
-  }
+    teacherId: teacherId,
+    teacherName: teacher.full_name,
+  };
+
+  const chartsData = await getTeacherChartsData(teacherId);
+
+  const essayId = resolvedSearchParams?.essayId as string | undefined;
 
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-8">
-
-      <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-        <Link href="/professores" className="hover:text-secondary transition-colors">
-          Gestão de Professores
+    <div className="min-h-screen px-4 md:px-10 lg:px-12 pb-8 space-y-8">
+      <Button asChild variant='ghost' className="text-slate-500">
+        <Link href="/alunos">
+          <ArrowLeft className="size-4 mr-2" />
+          Voltar para lista de professores
         </Link>
-        <ChevronRight className="size-4" />
-        <span className="text-seconday">
-          Histórico Detalhado
-        </span>
-      </div>
+      </Button>
 
-      <TeacherProfileHeader teacher={teacherData} />
+      <TeacherProfileHeader teacher={teacher} />
 
       <TeacherStatsCards teacherId={teacherId} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ScoreDistributionChart data={chartsData || []} />
+        <ScoreDistributionChart data={chartsData} />
 
         <AverageTimeCard teacherId={teacherId} />
       </div>
 
-      <TeacherEssayHistoryTable essays={essays} totalPages={totalPages} />
+      <TeacherEssayTable filters={filters} teacherData={teacherData} page={page} />
+
+      {essayId && (
+        <ModalWrapper
+          key={essayId}
+          param="essayId"
+          title="Visualizar Redação"
+        >
+          <GradedEssayView essayId={essayId} />
+        </ModalWrapper>
+      )}
 
     </div>
   );

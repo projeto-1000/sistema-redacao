@@ -30,7 +30,7 @@ export function StudentProfileHeader({ student }: StudentsProfileHeaderProps) {
                 <Lock className="size-3.5 mr-1" /> ID: {student.id}
               </span>
               <span className="text-slate-300">|</span>
-              <span className={`text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider ${currentStatus.colors}`}>
+              <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider ${currentStatus.colors}`}>
                 {currentStatus.label}
               </span>
               <span className="text-slate-300">|</span>
@@ -46,7 +46,7 @@ export function StudentProfileHeader({ student }: StudentsProfileHeaderProps) {
           <Button
             variant="outline"
             className="flex-1 md:flex-none h-10 rounded-xl border-slate-200 hover:bg-red-50 hover:text-red-500 font-bold transition-colors">
-            <Lock className="size-4 mr-2" /> Bloquear aluno
+            <Lock className="size-4 mr-2" /> Bloquear
           </Button>
         </div>
       </div>

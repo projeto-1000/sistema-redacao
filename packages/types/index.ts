@@ -172,3 +172,12 @@ export interface StudentProfile {
   avatar_url: string | null;
   subscription: StudentSubscription;
 }
+
+export interface TeacherProfile {
+  id: string;
+  full_name: string;
+  status: string;
+  created_at: string;
+  email: string;
+  avatar_url: string;
+}

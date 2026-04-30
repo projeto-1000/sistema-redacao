@@ -7,7 +7,7 @@ import { PageHeader } from "@repo/ui/components/page-header";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { Plus } from "lucide-react";
 import { Suspense } from "react";
-import { ExportCsvButton } from "@/components/export-csv";
+import { ExportCsvButton } from "@/components/export-csv-button";
 import { Button } from "@repo/ui/components/button";
 import Link from "next/link";
 

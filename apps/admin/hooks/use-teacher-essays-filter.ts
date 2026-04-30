@@ -60,8 +60,8 @@ export function useTeachersEssayFilter() {
       onChange: setStatusFilter,
       options: [
         { label: "Todos", value: "all" },
-        { label: "Corrigidas", value: "done" },
-        { label: "Em correção", value: "under_correction" },
+        { label: "Corrigidas", value: "corrected" },
+        { label: "Em correção", value: "correcting" },
         { label: "Devolvidas", value: "returned" },
       ],
     },

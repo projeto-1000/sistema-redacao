@@ -2,42 +2,47 @@
 
 import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
-import { Upload, Loader2 } from "lucide-react";
-import { exportStudentsCsvAction } from "@/app/actions/export-students-csv";
-import { GetStudentsFilters } from "@/types";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@repo/ui/components/alert-dialog";
+import { Download } from "lucide-react";
 
-interface ExportCsvButtonProps {
-  filters: GetStudentsFilters;
+interface ExportCsvButtonProps<T> {
+  action: (payload: T) => Promise<string>;
+  payload: T;
+  fileName: string;
+  className?: string
+  variant?: "outline" | "secondary"
 }
 
-export function ExportCsvButton({ filters }: ExportCsvButtonProps) {
+export function ExportCsvButton<T>({
+  action,
+  payload,
+  fileName,
+  className = '',
+  variant = "outline"
+}: ExportCsvButtonProps<T>) {
   const [isExporting, setIsExporting] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
 
-  const hasActiveFilters = !!(filters.search || filters.status || filters.from || filters.to);
+  const hasActiveFilters = payload && typeof payload === 'object'
+    ? Object.values(payload).some(value => value !== undefined && value !== null && value !== "")
+    : false;
 
-  const handleExport = async () => {
-    if (!hasActiveFilters) {
-      const confirm = window.confirm(
-        "Você está exportando toda a base de alunos e isso pode demorar alguns instantes dependendo da quantidade de dados.\n\nDeseja continuar?"
-      );
-      if (!confirm) return;
-    }
-
+  const executeExport = async () => {
+    setShowDialog(false);
     setIsExporting(true);
 
     try {
-      const csvString = await exportStudentsCsvAction(filters);
+      const csvString = await action(payload);
 
       const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
-
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `exportacao_alunos_${new Date().toISOString().split("T")[0]}.csv`);
+      link.setAttribute("download", `${fileName}_${new Date().toISOString().split("T")[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error(error);
       alert("Ocorreu um erro ao gerar o CSV. Tente novamente.");
@@ -46,19 +51,45 @@ export function ExportCsvButton({ filters }: ExportCsvButtonProps) {
     }
   };
 
+  const handleClick = () => {
+    if (!hasActiveFilters) {
+      setShowDialog(true);
+    } else {
+      executeExport();
+    }
+  };
+
   return (
-    <Button
-      variant="outline"
-      onClick={handleExport}
-      disabled={isExporting}
-      className="font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 rounded-xl h-10"
-    >
-      {isExporting ? (
-        <Loader2 className="size-4 mr-2 animate-spin text-slate-500" />
-      ) : (
-        <Upload className="size-4 mr-2" />
-      )}
-      {isExporting ? "Exportando..." : "Exportar CSV"}
-    </Button>
+    <>
+      <Button
+        variant={variant}
+        onClick={handleClick}
+        disabled={isExporting}
+        className={`rounded-xl font-bold h-10 ${className}`}
+        isLoading={isExporting}
+        loadingText="Exportando..."
+      >
+        <Download className="size-4 mr-2" /> Exportar CSV
+      </Button>
+
+      <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Exportar base completa?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-600 leading-relaxed">
+              Você está prestes a exportar toda a base de dados. Como não há filtros ativos, isso pode demorar alguns instantes.
+              <br /><br />
+              Deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl font-bold h-10">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={executeExport} className="rounded-xl font-bold h-10 bg-blue-600 hover:bg-blue-700 text-white">
+              Sim, exportar dados
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

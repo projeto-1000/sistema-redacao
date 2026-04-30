@@ -3,17 +3,25 @@
 import { createClient } from "@/lib/server";
 import {
   AverageTimeRange,
-  GetTeacherEssayFilters,
+  TeacherEssayFilters,
   GetTeachersFilters,
   TeacherChartData,
   TeacherEssayListItem,
   TeacherListItem,
+  TeacherStats,
 } from "../../types";
 import { revalidatePath } from "next/cache";
 import { PostgrestError } from "@supabase/supabase-js";
 
 interface GetTeachersParams {
   filters?: GetTeachersFilters;
+  page?: number;
+  limit?: number;
+}
+
+interface GetTeacherEssaysParams {
+  teacherId: string;
+  filters?: TeacherEssayFilters;
   page?: number;
   limit?: number;
 }
@@ -73,7 +81,7 @@ export async function getTeacherById(teacherId: string) {
   return data;
 }
 
-export async function getTeacherStats(teacherId: string) {
+export async function getTeacherStats(teacherId: string): Promise<TeacherStats | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase.rpc("get_teacher_performance_stats", {
@@ -93,7 +101,15 @@ export async function getTeacherStats(teacherId: string) {
     current_month_on_time,
     current_month_late,
     last_month_total,
-  } = data;
+  } = data as {
+    total: number;
+    total_on_time: number;
+    total_late: number;
+    current_month_total: number;
+    current_month_on_time: number;
+    current_month_late: number;
+    last_month_total: number;
+  };
 
   let trendText = "Sem dados anteriores";
   let isPositiveTrend = true;
@@ -177,19 +193,22 @@ export async function getAverageTime(teacherId: string, range: AverageTimeRange)
   return data as number;
 }
 
-export async function getTeacherEssays(
-  teacherId: string,
-  page: number = 1,
-  limit: number = 5,
-  filters?: GetTeacherEssayFilters
-): Promise<{ essays: TeacherEssayListItem[]; totalPages: number }> {
+export async function getTeacherEssays({
+  teacherId,
+  filters,
+  page = 1,
+  limit = 10,
+}: GetTeacherEssaysParams): Promise<{
+  essays: TeacherEssayListItem[];
+  totalPages: number;
+  error: PostgrestError | null;
+}> {
   const supabase = await createClient();
 
   const rangeStart = (page - 1) * limit;
   const rangeEnd = rangeStart + limit - 1;
 
   let query = supabase
-    // .from("essays")
     .from("essays_with_delivery")
     .select(
       `id, 
@@ -201,21 +220,19 @@ export async function getTeacherEssays(
       total_score, 
       due_date, 
       is_on_late,
-      student:profiles!essays_student_id_fkey (
-      full_name,
-      avatar_url, 
-      email
-    )
+   student_name,
+      student_email,
+      student_avatar
       `,
       { count: "exact" }
     )
     .eq("teacher_id", teacherId);
-  // .in("status", ["done", "under_correction", "returned"]);
 
   if (filters?.search) {
-    query = query.or(`full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`, {
-      foreignTable: "profiles",
-    });
+    const searchTerm = `%${filters.search}%`;
+    query = query.or(
+      `student_name.ilike.${searchTerm},student_email.ilike.${searchTerm},title.ilike.${searchTerm},thematic_axis.ilike.${searchTerm}`
+    );
   }
 
   if (filters?.status && filters.status !== "all") {
@@ -227,12 +244,15 @@ export async function getTeacherEssays(
     query = query.eq("is_on_late", isLate);
   }
 
-  if (filters?.from) {
-    query = query.gte("created_at", filters.from);
-  }
+  if (filters?.from || filters?.to) {
+    const startRange = filters.from ? new Date(filters.from) : new Date();
+    const endRange = new Date(filters.to || (filters.from as string));
 
-  if (filters?.to) {
-    query = query.lte("created_at", filters.to);
+    endRange.setUTCHours(23, 59, 59, 999);
+
+    query = query
+      .gte("created_at", startRange.toISOString())
+      .lte("created_at", endRange.toISOString());
   }
 
   const { data, count, error } = await query
@@ -241,26 +261,12 @@ export async function getTeacherEssays(
 
   if (error || !data) {
     console.error(error);
-    return { essays: [], totalPages: 0 };
+    return { essays: [], totalPages: 0, error };
   }
-  const essays = data.map((essay) => {
-    const { student, ...rest } = essay;
-    const studentData = student as unknown as {
-      full_name: string;
-      avatar_url: string;
-      email: string;
-    };
-
-    return {
-      ...rest,
-      student_name: studentData.full_name,
-      avatar_url: studentData.avatar_url,
-      email: studentData.email,
-    };
-  });
 
   return {
-    essays,
+    essays: data,
     totalPages: count ? Math.ceil(count / limit) : 0,
+    error,
   };
 }
