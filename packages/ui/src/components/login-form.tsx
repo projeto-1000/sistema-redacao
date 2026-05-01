@@ -46,7 +46,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
-    mode: "onChange",
+    mode: "onBlur",
     defaultValues: {
       email: "",
       password: "",
