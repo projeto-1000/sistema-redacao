@@ -19,7 +19,7 @@ export default async function TeachersManagementPage({
   const filters = parseTeachersFilters(resolvedParams);
 
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-8">
+    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-8">
 
       <PageHeader
         variant="secondary"

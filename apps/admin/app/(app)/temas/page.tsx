@@ -47,7 +47,7 @@ const themesData = [
 
 export default function ThemesCatalogPage() {
   return (
-    <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 font-sans text-slate-900">
+    <div className="min-h-dvh bg-slate-50/50 p-4 md:p-8 font-sans text-slate-900">
       <div className="max-w-[1000px] mx-auto space-y-8">
 
         {/* =========================================

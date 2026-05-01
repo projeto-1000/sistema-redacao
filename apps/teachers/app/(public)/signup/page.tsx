@@ -10,7 +10,7 @@ export default function SignUpPage() {
     await register(values);
   };
   return (
-    <div className="bg-gradient-soft min-h-screen flex items-center justify-center p-4">
+    <div className="bg-gradient-soft min-h-dvh flex items-center justify-center p-4">
       <SignUpForm
         appType="teacher"
         onSubmit={handleRegister}

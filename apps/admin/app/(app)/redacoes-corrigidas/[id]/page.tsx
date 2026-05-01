@@ -1,6 +1,5 @@
 
 import { notFound } from "next/navigation";
-import { getGradedEssay } from "@/app/actions/essays";
 import { GradedEssayView } from "@/components/graded-essay-view";
 
 export default async function GradedEssayPage({
@@ -10,9 +9,7 @@ export default async function GradedEssayPage({
 }) {
   const { id } = await params;
 
-  const essay = await getGradedEssay(id);
-
-  if (!essay) return notFound();
+  if (!id) return notFound();
 
   return (
     <div className="px-4 md:px-10 lg:px-12 py-4">

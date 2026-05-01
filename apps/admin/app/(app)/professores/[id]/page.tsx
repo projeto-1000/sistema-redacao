@@ -42,7 +42,7 @@ export default async function TeacherProfilePage({
   const essayId = resolvedSearchParams?.essayId as string | undefined;
 
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 pb-8 space-y-8">
+    <div className="min-h-dvh px-4 md:px-10 lg:px-12 pb-8 space-y-8">
       <Button asChild variant='ghost' className="text-slate-500">
         <Link href="/alunos">
           <ArrowLeft className="size-4 mr-2" />

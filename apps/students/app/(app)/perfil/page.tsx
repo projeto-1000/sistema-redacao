@@ -20,7 +20,7 @@ export default async function ProfilePage() {
   const { user, globalStats, competencies, evolution, hasData } = data
 
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-6">
+    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-6">
 
       <ProfileHeader
         user={user}

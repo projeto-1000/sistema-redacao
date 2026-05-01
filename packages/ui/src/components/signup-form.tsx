@@ -1,12 +1,14 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { registerSchema, type RegisterSchema } from "@repo/validators";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "./form";
 import { Input } from "./input";
+import { Logo } from "./logo";
+import Link from "next/link";
 
 type AppType = "admin" | "teacher" | "student";
 
@@ -19,10 +21,10 @@ const ROLE_MAP: Record<AppType, "STUDENT" | "TEACHER" | "ADMIN"> = {
 const APP_CONFIG: Record<AppType, { title: string; description: string; }> = {
   student: {
     title: "Crie sua conta",
-    description: 'Junte-se a milhares de estudantes e melhore suas redações hoje mesmo.',
+    description: 'Junte-se aos nossos estudantes e melhore suas redações hoje mesmo.',
   },
   teacher: {
-    title: "Cadastro de Docente",
+    title: "Cadastro de Professor",
     description: 'Junte-se ao time de corretores.',
   },
   admin: {
@@ -41,7 +43,7 @@ export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFo
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const texts = APP_CONFIG[appType];
+  const text = APP_CONFIG[appType];
 
   const form = useForm({
     resolver: zodResolver(registerSchema),
@@ -61,26 +63,27 @@ export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFo
     await onSubmit(values);
   };
 
+  const inputFocusClass = appType === 'admin'
+    ? 'focus-visible:ring-secondary focus-visible:border-secondary focus-visible:ring-1'
+    : 'focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1';
+
+
   return (
-    <div className="w-full max-w-[480px] flex flex-col items-center">
+    <div className="w-full max-w-[500px] flex flex-col items-center">
 
-      <div className="mb-8 flex flex-col items-center gap-3">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Projeto 1000
-        </h1>
-      </div>
+      <Logo className="h-20 md:h-22 mb-8" />
 
-      <Card className="w-full bg-white rounded-xl shadow-xl border border-[#e8e4ce]/30 p-8 md:p-10">
-        <CardHeader className="mb-8 text-center">
-          <CardTitle className="text-2xl font-bold leading-tight mb-2">
-            {texts.title}
+      <Card className="w-full bg-white rounded-xl shadow-xl border border-slate-100 px-5 py-6 md:py-8 md:px-6">
+        <CardHeader className="text-center gap-2">
+          <CardTitle className="text-2xl font-bold leading-tight">
+            {text.title}
           </CardTitle>
-          <CardDescription className="text-[#9c8e49] text-sm">
-            {texts.description}
+          <CardDescription className="text-slate-500 text-sm sm:text-base md:text-[16px]">
+            {text.description}
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="p-0">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
 
@@ -89,10 +92,13 @@ export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFo
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome Completo</FormLabel>
+                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                      Nome Completo
+                    </FormLabel>
+
                     <FormControl>
                       <Input
-                        className="w-full rounded-3xl border-[#e8e4ce] h-12 p-3.5 focus-visible:ring-primary"
+                        className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                         placeholder="Digite seu nome completo"
                         {...field} />
                     </FormControl>
@@ -106,10 +112,10 @@ export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFo
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail</FormLabel>
+                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">E-mail</FormLabel>
                     <FormControl>
                       <Input
-                        className="w-full rounded-3xl border-[#e8e4ce] h-12 p-3.5 focus-visible:ring-primary"
+                        className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                         placeholder="seu@email.com"
                         {...field} />
                     </FormControl>
@@ -123,11 +129,11 @@ export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFo
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Senha</FormLabel>
+                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">Senha</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
-                          className="w-full rounded-3xl border-[#e8e4ce] h-12 p-3.5 focus-visible:ring-primary"
+                          className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                           type={showPassword ? "text" : "password"}
                           placeholder="Crie uma senha segura"
                           {...field}
@@ -158,11 +164,11 @@ export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFo
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirmar Senha</FormLabel>
+                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">Confirmar Senha</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
-                          className="w-full rounded-3xl border-[#e8e4ce] h-12 p-3.5 focus-visible:ring-primary"
+                          className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="Confirme sua senha"
                           {...field}
@@ -189,29 +195,30 @@ export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFo
 
               <Button
                 type="submit"
-                className="w-full font-bold h-12 rounded-3xl"
+                variant={appType !== 'admin' ? 'default' : 'secondary'}
+                className="w-full font-bold h-12 rounded-2xl text-[16px]"
                 disabled={isSubmitting || !isValid}
+                isLoading={isSubmitting}
+                loadingText="Criando conta..."
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Criando conta...
-                  </>
-                ) : (
-                  "Cadastrar"
-                )}
+                Cadastrar
               </Button>
             </form>
           </Form>
         </CardContent>
 
-        <CardFooter className="flex flex-col justify-center">
-          <div className="w-full mt-2 pt-4 border-t border-[#e8e4ce] text-center text-sm">
+
+
+        <CardFooter className="flex flex-col justify-center p-0">
+          <div className="w-full pt-4 border-t border-[#e8e4ce] text-center text-sm">
             <p>
               Já tem uma conta?
-              <a className="text-primary font-bold hover:underline ml-1" href="/login">
+              <Link
+                href="/login"
+                className={`${appType === 'admin' ? 'text-secondary' : 'text-primary'} font-medium hover:underline ml-1`}
+              >
                 Faça login
-              </a>
+              </Link>
             </p>
           </div>
         </CardFooter>

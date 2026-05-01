@@ -1,12 +1,15 @@
+"use client";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircleIcon, Eye, EyeOff, Loader2 } from "lucide-react";
+import { AlertCircleIcon, Eye, EyeOff } from "lucide-react";
+import Link from "next/link"; // 💡 Importação do Link do Next.js
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./form";
 import { Input } from "./input";
 import { Button } from "./button";
 import { loginSchema, type LoginSchema } from "@repo/validators";
-import { useState } from "react";
 import { Logo } from "./logo";
 import { Alert, AlertDescription, AlertTitle } from "./alert";
 import { getErrorContent } from "@repo/utils";
@@ -32,14 +35,13 @@ interface LoginFormProps {
   appType: AppType;
   onSubmit: (values: LoginSchema) => Promise<void>;
   isSubmitting?: boolean;
-  error: string | null
+  error: string | null;
 }
 
 export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
 
-  const texts = APP_CONFIG[appType];
-
+  const text = APP_CONFIG[appType];
   const errorContent = getErrorContent(error);
 
   const form = useForm<LoginSchema>({
@@ -57,37 +59,39 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
     await onSubmit(values);
   };
 
+  const inputFocusClass = appType === 'admin'
+    ? 'focus-visible:ring-secondary focus-visible:border-secondary focus-visible:ring-1'
+    : 'focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1';
+
   return (
     <div className="w-full max-w-[500px] flex flex-col items-center">
+      <Logo className="h-20 md:h-22 mb-8" />
 
-      <Logo className="h-22 mb-8" />
-
-      <Card className="w-full bg-white rounded-xl shadow-xl border border-[#e8e4ce]/30 p-8 md:p-4">
-
-        <CardHeader className="mb-2 text-center">
+      <Card className="w-full bg-white rounded-xl shadow-xl border border-slate-100 px-5 py-6 md:py-8 md:px-6">
+        <CardHeader className="text-center gap-2">
           <CardTitle className="text-2xl font-bold leading-tight">
-            {texts.title}
+            {text.title}
           </CardTitle>
-          <CardDescription className="text-[#9c8e49]">
-            {texts.description}
+          <CardDescription className="text-slate-500 text-sm sm:text-base md:text-[16px]">
+            {text.description}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="p-0">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
-
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail</FormLabel>
+                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">E-mail</FormLabel>
                     <FormControl>
                       <Input
-                        className="w-full rounded-3xl border-[#e8e4ce] h-12 p-3.5 focus:ring-1 focus:ring-primary"
+                        className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                         placeholder="seu@email.com"
-                        {...field} />
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -99,11 +103,11 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Senha</FormLabel>
+                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">Senha</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
-                          className="w-full rounded-3xl border-[#e8e4ce] h-12 p-3.5 focus:ring-1 focus:ring-primary"
+                          className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                           type={showPassword ? "text" : "password"}
                           placeholder="******"
                           {...field}
@@ -112,7 +116,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute right-0 top-0 h-full px-3 py-2"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? (
@@ -124,50 +128,51 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
                       </div>
                     </FormControl>
                     <FormMessage />
-                    <a className="hover:underline text-right text-sm text-[#9c8e49]" href="#">
+
+                    <Link href="/forgot-password" className="block mt-2 text-right text-sm text-slate-500 hover:underline">
                       Esqueceu sua senha?
-                    </a>
+                    </Link>
                   </FormItem>
                 )}
               />
 
               <Button
                 type="submit"
-                className="w-full font-bold h-12 rounded-3xl"
+                variant={appType !== 'admin' ? 'default' : 'secondary'}
+                className="w-full font-bold h-12 rounded-2xl text-[16px]"
                 disabled={isSubmitting || !isValid}
+                isLoading={isSubmitting}
+                loadingText="Entrando..."
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Entrando...
-                  </>
-                ) : (
-                  "Entrar"
-                )}
+                Entrar
               </Button>
             </form>
           </Form>
+
+          {errorContent && (
+            <Alert variant="destructive" className="mt-6 text-left">
+              <AlertCircleIcon className="h-4 w-4" />
+              <AlertTitle>{errorContent.title}</AlertTitle>
+              <AlertDescription>
+                {errorContent.description}
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
 
-        {errorContent && (
-          <Alert variant="destructive" className="max-w-md text-left">
-            <AlertCircleIcon />
-            <AlertTitle>{errorContent.title}</AlertTitle>
-            <AlertDescription>
-              {errorContent.description}
-            </AlertDescription>
-          </Alert>
+        {appType !== 'admin' && (
+          <CardFooter className="flex flex-col justify-center p-0 mt-6">
+            <div className="w-full pt-4 border-t border-[#e8e4ce] text-center">
+              <p>
+                Ainda não tem uma conta?
+                <Link className="text-primary font-medium hover:underline ml-1" href="/signup">
+                  Cadastre-se
+                </Link>
+              </p>
+            </div>
+          </CardFooter>
         )}
-
-        <CardFooter className="flex flex-col justify-center">
-          <div className=" w-full pt-4 border-t border-[#e8e4ce] text-center">
-            <p>
-              Ainda não tem uma conta?
-              <a className="text-primary font-bold hover:underline ml-1" href="/signup">Cadastre-se</a>
-            </p>
-          </div>
-        </CardFooter>
       </Card>
-    </div >
+    </div>
   );
 }

@@ -19,7 +19,7 @@ export default async function MyEssaysPage({
   const suspenseKey = JSON.stringify(resolvedParams);
 
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4">
+    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight mb-2">

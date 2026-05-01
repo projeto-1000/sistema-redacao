@@ -8,7 +8,7 @@ export default async function ProfileProfilePage() {
   if (!data) return null;
 
   return (
-    <div className="min-h-screen px-4 md:px-10 lg:px-12 py-4 space-y-4">
+    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-4">
 
       <PageHeader
         title='Meu perfil'

@@ -10,7 +10,7 @@ import { Button } from "@repo/ui/components/button";
 
 export default function NewTopicPage() {
   return (
-    <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 font-sans">
+    <div className="min-h-dvh bg-slate-50/50 p-4 md:p-8 font-sans">
       <div className="max-w-[900px] mx-auto space-y-8">
 
         {/* =========================================

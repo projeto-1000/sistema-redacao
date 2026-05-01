@@ -17,7 +17,7 @@ export default async function PendingEssaysPage({
   const suspenseKey = JSON.stringify(resolvedParams);
 
   return (
-    <div className="min-h-screen px-2 md:px-10 lg:px-12 py-4 space-y-4">
+    <div className="min-h-dvh px-2 md:px-10 lg:px-12 py-4 space-y-4">
       <PageHeader
         variant="admin"
         title="Redações Pendentes"

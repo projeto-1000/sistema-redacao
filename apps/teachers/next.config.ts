@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "5mb",
+      bodySizeLimit: "15mb",
       allowedOrigins: [
         "localhost:3000",
         "j7flrdqb-3000.brs.devtunnels.ms",

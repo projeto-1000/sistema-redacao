@@ -143,7 +143,7 @@ export function EssayCorrectionWorkspace({
 
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-dvh flex flex-col">
 
       <div className="space-y-4 mb-4 md:mb-6">
         <h1 className="text-2xl md:text-3xl font-extrabold">

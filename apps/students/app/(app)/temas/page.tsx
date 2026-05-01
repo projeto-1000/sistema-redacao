@@ -15,7 +15,7 @@ export default async function TopicsPage({
   const suspenseKey = JSON.stringify(resolvedParams);
 
   return (
-    <div className="space-y-8 min-h-screen px-2 md:px-10 lg:px-12 py-4">
+    <div className="space-y-8 min-h-dvh px-2 md:px-10 lg:px-12 py-4">
 
       <div className="space-y-8">
         <TopicFiltersBar />

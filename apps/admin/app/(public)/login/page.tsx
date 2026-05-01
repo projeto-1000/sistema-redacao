@@ -29,7 +29,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <div className="bg-gradient-soft min-h-screen flex items-center justify-center p-4">
+    <div className="bg-gradient-soft min-h-dvh flex items-center justify-center px-4 md:p-0">
       <Suspense fallback={<div>Carregando...</div>}>
         <LoginContent />
       </Suspense>
