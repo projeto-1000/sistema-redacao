@@ -1,4 +1,5 @@
-import { EssaysFilter, TopicsFilter } from "@/types";
+import { EssaysFilter } from "@/types";
+import { TopicsFilter } from "@repo/types";
 
 export type NextSearchParams = { [key: string]: string | string[] | undefined };
 

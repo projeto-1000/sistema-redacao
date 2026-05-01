@@ -19,7 +19,7 @@ export interface EssayTopic {
   id: string;
   title: string;
   axis: ThematicAxis;
-  source_type: 'ENEM' | 'AUTORAL';
+  source_type: 'ENEM' | 'AUTORAL' | 'ENEM PPL';
   source_year: number | null;
   active: boolean;
   created_at: string;
@@ -180,4 +180,10 @@ export interface TeacherProfile {
   created_at: string;
   email: string;
   avatar_url: string;
+}
+
+
+export interface TopicsFilter {
+  search?: string;
+  axis?: ThematicAxis | "Todos";
 }

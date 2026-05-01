@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Zap, Clock, AlertCircle, History } from "lucide-react";
+import { Zap, AlertCircle, History } from "lucide-react";
 import { AverageTimeRange } from "@/types";
 import { getAverageTime } from "@/app/actions/teachers";
 

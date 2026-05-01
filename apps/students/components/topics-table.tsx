@@ -3,9 +3,8 @@ import { Button } from "@repo/ui/components/button";
 import { ThemeBadge } from "@repo/ui/components/theme-badge";
 import { TopicDetailsDialog } from "@/components/topic-details-dialog";
 import Link from "next/link";
-import { TopicsFilter } from "@/types";
 import { getTopicsList } from "@/app/actions/get-topics";
-
+import { TopicsFilter } from "@repo/types";
 interface TopicsTableProps {
   filters: TopicsFilter;
 }

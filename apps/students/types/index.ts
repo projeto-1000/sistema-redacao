@@ -18,12 +18,6 @@ export interface EssaysFilter {
   from?: string;
   to?: string;
 }
-
-export interface TopicsFilter {
-  search?: string;
-  axis?: ThematicAxis | "Todos";
-}
-
 export interface EssayDraft {
   id: string;
   content: string;

@@ -1,8 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import { TopicsFilter } from "@/types";
-import { EssayTopic, EssayTopicDetail, MotivationalText } from "@repo/types";
+import { EssayTopic, EssayTopicDetail, MotivationalText, TopicsFilter } from "@repo/types";
 import { PostgrestError } from "@supabase/supabase-js";
 
 interface GetTopicsParams {
