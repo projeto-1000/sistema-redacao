@@ -2,10 +2,10 @@ import { Plus } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import Link from "next/link";
 import { PageHeader } from "@repo/ui/components/page-header";
-import TopicsGrid from "@/components/features/themes/topics-grid";
+import TopicsGrid from "@/components/features/topics/topics-grid";
 import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
-import TopicFiltersBar from "@/components/features/themes/topics-filter-bar";
+import TopicFiltersBar from "@/components/features/topics/topics-filter-bar";
 import { parseTopicsFilters } from "@/utils/parse-filters";
 
 export default async function ThemesPage({
@@ -28,7 +28,7 @@ export default async function ThemesPage({
         variant="secondary"
       >
         <Button asChild className="rounded-xl font-bold h-10 w-full sm:w-fit" variant="secondary">
-          <Link href="/alunos/novo">
+          <Link href="/temas/novo-tema">
             <Plus className="size-4 mr-2" />
             Adicionar Tema
           </Link>

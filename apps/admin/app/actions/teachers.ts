@@ -187,7 +187,7 @@ export async function getAverageTime(teacherId: string, range: AverageTimeRange)
 
   if (error) {
     console.error("Erro ao buscar tempo médio de correção:", error);
-    return 0; // Fallback seguro
+    return 0;
   }
 
   return data as number;

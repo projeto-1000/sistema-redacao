@@ -1,15 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { DateRange } from "react-day-picker";
 import { Activity, Layers } from "lucide-react";
 import { useUrlFilters } from "@repo/hooks";
 
 export function useEssayFilters() {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { getFilter, setFilters } = useUrlFilters();
+  const { setFilters } = useUrlFilters();
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const [debouncedSearch] = useDebounce(searchTerm, 500);
