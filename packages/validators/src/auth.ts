@@ -11,10 +11,37 @@ export const registerSchema = z.object({
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
   confirmPassword: z.string().min(1, "Confirme sua senha"), 
   role: z.enum(["STUDENT", "TEACHER", "ADMIN"]),
-})
-.refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem",
-  path: ["confirmPassword"],
+  document: z.string().optional(),
+  phone: z.string().optional(),
+  terms: z.boolean().refine((val) => val === true, {
+    message: "Você precisa aceitar os termos de uso e privacidade.",
+  }),
+}).superRefine((data, ctx) => {
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["confirmPassword"],
+      message: "As senhas não coincidem",
+    });
+  }
+
+  // 💡 Validação condicional baseada na role
+  if (data.role !== "ADMIN") {
+    if (!data.document || data.document.length < 11) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["cpf"],
+        message: "CPF é obrigatório para este cadastro",
+      });
+    }
+    if (!data.phone || data.phone.length < 10) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["phone"],
+        message: "Celular é obrigatório para este cadastro",
+      });
+    }
+  }
 });
 
 export type LoginSchema = z.infer<typeof loginSchema>;

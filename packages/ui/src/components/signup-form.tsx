@@ -9,6 +9,9 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "./input";
 import { Logo } from "./logo";
 import Link from "next/link";
+import { formatCPF, formatPhone, getErrorMessage } from "@repo/utils";
+import { Checkbox } from "./checkbox";
+import { toast } from "sonner";
 
 type AppType = "admin" | "teacher" | "student";
 
@@ -36,14 +39,15 @@ const APP_CONFIG: Record<AppType, { title: string; description: string; }> = {
 interface SignUpFormProps {
   appType: AppType;
   onSubmit: (values: RegisterSchema) => Promise<void>;
-  isSubmitting?: boolean;
+  // isSubmitting?: boolean;
 }
 
-export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFormProps) {
+export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const text = APP_CONFIG[appType];
+  const requiresExtraFields = appType === 'student' || appType === 'teacher';
 
   const form = useForm({
     resolver: zodResolver(registerSchema),
@@ -51,16 +55,37 @@ export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFo
     defaultValues: {
       name: '',
       email: '',
+      document: '',
+      phone: '',
       password: '',
       confirmPassword: '',
+      terms: false,
       role: ROLE_MAP[appType],
     },
+
   });
 
-  const { isValid } = form.formState;
+  const { isValid, isSubmitting, errors } = form.formState;
+  console.log(errors.root?.message)
 
   const handleSubmit = async (values: RegisterSchema) => {
-    await onSubmit(values);
+    try {
+      form.clearErrors("root");
+      await onSubmit(values);
+    } catch (error: any) {
+      console.log(error)
+      const { title, description } = getErrorMessage(error);
+
+      toast.error(title, {
+        description: description,
+        duration: 8000000
+      });
+
+      // form.setError("root", {
+      //   type: "server",
+      //   message: error.message || "Ocorreu um erro ao tentar criar sua conta. Tente novamente.",
+      // });
+    }
   };
 
   const inputFocusClass = appType === 'admin'
@@ -123,6 +148,60 @@ export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFo
                   </FormItem>
                 )}
               />
+
+              {requiresExtraFields && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <FormField
+                    control={form.control}
+                    name="document"
+
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">CPF</FormLabel>
+                        <FormControl>
+                          <Input
+                            className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                            placeholder="000.000.000-00"
+                            maxLength={14}
+                            inputMode="numeric"
+                            {...field}
+                            onChange={(e) => {
+                              const maskedValue = formatCPF(e.target.value);
+                              field.onChange(maskedValue);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">Celular</FormLabel>
+                        <FormControl>
+                          <Input
+                            className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                            placeholder="(00) 00000-0000"
+                            maxLength={15}
+                            inputMode="numeric"
+
+                            {...field}
+                            onChange={(e) => {
+                              const maskedValue = formatPhone(e.target.value);
+                              field.onChange(maskedValue);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
 
               <FormField
                 control={form.control}
@@ -189,6 +268,28 @@ export function SignUpForm({ appType, onSubmit, isSubmitting = false }: SignUpFo
                       </div>
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="terms"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start my-6">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      />
+                    </FormControl>
+                    <div className="space-y-2 leading-none">
+                      <FormLabel className="text-slate-600 font-medium leading-relaxed">
+                        Eu concordo com os Termos de Uso e Políticas de Privacidade da plataforma.
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />

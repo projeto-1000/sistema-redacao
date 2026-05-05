@@ -8,7 +8,6 @@ export function useAuth() {
   const router = useRouter();
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   const login = async (data: LoginSchema) => {
@@ -34,32 +33,41 @@ export function useAuth() {
   };
 
   const register = async (data: RegisterSchema) => {
-    try {
-      setIsRegistering(true);
+    const cleanDocument = data.document ? data.document.replace(/\D/g, "") : null;
+    const cleanPhone = data.phone ? data.phone.replace(/\D/g, "") : null;
+    const termsAcceptedAt = data.terms ? new Date().toISOString() : null;
 
-      const { error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            full_name: data.name,
-            role: data.role,
-          },
-        },
+    //TODO: colcoar documento obrigatório pra todos e remover isso aqui
+    if (cleanDocument) {
+      const { error: rpcError } = await supabase.rpc("check_document_exists", {
+        document: cleanDocument,
       });
 
-      if (error) {
-        throw error;
+      if (rpcError) {
+        throw new Error("Document already registered");
       }
-
-      router.refresh();
-      router.push("/inicio");
-    } catch (error: any) {
-      console.log(`Erro ao criar conta: ${error.message}`);
-      throw new Error(error.message);
-    } finally {
-      setIsRegistering(false);
     }
+
+    const { error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          full_name: data.name,
+          role: data.role,
+          document: cleanDocument,
+          phone: cleanPhone,
+          terms_accepted_at: termsAcceptedAt,
+        },
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    router.refresh();
+    router.push("/inicio");
   };
 
   return {
@@ -67,6 +75,5 @@ export function useAuth() {
     authError,
     register,
     isLoggingIn,
-    isRegistering,
   };
 }

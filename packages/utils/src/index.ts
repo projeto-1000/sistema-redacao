@@ -1,5 +1,7 @@
 export * from './essay-deadline'
 export * from './format-dates'
 export * from './format-name'
+export * from './format-document'
+export * from './format-phone'
 export * from './errors'
 export * from './csv'
