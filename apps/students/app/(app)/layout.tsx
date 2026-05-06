@@ -14,6 +14,7 @@ export default function AppLayout({
   const pathname = usePathname();
   const supabase = createClient();
 
+
   const navItems = [
     { label: "Início", href: "/inicio" },
     { label: "Temas", href: "/temas" },

@@ -15,7 +15,7 @@ export async function getProfileData() {
   const [profileRes, statsRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, credits_balance, avatar_url")
+      .select("full_name, credits_balance, avatar_url, onboarding_completed")
       .eq("id", user.id)
       .single(),
     supabase.from("student_performance_stats").select("*").eq("student_id", user.id).maybeSingle(),
@@ -41,6 +41,7 @@ export async function getProfileData() {
       email: user.email,
       credits: profile?.credits_balance ?? 0,
       avatarUrl: profile?.avatar_url || null,
+      onboarding_completed: profile?.onboarding_completed || null,
     } as UserData,
     competencies: {
       C1: Math.round(stats?.avg_c1 || 0),

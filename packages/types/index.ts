@@ -37,6 +37,7 @@ export interface UserData {
   credits: number;
   avatarUrl: string | null;
   role: UserRole
+  onboarding_completed?: boolean | null
 }
 
 export type EssayStatus = "draft" | "pending" | "correcting" | "corrected" | "returned" | "draft";

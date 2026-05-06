@@ -39,7 +39,6 @@ const APP_CONFIG: Record<AppType, { title: string; description: string; }> = {
 interface SignUpFormProps {
   appType: AppType;
   onSubmit: (values: RegisterSchema) => Promise<void>;
-  // isSubmitting?: boolean;
 }
 
 export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
@@ -62,29 +61,22 @@ export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
       terms: false,
       role: ROLE_MAP[appType],
     },
-
   });
 
   const { isValid, isSubmitting, errors } = form.formState;
-  console.log(errors.root?.message)
 
   const handleSubmit = async (values: RegisterSchema) => {
     try {
       form.clearErrors("root");
       await onSubmit(values);
     } catch (error: any) {
-      console.log(error)
       const { title, description } = getErrorMessage(error);
 
       toast.error(title, {
         description: description,
-        duration: 8000000
+        duration: 5000
       });
 
-      // form.setError("root", {
-      //   type: "server",
-      //   message: error.message || "Ocorreu um erro ao tentar criar sua conta. Tente novamente.",
-      // });
     }
   };
 

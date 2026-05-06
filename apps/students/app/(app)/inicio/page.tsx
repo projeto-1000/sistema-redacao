@@ -1,4 +1,3 @@
-import { CreditBalance } from "@/components/credit-balance";
 import { StatCard } from "@/components/stat-card";
 import { BookOpen, FileCheck, FileText, NotebookPen, TrendingUp } from "lucide-react";
 import { SectionCard } from "@/components/section-card";
@@ -11,6 +10,7 @@ import { Skeleton } from "@repo/ui/components/skeleton";
 import { Suspense } from "react";
 import { getProfileData } from "@/app/actions/profile";
 import { CreditsCard } from "@/components/credits-card";
+import { OnboardingModal } from "@/components/onboarding-modal";
 
 const actions = [
   {
@@ -41,12 +41,10 @@ const actions = [
 
 export default async function DashboardPage() {
   const data = await getProfileData();
-  if (!data) return null
 
   if (!data) {
     redirect("/login");
   }
-
   const { user, competencies, globalStats, evolution, hasData } = data;
 
   return (
@@ -126,6 +124,7 @@ export default async function DashboardPage() {
         <RecentEssaysList />
       </Suspense>
 
+      {!user.onboarding_completed && <OnboardingModal />}
     </div >
   );
 }
