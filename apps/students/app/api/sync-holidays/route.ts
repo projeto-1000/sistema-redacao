@@ -41,6 +41,7 @@ export async function GET() {
       { status: 200 }
     );
   } catch (err) {
+    // TODO: disparar algum tipo de alerta em caso de erro
     const errorMessage =
       err instanceof Error ? err.message : "Erro desconhecido ao sincronizar feriados";
 
