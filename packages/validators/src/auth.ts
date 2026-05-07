@@ -44,5 +44,22 @@ export const registerSchema = z.object({
   }
 });
 
+export const setPasswordSchema = z.object({
+  password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
+  confirmPassword: z.string().min(1, "Confirme sua senha"), 
+    terms: z.boolean().refine((val) => val === true, {
+    message: "Você precisa aceitar os termos de uso e privacidade.",
+  }),
+}).superRefine((data, ctx) => {
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["confirmPassword"],
+      message: "As senhas não coincidem",
+    });
+  }
+});
+
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type RegisterSchema = z.infer<typeof registerSchema>;
+export type SetPasswordSchema = z.infer<typeof setPasswordSchema>;

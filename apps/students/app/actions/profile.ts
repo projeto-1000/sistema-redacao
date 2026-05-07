@@ -3,6 +3,7 @@
 import { UserData } from "@repo/types";
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
+import { SetPasswordSchema } from "@repo/validators";
 
 export async function getProfileData() {
   const supabase = await createClient();
@@ -140,4 +141,42 @@ export async function uploadAvatar(formData: FormData) {
 
   revalidatePath("/perfil");
   revalidatePath("/perfil/editar");
+}
+
+export async function setNewPassword(data: SetPasswordSchema) {
+  const { password } = data;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Usuário não autenticado");
+
+  if (!password || password.length < 6) {
+    return { error: "A senha deve ter pelo menos 6 caracteres." };
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password,
+    data: {
+      role: "STUDENT",
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  const terms_accepted_at = new Date().toISOString();
+  //TODO: descobrir se preciso mesmo mandar a info do onboaarding
+  const { error: errorProfile } = await supabase
+    .from("profiles")
+    .update({ terms_accepted_at, role: "STUDENT", onboarding_completed: false })
+    .eq("id", user.id);
+
+  if (errorProfile) {
+    return { error: errorProfile.message };
+  }
+
+  return { success: true };
 }

@@ -36,7 +36,15 @@ export async function updateSession(request: NextRequest) {
 
   const userRole = user?.user_metadata?.role;
 
-  const publicRoutes = ["/login", "/signup", "/"];
+  const publicRoutes = [
+    "/login",
+    "/signup",
+    "/",
+    "/nova-senha",
+    "/api/auth/confirm",
+    "/api/webhooks/hotmart",
+  ];
+
   const isPublicRoute = publicRoutes.includes(pathname);
 
   if (!isPublicRoute) {
