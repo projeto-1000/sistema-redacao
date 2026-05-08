@@ -3,6 +3,7 @@
 import { Search, Leaf, GraduationCap, BriefcaseMedical, Users, Palette, Cpu, Scale, TrendingUp } from "lucide-react";
 import { ThematicAxis } from "@repo/types";
 import { useTopicsFilters } from "@/hooks/use-topics-filter";
+import { PageHeader } from "@repo/ui/components/page-header";
 
 const AXIS_ICONS: Record<ThematicAxis, React.ElementType> = {
   "Meio Ambiente": Leaf,
@@ -33,14 +34,10 @@ export function TopicFiltersBar() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-3xl font-extrabold tracking-tight">Lista de Temas Gerais</h2>
-          </div>
-          <p className="text-[#8B8265]">
-            Navegue por nossa biblioteca completa com centenas de propostas.
-          </p>
-        </div>
+        <PageHeader
+          title='Lista Geral de Temas'
+          subtitle='Navegue por nossa biblioteca completa com centenas de propostas.'
+        />
 
         <div className="relative w-full lg:w-[450px]">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 size-5" />

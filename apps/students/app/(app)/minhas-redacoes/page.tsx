@@ -25,6 +25,7 @@ export default async function MyEssaysPage({
         <PageHeader
           title="Minha redacções"
           subtitle="Acompanhe seu progresso e evolução na escrita."
+          className="w-full"
         >
           <Button asChild
             className="rounded-3xl h-12 w-full sm:w-auto  shadow-lg shadow-yellow-400/20 font-bold">
