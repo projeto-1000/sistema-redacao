@@ -7,14 +7,11 @@ import { parseCreditsTransactionsFilters } from "@/utils/parse-filters";
 import { PageHeader } from "@repo/ui/components/page-header";
 
 export default async function SubscriptionPage({
-  params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
 
-  const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
   const page = Number(resolvedSearchParams?.page) || 1;
 
@@ -44,7 +41,6 @@ export default async function SubscriptionPage({
           <CreditsUsageCard credits={credits} subscription={subscription} />
         </div>
       </div>
-
 
       <CreditTransactionsTable data={creditTransactionsData} />
     </div>

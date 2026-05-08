@@ -16,7 +16,7 @@ export function CreditTableRow({ tx }: CreditTableRowProps) {
   let valueColor = 'text-slate-900';
 
   if (tx.type === 'essay_usage') {
-    primaryValue = `${tx.amount} correção`;
+    primaryValue = `${tx.amount} crédito`;
     valueColor = 'text-slate-500 font-semibold';
   }
   else if (tx.type === 'mentorship_bonus') {
