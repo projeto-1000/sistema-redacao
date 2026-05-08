@@ -39,7 +39,6 @@ export async function submitEssay(
       p_title: title,
       p_thematic_axis: axis,
       p_content: content,
-      p_cost: 1,
     });
 
     if (error) {

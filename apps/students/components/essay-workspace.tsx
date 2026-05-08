@@ -31,10 +31,10 @@ export function EssayWorkspace({ essayTopic, isSuccess, backup }: EssayWorkspace
           Sua redação sobre <span className="font-bold italic text-[#1E3A8A]">{`"${essayTopic.title}"`}</span> foi recebida e já está na fila de correção.
         </p>
         <div className="flex flex-col sm:flex-row mt-8 gap-4 w-full sm:w-auto">
-          <Button asChild variant="outline" className="h-12 rounded-full border-slate-300 font-bold">
+          <Button asChild variant="outline" className="h-12 rounded-2xl border-slate-300 font-bold">
             <Link href="/inicio">Voltar ao Início</Link>
           </Button>
-          <Button asChild className="h-12 rounded-full shadow-lg shadow-blue-600/20 font-bold">
+          <Button asChild className="h-12 rounded-2xl shadow-lg font-bold">
             <Link href="/minhas-redacoes">
               Ver minhas redações <ArrowRight className="size-4" />
             </Link>

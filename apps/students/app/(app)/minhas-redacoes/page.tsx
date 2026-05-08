@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
 import { Plus } from "lucide-react";
-import { EssayGrid } from "@/components/essay-grid";
-import { EssayFiltersBar } from "@/components/essay-filters-bar";
+import { EssayGrid } from "@/components/essays/essay-grid";
+import { EssayFiltersBar } from "@/components/essays/essay-filters-bar";
 import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { parseEssaysFilters } from "@/utils/parse-filters";
+import { PageHeader } from "@repo/ui/components/page-header";
 
 export default async function MyEssaysPage({
   searchParams,
@@ -21,22 +22,20 @@ export default async function MyEssaysPage({
   return (
     <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <div>
-          <h2 className="text-3xl font-extrabold tracking-tight mb-2">
-            Minhas Redações
-          </h2>
-          <p className="text-[#8B8265]">
-            Acompanhe seu progresso e evolução na escrita.
-          </p>
-        </div>
+        <PageHeader
+          title="Minha redacções"
+          subtitle="Acompanhe seu progresso e evolução na escrita."
+        >
+          <Button asChild
+            className="rounded-3xl h-12 w-full sm:w-auto  shadow-lg shadow-yellow-400/20 font-bold">
+            <Link href="/temas">
+              <Plus className="size-5" />
+              Enviar nova redação
+            </Link>
+          </Button>
+        </PageHeader>
 
-        <Button asChild
-          className="rounded-3xl h-12 w-full sm:w-auto  shadow-lg shadow-yellow-400/20 font-bold">
-          <Link href="/temas">
-            <Plus className="size-5" />
-            Enviar nova redação
-          </Link>
-        </Button>
+
       </div>
 
       <EssayFiltersBar />

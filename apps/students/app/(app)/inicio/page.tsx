@@ -3,7 +3,7 @@ import { BookOpen, FileCheck, FileText, NotebookPen, TrendingUp } from "lucide-r
 import { SectionCard } from "@/components/section-card";
 import { CompetenceList } from "@/components/competence-list";
 import { EvolutionGraph } from "@/components/evolution-graph";
-import { RecentEssaysList } from "@/components/recent-essays-list";
+import { RecentEssaysList } from "@/components/essays/recent-essays-list";
 import { ActionCard } from "@/components/action-card";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@repo/ui/components/skeleton";

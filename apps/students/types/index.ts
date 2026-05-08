@@ -6,20 +6,19 @@ export interface EssayListItem {
   submission_date: string;
   status: EssayStatus;
   total_score: number;
-  thematic_axis: string;
+  thematic_axis: ThematicAxis;
   topic_id: string;
 }
-
 export interface EssaysFilter {
   search?: string;
   status?: string;
   totalScore?: string;
-  thematicAxis?: string;
+  thematicAxis?: ThematicAxis;
   from?: string;
   to?: string;
 }
 export interface EssayDraft {
-  id: string;
+  id?: string;
   content: string;
   updated_at: string;
 }
