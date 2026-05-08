@@ -42,7 +42,7 @@ export async function getProfileData() {
     user: {
       name: profile?.full_name || user.user_metadata?.full_name || "Estudante",
       email: user.email,
-      credits: credits.remaining_essays ?? 0,
+      credits: credits.plan_credits ?? 0,
       avatarUrl: profile?.avatar_url || null,
       onboarding_completed: profile?.onboarding_completed || null,
     } as UserData,

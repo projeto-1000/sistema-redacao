@@ -1,3 +1,5 @@
+import { SubscriptionStatus } from '@repo/types';
+
 export const USER_STATUS_MAP = {
   active: { label: "Ativo", colors: "bg-emerald-50 text-emerald-600" },
   inactive: { label: "Inativo", colors: "bg-slate-100 text-slate-500" },
@@ -9,6 +11,29 @@ export const DELIVERY_STATUS_MAP = {
   returned: { label: "Devolvida", colors: 'text-amber-600 bg-amber-50' },
   correcting: { label: "Em correção", colors: 'text-blue-600 bg-blue-50' },
 }
+
+export const statusBadgeConfig: Record<SubscriptionStatus, { label: string; classes: string }> = {
+  active: {
+    label: "Ativo",
+    classes: "bg-emerald-50! text-emerald-600!"
+  },
+  trial: {
+    label: "Período de Teste",
+    classes: "bg-blue-50 text-blue-600"
+  },
+  past_due: {
+    label: "Atrasado",
+    classes: "bg-amber-50 text-amber-600"
+  },
+  unpaid: {
+    label: "Bloqueado",
+    classes: "bg-red-50 text-red-600"
+  },
+  canceled: {
+    label: "Cancelado",
+    classes: "bg-slate-100 text-slate-500"
+  },
+};
 
 export const AVAILABLE_COURSES = [
   "Administração",
@@ -154,3 +179,13 @@ export const AVAILABLE_COURSES = [
   "Zootecnia",
   "Outro"
 ];
+
+export const transactionLabels: Record<string, string> = {
+  new_subscription: 'Nova Assinatura',
+  mentorship_bonus: 'Bônus de Mentoria',
+  plan_renewal: 'Renovação de Assinatura',
+  standalone_purchase: 'Compra de Crédito Avulso',
+  essay_usage: 'Envio de Redação',
+  plan_change: 'Mudança de Plano',
+  administrative_adjustment: 'Ajuste Administrativo',
+};

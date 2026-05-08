@@ -29,7 +29,7 @@ export default async function ProfilePage() {
         }
         secondaryAction={{
           label: "Gerenciar assinatura",
-          href: "/checkout/upgrade"
+          href: "/assinatura"
         }} />
 
       <PageHeader

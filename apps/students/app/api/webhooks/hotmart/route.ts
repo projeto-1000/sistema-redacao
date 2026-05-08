@@ -32,6 +32,16 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    const { data: plan, error: planError } = await supabase
+      .from("plans")
+      .select("id, credits_included")
+      .eq("external_id", "plan_trial_free")
+      .single();
+
+    if (planError || !plan) {
+      throw new Error("Plano 'Teste Gratuito' não encontrado no banco de dados.");
+    }
+
     let userId: string;
 
     const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
@@ -74,27 +84,44 @@ export async function POST(req: Request) {
       console.error("Aviso: Falha ao registrar log na hotmart_invites:", inviteLogError);
     }
 
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setFullYear(endDate.getFullYear() + 1);
-
     const { error: subError } = await supabase.from("subscriptions").upsert(
       {
         user_id: userId,
-        tier: "basic",
-        status: "trialing",
-        current_period_start: startDate.toISOString(),
-        current_period_end: endDate.toISOString(),
+        plan_id: plan.id,
+        status: "active",
+        current_period_start: new Date().toISOString(),
+        current_period_end: null,
       },
       { onConflict: "user_id" }
     );
 
     if (subError) throw subError;
 
-    const { error: creditError } = await supabase.rpc("increment_student_credits", {
-      p_user_id: userId,
-      p_amount: creditsToAssign,
+    const { error: txError } = await supabase.from("credit_transactions").insert({
+      user_id: userId,
+      type: "mentorship_bonus",
+      amount: plan.credits_included,
+      description: "Liberação de Teste Gratuito (Acesso via Mentoria)",
+      metadata: { transaction_id: purchase.transaction },
     });
+
+    if (txError) throw txError;
+
+    const { data: currentCredits } = await supabase
+      .from("student_credits")
+      .select("extra_credits")
+      .eq("user_id", userId)
+      .single();
+
+    const { error: creditError } = await supabase.from("student_credits").upsert(
+      {
+        user_id: userId,
+        plan_credits: plan.credits_included,
+        extra_credits: currentCredits?.extra_credits || 0,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" }
+    );
 
     if (creditError) throw creditError;
 

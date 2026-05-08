@@ -1,5 +1,5 @@
 import { EssaysFilter } from "@/types";
-import { TopicsFilter } from "@repo/types";
+import { CreditsFilters, TopicsFilter } from "@repo/types";
 
 export type NextSearchParams = { [key: string]: string | string[] | undefined };
 
@@ -37,4 +37,19 @@ export function parseTopicsFilters(params: NextSearchParams = {}): TopicsFilter 
 
     return acc;
   }, {} as TopicsFilter);
+}
+
+export function parseCreditsTransactionsFilters(params: NextSearchParams = {}): CreditsFilters {
+  const allowedKeys: (keyof CreditsFilters)[] = ["type", "from", "to"];
+
+  return allowedKeys.reduce((acc, key) => {
+    const value = params[key];
+
+    if (typeof value === "string") {
+      // @ts-expect-error - Garantimos a tipagem na saída
+      acc[key] = value;
+    }
+
+    return acc;
+  }, {} as CreditsFilters);
 }
