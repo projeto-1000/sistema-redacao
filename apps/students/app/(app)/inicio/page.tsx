@@ -52,7 +52,8 @@ export default async function DashboardPage() {
       <Suspense fallback={
         <Skeleton className="h-12 w-full rounded-lg bg-slate-200" />
       }>
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="flex flex-col md:flex-row justify-start md:justify-between md:items-center gap-6">
+
           <div className="flex flex-col text-left">
             <h1 className="text-3xl font-bold tracking-tight">
               Olá, {user.name}!
@@ -62,7 +63,9 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          <CreditsCard credits={user.credits} />
+          <div className="flex justify-center sm:justify-end">
+            <CreditsCard credits={user.credits} />
+          </div>
         </div>
       </Suspense>
 

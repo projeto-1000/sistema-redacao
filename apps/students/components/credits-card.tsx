@@ -8,7 +8,7 @@ interface TeacherCreditsCardProps {
 
 export function CreditsCard({ credits }: TeacherCreditsCardProps) {
   return (
-    <div className="flex items-center md:gap-4 p-3 bg-white border border-slate-200 rounded-2xl shadow-sm w-auto justify-between">
+    <div className="flex items-center md:gap-4 p-3 bg-white border border-slate-200 rounded-2xl shadow-sm w-fit md:w-auto justify-between">
       <div className="flex gap-2 md:gap-4">
         <div className="p-2.5  bg-[#FFF9E6] text-[#EBC84C] rounded-xl">
           <Coins className="size-5" />

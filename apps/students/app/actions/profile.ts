@@ -13,12 +13,13 @@ export async function getProfileData() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [profileRes, statsRes] = await Promise.all([
+  const [profileRes, creditsRes, statsRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, credits_balance, avatar_url, onboarding_completed")
+      .select(`full_name, credits_balance, avatar_url, onboarding_completed`)
       .eq("id", user.id)
       .single(),
+    supabase.from("student_credits").select("*").eq("user_id", user.id).single(),
     supabase.from("student_performance_stats").select("*").eq("student_id", user.id).maybeSingle(),
     supabase
       .from("essays")
@@ -29,6 +30,7 @@ export async function getProfileData() {
   ]);
 
   const profile = profileRes.data;
+  const credits = creditsRes.data;
   const stats = statsRes.data;
 
   const { data: evolutionGraph } = await supabase.rpc("get_student_evolution", {
@@ -40,7 +42,7 @@ export async function getProfileData() {
     user: {
       name: profile?.full_name || user.user_metadata?.full_name || "Estudante",
       email: user.email,
-      credits: profile?.credits_balance ?? 0,
+      credits: credits.remaining_essays ?? 0,
       avatarUrl: profile?.avatar_url || null,
       onboarding_completed: profile?.onboarding_completed || null,
     } as UserData,

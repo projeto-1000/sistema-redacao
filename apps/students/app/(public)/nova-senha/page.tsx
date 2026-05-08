@@ -1,5 +1,5 @@
 import { SetPasswordForm } from "@/components/set-password-form";
-import { Shield, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 
 export default function NovaSenhaPage() {
