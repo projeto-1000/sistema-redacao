@@ -18,8 +18,7 @@ export function PageHeader({
   const subtitleColor = variant === "secondary" ? "text-slate-500" : "text-[#8B8265]";
 
   return (
-    <div className={`flex flex-col gap-4 md:flex-row md:items-center md:justify-between ${className}`}>
-
+    <div className={`flex flex-col gap-4 md:flex-row md:items-center md:justify-between w-full ${className}`}>
       <div>
         <h2 className="text-3xl font-extrabold tracking-tight mb-2">
           {title}

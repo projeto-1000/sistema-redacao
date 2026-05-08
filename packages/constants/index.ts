@@ -12,6 +12,14 @@ export const DELIVERY_STATUS_MAP = {
   correcting: { label: "Em correção", colors: 'text-blue-600 bg-blue-50' },
 }
 
+ export const ESSAY_STATUS_MAP = {
+    pending: { label: 'Pendente', textColor: 'text-primary' },
+    draft: { label: 'Rascunho', textColor: 'text-slate-500' },
+    corrected: { label: 'Corrigida', textColor: 'text-success' },
+    correcting: { label: 'Em correção', textColor: 'text-secondary' },
+    returned: { label: 'Devolvida', textColor: 'text-amber-700' },
+  }
+
 export const statusBadgeConfig: Record<SubscriptionStatus, { label: string; classes: string }> = {
   active: {
     label: "Ativo",

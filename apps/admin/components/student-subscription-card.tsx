@@ -8,7 +8,7 @@ const statusBadgeConfig: Record<SubscriptionStatus, { label: string; classes: st
     label: "Ativo",
     classes: "bg-emerald-50 text-emerald-600"
   },
-  trialing: {
+  trial: {
     label: "Teste",
     classes: "bg-blue-50 text-blue-600"
   },
