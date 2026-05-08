@@ -1,5 +1,5 @@
-import { TopicFiltersBar } from "@/components/topic-filters-bar";
-import { TopicsTable } from "@/components/topics-table";
+import { TopicFiltersBar } from "@/components/topics/topic-filters-bar";
+import { TopicsTable } from "@/components/topics/topics-table";
 import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { NextSearchParams, parseTopicsFilters } from "@/utils/parse-filters";
@@ -11,6 +11,7 @@ export default async function TopicsPage({
 }) {
   const resolvedParams = await searchParams;
   const filters = parseTopicsFilters(resolvedParams);
+  const page = Number(resolvedParams?.page) || 1;
 
   const suspenseKey = JSON.stringify(resolvedParams);
 
@@ -24,7 +25,7 @@ export default async function TopicsPage({
           key={suspenseKey}
           fallback={<Skeleton className="rounded-4xl min-h-[400px] w-full bg-slate-200 mt-8" />}
         >
-          <TopicsTable filters={filters} />
+          <TopicsTable filters={filters} page={page} />
         </Suspense>
       </div>
     </div>
