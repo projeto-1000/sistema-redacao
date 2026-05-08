@@ -72,7 +72,7 @@ export async function TopicsTable({ filters }: TopicsTableProps) {
 
                 <Button
                   asChild
-                  className="rounded-full text-xs font-bold bg-primary shadow-sm h-10 whitespace-nowrap w-1/2 md:w-fit shrink-0"
+                  className="rounded-2xl text-xs font-bold bg-primary shadow-sm min-h-10 whitespace-nowrap w-1/2 md:w-fit shrink-0"
                 >
                   <Link href={`/minhas-redacoes/nova-redacao?id=${topic.id}`}>
                     Iniciar Redação

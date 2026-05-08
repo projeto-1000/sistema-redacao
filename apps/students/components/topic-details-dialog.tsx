@@ -90,7 +90,7 @@ export function TopicDetailsDialog({ topic }: TopicDetailsDialogProps) {
         <Button
           suppressHydrationWarning
           variant="outline"
-          className="rounded-2xl text-xs font-bold h-10 border-slate-200 text-[#1E3A8A] hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 whitespace-nowrap w-1/2 md:w-fit"
+          className="rounded-2xl text-xs font-bold min-h-10 border-slate-200 text-[#1E3A8A] hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 whitespace-nowrap w-1/2 md:w-fit"
         >
           Ver Proposta
           <Eye className="size-4.5" />
