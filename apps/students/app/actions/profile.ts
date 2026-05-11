@@ -4,6 +4,7 @@ import { UserData } from "@repo/types";
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
 import { SetPasswordSchema } from "@repo/validators";
+import { redirect } from "next/navigation";
 
 export async function getProfileData() {
   const supabase = await createClient();
@@ -11,40 +12,44 @@ export async function getProfileData() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
 
-  const [profileRes, creditsRes, statsRes] = await Promise.all([
+  if (!user) {
+    redirect("/login");
+  }
+
+  const [profileRes, creditsRes, statsRes, evolutionRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select(`full_name, credits_balance, avatar_url, onboarding_completed`)
+      .select(`full_name, email, avatar_url, onboarding_completed`)
       .eq("id", user.id)
       .single(),
-    supabase.from("student_credits").select("*").eq("user_id", user.id).single(),
+
+    supabase.from("student_credits").select("plan_credits").eq("user_id", user.id).maybeSingle(),
+
     supabase.from("student_performance_stats").select("*").eq("student_id", user.id).maybeSingle(),
-    supabase
-      .from("essays")
-      .select("created_at, total_score")
-      .eq("student_id", user.id)
-      .eq("status", "corrected")
-      .order("created_at", { ascending: true }),
+
+    supabase.rpc("get_student_evolution", {
+      p_user_id: user.id,
+      p_months_count: 6,
+    }),
   ]);
 
   const profile = profileRes.data;
   const credits = creditsRes.data;
   const stats = statsRes.data;
+  const evolution = evolutionRes.data;
 
-  const { data: evolutionGraph } = await supabase.rpc("get_student_evolution", {
-    p_user_id: user.id,
-    p_months_count: 6,
-  });
+  if (!profile || !credits) {
+    throw new Error("Erro de integridade: Perfil ou carteira de créditos não encontrados.");
+  }
 
   return {
     user: {
-      name: profile?.full_name || user.user_metadata?.full_name || "Estudante",
-      email: user.email,
-      credits: credits.plan_credits ?? 0,
-      avatarUrl: profile?.avatar_url || null,
-      onboarding_completed: profile?.onboarding_completed || null,
+      name: profile.full_name,
+      email: profile.email,
+      credits: credits.plan_credits,
+      avatarUrl: profile.avatar_url,
+      onboarding_completed: profile?.onboarding_completed,
     } as UserData,
     competencies: {
       C1: Math.round(stats?.avg_c1 || 0),
@@ -53,17 +58,16 @@ export async function getProfileData() {
       C4: Math.round(stats?.avg_c4 || 0),
       C5: Math.round(stats?.avg_c5 || 0),
     },
-    evolution:
-      evolutionGraph?.map((item: { month_text: string; average_score: number }) => ({
-        month: item.month_text,
-        score: item.average_score,
-      })) || [],
+    evolution: evolution?.map((item: { month_text: string; average_score: number }) => ({
+      month: item.month_text,
+      score: item.average_score,
+    })),
     globalStats: {
       totalEssays: stats?.total_essays || 0,
       averageScore: Math.round(stats?.average_total_score || 0),
       bestScore: stats?.best_score || 0,
-      lastScore: stats?.last_score,
-      bestCompetence: stats?.best_competence,
+      lastScore: stats?.last_score | 0,
+      bestCompetence: stats?.best_competence || 0,
       scoreTrend: stats?.score_trend || 0,
       essaysTrend: stats?.essays_trend || 0,
     },

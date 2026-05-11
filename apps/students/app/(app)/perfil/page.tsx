@@ -1,6 +1,5 @@
 import { CompetenceList } from "@/components/competence-list";
 import { EvolutionGraph } from "@/components/evolution-graph";
-
 import { SectionCard } from "@/components/section-card";
 import { UserStats } from "@/components/user-stats";
 import { getProfileData } from "@/app/actions/profile";
@@ -36,6 +35,7 @@ export default async function ProfilePage() {
         title='Meu perfil'
         subtitle='Acompanhe seu progresso e gerencie suas informações.'
       />
+
       <UserStats stats={globalStats} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">

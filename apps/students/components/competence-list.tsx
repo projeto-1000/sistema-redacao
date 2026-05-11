@@ -1,13 +1,6 @@
 "use client";
 
-const COMPETENCES = [
-  { id: "C1", label: "Domínio da Norma Culta" },
-  { id: "C2", label: "Compreensão do Tema" },
-  { id: "C3", label: "Organização de Ideias" },
-  { id: "C4", label: "Coesão Textual" },
-  { id: "C5", label: "Proposta de Intervenção" },
-];
-
+import { COMPETENCIES } from "@repo/constants";
 interface CompetenceListProps {
   scores: Record<string, number>;
 }
@@ -15,7 +8,7 @@ interface CompetenceListProps {
 export function CompetenceList({ scores }: CompetenceListProps) {
   return (
     <div className="w-full space-y-5">
-      {COMPETENCES.map((item) => {
+      {COMPETENCIES.map((item) => {
         const score = scores[item.id] || 0;
         const max = 200;
         const percentage = (score / max) * 100;
@@ -27,7 +20,7 @@ export function CompetenceList({ scores }: CompetenceListProps) {
                 <strong className="text-foreground font-extrabold mr-1.5">
                   {item.id}:
                 </strong>
-                {item.label}
+                {item.title}
               </span>
 
               <span className="font-bold md:w-min lg:w-max">

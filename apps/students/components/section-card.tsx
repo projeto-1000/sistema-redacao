@@ -28,7 +28,7 @@ export function SectionCard({
         {hasData ? (
           children
         ) : (
-          <div className="flex flex-col items-center max-w-[200px]">
+          <div className="flex flex-col items-center max-w-[250px]">
             {Icon && (
               <div className="mb-4 text-slate-200">
                 <Icon className="size-12" />

@@ -26,7 +26,7 @@ const competenceLabels: Record<string, string> = {
 
 
 function TrendIndicator({ value, unit }: TrendIndicatorProps) {
-  if (value === undefined || value === null) {
+  if (value === undefined || value === null || value === 0) {
     return <span className="text-slate-400">Sem dados anteriores</span>;
   }
 
@@ -95,6 +95,8 @@ export function UserStats({ stats }: UserStatsProps) {
       },
     },
   ];
+
+  console.log(stats)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
