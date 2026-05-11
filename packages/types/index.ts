@@ -240,3 +240,11 @@ export interface CreditsFilters {
   from?: string;
   to?: string;
 }
+
+export interface CreditPackage {
+  id: string;
+  name: string;
+  credits: number;
+  price: number;
+  popular?: boolean;
+}
