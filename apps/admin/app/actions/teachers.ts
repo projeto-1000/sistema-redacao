@@ -220,6 +220,7 @@ export async function getTeacherEssays({
       total_score, 
       due_date, 
       is_on_late,
+      created_at,
    student_name,
       student_email,
       student_avatar

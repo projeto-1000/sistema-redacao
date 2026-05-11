@@ -19,13 +19,15 @@ interface UserProfileHeaderProps {
   onEdit?: () => void;
   onToggleStatus?: () => void;
   footer?: React.ReactNode;
+  disableAction?: boolean
 }
 
 export function UserProfileHeader({
   user,
   onEdit,
   onToggleStatus,
-  footer
+  footer,
+  disableAction = false
 }: UserProfileHeaderProps) {
 
   const currentStatus = USER_STATUS_MAP[user.status as keyof typeof USER_STATUS_MAP] || USER_STATUS_MAP.inactive;
@@ -58,26 +60,30 @@ export function UserProfileHeader({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto md:flex-col lg:flex-row">
-          <Button onClick={onEdit} variant="secondary" className="flex-1 md:flex-none h-10 rounded-xl font-medium transition-colors">
-            <UserPen className="size-4 mr-2" /> Editar Perfil
-          </Button>
+        {disableAction === false && (
+          <div className="flex items-center gap-3 w-full md:w-auto md:flex-col lg:flex-row">
+            <Button onClick={onEdit} variant="secondary" className="flex-1 md:flex-none h-10 rounded-xl font-medium transition-colors">
+              <UserPen className="size-4 mr-2" /> Editar Perfil
+            </Button>
 
-          <Button
-            onClick={onToggleStatus}
-            variant="outline"
-            className={`flex-1 md:flex-none h-10 rounded-xl border-slate-200 font-medium transition-colors ${isActive
-              ? 'hover:bg-red-100 hover:text-red-500'
-              : 'hover:bg-green-100 hover:text-green-600'
-              }`}
-          >
-            {isActive ? (
-              <><UserLock className="size-4.5 mr-2" /> Bloquear</>
-            ) : (
-              <><UserCheck className="size-4.5 mr-2" /> Desbloquear</>
-            )}
-          </Button>
-        </div>
+            <Button
+              onClick={onToggleStatus}
+              variant="outline"
+              className={`flex-1 md:flex-none h-10 rounded-xl border-slate-200 font-medium transition-colors ${isActive
+                ? 'hover:bg-red-100 hover:text-red-500'
+                : 'hover:bg-green-100 hover:text-green-600'
+                }`}
+            >
+              {isActive ? (
+                <><UserLock className="size-4.5 mr-2" /> Bloquear</>
+              ) : (
+                <><UserCheck className="size-4.5 mr-2" /> Desbloquear</>
+              )}
+            </Button>
+          </div>
+        )}
+
+
       </div>
 
       <div className="h-px bg-slate-200 w-full" />

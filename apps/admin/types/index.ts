@@ -71,6 +71,8 @@ export type TeacherEssayListItem = {
   status: string;
   is_on_late: boolean;
   correction_date: string;
+  created_at?: string;
+  due_date?: string;
 };
 
 export type TeacherEssayFilters = {
@@ -105,4 +107,36 @@ export interface StudentEssayItem {
   status: EssayStatus;
   total_score: number;
   created_at: string;
+}
+
+export interface PeriodEssay {
+  id: string;
+  student: string;
+  avatar: string;
+  title: string;
+  subDate: string;
+  corDate: string;
+  score: number;
+  status: "No Prazo" | "Atrasado";
+}
+
+export interface PaymentMetrics {
+  totalEssays: number;
+  onTime: number;
+  delayed: number;
+  valuePerCorrection: number;
+  dailyAverage: number;
+  totalAmount: number;
+  status: "paid" | "pending";
+}
+
+export interface PeriodEssay {
+  id: string;
+  student: string;
+  avatar: string;
+  title: string;
+  subDate: string;
+  corDate: string;
+  score: number;
+  status: "No Prazo" | "Atrasado";
 }
