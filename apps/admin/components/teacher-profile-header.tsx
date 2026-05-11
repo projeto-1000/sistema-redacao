@@ -22,13 +22,6 @@ export default function TeacherProfileHeader({ teacher }: TeacherProfileHeaderPr
       onToggleStatus={toggleStatus}
       footer={
         <div className=" bg-slate-100 p-4 px-8">
-          {/* <button className="flex items-center justify-between w-full text-sm font-bold hover:text-blue-600 transition-colors group" href='/pagamentos'>
-            <span className="flex items-center gap-2">
-              <CreditCard className="size-4.5 text-slate-400 group-hover:text-blue-600" />
-              Gerenciar Pagamentos e Faturas
-            </span>
-            <ChevronRight className="size-4.5 text-slate-400 group-hover:text-blue-600" />
-          </button> */}
           <Link
             href={`/professores/${teacher.id}/pagamentos`}
             className="flex items-center justify-between w-full text-sm font-bold hover:text-blue-600 transition-colors group"
