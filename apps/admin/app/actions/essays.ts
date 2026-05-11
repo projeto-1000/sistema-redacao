@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/server";
 import {
+  CorrectionPayload,
   EssayStatus,
   GradedEssayListItem,
   GradedEssaysFilter,
@@ -270,4 +271,80 @@ export async function getGradedEssay(id: string) {
       c5: essayData.comment_c5,
     },
   };
+}
+
+export async function getEssayById(id: string) {
+  const supabase = await createClient();
+
+  const { data: essay, error: essayError } = await supabase
+    .from("essays")
+    .select(
+      `
+      *,
+      student:profiles!essays_student_id_fkey(full_name)
+    `
+    )
+    .eq("id", id)
+    .single();
+
+  if (essayError || !essay) {
+    console.error(`🚨 Erro ao buscar redação por ID (${id}):`, essayError);
+    return null;
+  }
+
+  const { student, ...essayData } = essay;
+
+  return {
+    ...essayData,
+    student: student.full_name,
+  };
+}
+
+export async function saveEssayCorrection(essayId: string, payload: CorrectionPayload) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+
+  const { error } = await supabase
+    .from("essays")
+    .update({
+      status: "corrected",
+      teacher_id: user.id,
+      correction_date: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+
+      score_c1: payload.scores.c1,
+      score_c2: payload.scores.c2,
+      score_c3: payload.scores.c3,
+      score_c4: payload.scores.c4,
+      score_c5: payload.scores.c5,
+      comment_c1: payload.comments.c1,
+      comment_c2: payload.comments.c2,
+      comment_c3: payload.comments.c3,
+      comment_c4: payload.comments.c4,
+      comment_c5: payload.comments.c5,
+
+      general_comment: payload.general_comment,
+      highlights: payload.highlights,
+    })
+    .eq("id", essayId);
+
+  if (error) {
+    console.error("Erro ao salvar correção:", error);
+    return { success: false, error: "Não foi possível salvar a correção final." };
+  }
+
+  await supabase
+    .from("correction_drafts")
+    .delete()
+    .eq("essay_id", essayId)
+    .eq("teacher_id", user.id);
+
+  revalidatePath("/inicio");
+  revalidatePath(`/corrigir-redacao/${essayId}`);
+
+  return { success: true };
 }
