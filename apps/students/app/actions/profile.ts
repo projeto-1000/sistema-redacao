@@ -39,7 +39,7 @@ export async function getProfileData() {
   const stats = statsRes.data;
   const evolution = evolutionRes.data;
 
-  if (!profile || !credits) {
+  if (!profile) {
     throw new Error("Erro de integridade: Perfil ou carteira de créditos não encontrados.");
   }
 
@@ -47,7 +47,7 @@ export async function getProfileData() {
     user: {
       name: profile.full_name,
       email: profile.email,
-      credits: credits.plan_credits,
+      credits: credits?.plan_credits || 0,
       avatarUrl: profile.avatar_url,
       onboarding_completed: profile?.onboarding_completed,
     } as UserData,
