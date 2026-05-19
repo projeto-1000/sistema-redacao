@@ -20,7 +20,7 @@ export function StudentProfileHeader({ student }: StudentsProfileHeaderProps) {
     <UserProfileHeader
       user={studentItem}
       onToggleStatus={toggleStatus}
-      footer={<StudentSubscriptionCard subscription={studentItem.subscription} />}
+      footer={<StudentSubscriptionCard subscription={studentItem.subscription} credits={studentItem.credits} />}
     />
   );
 }

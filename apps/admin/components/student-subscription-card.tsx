@@ -1,5 +1,4 @@
-
-import { StudentSubscription, SubscriptionStatus } from "@repo/types";
+import { StudentCredits, StudentSubscription, SubscriptionStatus } from "@repo/types";
 import { formatDate } from "@repo/utils";
 import { CircleAlert } from "lucide-react";
 
@@ -28,11 +27,12 @@ const statusBadgeConfig: Record<SubscriptionStatus, { label: string; classes: st
 
 interface StudentSubscriptionCardProps {
   subscription: StudentSubscription | null
+  credits: StudentCredits | null
 }
 
-export default function StudentSubscriptionCard({ subscription }: StudentSubscriptionCardProps) {
+export default function StudentSubscriptionCard({ subscription, credits }: StudentSubscriptionCardProps) {
 
-  if (!subscription) {
+  if (!subscription || !credits) {
     return (
       <div className="bg-slate-100 flex flex-col items-center justify-center py-8 px-6">
         <div className="flex items-center mb-2 gap-2">
@@ -48,42 +48,60 @@ export default function StudentSubscriptionCard({ subscription }: StudentSubscri
     )
   }
 
-  const bagde = statusBadgeConfig[subscription.status as SubscriptionStatus]
+  const badge = statusBadgeConfig[subscription.status as SubscriptionStatus];
+
+  const renderDateText = () => {
+    if (!subscription.current_period_end || subscription.billing_cycle === 'lifetime') {
+      return <>Acesso: <span className="font-bold">Vitalício</span></>;
+    }
+
+    const formattedDate = formatDate(subscription.current_period_end, 'numeric');
+
+    if (!subscription.cancel_at_period_end && subscription.status !== 'canceled') {
+      return <>Próxima renovação: <span className="font-bold">{formattedDate}</span></>;
+    }
+
+    return <>Expira em: <span className="font-bold">{formattedDate}</span></>;
+  };
 
   return (
-
     <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
 
+      {/* CARD 1: DADOS DA ASSINATURA */}
       <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-100">
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Dados da Assinatura</h3>
         <div className="flex items-center gap-2 mb-2">
-          <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider ${bagde.classes}`}>
-            {bagde.label}
+          <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider ${badge.classes}`}>
+            {badge.label}
           </span>
-
-          <span className="font-black text-lg capitalize">{subscription.tier}</span>
+          <span className="font-black text-lg capitalize">{subscription.plan_name}</span>
         </div>
         <p className="text-sm font-medium text-slate-500">
-          Expira em: <span className="font-bold text-slate-900">{formatDate(subscription.current_period_end, 'numeric')}</span>
+          {renderDateText()}
         </p>
       </div>
 
+      {/* CARD 2: REDAÇÕES RESTANTES */}
       <div className="p-8 flex flex-col items-center justify-center bg-slate-100">
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">
           Redações Restantes
         </h3>
         <div className="size-20 rounded-full border-[6px] border-amber-200/40 flex items-center justify-center">
-          <span className="text-3xl font-black text-amber-400">{subscription.remaining_essays}</span>
+          {/* Usamos flex items-baseline para alinhar a base do número grande com o texto pequeno */}
+          <div className="flex items-baseline translate-x-1">
+            <span className="text-3xl font-black text-amber-400">{credits.plan_credits}</span>
+            <span className="text-sm font-bold text-amber-400/60 ml-0.5">/{credits.total_credits}</span>
+          </div>
         </div>
       </div>
 
-
+      {/* CARD 3: CRÉDITOS ADICIONAIS */}
       <div className="p-8 flex flex-col items-center justify-center bg-slate-100">
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">
           Créditos Adicionais
         </h3>
         <div className="size-20 rounded-full border-[6px] border-blue-100 flex items-center justify-center">
-          <span className="text-3xl font-black text-blue-600">{subscription.extra_credits}</span>
+          <span className="text-3xl font-black text-blue-600">{credits.extra_credits}</span>
         </div>
       </div>
     </div>

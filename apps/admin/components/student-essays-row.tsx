@@ -65,7 +65,11 @@ export function StudentEssaysTableRow({ essay }: StudentEssaysTableRowProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button asChild disabled={essay.status === 'correcting'} variant="ghost" size="icon" className="h-9 w-9 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+              <Button
+                asChild={essay.status === 'corrected'}
+                disabled={essay.status === 'correcting'}
+                variant="ghost" size="icon"
+                className="h-9 w-9 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                 <Link href={`?essayId=${essay.id}`} scroll={false}>
                   <Eye className="size-4.5" />
                 </Link>

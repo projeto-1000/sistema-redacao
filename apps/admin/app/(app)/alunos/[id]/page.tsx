@@ -41,8 +41,9 @@ export default async function StudentProfilePage({
   }
   const essayId = resolvedSearchParams?.essayId as string | undefined;
 
+
   return (
-    <div className="min-h-dvh px-4 md:px-10 lg:px-12 pb-8 space-y-10">
+    <div className="min-h-dvh px-4 md:px-10 lg:px-12 pb-8 space-y-8">
 
       <Button asChild variant='ghost' className="text-slate-500">
         <Link href="/alunos">

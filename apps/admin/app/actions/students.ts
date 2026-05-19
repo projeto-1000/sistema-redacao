@@ -31,10 +31,7 @@ export async function getStudents({
   const rangeStart = (page - 1) * limit;
   const rangeEnd = rangeStart + limit - 1;
 
-  let query = supabase
-    .from("profiles")
-    .select(`id, full_name, email, status, avatar_url`, { count: "exact" })
-    .eq("role", "STUDENT");
+  let query = supabase.from("profiles").select("*", { count: "exact" }).eq("role", "STUDENT");
 
   if (filters?.search) {
     query = query.or(`full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
@@ -84,32 +81,44 @@ export async function getStudentById(studentId: string) {
     return { student: null, error: "Perfil não encontrado", subscriptionError: null };
   }
 
-  const [subRes, creditsRes] = await Promise.all([
-    supabase
-      .from("subscriptions")
-      .select(`tier, status, current_period_start, current_period_end, cancel_at_period_end`)
-      .eq("user_id", studentId)
-      .maybeSingle(),
-
-    supabase
-      .from("student_credits")
-      .select(`remaining_essays, extra_credits`)
-      .eq("user_id", studentId)
-      .maybeSingle(),
+  const [subscriptionData, creditsData] = await Promise.all([
+    supabase.from("subscriptions").select("*").eq("user_id", studentId).single(),
+    supabase.from("student_credits").select("*").eq("user_id", studentId).single(),
   ]);
 
-  const subscriptionData = subRes.data
-    ? {
-        ...subRes.data,
-        remaining_essays: creditsRes.data?.remaining_essays ?? 0,
-        extra_credits: creditsRes.data?.extra_credits ?? 0,
-      }
-    : null;
+  const subscription = subscriptionData.data;
+  const credits = creditsData.data;
+
+  if (!subscription) {
+    return { student: null, error: "Assinatura não encontrada", subscriptionError: true };
+  }
+
+  const { data: plan, error: planError } = await supabase
+    .from("plans")
+    .select("name, credits_included, billing_cycle, price_in_cents")
+    .eq("id", subscription.plan_id)
+    .eq("is_active", true)
+    .single();
+
+  if (planError || !plan) {
+    return { student: null, error: "Plano não encontrado", subscriptionError: true };
+  }
 
   return {
     student: {
       ...profile,
-      subscription: subscriptionData,
+      subscription: {
+        ...subscription,
+        plan_name: plan.name,
+        billing_cycle: plan.billing_cycle,
+        price: plan.price_in_cents,
+        credits_included: plan.credits_included,
+      },
+      credits: {
+        ...credits,
+        renew_date: subscription.current_period_end,
+        total_credits: plan.credits_included,
+      },
     },
     error: null,
   };

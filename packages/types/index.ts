@@ -178,9 +178,9 @@ export interface StudentProfile {
   role: UserRole;
   created_at: string;
   status: UserStatus;
-  credits_balance: number;
   avatar_url: string | null;
   subscription: StudentSubscription;
+  credits: StudentCredits;
 }
 
 export interface TeacherProfile {
