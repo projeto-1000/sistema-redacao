@@ -4,5 +4,5 @@ const formatter = new Intl.NumberFormat('pt-BR', {
 })
 
 export function formatCurrency(value: number) {
-  return formatter.format(value / 100)
+  return formatter.format(value)
 }

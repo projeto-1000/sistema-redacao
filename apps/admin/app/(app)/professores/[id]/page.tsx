@@ -44,7 +44,7 @@ export default async function TeacherProfilePage({
   return (
     <div className="min-h-dvh px-4 md:px-10 lg:px-12 pb-8 space-y-8">
       <Button asChild variant='ghost' className="text-slate-500">
-        <Link href="/alunos">
+        <Link href="/professores">
           <ArrowLeft className="size-4 mr-2" />
           Voltar para lista de professores
         </Link>

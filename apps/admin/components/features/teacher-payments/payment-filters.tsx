@@ -11,24 +11,20 @@ function FiltersContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // O parâmetro na URL será simples: ?month=2026-05
   const currentMonthParam = searchParams.get("month");
 
-  // Gera um array dinâmico com os últimos 6 meses a partir da data de hoje
   const recentMonths = Array.from({ length: 6 }).map((_, i) => {
     const date = subMonths(startOfMonth(new Date()), i);
     return {
-      value: format(date, "yyyy-MM"), // Para a URL (ex: 2026-05)
-      label: format(date, "MMMM", { locale: ptBR }), // Para o botão (ex: maio)
+      value: format(date, "yyyy-MM"),
+      label: format(date, "MMMM", { locale: ptBR }),
       year: format(date, "yyyy"),
       isCurrent: i === 0,
     };
   });
 
-  // Se não tiver nada na URL, assumimos o mês atual
   const activeMonth = currentMonthParam || (recentMonths[0]?.value ?? "");
 
-  // 2. Linha 34: Fallback dentro do useEffect
   useEffect(() => {
     if (!currentMonthParam && recentMonths[0]) {
       handleSelectMonth(recentMonths[0].value);

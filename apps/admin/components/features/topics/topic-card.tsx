@@ -109,7 +109,7 @@ export default function TopicCard({ topic }: TopicCardProps) {
                 <AlertDialogTrigger asChild>
                   <MenubarItem
                     className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
-                    onSelect={(e) => e.preventDefault()} // 💡 Evita que o Menubar feche antes de abrir o dialog
+                    onSelect={(e) => e.preventDefault()}
                   >
                     Excluir tema
                   </MenubarItem>

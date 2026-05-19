@@ -1,4 +1,5 @@
 import { EssayStatus } from "@repo/types";
+import { ReactNode } from "react";
 
 export type StudentsListItem = {
   id: string;
@@ -108,18 +109,6 @@ export interface StudentEssayItem {
   total_score: number;
   created_at: string;
 }
-
-export interface PeriodEssay {
-  id: string;
-  student: string;
-  avatar: string;
-  title: string;
-  subDate: string;
-  corDate: string;
-  score: number;
-  status: "No Prazo" | "Atrasado";
-}
-
 export interface PaymentMetrics {
   totalEssays: number;
   onTime: number;
@@ -130,13 +119,45 @@ export interface PaymentMetrics {
   status: "paid" | "pending";
 }
 
-export interface PeriodEssay {
+export type AccountMainType = "pix" | "bank_account";
+export type PixType = "cpf" | "cnpj" | "phone" | "email" | "random";
+export type BankAccountVariant = "corrente" | "poupanca";
+
+export interface PaymentAccount {
+  owner: ReactNode;
   id: string;
-  student: string;
-  avatar: string;
-  title: string;
-  subDate: string;
-  corDate: string;
-  score: number;
-  status: "No Prazo" | "Atrasado";
+  teacher_id: string;
+  type: AccountMainType;
+  owner_name: string;
+  owner_document: string;
+  is_default: boolean;
+  pix_type?: PixType;
+  pix_key?: string;
+  bank_name?: string;
+  agency?: string;
+  account_number?: string;
+  account_variant?: BankAccountVariant;
+}
+
+export interface AccountData {
+  id: string;
+  is_default: boolean;
+  type: "pix" | "bank_account";
+  owner_name: string;
+  owner_document: string;
+  pix_key?: string;
+  pix_type?: string;
+  bank_name?: string;
+  agency?: string;
+  account_number?: string;
+  account_variant?: string;
+}
+export interface PaymentHistoryItem {
+  id: string;
+  processed_at: string;
+  billing_month: string;
+  essays_count: number;
+  total_amount: number;
+  status: "paid" | "pending" | "processing";
+  receipt_url?: string | null;
 }

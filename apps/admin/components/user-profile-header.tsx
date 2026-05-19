@@ -49,7 +49,7 @@ export function UserProfileHeader({
             <h1 className="text-2xl font-black leading-none">{user.full_name}</h1>
             <p className="text-sm font-medium text-slate-500">{user.email}</p>
 
-            <div className="flex items-center justify-center md:justify-start gap-3 text-xs font-bold pt-1">
+            <div className="flex items-center justify-center md:justify-start gap-3 text-xs font-bold">
 
               <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider ${currentStatus.colors}`}>
                 {currentStatus.label}
@@ -82,8 +82,6 @@ export function UserProfileHeader({
             </Button>
           </div>
         )}
-
-
       </div>
 
       <div className="h-px bg-slate-200 w-full" />

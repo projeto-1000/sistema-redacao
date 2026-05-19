@@ -1,3 +1,5 @@
+'use client'
+
 import { TeacherEssayListItem } from "@/types";
 import { DELIVERY_STATUS_MAP } from "@repo/constants";
 import { Avatar } from "@repo/ui/components/avatar";
@@ -6,8 +8,19 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/components/too
 import { formatDate } from "@repo/utils";
 import { AlertCircle, ArrowRight, CheckCircle2, Clock } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-export default function TeacherEssaysRow({ essay }: { essay: TeacherEssayListItem }) {
+interface TeacherEssaysRowProps {
+  essay: TeacherEssayListItem;
+  onViewDetails?: (id: string) => void;
+}
+
+export default function TeacherEssaysRow({ essay, onViewDetails }: TeacherEssaysRowProps) {
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams.toString());
+  params.set("essayId", essay.id);
+
+  const updatedHref = `?${params.toString()}`;
 
   const essayStatus = DELIVERY_STATUS_MAP[essay.status as keyof typeof DELIVERY_STATUS_MAP] || DELIVERY_STATUS_MAP.correcting
 
@@ -84,6 +97,7 @@ export default function TeacherEssaysRow({ essay }: { essay: TeacherEssayListIte
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
+              onClick={() => onViewDetails && onViewDetails(essay.id)}
               asChild={!isCorrecting}
               disabled={isCorrecting}
               className="flex items-center justify-center border border-slate-200 bg-slate-50/80 text-blue-600 hover:bg-blue-100/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full h-10 px-4 rounded-xl sm:w-auto lg:w-8 lg:h-8 lg:p-0 lg:rounded-full 
@@ -92,7 +106,7 @@ export default function TeacherEssaysRow({ essay }: { essay: TeacherEssayListIte
               {isCorrecting ? (
                 buttonContent
               ) : (
-                <Link href={`?essayId=${essay.id}`} scroll={false}>
+                <Link href={updatedHref} scroll={false}>
                   {buttonContent}
                 </Link>
               )}

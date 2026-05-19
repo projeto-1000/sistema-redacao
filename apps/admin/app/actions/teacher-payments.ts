@@ -1,44 +1,47 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import { PaymentMetrics, PeriodEssay } from "@/types";
-import { getTeacherEssays } from "./teachers";
+import { PaymentHistoryItem, PaymentMetrics, TeacherEssayListItem } from "@/types";
 import { endOfMonth, getDaysInMonth, parseISO, startOfMonth } from "date-fns";
+import { revalidatePath } from "next/cache";
+import { PostgrestError } from "@supabase/supabase-js";
+import { generateCsv } from "@repo/utils";
+interface GetEssaysByPeriodParams {
+  teacherId: string;
+  start: string;
+  end: string;
+  page?: number;
+  limit?: number;
+}
 
-/**
- * Calcula as métricas de faturamento DELEGANDO a contagem para o PostgreSQL.
- */
 export async function getPaymentMetrics(
   teacherId: string,
-  monthStr?: string
-): Promise<PaymentMetrics> {
+  month?: string
+): Promise<PaymentMetrics & { receiptUrl?: string }> {
   const supabase = await createClient();
+  const refDate = month ? parseISO(`${month}-01`) : new Date();
 
-  // 1. Resolvemos as datas de forma limpa na camada correta
-  const refDate = monthStr ? parseISO(`${monthStr}-01`) : new Date();
   const start = startOfMonth(refDate).toISOString();
   const end = endOfMonth(refDate).toISOString();
-  // QUERY 1: Contagem Total (head: true para máxima performance)
-  const totalQuery = supabase
+
+  const essaysQuery = supabase
     .from("essays_with_delivery")
-    .select("id", { count: "exact", head: true })
+    .select("is_on_late")
     .eq("teacher_id", teacherId)
     .gte("correction_date", start)
     .lte("correction_date", end);
 
-  // QUERY 2: Contagem de Atrasadas
-  const delayedQuery = supabase
-    .from("essays_with_delivery")
-    .select("id", { count: "exact", head: true })
+  const paymentQuery = supabase
+    .from("teacher_payments")
+    .select("status, receipt_url")
     .eq("teacher_id", teacherId)
-    .eq("is_on_late", true)
-    .gte("correction_date", start)
-    .lte("correction_date", end);
+    .eq("billing_month", start)
+    .maybeSingle();
 
-  const [totalResult, delayedResult] = await Promise.all([totalQuery, delayedQuery]);
+  const [essaysResult, paymentResult] = await Promise.all([essaysQuery, paymentQuery]);
 
-  if (totalResult.error || delayedResult.error) {
-    console.error("Erro ao calcular métricas no banco:", totalResult.error || delayedResult.error);
+  if (essaysResult.error) {
+    console.error("Erro ao calcular métricas no banco: ", essaysResult.error);
     return {
       totalEssays: 0,
       onTime: 0,
@@ -50,8 +53,8 @@ export async function getPaymentMetrics(
     };
   }
 
-  const totalEssays = totalResult.count || 0;
-  const delayed = delayedResult.count || 0;
+  const totalEssays = essaysResult.data.length;
+  const delayed = essaysResult.data.filter((essay) => essay.is_on_late).length;
   const onTime = totalEssays - delayed;
 
   const valuePerCorrection = 10.0;
@@ -60,6 +63,8 @@ export async function getPaymentMetrics(
   const diffDays = getDaysInMonth(refDate);
   const dailyAverage = totalEssays > 0 ? Number((totalEssays / diffDays).toFixed(1)) : 0;
 
+  const dbPayment = paymentResult.data;
+
   return {
     totalEssays,
     onTime,
@@ -67,58 +72,228 @@ export async function getPaymentMetrics(
     valuePerCorrection,
     dailyAverage,
     totalAmount,
-    status: "pending",
+    status: dbPayment?.status,
+    receiptUrl: dbPayment?.receipt_url || undefined,
   };
 }
 
-/**
- * Busca as redações do período consumindo a view oficial do sistema
- * e adapta os dados para o formato esperado pelo Modal de Faturamento.
- */
-export async function getEssaysByPeriod(
-  teacherId: string,
-  startDate?: string,
-  endDate?: string
-): Promise<PeriodEssay[]> {
-  const { essays, error } = await getTeacherEssays({
-    teacherId,
-    page: 1,
-    limit: 1000,
-    filters: {
-      from: startDate,
-      to: endDate,
-    },
-  });
+export async function getEssaysByPeriod({
+  teacherId,
+  start,
+  end,
+  page = 1,
+  limit = 10,
+}: GetEssaysByPeriodParams): Promise<{
+  essays: TeacherEssayListItem[];
+  totalPages: number;
+  error: PostgrestError | null;
+}> {
+  const supabase = await createClient();
 
-  if (error || !essays) {
-    console.error("Erro ao buscar redações do período:", error);
-    return [];
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
+
+  const query = supabase
+    .from("essays_with_delivery")
+    .select(
+      `id, 
+      student_id, 
+      title, 
+      thematic_axis, 
+      status, 
+      correction_date,
+      total_score, 
+      due_date, 
+      is_on_late,
+      student_name,
+      student_email,
+      student_avatar
+      `,
+      { count: "exact" }
+    )
+    .eq("teacher_id", teacherId)
+    .gte("correction_date", start)
+    .lte("correction_date", end);
+
+  const { data, count, error } = await query
+    .range(rangeStart, rangeEnd)
+    .order("correction_date", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao buscar redações:", error);
+    return { essays: [], totalPages: 0, error };
   }
 
-  return essays.map((essay) => {
-    const studentName = essay.student_name || "Aluno";
-    const avatarUrl =
-      essay.student_avatar ||
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(studentName)}&background=eff6ff&color=1d4ed8`;
+  return {
+    essays: data,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+    error: error,
+  };
+}
 
-    // Usando due_date como fallback para submissão, já que created_at não vem na query atual
-    const subDate = essay.due_date
-      ? new Date(essay.due_date).toLocaleDateString("pt-BR", { timeZone: "UTC" })
-      : "--/--/----";
+export async function createTeacherPayment(formData: FormData) {
+  const supabase = await createClient();
 
-    const corDate = essay.correction_date
-      ? new Date(essay.correction_date).toLocaleDateString("pt-BR", { timeZone: "UTC" })
-      : "--/--/----";
+  const teacherId = formData.get("teacherId") as string;
+  const monthStr = formData.get("month") as string;
+  const file = formData.get("receipt") as File;
+  const essaysCount = Number(formData.get("essaysCount"));
+  const unitValue = Number(formData.get("unitValue"));
+  const totalAmount = Number(formData.get("totalAmount"));
 
-    return {
-      id: essay.id,
-      student: essay.student_name || "Aluno Excluído",
-      avatar: avatarUrl,
-      title: essay.title || "Redação sem título",
-      subDate: subDate,
-      corDate: corDate,
-      score: essay.total_score || 0,
-      status: essay.is_on_late ? "Atrasado" : "No Prazo",
-    };
-  });
+  if (!file || file.size === 0) {
+    throw new Error("O comprovante em PDF é obrigatório.");
+  }
+
+  try {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${teacherId}/${monthStr}-${Date.now()}.${fileExt}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("receipts")
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(uploadData.path);
+
+    const receiptUrl = urlData.publicUrl;
+
+    const billingMonth = `${monthStr}-01T00:00:00.000-03:00`;
+    const [yearStr, monthStrPart] = monthStr.split("-");
+    const lastDay = new Date(Number(yearStr), Number(monthStrPart), 0).getDate();
+    const lastDayStr = String(lastDay).padStart(2, "0");
+
+    const endOfMonthStr = `${monthStr}-${lastDayStr}T23:59:59.999-03:00`;
+
+    const { data: payment, error: paymentError } = await supabase
+      .from("teacher_payments")
+      .insert({
+        teacher_id: teacherId,
+        billing_month: billingMonth,
+        total_amount: totalAmount,
+        essays_count: essaysCount,
+        unit_value: unitValue,
+        receipt_url: receiptUrl,
+        status: "paid",
+        processed_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (paymentError) throw paymentError;
+
+    const { error: updateError } = await supabase
+      .from("essays")
+      .update({ payment_id: payment.id })
+      .eq("teacher_id", teacherId)
+      .gte("correction_date", billingMonth)
+      .lte("correction_date", endOfMonthStr)
+      .is("payment_id", null);
+
+    if (updateError) throw updateError;
+
+    revalidatePath(`/professores/${teacherId}/pagamentos`);
+    return { success: true };
+  } catch (error) {
+    console.error("Erro no processamento do pagamento:", error);
+    return { success: false, error: "Falha ao registrar pagamento." };
+  }
+}
+
+export async function getTeacherPaymentHistory(
+  teacherId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{
+  payments: PaymentHistoryItem[];
+  totalPages: number;
+  error: PostgrestError | null;
+}> {
+  const supabase = await createClient();
+
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
+
+  const { data, count, error } = await supabase
+    .from("teacher_payments")
+    .select(
+      `
+      id,
+      billing_month,
+      essays_count,
+      total_amount,
+      status,
+      receipt_url,
+      processed_at
+    `,
+      { count: "exact" }
+    )
+    .eq("teacher_id", teacherId)
+    .order("billing_month", { ascending: false })
+    .range(rangeStart, rangeEnd);
+
+  if (error) {
+    console.error("Erro ao buscar histórico de pagamentos:", error);
+    return { payments: [], totalPages: 0, error };
+  }
+
+  return {
+    payments: data,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+    error,
+  };
+}
+
+export async function exportTeacherPaymentsCsv(payload: { teacherId: string }) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("teacher_payments")
+    .select("*")
+    .eq("teacher_id", payload.teacherId)
+    .order("billing_month", { ascending: false });
+
+  if (error) throw new Error("Erro ao buscar dados para exportação do histórico");
+
+  const columns = [
+    {
+      header: "Data do Pagamento",
+      key: (row: any) =>
+        row.processed_at ? new Date(row.processed_at).toLocaleDateString("pt-BR") : "-",
+    },
+    {
+      header: "Período de Referência",
+      key: (row: any) => {
+        if (!row.billing_month) return "-";
+        const date = new Date(row.billing_month);
+        return `${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+      },
+    },
+    {
+      header: "Qtd. Redações",
+      key: (row: any) => row.essays_count?.toString() || "0",
+    },
+    {
+      header: "Valor Total",
+      key: (row: any) =>
+        row.total_amount
+          ? `R$ ${Number(row.total_amount).toFixed(2).replace(".", ",")}`
+          : "R$ 0,00",
+    },
+    {
+      header: "Status",
+      key: (row: any) => {
+        if (row.status === "paid") return "Pago";
+        if (row.status === "pending") return "Pendente";
+        return "Processando";
+      },
+    },
+    {
+      header: "Link do Comprovante",
+      key: (row: any) => row.receipt_url || "Não anexado",
+    },
+  ];
+
+  return generateCsv(data, columns);
 }
