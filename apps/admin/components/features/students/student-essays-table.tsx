@@ -1,8 +1,9 @@
 import { TablePagination } from "@/components/table-pagination";
-import { EssayTableFilters } from "./essay-table-filters";
+import { EssayTableFilters } from "../../essay-table-filters";
 import { StudentEssaysTableRow } from "./student-essays-row";
 import { StudentEssaysFilters } from "@/types";
 import { getStudentEssays } from "@/app/actions/students";
+import { CircleAlert, FileText, Search } from "lucide-react";
 
 interface StudentEssaysTableProps {
   studentId: string;
@@ -12,6 +13,10 @@ interface StudentEssaysTableProps {
 
 export async function StudentEssaysTable({ studentId, filters, page }: StudentEssaysTableProps) {
   const { essays, totalPages, error } = await getStudentEssays({ studentId, filters, page });
+
+  const hasActiveFilters = Object.values(filters || {}).some(
+    value => value !== undefined && value !== null && value !== ""
+  );
 
   return (
     <div className="space-y-6">
@@ -32,12 +37,28 @@ export async function StudentEssaysTable({ studentId, filters, page }: StudentEs
 
         <div className="divide-y divide-slate-100">
           {error ? (
-            <div className="p-8 text-center text-red-500 font-medium">
-              se der erro
+            <div className="flex flex-col items-center justify-center py-18 px-6 bg-slate-50/50 text-center animate-in fade-in duration-500">
+              <CircleAlert className="size-14 bg-white rounded-full text-red-500 p-1 shadow-sm mb-4" />
+              <h3 className="text-lg font-bold text-red-600 mb-1">
+                Ocorreu um erro.
+              </h3>
+              <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
+                Não conseguimos carregar as redações do aluno. Por favor, recarregue a página ou tente novamente em instantes.
+              </p>
             </div>
           ) : essays.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 font-medium">
-              Nenhuma redação encontrada para os filtros aplicados.
+            <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 text-center animate-in fade-in duration-500">
+              <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                {hasActiveFilters ? <Search className="size-8 text-slate-300" /> : <FileText className="size-8 text-slate-300" />}
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-1">
+                {hasActiveFilters ? "Nenhum resultado encontrado" : "Nenhuma redação por aqui"}
+              </h3>
+              <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
+                {hasActiveFilters
+                  ? "Não encontramos nada com o filtro selecionado."
+                  : "O aluno ainda não enviou nenhumma redação para correção."}
+              </p>
             </div>
           ) : (
             essays.map((essay) => (
