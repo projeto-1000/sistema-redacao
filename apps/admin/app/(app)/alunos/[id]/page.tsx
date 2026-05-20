@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { ModalWrapper } from "@repo/ui/components/modal-wrapper";
 import { GradedEssayView } from "@/components/graded-essay-view";
+import StudentSubscriptionCard from "@/components/student-subscription-card";
 
 const creditsHistory = [
   { id: 1, date: "24/05/2024", type: "IA", action: "Uso em Redação", balance: "5 IA", isPositive: false },
@@ -34,13 +35,21 @@ export default async function StudentProfilePage({
 
   const filters = parseStudentEssaysFilters(resolvedSearchParams);
 
-  const { student, error } = await getStudentById(studentId);
+  const { student, error, hasSubscriptionError, hasCreditsError } = await getStudentById(studentId);
 
   if (!student || error) {
     notFound();
   }
   const essayId = resolvedSearchParams?.essayId as string | undefined;
 
+  const subscriptionCardContent = (
+    <StudentSubscriptionCard
+      subscription={student.subscription}
+      credits={student.credits}
+      hasSubscriptionError={hasSubscriptionError}
+      hasCreditsError={hasCreditsError}
+    />
+  );
 
   return (
     <div className="min-h-dvh px-4 md:px-10 lg:px-12 pb-8 space-y-8">
@@ -57,7 +66,7 @@ export default async function StudentProfilePage({
         key={suspenseKey}
         fallback={<Skeleton className="rounded-3xl min-h-auto bg-slate-200 mt-6" />}
       >
-        <StudentProfileHeader student={student} />
+        <StudentProfileHeader student={student} subscriptionCard={subscriptionCardContent} />
       </Suspense>
 
       <StudentStatsCards studentId={student.id} />

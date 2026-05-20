@@ -28,13 +28,15 @@ const statusBadgeConfig: Record<SubscriptionStatus, { label: string; classes: st
 interface StudentSubscriptionCardProps {
   subscription: StudentSubscription | null
   credits: StudentCredits | null
+  hasSubscriptionError: boolean
+  hasCreditsError: boolean
 }
 
-export default function StudentSubscriptionCard({ subscription, credits }: StudentSubscriptionCardProps) {
+export default function StudentSubscriptionCard({ subscription, credits, hasCreditsError, hasSubscriptionError }: StudentSubscriptionCardProps) {
 
-  if (!subscription || !credits) {
+  if (hasSubscriptionError || hasCreditsError) {
     return (
-      <div className="bg-slate-100 flex flex-col items-center justify-center py-8 px-6">
+      <div className="bg-slate-50 flex flex-col items-center justify-center py-8 px-6">
         <div className="flex items-center mb-2 gap-2">
           <CircleAlert className="size-4 bg-white rounded-full text-red-500 shadow-sm" />
           <h3 className="font-bold text-red-600">
@@ -45,7 +47,18 @@ export default function StudentSubscriptionCard({ subscription, credits }: Stude
           Não conseguimos carregar os dados de assinatura do aluno.<br /> Por favor, recarregue a página ou tente novamente em instantes.
         </p>
       </div>
-    )
+    );
+  }
+
+  if (!subscription) {
+    return (
+      <div className="bg-slate-50 flex flex-col items-center justify-center py-8 px-6">
+        <h3 className="font-bold text-slate-700 mb-1">Nenhum plano ativo</h3>
+        <p className="text-slate-500 text-sm max-w-sm text-center">
+          Este aluno não possui uma assinatura ou ela expirou.
+        </p>
+      </div>
+    );
   }
 
   const badge = statusBadgeConfig[subscription.status as SubscriptionStatus];
@@ -67,7 +80,6 @@ export default function StudentSubscriptionCard({ subscription, credits }: Stude
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
 
-      {/* CARD 1: DADOS DA ASSINATURA */}
       <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-100">
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Dados da Assinatura</h3>
         <div className="flex items-center gap-2 mb-2">
@@ -81,27 +93,25 @@ export default function StudentSubscriptionCard({ subscription, credits }: Stude
         </p>
       </div>
 
-      {/* CARD 2: REDAÇÕES RESTANTES */}
       <div className="p-8 flex flex-col items-center justify-center bg-slate-100">
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">
           Redações Restantes
         </h3>
         <div className="size-20 rounded-full border-[6px] border-amber-200/40 flex items-center justify-center">
-          {/* Usamos flex items-baseline para alinhar a base do número grande com o texto pequeno */}
+
           <div className="flex items-baseline translate-x-1">
-            <span className="text-3xl font-black text-amber-400">{credits.plan_credits}</span>
-            <span className="text-sm font-bold text-amber-400/60 ml-0.5">/{credits.total_credits}</span>
+            <span className="text-3xl font-black text-amber-400">{credits?.plan_credits || 0}</span>
+            <span className="text-sm font-bold text-amber-400/60 ml-0.5">/{credits?.total_credits || 0}</span>
           </div>
         </div>
       </div>
 
-      {/* CARD 3: CRÉDITOS ADICIONAIS */}
       <div className="p-8 flex flex-col items-center justify-center bg-slate-100">
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">
           Créditos Adicionais
         </h3>
         <div className="size-20 rounded-full border-[6px] border-blue-100 flex items-center justify-center">
-          <span className="text-3xl font-black text-blue-600">{credits.extra_credits}</span>
+          <span className="text-3xl font-black text-blue-600">{credits?.extra_credits || 0} </span>
         </div>
       </div>
     </div>

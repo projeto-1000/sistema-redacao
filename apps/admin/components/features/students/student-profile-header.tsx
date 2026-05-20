@@ -4,14 +4,15 @@ import { StudentProfile } from "@repo/types";
 
 import { updateStudentStatus } from "@/app/actions/students";
 import { useToggleUserStatus } from "@/hooks/use-toggle-user-status";
-import StudentSubscriptionCard from "@/components/student-subscription-card";
 import { UserProfileHeader } from "@/components/user-profile-header";
+import { ReactNode } from "react";
 
 interface StudentsProfileHeaderProps {
   student: StudentProfile
+  subscriptionCard: ReactNode
 }
 
-export function StudentProfileHeader({ student }: StudentsProfileHeaderProps) {
+export function StudentProfileHeader({ student, subscriptionCard }: StudentsProfileHeaderProps) {
   const { entity: studentItem, toggleStatus } = useToggleUserStatus(
     student,
     updateStudentStatus
@@ -21,7 +22,7 @@ export function StudentProfileHeader({ student }: StudentsProfileHeaderProps) {
     <UserProfileHeader
       user={studentItem}
       onToggleStatus={toggleStatus}
-      footer={<StudentSubscriptionCard subscription={studentItem.subscription} credits={studentItem.credits} />}
+      footer={subscriptionCard}
     />
   );
 }

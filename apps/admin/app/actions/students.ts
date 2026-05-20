@@ -68,6 +68,70 @@ export async function getStudents({
   };
 }
 
+// export async function getStudentById(studentId: string) {
+//   const supabase = await createClient();
+
+//   const { data: profile, error: profileError } = await supabase
+//     .from("profiles")
+//     .select("*")
+//     .eq("id", studentId)
+//     .single();
+
+//   if (profileError || !profile) {
+//     return { student: null, error: "Perfil não encontrado" };
+//   }
+
+//   const [subscriptionData, creditsData] = await Promise.all([
+//     supabase.from("subscriptions").select("*").eq("user_id", studentId).single(),
+//     supabase.from("student_credits").select("*").eq("user_id", studentId).single(),
+//   ]);
+
+//   const subscription = subscriptionData.data;
+//   const credits = creditsData.data;
+
+//   if (!subscription) {
+//     return {
+//       student: { ...profile, subscription: null, credits: credits || null },
+//       error: null,
+//     };
+//   }
+
+//   const { data: plan, error: planError } = await supabase
+//     .from("plans")
+//     .select("name, credits_included, billing_cycle, price_in_cents")
+//     .eq("id", subscription.plan_id)
+//     .eq("is_active", true)
+//     .single();
+
+//   if (planError || !plan) {
+//     return {
+//       student: { ...profile, subscription: null, credits: null },
+//       error: null,
+//     };
+//   }
+
+//   return {
+//     student: {
+//       ...profile,
+//       subscription: {
+//         ...subscription,
+//         plan_name: plan.name,
+//         billing_cycle: plan.billing_cycle,
+//         price: plan.price_in_cents,
+//         credits_included: plan.credits_included,
+//       },
+//       credits: credits
+//         ? {
+//             ...credits,
+//             renew_date: subscription.current_period_end,
+//             total_credits: plan.credits_included,
+//           }
+//         : null,
+//     },
+//     error: null,
+//   };
+// }
+
 export async function getStudentById(studentId: string) {
   const supabase = await createClient();
 
@@ -78,30 +142,62 @@ export async function getStudentById(studentId: string) {
     .single();
 
   if (profileError || !profile) {
-    return { student: null, error: "Perfil não encontrado", subscriptionError: null };
+    return {
+      student: null,
+      error: "Perfil não encontrado",
+      hasSubscriptionError: false,
+      hasCreditsError: false,
+    };
   }
 
-  const [subscriptionData, creditsData] = await Promise.all([
-    supabase.from("subscriptions").select("*").eq("user_id", studentId).single(),
-    supabase.from("student_credits").select("*").eq("user_id", studentId).single(),
+  // 1. MUDANÇA ARQUITETURAL: Usar maybeSingle() para separar "Vazio" de "Erro de Banco"
+  const [subscriptionRes, creditsRes] = await Promise.all([
+    supabase.from("subscriptions").select("*").eq("user_id", studentId).maybeSingle(),
+    supabase.from("student_credits").select("*").eq("user_id", studentId).maybeSingle(),
   ]);
 
-  const subscription = subscriptionData.data;
-  const credits = creditsData.data;
+  const hasSubscriptionError = !!subscriptionRes.error;
+  const hasCreditsError = !!creditsRes.error;
 
-  if (!subscription) {
-    return { student: null, error: "Assinatura não encontrada", subscriptionError: true };
+  const subscription = subscriptionRes.data;
+  const credits = creditsRes.data;
+
+  // Se for um ERRO REAL (banco fora do ar, timeout, permissão)
+  if (hasSubscriptionError) {
+    return {
+      student: { ...profile, subscription: null, credits: null },
+      error: null,
+      hasSubscriptionError: true,
+      hasCreditsError,
+    };
   }
 
+  // Se a query rodou com sucesso, mas o aluno NÃO TEM assinatura (data: null, error: null)
+  if (!subscription) {
+    return {
+      student: { ...profile, subscription: null, credits: credits || null },
+      error: null,
+      hasSubscriptionError: false,
+      hasCreditsError,
+    };
+  }
+
+  // 2. Busca o plano com maybeSingle() também
   const { data: plan, error: planError } = await supabase
     .from("plans")
     .select("name, credits_included, billing_cycle, price_in_cents")
     .eq("id", subscription.plan_id)
     .eq("is_active", true)
-    .single();
+    .maybeSingle();
 
+  // Se planError existir, foi falha de rede. Se !plan, o plano só está inativo/deletado.
   if (planError || !plan) {
-    return { student: null, error: "Plano não encontrado", subscriptionError: true };
+    return {
+      student: { ...profile, subscription: null, credits: null },
+      error: null,
+      hasSubscriptionError: !!planError, // Retorna true se foi falha de rede
+      hasCreditsError,
+    };
   }
 
   return {
@@ -114,13 +210,17 @@ export async function getStudentById(studentId: string) {
         price: plan.price_in_cents,
         credits_included: plan.credits_included,
       },
-      credits: {
-        ...credits,
-        renew_date: subscription.current_period_end,
-        total_credits: plan.credits_included,
-      },
+      credits: credits
+        ? {
+            ...credits,
+            renew_date: subscription.current_period_end,
+            total_credits: plan.credits_included,
+          }
+        : null,
     },
     error: null,
+    hasSubscriptionError: false,
+    hasCreditsError: hasCreditsError,
   };
 }
 
