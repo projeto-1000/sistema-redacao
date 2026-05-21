@@ -17,10 +17,10 @@ export default async function GeneralMetrics() {
     },
     {
       title: "Planos Ativos",
-      value: "156",
+      value: metrics.plans.total,
       suffix: null,
-      trend: "+12% este mês",
-      isPositive: true,
+      trend: metrics.plans.trend,
+      isPositive: metrics.plans.isPositive,
       icon: CreditCard,
       decorationClass: "bg-emerald-50",
       iconClass: "bg-emerald-100 text-emerald-600",
