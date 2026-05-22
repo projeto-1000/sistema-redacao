@@ -21,6 +21,7 @@ export default function AppLayout({
     { label: 'Alunos', href: '/alunos' },
     { label: 'Professores', href: '/professores' },
     { label: 'Temas', href: '/temas' },
+    { label: 'Planos', href: '/planos' },
   ];
 
   const handleLogout = async () => {

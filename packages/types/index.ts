@@ -205,7 +205,7 @@ export interface Plans {
   external_id: string
   credits_included: number
   billing_cycle: BillingCycle
-  price_in_cents: number
+  price: number
   is_active: boolean
   created_at: string;
   updated_at: string;

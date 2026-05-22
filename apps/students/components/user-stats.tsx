@@ -96,8 +96,6 @@ export function UserStats({ stats }: UserStatsProps) {
     },
   ];
 
-  console.log(stats)
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {statCards.map((item, index) => (
