@@ -48,10 +48,64 @@ export async function createPlan(data: CreatePlanFormValues) {
       return { success: false, error: "Erro ao cadastrar o plano no banco de dados." };
     }
 
-    revalidatePath("/admin/planos");
+    revalidatePath("/planos");
     return { success: true, error: null };
   } catch (err) {
     console.error("Erro inesperado em createPlan:", err);
+    return { success: false, error: "Erro interno no servidor." };
+  }
+}
+
+export async function updatePlan(id: string, data: CreatePlanFormValues) {
+  try {
+    const supabase = await createClient();
+
+    const parsedData = createPlanSchema.parse(data);
+
+    const { error } = await supabase
+      .from("plans")
+      .update({
+        name: parsedData.name,
+        billing_cycle: parsedData.billing_cycle,
+        price: parsedData.price,
+        credits_included: parsedData.credits_included,
+        is_active: parsedData.is_active,
+        description: parsedData.description,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erro ao atualizar plano no Supabase:", error);
+      return { success: false, error: "Erro ao atualizar o plano." };
+    }
+
+    revalidatePath("/planos");
+    return { success: true, error: null };
+  } catch (err) {
+    console.error("Erro inesperado em updatePlan:", err);
+    return { success: false, error: "Erro interno no servidor." };
+  }
+}
+
+export async function updatePlanStatus(id: string, currentStatus: boolean) {
+  try {
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from("plans")
+      .update({
+        is_active: !currentStatus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) return { success: false, error: "Erro ao alterar o status do plano." };
+
+    revalidatePath("/planos");
+    return { success: true, error: null };
+  } catch (err) {
+    console.error("Erro em updatePlanStatus:", err);
     return { success: false, error: "Erro interno no servidor." };
   }
 }

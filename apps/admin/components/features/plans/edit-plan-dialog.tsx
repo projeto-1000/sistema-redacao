@@ -4,37 +4,44 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreatePlanFormValues, CreatePlanFormInput, createPlanSchema } from "@repo/validators";
-import { createPlan } from "@/app/actions/plans";
+import { updatePlan } from "@/app/actions/plans";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@repo/ui/components/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/components/form";
 import { Input } from "@repo/ui/components/input";
 import { Textarea } from "@repo/ui/components/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/select";
 import { Button } from "@repo/ui/components/button";
-import { Plus } from "lucide-react";
+import { Pencil } from "lucide-react";
+import { Plans } from "@repo/types";
 import { toast } from "sonner";
 
-export function CreatePlanDialog() {
+interface EditPlanDialogProps {
+  plan: Plans;
+}
+
+export function EditPlanDialog({ plan }: EditPlanDialogProps) {
   const [open, setOpen] = useState(false);
 
   const form = useForm<CreatePlanFormInput>({
     resolver: zodResolver(createPlanSchema),
     defaultValues: {
-      is_active: true,
-      price: "" as unknown as number,
-      credits_included: 4,
+      name: plan.name,
+      billing_cycle: plan.billing_cycle,
+      price: Number(plan.price),
+      credits_included: plan.credits_included,
+      is_active: plan.is_active,
+      description: plan.description || "",
     },
   });
 
   const { isSubmitting, isValid } = form.formState;
 
   const onSubmit = async (data: CreatePlanFormInput) => {
-    const result = await createPlan(data as CreatePlanFormValues);
+    const result = await updatePlan(plan.id, data as CreatePlanFormValues);
 
     if (result.success) {
-      form.reset();
       setOpen(false);
-      toast.success("Plano criado com sucesso!")
+      toast.success("Plano editado com sucesso!")
     } else {
       toast.error("Erro ao salvar plano", { description: 'Tente novamente em instantes.' })
     }
@@ -44,18 +51,20 @@ export function CreatePlanDialog() {
   const labelClass = "text-sm font-bold text-slate-600";
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (!isOpen) form.reset();
+    }}>
       <DialogTrigger asChild>
-        <Button className="rounded-xl font-bold h-10 w-full sm:w-fit" variant="secondary">
-          <Plus className="size-4 mr-2" />
-          Adicionar Novo Plano
+        <Button variant="ghost" size="icon" className="size-8 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50">
+          <Pencil className="size-4" />
         </Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[600px] p-6 rounded-3xl">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-xl font-black">
-            Cadastrar Novo Plano
+            Editar Plano
           </DialogTitle>
         </DialogHeader>
 
@@ -214,7 +223,7 @@ export function CreatePlanDialog() {
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
-                className="rounded-xl h-10 border-slate-200 text-slate-600 hover:bg-slate-50 font-bold px-6"
+                className="rounded-xl h-10 border-slate-200 text-slate-600 hover:bg-slate-50 font-bold"
               >
                 Cancelar
               </Button>
@@ -224,9 +233,9 @@ export function CreatePlanDialog() {
                 disabled={!isValid || isSubmitting}
                 className="rounded-xl h-10 font-bold"
                 isLoading={isSubmitting}
-                loadingText="Salvando..."
+                loadingText="Atualizando..."
               >
-                Salvar Plano
+                Atualizar Plano
               </Button>
             </div>
           </form>

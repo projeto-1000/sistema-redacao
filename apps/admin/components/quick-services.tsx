@@ -5,7 +5,7 @@ export default function QuickServices() {
 
   const services = [
     { title: 'Gerenciar alunos', description: 'Adicionar ou editar perfils', icon: Users, colors: 'colors-blue-50 text-secondary', href: '/alunos' },
-    { title: 'Configurar Planos', description: 'Preços e recursos', icon: Settings, colors: 'colors-amber-50 text-amber-600', href: '/' },
+    { title: 'Configurar Planos', description: 'Preços e recursos', icon: Settings, colors: 'colors-amber-50 text-amber-600', href: '/planos' },
     { title: 'Corrigir Redações', description: 'Acessar fila de correção', icon: FileEdit, colors: 'colors-emerald-50 text-emerald-600', href: '/redacoes-pendentes' },
     { title: 'Cadastrar Novo Tema', description: 'Adicionar proposta e textos', icon: FilePlus, colors: 'bg-purple-50 text-purple-600', href: '/temas/novo-tema' },
   ]
