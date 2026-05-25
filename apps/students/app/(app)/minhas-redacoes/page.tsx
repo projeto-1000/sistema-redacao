@@ -23,7 +23,7 @@ export default async function MyEssaysPage({
     <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <PageHeader
-          title="Minha redacções"
+          title="Minha redações"
           subtitle="Acompanhe seu progresso e evolução na escrita."
           className="w-full"
         >
