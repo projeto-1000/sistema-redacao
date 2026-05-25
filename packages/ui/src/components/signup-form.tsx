@@ -289,7 +289,7 @@ export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
               <Button
                 type="submit"
                 variant={appType !== 'admin' ? 'default' : 'secondary'}
-                className="w-full font-bold h-12 rounded-2xl text-[16px]"
+                className="w-full font-bold h-12 rounded-xl text-[16px]"
                 disabled={isSubmitting || !isValid}
                 isLoading={isSubmitting}
                 loadingText="Criando conta..."

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createClient } from "@/lib/client";
-import { LoginSchema, RegisterSchema } from "@repo/validators";
+import { ForgotPasswordSchema, LoginSchema, RegisterSchema } from "@repo/validators";
 import { useRouter } from "next/navigation";
 
 export function useAuth() {
@@ -29,6 +29,27 @@ export function useAuth() {
       setAuthError(error.message);
     } finally {
       setIsLoggingIn(false);
+    }
+  };
+
+  const forgotPassword = async (data: ForgotPasswordSchema) => {
+    const targetUrl = encodeURIComponent("/nova-senha?flow=reset");
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: `http://localhost:3001/api/auth/callback?next=${targetUrl}`,
+        // redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?next=/nova-senha`,
+      });
+
+      if (error) {
+        console.error("Erro no reset de senha:", error.message);
+        return { success: false, error: "Não foi possível processar a solicitação no momento." };
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error("Erro em requestPasswordReset:", err);
+      return { success: false, error: "Erro interno no servidor." };
     }
   };
 
@@ -74,6 +95,7 @@ export function useAuth() {
     login,
     authError,
     register,
+    forgotPassword,
     isLoggingIn,
   };
 }

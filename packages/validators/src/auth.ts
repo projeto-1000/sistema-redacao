@@ -60,6 +60,11 @@ export const setPasswordSchema = z.object({
   }
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
+});
+
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type RegisterSchema = z.infer<typeof registerSchema>;
 export type SetPasswordSchema = z.infer<typeof setPasswordSchema>;
+export type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;

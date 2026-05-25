@@ -38,7 +38,8 @@ export async function updateSession(request: NextRequest) {
 
   const publicRoutes = [
     "/login",
-    "/signup",
+    "/cadastro",
+    "/esqueci-minha-senha",
     "/",
     "/nova-senha",
     "/api/auth/confirm",
@@ -62,7 +63,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  if (user && userRole === ALLOWED_ROLE && (pathname === "/login" || pathname === "/signup")) {
+  if (user && userRole === ALLOWED_ROLE && (pathname === "/login" || pathname === "/cadastro")) {
     const url = request.nextUrl.clone();
     url.pathname = "/inicio";
     return NextResponse.redirect(url);

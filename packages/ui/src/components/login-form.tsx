@@ -129,7 +129,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
                     </FormControl>
                     <FormMessage />
 
-                    <Link href="/forgot-password" className="block mt-2 text-right text-sm text-slate-500 hover:underline">
+                    <Link href="/esqueci-minha-senha" className="block mt-2 text-right text-sm text-slate-500 hover:underline">
                       Esqueceu sua senha?
                     </Link>
                   </FormItem>
@@ -139,7 +139,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
               <Button
                 type="submit"
                 variant={appType !== 'admin' ? 'default' : 'secondary'}
-                className="w-full font-bold h-12 rounded-2xl text-[16px]"
+                className="w-full font-bold h-12 rounded-xl text-[16px]"
                 disabled={isSubmitting || !isValid}
                 isLoading={isSubmitting}
                 loadingText="Entrando..."
@@ -165,7 +165,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
             <div className="w-full pt-4 border-t border-[#e8e4ce] text-center">
               <p>
                 Ainda não tem uma conta?
-                <Link className="text-primary font-medium hover:underline ml-1" href="/signup">
+                <Link className="text-primary font-medium hover:underline ml-1" href="/cadastro">
                   Cadastre-se
                 </Link>
               </p>

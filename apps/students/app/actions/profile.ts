@@ -96,13 +96,25 @@ export async function updateProfile({ name }: { name: string }) {
 }
 
 export async function updatePassword(password: string) {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await supabase.auth.updateUser({
+      password: password,
+    });
 
-  if (error) {
-    console.error("Erro ao atualizar senha:", error);
-    throw new Error("Não foi possível atualizar a senha");
+    if (error) {
+      console.error("Erro ao atualizar senha:", error.message);
+      return {
+        success: false,
+        error: "Não foi possível atualizar a senha. O link pode ter expirado.",
+      };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Erro interno:", err);
+    return { success: false, error: "Erro interno no servidor." };
   }
 }
 
@@ -151,6 +163,7 @@ export async function uploadAvatar(formData: FormData) {
 
 export async function setNewPassword(data: SetPasswordSchema) {
   const { password } = data;
+  console.log(password);
   const supabase = await createClient();
   const {
     data: { user },

@@ -36,7 +36,7 @@ export async function updateSession(request: NextRequest) {
 
   const userRole = user?.user_metadata?.role;
 
-  const publicRoutes = ["/login", "/signup", "/"];
+  const publicRoutes = ["/login", "/cadastro", "/"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
   if (!isPublicRoute) {
@@ -54,7 +54,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  if (user && userRole === ALLOWED_ROLE && (pathname === "/login" || pathname === "/signup")) {
+  if (user && userRole === ALLOWED_ROLE && (pathname === "/login" || pathname === "/cadastro")) {
     const url = request.nextUrl.clone();
     url.pathname = "/inicio";
     return NextResponse.redirect(url);
