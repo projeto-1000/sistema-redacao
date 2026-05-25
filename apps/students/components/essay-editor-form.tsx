@@ -27,7 +27,6 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
     null
   );
 
-  //TODO: definir caracteres mínimos
   const MAX_CHARS = 10000;
   const MIN_CHARS = 100;
   const charCount = text.length;
@@ -136,11 +135,12 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
             disabled={text === "" || isSaving === true}
             onClick={handleSaveDraft}
             className="w-full sm:w-auto font-bold rounded-full h-12 px-6 gap-2"
+            isLoading={isSaving}
+            loadingText="Salvando"
           >
             <Save className="size-4" />
-            Salvar Rascunho
+            Sair da Tela e Salvar Rascunho
           </Button>
-
         </div>
       </div>
     </form >

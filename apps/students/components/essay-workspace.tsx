@@ -62,7 +62,6 @@ export function EssayWorkspace({ essayTopic, isSuccess, backup }: EssayWorkspace
         </div>
 
         <div className="flex-1 h-full flex flex-col min-w-0">
-
           <MobileMotivationalTexts
             isOpen={isOpen}
             onClose={setIsOpen}
@@ -72,8 +71,6 @@ export function EssayWorkspace({ essayTopic, isSuccess, backup }: EssayWorkspace
           <EssayEditorForm topic={essayTopic} backup={backup} />
         </div>
       </div>
-
-
     </div>
   );
 }
