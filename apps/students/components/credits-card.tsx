@@ -1,6 +1,7 @@
 
 import { Button } from "@repo/ui/components/button";
 import { Coins, Plus } from "lucide-react";
+import Link from "next/link";
 
 interface TeacherCreditsCardProps {
   credits: number;
@@ -29,11 +30,17 @@ export function CreditsCard({ credits }: TeacherCreditsCardProps) {
       </div>
 
       <Button
+        asChild
         variant="ghost"
         className="h-8 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-lg"
       >
-        Adicionar
-        <Plus className="size-3.5 ml-1" />
+        <Link href="/assinatura/comprar-creditos">
+          <>
+            Adicionar
+            <Plus className="size-3.5 ml-1" />
+          </>
+        </Link>
+
       </Button>
 
     </div>
