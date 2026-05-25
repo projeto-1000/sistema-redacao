@@ -2,22 +2,18 @@ import { Info, TrendingUp, FileCheck, BadgeCheck } from "lucide-react";
 
 interface StatCardProps {
   title: string;
-  value?: number;
-  maxValue?: number;
+  value: number | null;
   helperText: string;
   variant: "yellow" | "blue";
-  trendText?: string;
 }
 
 export function StatCard({
   title,
   value,
-  maxValue = 1000,
   helperText,
   variant = "yellow",
-  trendText
 }: StatCardProps) {
-  const isEmpty = !value || value === 0;
+  const isEmpty = value === null || value === undefined;
 
   if (isEmpty) {
     return (
@@ -28,7 +24,7 @@ export function StatCard({
 
         <div className="flex items-baseline gap-1 my-2">
           <span className="text-3xl font-bold text-slate-300">---</span>
-          <span className="text-lg font-bold text-slate-300">/{maxValue}</span>
+          <span className="text-lg font-bold text-slate-300">/1000</span>
         </div>
 
         <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
@@ -80,17 +76,6 @@ export function StatCard({
           / 1000
         </span>
       </div>
-
-      {trendText && (
-        <div className={`relative z-10 self-start px-3 py-1.5 rounded-full backdrop-blur-sm flex items-center gap-2 text-xs font-medium ${currentStyle.mainText} ${currentStyle.badgeBg}`}>
-          {variant === "yellow" ? (
-            <TrendingUp className="size-3.5" />
-          ) : (
-            <BadgeCheck className="size-3.5" />
-          )}
-          {trendText}
-        </div>
-      )}
     </div>
   );
 }
