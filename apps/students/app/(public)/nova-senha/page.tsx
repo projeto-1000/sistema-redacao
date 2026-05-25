@@ -1,4 +1,3 @@
-// app/(auth)/nova-senha/page.tsx
 'use client'
 
 import { useSearchParams, useRouter } from "next/navigation";
@@ -6,9 +5,6 @@ import { toast } from "sonner";
 import { ShieldCheck } from "lucide-react";
 import { Suspense } from "react";
 import { SetPasswordForm } from '@repo/ui/components/set-password-form'
-
-
-
 import { type SetPasswordSchema } from "@repo/validators";
 import { getErrorMessage } from "@repo/utils";
 import { setNewPassword, updatePassword } from "@/app/actions/profile";
@@ -22,7 +18,6 @@ function NewPasswordContent() {
 
   const handlePasswordSubmit = async (values: SetPasswordSchema) => {
     try {
-      // Se for reset, manda só a string. Se for Hotmart, manda o objeto todo.
       if (isReset) {
         const result = await updatePassword(values.password);
         if (!result.success) throw new Error(result.error);
@@ -48,7 +43,7 @@ function NewPasswordContent() {
       title={isReset ? "Redefinir Senha" : "Defina sua senha"}
       description={isReset ? "Crie uma nova senha de acesso à área do aluno." : "Crie uma senha segura para acessar a área de aluno."}
       buttonText={isReset ? "Atualizar Senha" : "Salvar e Acessar Plataforma"}
-      showTerms={!isReset} // Esconde termos no reset!
+      showTerms={!isReset}
       onSubmitAction={handlePasswordSubmit}
     />
   );

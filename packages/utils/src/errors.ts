@@ -24,11 +24,15 @@ const DEFAULT_ERROR: AppError = {
   },
 
   "default": DEFAULT_ERROR,
+  "access_denied": {
+    title: "Algo deu errado",
+    description: "O link expirou ou já foio usado. Por favor, tente novamente.",
+  }
 };
 
 export function getErrorContent(errorString: string | null): AppError | null {
   if (!errorString) return null;
-  
+  console.log(errorString)
   return APP_ERRORS[errorString] || DEFAULT_ERROR;
 }
 
