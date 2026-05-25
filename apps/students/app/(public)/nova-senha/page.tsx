@@ -13,7 +13,7 @@ import { type SetPasswordSchema } from "@repo/validators";
 import { getErrorMessage } from "@repo/utils";
 import { setNewPassword, updatePassword } from "@/app/actions/profile";
 
-function NovaSenhaContent() {
+function NewPasswordContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -54,11 +54,11 @@ function NovaSenhaContent() {
   );
 }
 
-export default function NovaSenhaPage() {
+export default function NewPasswordPage() {
   return (
     <div className="bg-gradient-soft min-h-dvh flex items-center flex-col justify-center p-4">
       <Suspense fallback={<div className="h-[500px] w-full max-w-[500px] animate-pulse bg-white/50 rounded-xl" />}>
-        <NovaSenhaContent />
+        <NewPasswordContent />
       </Suspense>
 
       <footer className="mt-8 text-center text-[12px] text-slate-500 flex items-center gap-2 font-bold uppercase tracking-wider">
