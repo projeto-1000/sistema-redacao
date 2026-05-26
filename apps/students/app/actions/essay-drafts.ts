@@ -106,3 +106,21 @@ export async function deleteDraftEssay(essayId: string) {
 
   return { success: true };
 }
+
+export async function getDraftEssay(topicId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from("essays")
+    .select("id, content, updated_at")
+    .eq("student_id", user.id)
+    .eq("topic_id", topicId)
+    .eq("status", "draft")
+    .maybeSingle();
+
+  return data;
+}

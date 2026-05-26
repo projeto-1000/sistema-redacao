@@ -35,7 +35,7 @@ export function useEssayEditor(themeId: string, serverBackup: EssayBackup | null
       } catch (e) {
         console.error("Erro no auto-save:", e);
       }
-    }, 5000);
+    }, 1500);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);

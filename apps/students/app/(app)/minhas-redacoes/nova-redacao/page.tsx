@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { getTopicDetails } from "@/app/actions/get-topics";
 import { EssayWorkspace } from "@/components/essay-workspace";
-import { getTemporaryBackup } from "@/app/actions/essay-drafts";
+import { getDraftEssay, getTemporaryBackup } from "@/app/actions/essay-drafts";
 import { EssayDraft } from "@/types";
 import type { Metadata } from "next";
 
@@ -25,14 +25,22 @@ export default async function NewEssayPage(props: Props) {
 
   const essayTopic = await getTopicDetails(topicId);
 
-  let backup = null;
+  let tempBackup = null;
+  let officialDraft = null;
+
   if (essayTopic && !isSuccess) {
-    backup = await getTemporaryBackup(topicId);
+    officialDraft = await getDraftEssay(topicId);
+    tempBackup = await getTemporaryBackup(topicId);
   }
 
-  const draftData: EssayDraft | null = backup ? {
-    content: backup.content,
-    updated_at: backup.updated_at
+  const latestDraft = [tempBackup, officialDraft]
+    .filter(Boolean)
+    .sort((a, b) => new Date(b?.updated_at).getTime() - new Date(a?.updated_at).getTime())[0];
+
+  const draftData: EssayDraft | null = latestDraft ? {
+    id: officialDraft?.id,
+    content: latestDraft.content,
+    updated_at: latestDraft.updated_at
   } : null;
 
   if (!essayTopic) {
