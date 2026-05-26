@@ -113,20 +113,30 @@ export async function deleteDraftEssay(essayId: string) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Não autorizado");
 
-  const { error } = await supabase
+  const { data: deletedEssay, error } = await supabase
     .from("essays")
-    .delete({ count: "exact" })
+    .delete()
     .eq("id", essayId)
-    .eq("student_id", user.id);
+    .eq("student_id", user.id)
+    .select("topic_id")
+    .single();
 
   if (error) {
     console.error("Erro ao deletar rascunho:", error);
     throw new Error("Falha ao excluir o rascunho.");
   }
 
-  revalidatePath("/minhas-redacoes");
+  if (deletedEssay?.topic_id) {
+    await supabase
+      .from("essay_backups")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("theme_id", deletedEssay.topic_id);
+  }
 
-  return { success: true };
+  revalidatePath("/minhas-redacoes", "layout");
+
+  return { success: true, topicId: deletedEssay?.topic_id };
 }
 
 export async function getDraftEssay(topicId: string) {
