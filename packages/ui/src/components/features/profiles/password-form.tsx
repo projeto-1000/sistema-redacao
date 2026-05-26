@@ -5,9 +5,10 @@ import { Eye, EyeOff, Lock } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { toast } from "sonner";
+import { ActionResponse } from "./profile-view";
 
 interface PasswordFormProps {
-  onUpdate: (password: string) => Promise<void>;
+  onUpdate: (password: string) => Promise<ActionResponse>;
 }
 
 export function PasswordForm({ onUpdate }: PasswordFormProps) {

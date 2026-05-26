@@ -29,6 +29,7 @@ export function ProfileHeader({ user, creditBalanceComponent, secondaryAction }:
           src={user.avatarUrl}
           name={user.name}
           className="size-24 md:size-28 lg:size-30 xl:size-38 border-3 border-slate-200 shadow-md"
+          textClassName="text-2xl md:text-4xl"
         />
       </div>
 

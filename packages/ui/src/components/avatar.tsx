@@ -5,9 +5,10 @@ interface AvatarProps {
   src?: string | null;
   name: string;
   className?: string;
+  textClassName?: string;
 }
 
-export function Avatar({ src, name, className }: AvatarProps) {
+export function Avatar({ src, name, className, textClassName }: AvatarProps) {
   const initials = name
     .split(' ')
     .map(n => n[0])
@@ -31,7 +32,9 @@ export function Avatar({ src, name, className }: AvatarProps) {
           className="object-cover"
         />
       ) : (
-        <span className="leading-none">{initials}</span>
+        <span className={cn("font-bold text-sm md:text-base leading-none", textClassName)}>
+          {initials}
+        </span>
       )}
     </div>
   );

@@ -16,11 +16,16 @@ import { ProfileForm } from "./profile-form";
 import { PasswordForm } from "./password-form";
 import { UserData } from "@repo/types";
 
+export type ActionResponse = {
+  success: boolean;
+  error?: string;
+};
+
 interface EditProfileViewProps {
   initialData: UserData;
   onSaveProfile: (data: { name: string }) => Promise<void>;
   onUploadAvatar: (formData: FormData) => Promise<void>;
-  onUpdatePassword: (password: string) => Promise<void>;
+  onUpdatePassword: (password: string) => Promise<ActionResponse>;
 }
 
 export function EditProfileView({ initialData, onSaveProfile, onUploadAvatar, onUpdatePassword }: EditProfileViewProps) {
