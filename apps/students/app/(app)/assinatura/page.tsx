@@ -4,10 +4,14 @@ import { CreditsUsageCard } from "@/components/credits-usage-card";
 import { PlanDetailsCard } from "@/components/plan-details";
 import { parseCreditsTransactionsFilters } from "@/utils/parse-filters";
 import { Button } from "@repo/ui/components/button";
-
 import { PageHeader } from "@repo/ui/components/page-header";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Minha Assinatura",
+};
 
 export default async function SubscriptionPage({
   searchParams,
@@ -20,7 +24,6 @@ export default async function SubscriptionPage({
 
   const filters = parseCreditsTransactionsFilters(resolvedSearchParams);
 
-
   const data = await getSubscriptionData();
 
   if (!data) return null
@@ -32,7 +35,7 @@ export default async function SubscriptionPage({
   return (
     <div className="space-y-8 min-h-dvh px-2 md:px-10 lg:px-12 py-4">
       <Button asChild variant='ghost' className="text-slate-500 hover:text-primary hover:bg-transparent!">
-        <Link href="/assinatura">
+        <Link href="/perfil">
           <ArrowLeft className="size-4 mr-2 " />
           Voltar para o perfil
         </Link>

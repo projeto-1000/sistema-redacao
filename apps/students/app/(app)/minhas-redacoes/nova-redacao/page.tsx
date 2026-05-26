@@ -4,6 +4,11 @@ import { getTopicDetails } from "@/app/actions/get-topics";
 import { EssayWorkspace } from "@/components/essay-workspace";
 import { getTemporaryBackup } from "@/app/actions/essay-drafts";
 import { EssayDraft } from "@/types";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Nova redação",
+};
 
 type Props = {
   searchParams: Promise<{ id: string, success: string }>;

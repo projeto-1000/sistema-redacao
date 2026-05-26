@@ -39,13 +39,17 @@ function NewPasswordContent() {
   };
 
   return (
-    <SetPasswordForm
-      title={isReset ? "Redefinir Senha" : "Defina sua senha"}
-      description={isReset ? "Crie uma nova senha de acesso à área do aluno." : "Crie uma senha segura para acessar a área de aluno."}
-      buttonText={isReset ? "Atualizar Senha" : "Salvar e Acessar Plataforma"}
-      showTerms={!isReset}
-      onSubmitAction={handlePasswordSubmit}
-    />
+    <>
+      <title>Criar Nova Senha - Projeto 1000 </title>
+
+      <SetPasswordForm
+        title={isReset ? "Redefinir Senha" : "Defina sua senha"}
+        description={isReset ? "Crie uma nova senha de acesso à área do aluno." : "Crie uma senha segura para acessar a área de aluno."}
+        buttonText={isReset ? "Atualizar Senha" : "Salvar e Acessar Plataforma"}
+        showTerms={!isReset}
+        onSubmitAction={handlePasswordSubmit}
+      />
+    </>
   );
 }
 

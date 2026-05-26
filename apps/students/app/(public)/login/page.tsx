@@ -18,18 +18,24 @@ function LoginContent() {
   };
 
   return (
-    <LoginForm
-      appType="student"
-      onSubmit={handleLogin}
-      isSubmitting={isLoggingIn}
-      error={error}
-    />
+    <>
+      <title>Login - Projeto 1000</title>
+
+      <LoginForm
+        appType="student"
+        onSubmit={handleLogin}
+        isSubmitting={isLoggingIn}
+        error={error}
+      />
+    </>
   );
 }
 
 export default function LoginPage() {
   return (
     <div className="bg-gradient-soft min-h-dvh flex items-center justify-center p-4">
+      <title>Login - Projeto 1000</title>
+
       <Suspense fallback={<div>Carregando...</div>}>
         <LoginContent />
       </Suspense>

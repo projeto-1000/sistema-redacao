@@ -4,6 +4,11 @@ import { PurchaseCallout } from "@/components/purchase-callout";
 import { Button } from "@repo/ui/components/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Minha Assinatura",
+};
 
 export default async function BuyCreditsPage() {
   const packages = await getCreditPackages();

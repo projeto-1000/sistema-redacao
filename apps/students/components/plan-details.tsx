@@ -3,6 +3,7 @@ import { Button } from "@repo/ui/components/button";
 import { Badge } from "@repo/ui/components/badge";
 import { statusBadgeConfig } from "@repo/constants";
 import { formatCurrency, formatDate } from "@repo/utils";
+import Link from "next/link";
 
 export function PlanDetailsCard({ subscription }: { subscription: StudentSubscription }) {
   const isLifetime = subscription.billing_cycle === 'lifetime' || subscription.status === 'trial';
@@ -62,8 +63,10 @@ export function PlanDetailsCard({ subscription }: { subscription: StudentSubscri
               </Button>
             )}
 
-            <Button className="w-full md:w-auto rounded-xl h-11 font-medium">
-              Alterar Plano
+            <Button asChild className="w-full md:w-auto rounded-xl h-11 font-medium">
+              <Link href='/assinatura/mudar-plano'>
+                Alterar Plano
+              </Link>
             </Button>
           </div>
         </div>

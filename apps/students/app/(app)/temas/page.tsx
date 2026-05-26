@@ -3,6 +3,11 @@ import { TopicsTable } from "@/components/topics/topics-table";
 import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { NextSearchParams, parseTopicsFilters } from "@/utils/parse-filters";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Temas",
+};
 
 export default async function TopicsPage({
   searchParams,

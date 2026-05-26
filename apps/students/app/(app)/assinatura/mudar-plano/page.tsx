@@ -5,6 +5,11 @@ import { Button } from "@repo/ui/components/button";
 import { PageHeader } from "@repo/ui/components/page-header";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mudar Plano",
+};
 
 export default async function ChangePlanPage() {
   const [plans, currentPlanId] = await Promise.all([

@@ -1,5 +1,10 @@
 import { getProfileData, updatePassword, updateProfile, uploadAvatar } from "@/app/actions/profile";
 import { EditProfileView } from "@repo/ui/components/features/profiles/profile-view";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Editar Perfil",
+};
 
 export default async function EditProfilePage() {
   const data = await getProfileData();

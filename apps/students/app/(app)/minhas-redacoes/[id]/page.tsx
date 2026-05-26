@@ -3,6 +3,11 @@ import EssayHeader from "@repo/ui/components/features/essays/components/essay-he
 import EssayContent from "@repo/ui/components/features/essays/components/essay-content";
 import { EssayCompetencies, EssayScoreCard } from "@repo/ui/components/features/essays/components/essay-sidebar";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Detalhes da Redação",
+};
 
 export default async function EssayFeedbackPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

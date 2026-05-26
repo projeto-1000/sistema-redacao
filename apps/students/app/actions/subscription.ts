@@ -24,10 +24,11 @@ export async function getSubscriptionData() {
 
   const subscription = subscriptionData.data;
   const credits = creditsData.data;
+  console.log(subscription, credits);
 
   const { data: plan, error } = await supabase
     .from("plans")
-    .select("name, credits_included, billing_cycle, price_in_cents")
+    .select("name, credits_included, billing_cycle, price")
     .eq("id", subscription.plan_id)
     .eq("is_active", true)
     .single();
@@ -39,7 +40,7 @@ export async function getSubscriptionData() {
       ...subscription,
       plan_name: plan.name,
       billing_cycle: plan.billing_cycle,
-      price: plan.price_in_cents,
+      price: plan.price,
       credits_included: plan.credits_included,
     },
     credits: {

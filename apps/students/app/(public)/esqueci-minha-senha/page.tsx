@@ -14,11 +14,15 @@ function ForgotPasswordContent() {
   };
 
   return (
-    <ForgotPasswordForm
-      appType="student"
-      onSubmitAction={handleForgotPassword}
-      backToLoginHref="/login"
-    />
+    <>
+      <title>Esqueci Minha Senha - Projeto 1000</title>
+
+      <ForgotPasswordForm
+        appType="student"
+        onSubmitAction={handleForgotPassword}
+        backToLoginHref="/login"
+      />
+    </>
   );
 }
 

@@ -7,6 +7,11 @@ import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { parseEssaysFilters } from "@/utils/parse-filters";
 import { PageHeader } from "@repo/ui/components/page-header";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Minhas Redações",
+};
 
 export default async function MyEssaysPage({
   searchParams,

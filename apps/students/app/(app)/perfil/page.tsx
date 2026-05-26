@@ -8,6 +8,11 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@repo/ui/components/page-header";
 import { ProfileHeader } from "@repo/ui/components/profile-header";
 import { CreditsCard } from "@/components/credits-card";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Meu Perfil",
+};
 
 export default async function ProfilePage() {
   const data = await getProfileData();

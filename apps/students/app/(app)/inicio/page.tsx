@@ -12,6 +12,12 @@ import { getProfileData } from "@/app/actions/profile";
 import { CreditsCard } from "@/components/credits-card";
 import { OnboardingModal } from "@/components/onboarding-modal";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Início",
+};
+
 const actions = [
   {
     title: "Nova Redação",

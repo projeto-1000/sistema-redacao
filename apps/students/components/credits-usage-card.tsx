@@ -49,7 +49,7 @@ export function CreditsUsageCard({ credits, subscription }: { credits: StudentCr
             <span className="text-3xl font-bold">{credits.extra_credits}</span>
           </div>
 
-          <Link href='/' className="flex items-center gap-2 text-[13px] hover:text-secondary hover:font-bold transition-colors justify-end text-medium text-slate-700 text-right">
+          <Link href='/assinatura/comprar-creditos' className="flex items-center gap-2 text-[13px] hover:text-secondary hover:font-bold transition-colors justify-end text-medium text-slate-700 text-right">
             <Plus className="size-4" /> Comprar mais créditos
           </Link>
         </div>
