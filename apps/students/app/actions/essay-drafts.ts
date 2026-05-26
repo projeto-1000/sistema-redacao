@@ -3,6 +3,17 @@
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
 
+type EssayPayload = {
+  student_id: string;
+  topic_id: string;
+  title: string;
+  thematic_axis: string;
+  content: string;
+  status: string;
+  updated_at: string;
+  created_at?: string;
+};
+
 export async function saveTemporaryBackup(themeId: string, content: string) {
   const supabase = await createClient();
   const {
@@ -39,30 +50,41 @@ export async function saveDraft(
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Não autorizado");
 
-  const essayData: any = {
+  const essayData: EssayPayload = {
     student_id: user.id,
     topic_id: topicId,
     title: title,
     thematic_axis: thematicAxis,
     content: content,
     status: "draft",
-    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
 
-  if (draftId) {
-    essayData.id = draftId;
-  }
+  let dbError = null;
 
-  const { error } = await supabase.from("essays").upsert(essayData, { onConflict: "id" });
+  if (draftId) {
+    const { error } = await supabase
+      .from("essays")
+      .update(essayData)
+      .eq("id", draftId)
+      .eq("student_id", user.id);
+
+    dbError = error;
+  } else {
+    essayData.created_at = new Date().toISOString();
+    const { error } = await supabase.from("essays").insert(essayData);
+
+    dbError = error;
+  }
 
   await supabase.from("essay_backups").delete().eq("user_id", user.id).eq("theme_id", topicId);
 
-  if (error) {
-    console.error("Erro no banco:", error);
-    throw error;
+  if (dbError) {
+    console.error("Erro no banco:", dbError);
+    throw dbError;
   }
 
-  revalidatePath("/minhas-redacoes");
+  revalidatePath("/minhas-redacoes", "layout");
   return { success: true };
 }
 
