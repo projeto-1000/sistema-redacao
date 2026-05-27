@@ -5,6 +5,7 @@ import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
 import { SetPasswordSchema } from "@repo/validators";
 import { redirect } from "next/navigation";
+import { getFriendlyErrorMessage } from "@/utils/auth-error-dictionary";
 
 type ActionResponse = {
   success: boolean;
@@ -110,10 +111,13 @@ export async function updatePassword(password: string) {
     });
 
     if (error) {
+      console.log(error.code);
+
       console.error("Erro ao atualizar senha:", error.message);
+
       return {
         success: false,
-        error: "Não foi possível atualizar a senha. O link pode ter expirado.",
+        error: getFriendlyErrorMessage(error), // Chamada limpa e direta
       };
     }
 

@@ -60,6 +60,20 @@ export const setPasswordSchema = z.object({
   }
 });
 
+export const updatePasswordSchema = z.object({
+  password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
+  confirmPassword: z.string().min(1, "Confirme sua senha"), 
+}).superRefine((data, ctx) => {
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["confirmPassword"],
+      message: "As senhas não coincidem",
+    });
+  }
+});
+
+
 export const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
 });
@@ -68,3 +82,4 @@ export type LoginSchema = z.infer<typeof loginSchema>;
 export type RegisterSchema = z.infer<typeof registerSchema>;
 export type SetPasswordSchema = z.infer<typeof setPasswordSchema>;
 export type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
+export type UpdatePasswordSchema = z.infer<typeof updatePasswordSchema>;
