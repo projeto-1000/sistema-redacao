@@ -19,12 +19,12 @@ import { UserData } from "@repo/types";
 export type ActionResponse = {
   success: boolean;
   error?: string;
+  avatarUrl?: string
 };
-
 interface EditProfileViewProps {
   initialData: UserData;
-  onSaveProfile: (data: { name: string }) => Promise<void>;
-  onUploadAvatar: (formData: FormData) => Promise<void>;
+  onSaveProfile: (data: { name: string }) => Promise<ActionResponse | void>;
+  onUploadAvatar: (formData: FormData) => Promise<ActionResponse | void>;
   onUpdatePassword: (password: string) => Promise<ActionResponse>;
 }
 

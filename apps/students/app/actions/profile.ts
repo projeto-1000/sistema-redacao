@@ -6,6 +6,12 @@ import { revalidatePath } from "next/cache";
 import { SetPasswordSchema } from "@repo/validators";
 import { redirect } from "next/navigation";
 
+type ActionResponse = {
+  success: boolean;
+  error?: string;
+  avatarUrl?: string;
+};
+
 export async function getProfileData() {
   const supabase = await createClient();
 
@@ -118,47 +124,62 @@ export async function updatePassword(password: string) {
   }
 }
 
-export async function uploadAvatar(formData: FormData) {
+export async function uploadAvatar(formData: FormData): Promise<ActionResponse> {
+  const file = formData.get("file") as File;
+  if (!file) return { success: false, error: "Nenhum arquivo recebido." };
+
   const supabase = await createClient();
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Usuário não autenticado." };
 
-  if (authError || !user) throw new Error("Usuário não autenticado");
+  try {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", user.id)
+      .single();
 
-  const file = formData.get("file") as File;
-  if (!file) throw new Error("Nenhum arquivo enviado");
+    if (profile?.avatar_url) {
+      const oldFilePath = profile.avatar_url.split("/avatars/").pop();
 
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      if (oldFilePath) {
+        const { error: deleteError } = await supabase.storage.from("avatars").remove([oldFilePath]);
 
-  const { error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file, {
-    upsert: true,
-    contentType: file.type,
-  });
+        if (deleteError) console.error("Falha ao apagar foto antiga:", deleteError);
+      }
+    }
 
-  if (uploadError) {
-    console.error("Erro no storage:", uploadError);
-    throw new Error("Falha ao salvar a imagem");
+    const newFileName = `${user.id}-${Date.now()}.jpg`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(newFileName, file, {
+        contentType: "image/jpeg",
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(newFileName);
+
+    const newAvatarUrl = publicUrlData.publicUrl;
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ avatar_url: newAvatarUrl })
+      .eq("id", user.id);
+
+    if (updateError) throw updateError;
+
+    revalidatePath("/perfil", "layout");
+
+    return { success: true, avatarUrl: newAvatarUrl };
+  } catch (error) {
+    console.error("Erro interno no upload de avatar:", error);
+    return { success: false, error: "Falha ao processar a imagem no servidor." };
   }
-
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("avatars").getPublicUrl(fileName);
-
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({ avatar_url: publicUrl })
-    .eq("id", user.id);
-
-  if (updateError) {
-    console.error("Erro ao vincular imagem:", updateError);
-    throw new Error("Falha ao atualizar a foto no perfil");
-  }
-
-  revalidatePath("/perfil");
-  revalidatePath("/perfil/editar");
 }
 
 export async function setNewPassword(data: SetPasswordSchema) {
