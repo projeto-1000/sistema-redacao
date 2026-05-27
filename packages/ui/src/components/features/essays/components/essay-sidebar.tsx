@@ -43,7 +43,7 @@ export function EssayCompetencies({ scores, comments }: EssayCompetenciesProps) 
                   {score}<span className="opacity-50 font-bold">/200</span>
                 </div>
               </div>
-              <div className={`mt-3 border-l-3 ${comp.border} pl-4 py-1 text-sm text-slate-700 italic`}>
+              <div className={`mt-3 border-l-3 ${comp.border} pl-4 py-1 text-sm text-slate-700 italic whitespace-pre-line `}>
                 {comment}
               </div>
               {comp.id !== "c5" && <div className="h-px w-full bg-slate-100 mt-6"></div>}
