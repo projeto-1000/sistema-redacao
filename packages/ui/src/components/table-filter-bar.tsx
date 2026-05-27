@@ -1,6 +1,6 @@
 import { Search, ChevronDown, CalendarDays, X } from "lucide-react";
 import { LucideIcon } from "lucide-react";
-import { format, subDays, isSameDay } from "date-fns";
+import { format, subDays, subMonths, subYears, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
@@ -40,7 +40,7 @@ export function TableFilterBar(props: TableFilterBarProps) {
     theme = 'default',
   } = props;
 
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   const hasActiveFilters =
@@ -62,7 +62,7 @@ export function TableFilterBar(props: TableFilterBarProps) {
     onSearchChange("");
     if (onDateRangeChange) onDateRangeChange(undefined);
     filters.forEach(filter => filter.onChange(""));
-    setSelectedDay(null);
+    setSelectedPreset(null); // Atualizado aqui
   };
 
   const formatDisplayDate = () => {
@@ -79,13 +79,13 @@ export function TableFilterBar(props: TableFilterBarProps) {
   };
 
 
-  const setPreset = (days: number) => {
-    setSelectedDay(days);
+  const handlePresetClick = (label: string, getFromDate: (hoje: Date) => Date) => {
     const today = new Date();
+    setSelectedPreset(label);
 
     if (onDateRangeChange) {
       onDateRangeChange({
-        from: subDays(today, days),
+        from: getFromDate(today),
         to: today,
       });
     }
@@ -119,9 +119,8 @@ export function TableFilterBar(props: TableFilterBarProps) {
           placeholder={searchPlaceholder}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className={`w-full h-12 pl-11 pr-4 rounded-xl text-sm font-medium text-slate-700 bg-slate-50 border-none outline-none focus:ring-2 ${theme === 'default' ? 'focus:ring-primary' : 'focus:ring-blue-500'} placeholder:text-slate-400 transition-all`}
+          className={`w-full h-12 pl-11 pr-4 rounded-xl text-sm font-medium text-slate-700 bg-slate-50 border-none outline-none focus:ring-2 focus-visible:ring-2 ${theme === 'default' ? 'focus-visible:ring-primary focus-visible:border-primary' : 'focus-visible:ring-secondary focus-visible:border-secondary'} placeholder:text-slate-400 transition-all`}
         />
-
       </div>
 
       <div className="flex items-center gap-2 shrink-0 overflow-x-auto scrollbar-hide max-w-full pb-1 lg:pb-0">
@@ -168,6 +167,7 @@ export function TableFilterBar(props: TableFilterBarProps) {
             <PopoverTrigger asChild>
               <button
                 suppressHydrationWarning
+                type="button"
                 className="h-12 flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors shrink-0 border border-transparent hover:border-slate-200 outline-none">
                 <CalendarDays className="size-3.5 text-slate-400" />
                 <span className={`text-xs font-bold text-slate-400 uppercase tracking-wider ${dateRange === undefined ? 'flex' : 'hidden lg:block'}`}>
@@ -185,17 +185,20 @@ export function TableFilterBar(props: TableFilterBarProps) {
 
             <PopoverContent className="w-auto p-0 shadow-lg rounded-xl border-slate-200" align="end">
 
-              <div className="flex flex-wrap p-3 gap-2 justify-between border-b rounded-t-xl border-slate-100 bg-slate-50/50">
+              <div className="grid grid-cols-2 p-3 gap-2 justify-between border-b rounded-t-xl border-slate-100 bg-slate-50/50">
                 {[
-                  { label: "7 dias", value: 7 },
-                  { label: "30 dias", value: 30 },
-                  { label: "60 dias", value: 60 },
+                  { label: "7 dias", getFrom: (hoje: Date) => subDays(hoje, 7) },
+                  { label: "Mês passado", getFrom: (hoje: Date) => subMonths(hoje, 1) },
+                  { label: "3 meses", getFrom: (hoje: Date) => subMonths(hoje, 3) },
+                  { label: "6 meses", getFrom: (hoje: Date) => subMonths(hoje, 6) },
+                  { label: "1 ano", getFrom: (hoje: Date) => subYears(hoje, 1) },
                 ].map((preset) => (
                   <button
-                    key={preset.value}
-                    onClick={() => setPreset(preset.value)}
-                    className={`flex-1 text-sm font-medium border py-2 rounded-md text-center transition-colors ${selectedDay === preset.value
-                      ? 'bg-blue-50 border-blue-200 text-blue-600'
+                    key={preset.label}
+                    type="button"
+                    onClick={() => handlePresetClick(preset.label, preset.getFrom)}
+                    className={`flex-1 text-xs sm:text-sm font-medium border py-2 px-2 rounded-md text-center transition-colors whitespace-nowrap ${selectedPreset === preset.label
+                      ? theme === 'admin' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-yellow-50 border-yellow-200 text-yellow-600'
                       : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-100'
                       }`}
                   >
@@ -211,11 +214,10 @@ export function TableFilterBar(props: TableFilterBarProps) {
                   month={currentMonth}
                   onMonthChange={setCurrentMonth}
                   onSelect={(range) => {
-                    setSelectedDay(null);
+                    setSelectedPreset(null);
                     if (onDateRangeChange) onDateRangeChange(range);
                   }}
                   locale={ptBR}
-                  resetOnSelect
                   classNames={theme === "admin" ? adminCalendarClasses : defaultCalendarClasses}
                 />
               </div>
