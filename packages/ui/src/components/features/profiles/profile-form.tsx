@@ -49,8 +49,8 @@ export function ProfileForm({ initialData, onSave, onUpload, onDirtyStateChange 
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imagem muito grande. Limite de 5MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("A imagem é muito grande. O limite é 10MB.");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -145,6 +145,7 @@ export function ProfileForm({ initialData, onSave, onUpload, onDirtyStateChange 
               onChange={handleFileChange}
             />
           </div>
+          <p className="text-xs font-medium text-slate-400">* Formato: JPG, PNG ou WEBP (Máximo 10MB)</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
