@@ -24,7 +24,6 @@ export async function getSubscriptionData() {
 
   const subscription = subscriptionData.data;
   const credits = creditsData.data;
-  console.log(subscription, credits);
 
   const { data: plan, error } = await supabase
     .from("plans")

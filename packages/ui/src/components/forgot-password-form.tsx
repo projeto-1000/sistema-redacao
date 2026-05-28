@@ -34,7 +34,7 @@ export function ForgotPasswordForm({ appType, onSubmitAction, backToLoginHref }:
   const onSubmit = async (data: ForgotPasswordSchema) => {
     setServerError(null);
     const result = await onSubmitAction(data);
-    // console.log(result)
+
     if (result.success) {
       toast.success("E-mail enviado com sucesso!", {
         description: "Verifique sua caixa de entrada. Enviamos um link para você redefinir sua senha."

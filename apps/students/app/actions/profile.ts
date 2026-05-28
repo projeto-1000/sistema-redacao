@@ -24,7 +24,7 @@ export async function getProfileData() {
     redirect("/login");
   }
 
-  const [profileRes, creditsRes, statsRes, evolutionRes] = await Promise.all([
+  const [profileRes, creditsRes, statsRes, evolutionRes, rankingRes] = await Promise.all([
     supabase
       .from("profiles")
       .select(`full_name, email, avatar_url, onboarding_completed`)
@@ -39,12 +39,19 @@ export async function getProfileData() {
       p_user_id: user.id,
       p_months_count: 6,
     }),
+
+    supabase
+      .from("weekly_student_ranking")
+      .select("ranking_position, ranking_trend")
+      .eq("student_id", user.id)
+      .maybeSingle(),
   ]);
 
   const profile = profileRes.data;
   const credits = creditsRes.data;
   const stats = statsRes.data;
   const evolution = evolutionRes.data;
+  const ranking = rankingRes.data;
 
   if (!profile) {
     throw new Error("Erro de integridade: Perfil ou carteira de créditos não encontrados.");
@@ -74,7 +81,8 @@ export async function getProfileData() {
       averageScore: stats?.average_total_score != null ? stats.average_total_score : null,
       bestScore: stats?.best_score ?? null,
       lastScore: stats?.last_score ?? null,
-      bestCompetence: stats?.best_competence ?? null,
+      rankingPosition: ranking?.ranking_position ?? null,
+      rankingTrend: ranking?.ranking_trend || 0,
       scoreTrend: stats?.score_trend || 0,
       essaysTrend: stats?.essays_trend || 0,
     },
@@ -111,13 +119,11 @@ export async function updatePassword(password: string) {
     });
 
     if (error) {
-      console.log(error.code);
-
       console.error("Erro ao atualizar senha:", error.message);
 
       return {
         success: false,
-        error: getFriendlyErrorMessage(error), // Chamada limpa e direta
+        error: getFriendlyErrorMessage(error),
       };
     }
 
@@ -188,7 +194,7 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResponse> 
 
 export async function setNewPassword(data: SetPasswordSchema) {
   const { password } = data;
-  console.log(password);
+
   const supabase = await createClient();
   const {
     data: { user },

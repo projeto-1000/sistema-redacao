@@ -232,7 +232,6 @@ export async function updateStudentStatus(studentId: string, currentStatus: stri
     throw new Error("Bloqueado por RLS ou aluno não encontrado.");
   }
 
-  console.log("✅ Atualizado com sucesso no banco:", data);
   revalidatePath("/alunos");
 }
 

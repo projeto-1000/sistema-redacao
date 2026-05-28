@@ -52,7 +52,6 @@ export async function createPaymentAccount(teacherId: string, data: AccountFormV
     revalidatePath(`/professores/${teacherId}/pagamentos`);
     return { success: true };
   } catch (error) {
-    console.log(error);
     return { success: false, error: "Falha ao salvar a conta." };
   }
 }

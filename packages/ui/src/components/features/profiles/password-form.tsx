@@ -51,7 +51,6 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
       setShowPassword(false);
       setShowConfirmPassword(false);
     } catch (error) {
-      console.log(error);
       toast.error("Erro de conexão ao tentar atualizar a senha.");
     }
   };

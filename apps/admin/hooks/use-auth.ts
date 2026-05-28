@@ -55,7 +55,6 @@ export function useAuth() {
       router.refresh();
       router.push("/inicio");
     } catch (error: any) {
-      console.log(`Erro ao criar conta: ${error.message}`);
       throw new Error(error.message);
     } finally {
       setIsRegistering(false);

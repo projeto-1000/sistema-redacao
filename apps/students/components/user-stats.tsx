@@ -1,32 +1,13 @@
-import { BarChart3, FileText, Award, Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { BarChart3, FileText, Trophy, Minus, TrendingDown, TrendingUp } from "lucide-react";
+
 interface TrendIndicatorProps {
   value?: number;
   unit: string;
+  unchangedText?: string;
 }
 
-interface UserStatsProps {
-  stats: {
-    totalEssays: number;
-    averageScore: number;
-    bestScore: number;
-    bestCompetence: string;
-    scoreTrend?: number;
-    essaysTrend?: number;
-  };
-}
-
-const competenceLabels: Record<string, string> = {
-  "C1": "Domínio da escrita formal",
-  "C2": "Compreensão do tema",
-  "C3": "Organização das ideias",
-  "C4": "Coesão e conectivos",
-  "C5": "Proposta de intervenção",
-  "-": "Aguardando correções",
-};
-
-
-function TrendIndicator({ value, unit }: TrendIndicatorProps) {
-  if (value === undefined || value === null || value === 0) {
+function TrendIndicator({ value, unit, unchangedText = "Manteve a média" }: TrendIndicatorProps) {
+  if (value === undefined || value === null) {
     return <span className="text-slate-400">Sem dados anteriores</span>;
   }
 
@@ -51,19 +32,30 @@ function TrendIndicator({ value, unit }: TrendIndicatorProps) {
   return (
     <span className="flex items-center gap-1 text-slate-400 font-bold">
       <Minus className="size-3.5" />
-      Manteve a média <span className="font-medium ml-1">vs. mês passado</span>
+      {unchangedText} <span className="font-medium ml-1">vs. mês passado</span>
     </span>
   );
 }
 
+interface UserStatsProps {
+  stats: {
+    totalEssays: number;
+    averageScore: number;
+    rankingPosition?: number;
+    rankingTrend?: number;
+    scoreTrend?: number;
+    essaysTrend?: number;
+  };
+}
+
 export function UserStats({ stats }: UserStatsProps) {
-  const bestCompetenceLabel = competenceLabels[stats.bestCompetence] || "Sem dados";
 
   const statCards = [
     {
       label: "Média Geral",
       value: stats.averageScore,
-      footer: <TrendIndicator value={stats.scoreTrend} unit="pts" />,
+      suffix: null,
+      footer: <TrendIndicator value={stats.scoreTrend} unit="pts" unchangedText="Manteve a pontuação" />,
       icon: BarChart3,
       styles: {
         iconBg: "bg-[#FFF9E6]",
@@ -73,7 +65,8 @@ export function UserStats({ stats }: UserStatsProps) {
     {
       label: "Redações Enviadas",
       value: stats.totalEssays,
-      footer: <TrendIndicator value={stats.essaysTrend} unit="envios" />,
+      suffix: "no total",
+      footer: <TrendIndicator value={stats.essaysTrend} unit="envios" unchangedText="Sem novos envios" />,
       icon: FileText,
       styles: {
         iconBg: "bg-[#EDF4FF]",
@@ -81,14 +74,11 @@ export function UserStats({ stats }: UserStatsProps) {
       },
     },
     {
-      label: "Melhor Competência",
-      value: stats.bestCompetence,
-      footer: (
-        <span className="text-[#F97316]/80 font-medium">
-          {bestCompetenceLabel}
-        </span>
-      ),
-      icon: Award,
+      label: "Ranking Global",
+      value: stats.rankingPosition ? `${stats.rankingPosition}º` : null,
+      suffix: "lugar",
+      footer: <TrendIndicator value={stats.rankingTrend} unit="posições" unchangedText="Manteve a posição" />,
+      icon: Trophy,
       styles: {
         iconBg: "bg-[#FFF4ED]",
         iconColor: "text-[#F97316]",
@@ -98,35 +88,43 @@ export function UserStats({ stats }: UserStatsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {statCards.map((item, index) => (
-        <div
-          key={index}
-          className="p-6 rounded-4xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`p-2.5 rounded-xl ${item.styles.iconBg} ${item.styles.iconColor}`}>
-              <item.icon className="size-5" />
-            </div>
-            <span className="font-bold text-14px">
-              {item.label}
-            </span>
-          </div>
+      {statCards.map((item, index) => {
+        const hasValidValue = item.value && item.value !== 0 && item.value !== "-";
 
-          <div>
-            <h3
-              className={`text-4xl font-extrabold ${item.value && item.value !== 0 && item.value !== "-"
-                ? 'text-slate-900'
-                : 'text-slate-300'
-                } mb-1 tracking-tight`}
-            >
-              {item.value && item.value !== 0 && item.value !== "-" ? item.value : "—"}
-            </h3>
-            <p className="text-xs mt-2">
-              {item.footer}
-            </p>
+        return (
+          <div
+            key={index}
+            className="p-6 rounded-4xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`p-2.5 rounded-xl ${item.styles.iconBg} ${item.styles.iconColor}`}>
+                <item.icon className="size-5" />
+              </div>
+              <span className="font-bold text-[14px]">
+                {item.label}
+              </span>
+            </div>
+
+            <div>
+              <h3
+                className={`text-4xl font-extrabold flex items-baseline gap-2 ${hasValidValue ? 'text-slate-900' : 'text-slate-300'
+                  } mb-1 tracking-tight`}
+              >
+                <span>{hasValidValue ? item.value : "—"}</span>
+
+                {item.suffix && hasValidValue && (
+                  <span className="text-sm font-medium text-slate-500 tracking-normal">
+                    {item.suffix}
+                  </span>
+                )}
+              </h3>
+              <p className="text-xs mt-2">
+                {item.footer}
+              </p>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

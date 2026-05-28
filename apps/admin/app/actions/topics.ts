@@ -108,7 +108,6 @@ export async function createEssayTopicAction(formData: FormData) {
       .single();
 
     if (topicError || !topic) {
-      console.log(topicError);
       throw new Error("Erro ao criar a estrutura do tema no banco.");
     }
 
