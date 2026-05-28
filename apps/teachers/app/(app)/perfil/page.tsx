@@ -1,6 +1,11 @@
 import { getProfileData } from "@/app/actions/profile";
 import { PageHeader } from "@repo/ui/components/page-header";
 import { ProfileHeader } from "@repo/ui/components/profile-header";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Meu perfil",
+};
 
 export default async function ProfileProfilePage() {
   const data = await getProfileData();

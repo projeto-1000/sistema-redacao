@@ -4,6 +4,11 @@ import { GradedEssayFiltersBar } from "@/components/graded-essays-filters-bar";
 import GradedEssaysGrid from "@/components/graded-essays-grid";
 import { parseGradedEssaysFilters } from "@/utils/parse-filters";
 import { PageHeader } from "@repo/ui/components/page-header";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Redações Corrigidas",
+};
 
 export default async function FinishedEssaysPage({
   searchParams,

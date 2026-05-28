@@ -3,8 +3,9 @@ import "@repo/ui/styles.css";
 import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
 import { TooltipProvider } from "@repo/ui/components/tooltip";
-import { Toaster } from "sonner";
+
 import { Footer } from "@repo/ui/components/footer";
+import { Toaster } from "@repo/ui/components/toaster";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -12,7 +13,10 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "Projeto 1000 - Professores",
+  title: {
+    template: "%s - Projeto 1000",
+    default: "Projeto 1000 - Área do Professor",
+  },
   description: "Sistema de correção de redações para o ENEM",
 };
 
@@ -27,9 +31,8 @@ export default function RootLayout({
         <TooltipProvider>
           {children}
           <Footer />
-          <Toaster position="top-right" />
+          <Toaster />
         </TooltipProvider>
-
       </body>
     </html>
   );

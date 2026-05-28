@@ -3,7 +3,6 @@
 import { createClient } from "@/lib/client";
 import { useRouter, usePathname } from "next/navigation";
 import { Header } from "@repo/ui/components/header";
-import { Footer } from "@repo/ui/components/footer";
 
 export default function AppLayout({
   children,
@@ -34,12 +33,9 @@ export default function AppLayout({
         activePath={pathname}
         onLogout={handleLogout}
       />
-
       <main className="flex-1 w-full p-6 md:p-8 bg-slate-50">
         {children}
       </main>
-
-      <Footer />
     </div>
   );
 }

@@ -11,6 +11,8 @@ export default function SignUpPage() {
   };
   return (
     <div className="bg-gradient-soft min-h-dvh flex items-center justify-center p-4">
+      <title>Cadastro - Projeto 1000</title>
+
       <SignUpForm
         appType="teacher"
         onSubmit={handleRegister}

@@ -18,12 +18,16 @@ function LoginContent() {
   };
 
   return (
-    <LoginForm
-      appType="teacher"
-      onSubmit={handleLogin}
-      isSubmitting={isLoggingIn}
-      error={error}
-    />
+    <>
+      <title>Login - Projeto 1000</title>
+
+      <LoginForm
+        appType="teacher"
+        onSubmit={handleLogin}
+        isSubmitting={isLoggingIn}
+        error={error}
+      />
+    </>
   );
 }
 

@@ -4,6 +4,11 @@ import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import PendingEssaysGrid from "@/components/pending-essays-grid";
 import { PageHeader } from "@repo/ui/components/page-header";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Redações Pendentes",
+};
 
 export default async function PendingEssaysPage({
   searchParams,

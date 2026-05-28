@@ -2,6 +2,11 @@ import { getCorrectionDraft, saveCorrectionDraft } from "@/app/actions/drafts";
 import { getEssayById, saveEssayCorrection } from "@/app/actions/essays";
 import { EssayCorrectionWorkspace } from "@repo/ui/components/features/grading/components/essay-correction-workspace";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Espaço de Correção",
+};
 
 type Props = {
   params: Promise<{ id: string }>;

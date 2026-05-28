@@ -4,6 +4,11 @@ import { getProfileData } from "@/app/actions/profile";
 import { formatDate } from "@repo/utils";
 import { ArrowRight, Calendar, CheckCircle2, Clock, History, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Início",
+};
 
 export default async function DashboardPage() {
   const data = await getProfileData()
