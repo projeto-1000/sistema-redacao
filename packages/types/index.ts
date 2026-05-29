@@ -218,7 +218,8 @@ export type TransactionType =
   | 'standalone_purchase' 
   | 'essay_usage' 
   | 'plan_change' 
-  | 'administrative_adjustment';
+  | 'administrative_adjustment'
+  | 'essay_refund';
 
   export interface CreditTransaction {
   id: string;

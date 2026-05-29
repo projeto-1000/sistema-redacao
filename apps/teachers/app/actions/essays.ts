@@ -23,6 +23,11 @@ interface GetGradedEssaysParams {
   page?: number;
   limit?: number;
 }
+interface ReturnEssayParams {
+  essayId: string;
+  reason: string;
+  description: string;
+}
 
 export async function getEssaysByStatus({
   status,
@@ -331,5 +336,30 @@ export async function startEssayCorrection(essayId: string) {
   } catch (error) {
     console.error("🚨 Erro interno:", error);
     return { success: false, error: "Erro inesperado do servidor." };
+  }
+}
+
+export async function returnEssay({ essayId, reason, description }: ReturnEssayParams) {
+  const supabase = await createClient();
+
+  try {
+    const { error } = await supabase.rpc("return_essay_to_student", {
+      p_essay_id: essayId,
+      p_reason: reason,
+      p_description: description,
+    });
+
+    if (error) {
+      console.error("Erro no RPC de devolução:", error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath("/dashboard");
+    redirect("/redacoes-pendentes");
+
+    return { success: true };
+  } catch (err) {
+    console.error("Erro inesperado na devolução:", err);
+    return { success: false, error: "Erro interno ao processar a devolução." };
   }
 }

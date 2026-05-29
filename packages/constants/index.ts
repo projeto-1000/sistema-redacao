@@ -196,6 +196,7 @@ export const transactionLabels: Record<string, string> = {
   essay_usage: 'Envio de Redação',
   plan_change: 'Mudança de Plano',
   administrative_adjustment: 'Ajuste Administrativo',
+  essay_refund: 'Devolução de Redação',
 };
 
 export const COMPETENCIES = [

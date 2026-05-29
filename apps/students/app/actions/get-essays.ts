@@ -104,8 +104,11 @@ export async function getEssayById(essayId: string) {
     return null;
   }
 
+  console.log(essay);
+
   return {
     correctedAt: essay.correction_date,
+    updatedAt: essay.updated_at,
     title: essay.title,
     totalScore: essay.total_score,
     text: essay.content,
@@ -125,5 +128,8 @@ export async function getEssayById(essayId: string) {
       c5: essay.comment_c5,
     },
     generalComment: essay.general_comment,
+    returnReason: essay.return_reason,
+    returnDescription: essay.return_description,
+    status: essay.status,
   };
 }

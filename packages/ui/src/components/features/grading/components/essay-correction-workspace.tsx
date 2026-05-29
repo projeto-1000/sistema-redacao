@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Calendar, User } from "lucide-react";
-import { formatDate } from "@repo/utils";
 import { CompetencyCard } from "./competency-card";
 import { EssayViewer, Highlight } from "./essay-viewer";
 import { StickyScore } from "./sticky-score";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { CorrectionPayload } from "@repo/types";
+import { CorrectionPayload, EssayStatus } from "@repo/types";
 import { COMPETENCIES } from "@repo/constants";
+import EssayHeader from "../../essays/components/essay-header";
+import { ReturnEssayDialog, ReturnEssayParams } from "./return-essay-dialog";
 interface EssayCorrectionWorkspaceProps {
   essay: {
     id: string;
@@ -17,11 +17,13 @@ interface EssayCorrectionWorkspaceProps {
     title: string;
     content: string;
     created_at: string;
+    status: EssayStatus;
   };
   initialDraft?: CorrectionPayload | null;
   onAutoSave?: (payload: CorrectionPayload) => void;
   onSaveCorrection: (payload: CorrectionPayload) => Promise<{ success: boolean; error?: string }>;
   redirectPath: string;
+  onReturnEssay: (params: ReturnEssayParams) => Promise<{ success: boolean; error?: string }>;
 }
 
 export function EssayCorrectionWorkspace({
@@ -29,7 +31,8 @@ export function EssayCorrectionWorkspace({
   initialDraft,
   onAutoSave,
   onSaveCorrection,
-  redirectPath
+  redirectPath,
+  onReturnEssay
 }: EssayCorrectionWorkspaceProps) {
   const router = useRouter();
 
@@ -136,21 +139,18 @@ export function EssayCorrectionWorkspace({
 
   return (
     <div className="min-h-dvh flex flex-col">
-
-      <div className="space-y-4 mb-4 md:mb-6">
-        <h1 className="text-2xl md:text-3xl font-extrabold">
-          Espaço de Correção
-        </h1>
-
-        <div className="flex flex-col md:flex-row gap-2 md:gap-4 text-sm font-medium text-slate-600">
-          <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full w-fit">
-            <User className="size-3 md:size-4 text-slate-400" /> {essay.student}
-          </div>
-          <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full w-fit">
-            <Calendar className=" size-3 md:size-4 text-slate-400" /> Enviada em {formatDate(essay.created_at, 'long')}
-          </div>
-        </div>
-      </div>
+      <EssayHeader
+        title={"Espaço de Correção"}
+        date={essay.created_at}
+        studentName={essay.student}
+        status={essay.status}
+        className="mb-4 md:mb-6"
+      >
+        <ReturnEssayDialog
+          essayId={essay.id}
+          onReturnEssay={onReturnEssay}
+        />
+      </EssayHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-20">
 

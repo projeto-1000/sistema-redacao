@@ -19,6 +19,10 @@ export function CreditTableRow({ tx }: CreditTableRowProps) {
     primaryValue = `${tx.amount} crédito`;
     valueColor = 'text-slate-500 font-semibold';
   }
+  else if (tx.type === 'essay_refund') {
+    primaryValue = `+${tx.amount} crédito`;
+    valueColor = 'text-emerald-600 font-bold';
+  }
   else if (tx.type === 'mentorship_bonus') {
     primaryValue = `+${tx.amount} créditos`;
     valueColor = 'text-emerald-600 font-bold';

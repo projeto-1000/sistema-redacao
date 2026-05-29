@@ -57,3 +57,11 @@ export const getScoreColor = (score: number) => {
     if (score >= 500) return "text-amber-500";
     return "text-red-600";
   };
+
+  export const RETURN_REASON_LABELS: Record<string, string> = {
+  incomplete: "Redação incompleta",
+  off_topic: "Fuga ao tema",
+  plagiarism: "Suspeita de plágio/cópia",
+  ai_generated: "Uso de Inteligência Artificial",
+  other: "Outros motivos",
+};
