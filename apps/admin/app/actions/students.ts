@@ -4,6 +4,7 @@ import { GetStudentsFilters, StudentEssayItem, StudentsListItem } from "@/types"
 import { createClient } from "@/lib/server";
 import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+import { CreditTransaction } from "@repo/types";
 interface GetStudentsFiltersParams {
   filters?: GetStudentsFilters;
   page?: number;
@@ -362,5 +363,70 @@ export async function getStudentStats(studentId: string) {
     totalTrend,
     percentChange,
     averageTrend,
+  };
+}
+interface GetStudentCreditsHistoryParams {
+  studentId: string;
+  filters?: {
+    type?: string;
+    from?: string;
+    to?: string;
+  };
+  page?: number;
+  limit?: number;
+}
+
+export async function getStudentCreditsHistory({
+  studentId,
+  filters,
+  page = 1,
+  limit = 10,
+}: GetStudentCreditsHistoryParams): Promise<{
+  transactions: CreditTransaction[];
+  totalPages: number;
+  error: PostgrestError | null;
+}> {
+  const supabase = await createClient();
+
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
+
+  let query = supabase
+    .from("credit_transactions")
+    .select("*", { count: "exact" })
+    .eq("user_id", studentId);
+
+  if (filters?.type) {
+    query = query.eq("type", filters.type);
+  }
+
+  if (filters?.from || filters?.to) {
+    const startRange = filters.from ? new Date(filters.from) : new Date();
+    const endRange = new Date(filters.to || (filters.from as string));
+
+    endRange.setUTCHours(23, 59, 59, 999);
+
+    query = query
+      .gte("created_at", startRange.toISOString())
+      .lte("created_at", endRange.toISOString());
+  }
+
+  const { data, count, error } = await query
+    .range(rangeStart, rangeEnd)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao buscar histórico de créditos:", error);
+    return {
+      transactions: [],
+      totalPages: 0,
+      error: error,
+    };
+  }
+
+  return {
+    transactions: data,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+    error: null,
   };
 }

@@ -228,7 +228,7 @@ export type TransactionType =
   amount: number;
   description: string;
   metadata?: {
-    price_in_cents?: number;
+    price?: number;
     essay_id?: string;
     transaction_id?: string;
     [key: string]: any;

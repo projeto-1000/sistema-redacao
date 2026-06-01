@@ -67,9 +67,11 @@ export async function StudentEssaysTable({ studentId, filters, page }: StudentEs
           )}
         </div>
 
-        <div className="px-8 py-4 border-t border-slate-100 bg-slate-50">
-          <TablePagination totalPages={totalPages} />
-        </div>
+        {totalPages > 0 && (
+          <div className="px-8 py-4 border-t border-slate-100 bg-slate-50">
+            <TablePagination totalPages={totalPages} />
+          </div>
+        )}
       </div>
     </div>
   );

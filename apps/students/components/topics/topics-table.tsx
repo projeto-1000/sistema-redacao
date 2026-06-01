@@ -1,8 +1,9 @@
 import { getTopicsList } from "@/app/actions/get-topics";
 import { TopicsFilter } from "@repo/types";
-import { TablePagination } from "../table-pagination";
+
 import TopicsRow from "./topics-row";
 import { CircleAlert, Search } from "lucide-react";
+import { TablePagination } from "@repo/ui/components/table-pagination";
 
 interface TopicsTableProps {
   filters: TopicsFilter;

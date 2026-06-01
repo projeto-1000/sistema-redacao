@@ -53,7 +53,7 @@ export function TablePagination({ totalPages }: TablePaginationProps) {
         <PaginationItem>
           <PaginationPrevious
             href={currentPage > 1 ? createPageURL(currentPage - 1) : "#"}
-            className={currentPage <= 1 ? "rounded-full h-10 w-10 pointer-events-none opacity-50" : ""}
+            className={`rounded-full h-10 w-10 ${currentPage <= 1 ? "pointer-events-none opacity-50" : "hover:bg-slate-200/60! text-slate-800!"}`}
           />
         </PaginationItem>
 
@@ -66,7 +66,7 @@ export function TablePagination({ totalPages }: TablePaginationProps) {
                 variant={currentPage === page ? 'default' : 'ghost'}
                 href={createPageURL(page as number)}
                 isActive={currentPage === page}
-                className={`rounded-full h-10 w-10 ${currentPage === page ? 'font-bold' : 'border-none font-normal'} `}
+                className={`rounded-full h-10 w-10 ${currentPage === page ? 'font-bold' : 'border-none font-normal hover:font-medium! hover:bg-slate-200/60! text-slate-800!'} `}
               >
                 {page}
               </PaginationLink>
@@ -77,7 +77,7 @@ export function TablePagination({ totalPages }: TablePaginationProps) {
         <PaginationItem>
           <PaginationNext
             href={currentPage < totalPages ? createPageURL(currentPage + 1) : "#"}
-            className={currentPage >= totalPages ? "rounded-full h-10 w-10 pointer-events-none opacity-50" : ""}
+            className={`rounded-full h-10 w-10 ${currentPage >= totalPages ? "pointer-events-none opacity-50" : "hover:bg-slate-200/60! text-slate-800!"}`}
           />
         </PaginationItem>
 

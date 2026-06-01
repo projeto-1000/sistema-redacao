@@ -1,5 +1,5 @@
 import { getCreditsHistory, getSubscriptionData } from "@/app/actions/subscription";
-import CreditTransactionsTable from "@/components/credit-transactions-table";
+import CreditTransactionsTable from "@repo/ui/components/features/credit-history/credits-transactions-table";
 import { CreditsUsageCard } from "@/components/credits-usage-card";
 import { PlanDetailsCard } from "@/components/plan-details";
 import { parseCreditsTransactionsFilters } from "@/utils/parse-filters";

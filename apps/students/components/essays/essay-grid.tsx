@@ -2,9 +2,9 @@
 import { getStudentEssays } from "@/app/actions/get-essays";
 
 import { Search, FileText, CircleAlert } from "lucide-react";
-import { TablePagination } from "../table-pagination";
 import { EssaysFilter } from "@/types";
 import { EssayCard } from "./essay-card";
+import { TablePagination } from "@repo/ui/components/table-pagination";
 
 interface EssayGridProps {
   filters?: EssaysFilter;
@@ -54,9 +54,7 @@ export async function EssayGrid({ filters, page }: EssayGridProps) {
         </div>
       )}
 
-      <div>
-        <TablePagination totalPages={totalPages} />
-      </div>
+      <TablePagination totalPages={totalPages} />
     </>
   );
 }
