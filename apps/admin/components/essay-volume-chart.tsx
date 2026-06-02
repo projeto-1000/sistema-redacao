@@ -52,7 +52,7 @@ export default function EssayVolumeChart({ initialData }: EssayVolumeChartProps)
         <div>
           <div className="flex items-center gap-3">
             <h3 className="text-lg font-black text-slate-900">Volume de Redações</h3>
-            {isPending && <Loader2 className="size-4 text-secondary animate-spin" />}
+            {isPending && <Loader2 className="size-4 text-primary animate-spin" />}
           </div>
           <p className="text-sm font-medium text-slate-500 mt-1">Comparativo semanal de envios vs. correções finalizadas</p>
         </div>

@@ -229,7 +229,6 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
               </Button>
               <Button
                 type="submit"
-                variant='secondary'
                 disabled={!isValid || isSubmitting}
                 className="rounded-xl h-10 font-bold"
                 isLoading={isSubmitting}

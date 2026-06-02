@@ -59,7 +59,7 @@ export function MotivationalTextList() {
                       <FormControl>
                         <Textarea
                           placeholder="Insira aqui o conteúdo integral do texto de apoio..."
-                          className="h-44 p-4 rounded-xl resize-none leading-relaxed focus-visible:ring-secondary focus-visible:border-secondary focus-visible:ring-1"
+                          className="h-44 p-4 rounded-xl resize-none leading-relaxed "
                           {...field}
                         />
                       </FormControl>
@@ -84,7 +84,7 @@ export function MotivationalTextList() {
                         </FormLabel>
                         <FormControl>
                           <div
-                            className="relative w-full h-44 rounded-xl border-2 border-dashed border-slate-200 hover:border-secondary bg-slate-50 flex flex-col items-center justify-center overflow-hidden transition-all group">
+                            className="relative w-full h-44 rounded-xl border-2 border-dashed border-slate-200 hover:border-primary bg-slate-50 flex flex-col items-center justify-center overflow-hidden transition-all group">
                             {previewUrl ? (
                               <>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -137,7 +137,7 @@ export function MotivationalTextList() {
                   <FormItem>
                     <FormLabel className="text-[11px] font-bold uppercase tracking-widest">Fonte / Referência</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: IBGE, 2023 / G1 Notícias" className="h-12 rounded-xl focus-visible:ring-secondary focus-visible:border-secondary focus-visible:ring-1" {...field} />
+                      <Input placeholder="Ex: IBGE, 2023 / G1 Notícias" className="h-12 rounded-xl " {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

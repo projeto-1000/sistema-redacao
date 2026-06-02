@@ -19,7 +19,6 @@ export default async function PendingEssaysPage({
   return (
     <div className="min-h-dvh px-2 md:px-10 lg:px-12 py-4 space-y-4">
       <PageHeader
-        variant="secondary"
         title="Redações Pendentes"
         subtitle="Lista de redações enviadas e prontas para serem corrigidas."
       />

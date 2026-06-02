@@ -9,7 +9,6 @@ export default function PlansManagementPage() {
   return (
     <div className="min-h-dvh px-2 md:px-10 lg:px-12 py-4 space-y-4">
       <PageHeader
-        variant="secondary"
         title="Gestão de Planos"
         subtitle="Cadastro de novos planos e gestão dos existentes"
       >

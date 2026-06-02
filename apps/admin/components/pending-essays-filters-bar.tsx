@@ -8,7 +8,7 @@ export function PendingEssayFiltersBar() {
 
   return (
     <TableFilterBar
-      theme="admin"
+      // theme="admin"
       searchPlaceholder="Buscar por título, eixo temático ou palavra chave..."
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}

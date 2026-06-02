@@ -1,2 +1,13 @@
 @import "tailwindcss";
 @import "@repo/tailwind-config";
+@import "../../../packages/ui/src/styles.css";
+
+:root {
+  --primary: 219.8 84.2% 51% !important;
+  --primary-foreground: 0 0% 100% !important;
+
+  --secondary: 45.1 93.3% 55.7% !important;
+  --secondary-foreground: 0 0% 20% !important;
+
+  --ring: 219.8 84.2% 51% !important;
+}

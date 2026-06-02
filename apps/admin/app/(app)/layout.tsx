@@ -36,7 +36,6 @@ export default function AppLayout({
         items={navItems}
         activePath={pathname}
         onLogout={handleLogout}
-        variant="admin"
       />
 
       <main className="flex-1 w-full p-6 md:p-8 bg-slate-50">

@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 interface PageHeaderProps {
   title: string;
   subtitle: ReactNode;
-  variant?: "default" | "secondary" | "outline" | "ghost" | "destructive";
   className?: string;
   children?: ReactNode;
 }
@@ -10,12 +9,9 @@ interface PageHeaderProps {
 export function PageHeader({
   title,
   subtitle,
-  variant = "default",
   className = "",
   children
 }: PageHeaderProps) {
-
-  const subtitleColor = variant === "secondary" ? "text-slate-500" : "text-[#8B8265]";
 
   return (
     <div className={`flex flex-col gap-4 md:flex-row md:items-center md:justify-between ${className}`}>
@@ -23,7 +19,7 @@ export function PageHeader({
         <h2 className="text-3xl font-extrabold tracking-tight mb-2">
           {title}
         </h2>
-        <p className={subtitleColor}>
+        <p className="text-slate-500">
           {subtitle}
         </p>
       </div>

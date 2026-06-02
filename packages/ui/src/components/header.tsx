@@ -12,21 +12,17 @@ interface HeaderProps {
   items: NavItem[];
   activePath?: string;
   onLogout: () => void;
-  variant?: 'default' | 'admin'
 }
 
 export function Header({
   items,
   activePath = '',
   onLogout,
-  variant = 'default'
 }: HeaderProps) {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-solid border-slate-200 bg-white/80 backdrop-blur-md px-6 h-16 flex items-center justify-between shadow-sm">
-
       <a href="/">
         <Logo className="h-12" />
       </a>
@@ -41,11 +37,7 @@ export function Header({
                 href={item.href}
                 className={`
                   py-1 border-b-2 transition-colors duration-300
-                  ${isActive
-                    ? `text-gray-900 ${variant === 'default' ? 'border-yellow-400' : 'border-secondary'} font-bold`
-                    : `text-gray-600 border-transparent ${variant === 'default' ? 'hover:text-primary' : 'hover:text-secondary'}`
-                  }
-                `}
+                  ${isActive ? 'border-primary font-bold' : 'text-gray-600 border-transparent hover:text-primary'}`}
               >
                 {item.label}
               </a>
@@ -83,13 +75,9 @@ export function Header({
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`
-                    px-4 py-3 rounded-md text-sm font-medium transition-colors
-                    ${isActive
-                      ? `${variant === 'default' ? 'text-primary' : 'text-secondary'} font-bold`
-                      : `text-gray-600 hover:bg-slate-50 ${variant === 'default' ? 'hover:text-primary' : 'hover:text-secondary'}`
-                    }
-                  `}
-                >
+                    px-4 py-3 rounded-md text-sm font-medium transition-colors 
+                    ${isActive ? 'border-primary font-bold' : 'text-gray-600 border-transparent hover:text-primary'}
+                    `}>
                   {item.label}
                 </a>
               );

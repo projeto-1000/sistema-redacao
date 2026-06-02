@@ -99,7 +99,7 @@ export function AccountForm({ teacherId, initialData, onCancel }: AccountFormPro
   };
 
   return (
-    <div className="p-4 space-y-8 animate-in slide-in-from-right-8 fade-in duration-300">
+    <div className="px-2 space-y-8 animate-in slide-in-from-right-8 fade-in duration-300">
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit((d) => onSubmit(d as unknown as AccountFormValues))} className="space-y-6">

@@ -49,7 +49,7 @@ export function ManageAccountsModal({ teacherId, accounts }: ManageAccountsModal
 
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" className="w-fit h-6 rounded-full hover:text-blue-600 font-bold border-0 hover:bg-transparent! transition-colors">
+        <Button variant="ghost" className="w-fit h-6 rounded-full hover:text-primary font-bold border-0 hover:bg-transparent! transition-colors">
           <Landmark className="size-4" /> Gerenciar contas de pagamento
         </Button>
       </DialogTrigger>
@@ -88,7 +88,6 @@ export function ManageAccountsModal({ teacherId, accounts }: ManageAccountsModal
               <div className="flex justify-end">
                 <Button
                   onClick={handleOpenCreate}
-                  variant='secondary'
                   className="rounded-xl font-bold shadow-sm">
                   <Plus className="size-4 mr-2" /> Nova Conta
                 </Button>

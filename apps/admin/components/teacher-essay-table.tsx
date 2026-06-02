@@ -59,7 +59,6 @@ export default async function TeacherEssaysTable({ teacherData, filters, page }:
           payload={{ teacherId, filters }}
           fileName={`historico_redacoes_${teacherName}`}
           className="w-full sm:w-fit"
-          variant="secondary"
         />
 
       </div>

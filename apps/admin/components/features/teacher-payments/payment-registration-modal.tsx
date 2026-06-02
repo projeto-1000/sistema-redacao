@@ -99,7 +99,7 @@ export function PaymentRegistrationModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="p-6 space-y-6 no-scrollbar overflow-y-auto flex-1">
+        <div className="px-6 space-y-6 no-scrollbar overflow-y-auto flex-1">
 
           <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-4">
@@ -124,7 +124,7 @@ export function PaymentRegistrationModal({
 
           <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4 flex flex-col">
             <div className="flex items-center gap-2 mb-4">
-              <Receipt className="size-4 text-secondary" />
+              <Receipt className="size-4 text-primary" />
               <h4 className="text-sm font-bold text-slate-800">Resumo do Pagamento</h4>
             </div>
 
@@ -141,7 +141,7 @@ export function PaymentRegistrationModal({
 
             <div className="mt-4 rounded-xl flex justify-end gap-6 items-end">
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Valor Total</p>
-              <p className="text-lg font-black text-secondary">R$ {metrics.totalAmount.toFixed(2).replace(".", ",")}</p>
+              <p className="text-lg font-black text-primary">R$ {metrics.totalAmount.toFixed(2).replace(".", ",")}</p>
             </div>
           </div>
 
@@ -204,7 +204,7 @@ export function PaymentRegistrationModal({
                         {selectedAccount.pix_type}
                       </span>
                     </div>
-                    <Button variant="secondary" onClick={handleCopyPix} className="h-11 rounded-xl shadow-sm shrink-0 text-[14px]">
+                    <Button onClick={handleCopyPix} className="h-11 rounded-xl shadow-sm shrink-0 text-[14px]">
                       <Copy className="size-3.5" /> Copiar
                     </Button>
                   </div>
@@ -235,7 +235,7 @@ export function PaymentRegistrationModal({
 
           <div>
             <h4 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
-              <FileText className="size-4 text-blue-600" /> Comprovante de Pagamento
+              <FileText className="size-4 text-primary" /> Comprovante de Pagamento
             </h4>
 
             <input
@@ -249,10 +249,10 @@ export function PaymentRegistrationModal({
             {!file ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 hover:border-blue-300 transition-colors"
+                className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 hover:border-primary transition-colors"
               >
                 <div className="size-10 rounded-full bg-blue-50 flex items-center justify-center mb-3">
-                  <UploadCloud className="size-5 text-blue-600" />
+                  <UploadCloud className="size-5 text-primary" />
                 </div>
                 <p className="text-sm font-bold text-slate-700 mb-1">
                   Arraste e solte o comprovante aqui
@@ -295,7 +295,6 @@ export function PaymentRegistrationModal({
             </Button>
           </DialogClose>
           <Button
-            variant='secondary'
             onClick={handleSubmit}
             disabled={!file || !selectedAccount || isPending}
             className="flex-1 font-black rounded-xl h-11 shadow-sm"

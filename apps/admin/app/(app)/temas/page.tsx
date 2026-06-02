@@ -25,9 +25,8 @@ export default async function ThemesPage({
       <PageHeader
         title="Catálogo de Temas"
         subtitle="Gestão dos temas cadastrados na plataforma"
-        variant="secondary"
       >
-        <Button asChild className="rounded-xl font-bold h-10 w-full sm:w-fit" variant="secondary">
+        <Button asChild className="rounded-xl font-bold h-10 w-full sm:w-fit">
           <Link href="/temas/novo-tema">
             <Plus className="size-4 mr-2" />
             Adicionar Tema

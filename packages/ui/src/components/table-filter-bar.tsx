@@ -8,6 +8,8 @@ import { Calendar } from "@repo/ui/components/calendar";
 import { useState } from "react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./select";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./tooltip";
+import { Input } from "./input";
+import { Button } from "./button";
 
 export interface FilterOption {
   id: string;
@@ -92,34 +94,17 @@ export function TableFilterBar(props: TableFilterBarProps) {
     setCurrentMonth(today);
   };
 
-  const adminCalendarClasses = {
-    day: 'hover:bg-accent hover:text-accent-foreground rounded-md',
-    range_start: 'rounded-md rounded-l-md bg-secondary text-white',
-    range_middle: 'rounded-none bg-accent text-accent-foreground',
-    range_end: 'bg-secondary rounded-md rounded-r-md text-white',
-    today: 'text-accent-foreground',
-    focused: 'group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50'
-  }
-
-  const defaultCalendarClasses = {
-    today: 'text-amber-600',
-    day: 'hover:bg-primary',
-    range_start: 'rounded-md rounded-l-md bg-primary',
-    range_middle: 'rounded-none bg-primary/20',
-    range_end: 'bg-primary rounded-md rounded-r-md',
-  }
-
   return (
     <div className={`bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-8 flex gap-2 relative z-10 ${totalFilters > 2 ? 'flex-col' : 'flex-row'} md:flex-row`}>
       <div className="relative flex-1 min-w-0 w-full">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-        <input
+        <Input
           suppressHydrationWarning
           type="text"
           placeholder={searchPlaceholder}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className={`w-full h-12 pl-11 pr-4 rounded-xl text-sm font-medium text-slate-700 bg-slate-50 border-none outline-none focus:ring-2 focus-visible:ring-2 ${theme === 'default' ? 'focus-visible:ring-primary focus-visible:border-primary' : 'focus-visible:ring-secondary focus-visible:border-secondary'} placeholder:text-slate-400 transition-all`}
+          className="w-full h-12 pl-11 pr-4 rounded-xl text-sm font-medium text-slate-700 bg-slate-50 border-none outline-none placeholder:text-slate-400 transition-all"
         />
       </div>
 
@@ -132,7 +117,7 @@ export function TableFilterBar(props: TableFilterBarProps) {
           return (
             <Select key={filter.id} value={filter.value} onValueChange={filter.onChange}>
               <SelectTrigger
-                className="min-h-12 w-auto flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors shrink-0 border border-transparent hover:border-slate-200 shadow-none data-[state=open]:bg-slate-100 focus-visible:ring-offset-0 outline-o focus-visible:border-none focus-visible:ring-blue-600">
+                className="min-h-12 w-auto flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors shrink-0 border border-transparent hover:border-slate-200 shadow-none data-[state=open]:bg-slate-100">
                 <Icon className="size-3.5 text-slate-400" />
 
                 <span className={`text-xs font-bold text-slate-400 uppercase tracking-wider ${hasSelection ? 'hidden lg:block' : 'flex'}`}>
@@ -193,17 +178,17 @@ export function TableFilterBar(props: TableFilterBarProps) {
                   { label: "6 meses", getFrom: (hoje: Date) => subMonths(hoje, 6) },
                   { label: "1 ano", getFrom: (hoje: Date) => subYears(hoje, 1) },
                 ].map((preset) => (
-                  <button
+                  <Button
                     key={preset.label}
                     type="button"
                     onClick={() => handlePresetClick(preset.label, preset.getFrom)}
-                    className={`flex-1 text-xs sm:text-sm font-medium border py-2 px-2 rounded-md text-center transition-colors whitespace-nowrap ${selectedPreset === preset.label
-                      ? theme === 'admin' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-yellow-50 border-yellow-200 text-yellow-600'
-                      : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-100'
+                    className={`flex-1 text-xs sm:text-sm font-medium border py-2 px-2 rounded-md text-center transition-colors whitespace-nowrap 
+                      ${selectedPreset === preset.label ? 'bg-primary/5 text-primary border-primary hover:bg-primary/20 font-bold'
+                        : 'border-slate-200 text-slate-700 bg-white hover:bg-primary/10 hover:border-primary'
                       }`}
                   >
                     {preset.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
 
@@ -218,7 +203,6 @@ export function TableFilterBar(props: TableFilterBarProps) {
                     if (onDateRangeChange) onDateRangeChange(range);
                   }}
                   locale={ptBR}
-                  classNames={theme === "admin" ? adminCalendarClasses : defaultCalendarClasses}
                 />
               </div>
             </PopoverContent>

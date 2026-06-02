@@ -18,7 +18,6 @@ export default function NewTopicPage() {
       <PageHeader
         title="Adicionar Novo Tema"
         subtitle="Configure os detalhes da proposta de redação e anexe os textos de apoio."
-        variant="secondary"
       />
 
       <Form {...form}>
@@ -50,7 +49,6 @@ export default function NewTopicPage() {
               Cancelar
             </Button>
             <Button
-              variant='secondary'
               type="submit"
               disabled={isPending || !isValid}
               className="h-12 rounded-xl font-bold shadow-sm"

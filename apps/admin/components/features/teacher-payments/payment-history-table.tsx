@@ -56,7 +56,6 @@ export async function PaymentHistoryTable({ teacherId, page }: PaymentHistoryTab
           action={exportTeacherPaymentsCsv}
           payload={{ teacherId }}
           fileName="Historico_Pagamentos"
-          variant="secondary"
         />
 
       </div>

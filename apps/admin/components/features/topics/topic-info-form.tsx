@@ -21,7 +21,7 @@ export function TopicInfoForm() {
 
   return (
     <div className="bg-white border border-slate-200 rounded-4xl p-6 md:p-8 shadow-sm">
-      <h2 className="text-[12px] font-bold text-secondary flex items-center gap-2 mb-6 uppercase tracking-widest">
+      <h2 className="text-[12px] font-bold text-primary flex items-center gap-2 mb-6 uppercase tracking-widest">
         <Info className="size-4" /> Informações da Proposta
       </h2>
 
@@ -38,7 +38,7 @@ export function TopicInfoForm() {
                 <FormControl>
                   <Input
                     placeholder="Ex: O impacto do descarte de resíduos..."
-                    className="min-h-12 rounded-xl focus-visible:ring-secondary focus-visible:border-secondary focus-visible:ring-1" {...field} />
+                    className="min-h-12 rounded-xl" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -56,7 +56,7 @@ export function TopicInfoForm() {
               </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger className="min-h-12 min-w-full rounded-xl focus-visible:ring-secondary focus-visible:border-secondary focus-visible:ring-1">
+                  <SelectTrigger className="min-h-12 min-w-full rounded-xl ">
                     <SelectValue placeholder="Selecionar..." />
                   </SelectTrigger>
                 </FormControl>
@@ -85,7 +85,7 @@ export function TopicInfoForm() {
                   </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="min-h-12 rounded-xl min-w-full focus-visible:ring-secondary focus-visible:border-secondary focus-visible:ring-1">
+                      <SelectTrigger className="min-h-12 rounded-xl min-w-full ">
                         <SelectValue placeholder="Fonte" />
                       </SelectTrigger>
                     </FormControl>
@@ -117,7 +117,7 @@ export function TopicInfoForm() {
                       value={field.value ? String(field.value) : ""}
                     >
                       <FormControl>
-                        <SelectTrigger className="min-h-12 rounded-xl min-w-full focus-visible:ring-secondary focus-visible:border-secondary focus-visible:ring-1">
+                        <SelectTrigger className="min-h-12 rounded-xl min-w-full ">
                           <SelectValue placeholder="Ano" />
                         </SelectTrigger>
                       </FormControl>

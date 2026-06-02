@@ -87,7 +87,6 @@ export async function getStudentById(studentId: string) {
     };
   }
 
-  // 1. MUDANÇA ARQUITETURAL: Usar maybeSingle() para separar "Vazio" de "Erro de Banco"
   const [subscriptionRes, creditsRes] = await Promise.all([
     supabase.from("subscriptions").select("*").eq("user_id", studentId).maybeSingle(),
     supabase.from("student_credits").select("*").eq("user_id", studentId).maybeSingle(),
@@ -99,7 +98,6 @@ export async function getStudentById(studentId: string) {
   const subscription = subscriptionRes.data;
   const credits = creditsRes.data;
 
-  // Se for um ERRO REAL (banco fora do ar, timeout, permissão)
   if (hasSubscriptionError) {
     return {
       student: { ...profile, subscription: null, credits: null },
@@ -109,7 +107,6 @@ export async function getStudentById(studentId: string) {
     };
   }
 
-  // Se a query rodou com sucesso, mas o aluno NÃO TEM assinatura (data: null, error: null)
   if (!subscription) {
     return {
       student: { ...profile, subscription: null, credits: credits || null },
@@ -119,20 +116,20 @@ export async function getStudentById(studentId: string) {
     };
   }
 
-  // 2. Busca o plano com maybeSingle() também
   const { data: plan, error: planError } = await supabase
     .from("plans")
-    .select("name, credits_included, billing_cycle, price_in_cents")
+    .select("name, credits_included, billing_cycle, price")
     .eq("id", subscription.plan_id)
     .eq("is_active", true)
     .maybeSingle();
 
-  // Se planError existir, foi falha de rede. Se !plan, o plano só está inativo/deletado.
   if (planError || !plan) {
+    console.log("caiu aqui");
+    console.log(planError);
     return {
       student: { ...profile, subscription: null, credits: null },
       error: null,
-      hasSubscriptionError: !!planError, // Retorna true se foi falha de rede
+      hasSubscriptionError: !!planError,
       hasCreditsError,
     };
   }
@@ -144,7 +141,7 @@ export async function getStudentById(studentId: string) {
         ...subscription,
         plan_name: plan.name,
         billing_cycle: plan.billing_cycle,
-        price: plan.price_in_cents,
+        price: plan.price,
         credits_included: plan.credits_included,
       },
       credits: credits

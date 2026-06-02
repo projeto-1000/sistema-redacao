@@ -40,13 +40,13 @@ export function CreatePlanDialog() {
     }
   };
 
-  const inputBaseClass = "w-full rounded-xl bg-sky-50 border-sky-100 px-4 py-2.5 text-sm text-slate-700 transition-all focus-visible:border-secondary focus-visible:ring-1 focus-visible:ring-secondary h-11 selection:bg-blue-200";
+  const inputBaseClass = "w-full rounded-xl px-4 py-2.5 text-sm text-slate-700 transition-all min-h-11";
   const labelClass = "text-sm font-bold text-slate-600";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="rounded-xl font-bold h-10 w-full sm:w-fit" variant="secondary">
+        <Button className="rounded-xl font-bold h-10 w-full sm:w-fit">
           <Plus className="size-4 mr-2" />
           Adicionar Novo Plano
         </Button>
@@ -220,7 +220,6 @@ export function CreatePlanDialog() {
               </Button>
               <Button
                 type="submit"
-                variant='secondary'
                 disabled={!isValid || isSubmitting}
                 className="rounded-xl h-10 font-bold"
                 isLoading={isSubmitting}

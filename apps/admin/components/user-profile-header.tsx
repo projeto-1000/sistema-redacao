@@ -62,7 +62,7 @@ export function UserProfileHeader({
 
         {disableAction === false && (
           <div className="flex items-center gap-3 w-full md:w-auto md:flex-col lg:flex-row">
-            <Button onClick={onEdit} variant="secondary" className="flex-1 md:flex-none h-10 rounded-xl font-medium transition-colors">
+            <Button onClick={onEdit} className="flex-1 md:flex-none h-10 rounded-xl font-medium transition-colors">
               <UserPen className="size-4 mr-2" /> Editar Perfil
             </Button>
 
