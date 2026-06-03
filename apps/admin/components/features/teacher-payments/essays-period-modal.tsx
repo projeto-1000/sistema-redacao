@@ -4,10 +4,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@repo/ui/components/button";
 import { Eye } from "lucide-react";
 import { TeacherEssayListItem } from "@/types";
-import { TablePagination } from "@/components/table-pagination";
+
 import TeacherEssaysRow from "@/components/teacher-essays-row";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition, useCallback } from "react";
+import { TablePagination } from "@repo/ui/components/table-pagination";
 
 interface EssaysPeriodModalProps {
   teacherId: string;

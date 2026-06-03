@@ -1,9 +1,10 @@
-import { TablePagination } from "@/components/table-pagination";
+
 import { EssayTableFilters } from "../../essay-table-filters";
 import { StudentEssaysTableRow } from "./student-essays-row";
 import { StudentEssaysFilters } from "@/types";
 import { getStudentEssays } from "@/app/actions/students";
 import { CircleAlert, FileText, Search } from "lucide-react";
+import { TablePagination } from "@repo/ui/components/table-pagination";
 
 interface StudentEssaysTableProps {
   studentId: string;
@@ -17,6 +18,7 @@ export async function StudentEssaysTable({ studentId, filters, page }: StudentEs
   const hasActiveFilters = Object.values(filters || {}).some(
     value => value !== undefined && value !== null && value !== ""
   );
+
 
   return (
     <div className="space-y-6">

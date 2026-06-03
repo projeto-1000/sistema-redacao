@@ -1,7 +1,7 @@
 
 import { FileText, Search, CircleAlert } from "lucide-react";
 import TeacherEssaysRow from "./teacher-essays-row";
-import { TablePagination } from "./table-pagination";
+import { TablePagination } from "@repo/ui/components/table-pagination";
 import { getTeacherEssays } from "@/app/actions/teachers";
 import TeacherEssaysFilterBar from "./teacher-essays-filter-bar";
 import { TeacherEssayFilters } from "@/types";

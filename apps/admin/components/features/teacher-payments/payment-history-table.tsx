@@ -3,9 +3,9 @@ import { Button } from "@repo/ui/components/button";
 import { format, endOfMonth, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";;
 import { formatCurrency, formatDate } from "@repo/utils";
-import { TablePagination } from "@/components/table-pagination";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import { exportTeacherPaymentsCsv, getTeacherPaymentHistory } from "@/app/actions/teacher-payments";
+import { TablePagination } from "@repo/ui/components/table-pagination";
 
 interface PaymentHistoryTableProps {
   teacherId: string
