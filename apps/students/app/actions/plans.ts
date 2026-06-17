@@ -1,5 +1,7 @@
 "use server";
 
+import { createClient } from "@/lib/server";
+
 export interface PlanFeature {
   text: string;
   included: boolean;
@@ -10,38 +12,63 @@ export interface PlanData {
   name: string;
   badge?: string;
   price: number;
-  features: PlanFeature[];
+  interval: string;
+  interval_count: number | null;
+  features: PlanFeature[] | string[];
 }
 
-const MOCK_PLANS: PlanData[] = [
-  {
-    id: "plan_basic",
-    name: "Plano Basic",
-    badge: "ESSENCIAL",
-    price: 49.9,
-    features: [
-      { text: "4 correções/mês", included: true },
-      { text: "Feedback detalhado", included: true },
-      { text: "Prioridade na fila", included: false },
-    ],
-  },
-  {
-    id: "plan_premium",
-    name: "Plano Premium",
-    price: 89.9,
-    features: [
-      { text: "Tudo do plano basic", included: true },
-      { text: "Suporte Prioritário", included: true },
-      { text: "Acesso a temas exclusivos", included: true },
-    ],
-  },
-];
+export async function getAvailablePlans(currentPlanId: string | null): Promise<PlanData[]> {
+  const supabase = await createClient();
 
-export async function getAvailablePlans(): Promise<PlanData[]> {
-  return MOCK_PLANS;
+  let query = supabase
+    .from("plans")
+    .select("id, name, price, interval, interval_count, features")
+    .eq("is_active", true)
+    .order("price", { ascending: true });
+
+  if (currentPlanId) {
+    query = query.or(`is_public.eq.true,id.eq.${currentPlanId}`);
+  } else {
+    query = query.eq("is_public", true);
+  }
+
+  const { data: plans, error } = await query;
+
+  if (error || !plans) {
+    console.error("Erro ao buscar planos:", error.message);
+    return [];
+  }
+
+  return plans.map((plan) => ({
+    id: plan.id,
+    name: plan.name,
+    badge: plan.name.toLowerCase().includes("premium") ? "RECOMENDADO" : undefined,
+    price: plan.price,
+    interval: plan.interval,
+    interval_count: plan.interval_count,
+    features: plan.features || [],
+  }));
 }
 
-export async function getCurrentUserPlanId(): Promise<string> {
-  // Alterado para o Basic ser o default do usuário
-  return "plan_basic";
+export async function getCurrentUserPlanId(): Promise<string | null> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data: subscription, error } = await supabase
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("user_id", user.id)
+    .in("status", ["active", "trial"])
+    .maybeSingle();
+
+  if (error || !subscription) {
+    return null;
+  }
+
+  return subscription.plan_id;
 }

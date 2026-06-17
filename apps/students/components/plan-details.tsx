@@ -6,9 +6,20 @@ import { formatCurrency, formatDate } from "@repo/utils";
 import Link from "next/link";
 
 export function PlanDetailsCard({ subscription }: { subscription: StudentSubscription }) {
-  const isLifetime = subscription.billing_cycle === 'lifetime' || subscription.status === 'trial';
+  const isLifetime = subscription.interval === 'lifetime' || subscription.status === 'trial';
   const status = statusBadgeConfig[subscription?.status as SubscriptionStatus] || statusBadgeConfig.trial
 
+  function getPlanLabel(): string {
+    if (subscription.interval === 'month') {
+      if (subscription.interval_count === 1) return 'Mensal';
+      if (subscription.interval_count === 3) return 'Trimestral';
+      if (subscription.interval_count === 6) return 'Semestral';
+    }
+    if (subscription.interval === 'year') {
+      return 'Anual';
+    }
+    return '';
+  }
 
   function getPrice(): string {
     if (subscription.status === 'trial') {
@@ -16,10 +27,20 @@ export function PlanDetailsCard({ subscription }: { subscription: StudentSubscri
     }
 
     const price = formatCurrency(subscription.price);
-    const suffix = subscription.billing_cycle === 'monthly' ? '/ mês' : '/ trimestre';
+    let suffix = '';
+
+    if (subscription.interval === 'month') {
+      if (subscription.interval_count === 1) suffix = '/ mês';
+      if (subscription.interval_count === 3) suffix = '/ trimestre';
+      if (subscription.interval_count === 6) suffix = '/ semestre';
+    } else if (subscription.interval === 'year') {
+      suffix = '/ ano';
+    }
 
     return `${price} ${suffix}`;
   }
+
+  const planLabel = getPlanLabel();
 
   return (
     <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6 md:p-8 flex flex-col justify-between h-full">
@@ -36,7 +57,7 @@ export function PlanDetailsCard({ subscription }: { subscription: StudentSubscri
         </div>
 
         <h2 className="text-3xl font-bold capitalize mb-1">
-          {subscription.plan_name} {isLifetime ? '' : `• ${subscription.billing_cycle === 'monthly' ? 'Mensal' : 'Trimestral'}`}
+          {subscription.plan_name} {isLifetime || !planLabel ? '' : `• ${planLabel}`}
         </h2>
         <p className="text-slate-500 font-medium">
           {getPrice()}

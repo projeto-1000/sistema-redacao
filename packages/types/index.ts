@@ -161,7 +161,8 @@ cancel_at_period_end: boolean
 created_at: string
 updated_at: string
 plan_name: string
-billing_cycle: string
+  interval: "day" | "week" | "month" | "year" | "lifetime";
+  interval_count: number | null; 
 price: number
 credits_included: number
 }
@@ -196,17 +197,20 @@ export interface TopicsFilter {
   search?: string;
   axis?: ThematicAxis | "Todos";
 }
-
-export type BillingCycle = 'monthly' | 'quarterly' | 'lifetime'
 export interface Plans {
-  id: string
-  name: string
-  description: string
-  external_id: string
-  credits_included: number
-  billing_cycle: BillingCycle
-  price: number
-  is_active: boolean
+  id: string;
+  name: string;
+  description: string | null;
+  features: string[] | null;
+  external_id: string | null;
+  credits_included: number;
+  trial_days: number;
+  interval: "day" | "week" | "month" | "year" | "lifetime";
+  interval_count: number | null; 
+  price: number; 
+  payment_methods: string[];
+  statement_descriptor: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }

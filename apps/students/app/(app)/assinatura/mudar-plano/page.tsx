@@ -1,48 +1,52 @@
 import { getAvailablePlans, getCurrentUserPlanId } from "@/app/actions/plans";
-import { PlanCard } from "@/components/plan-card";
-import { PlanHelpCallout } from "@/components/plan-helper-callout";
+import { PlanGrid } from "@/components/change-plan/plan-grid";
+import { PlanHelpCallout } from "@/components/change-plan/plan-helper-callout";
 import { Button } from "@repo/ui/components/button";
 import { PageHeader } from "@repo/ui/components/page-header";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Mudar Plano",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const currentPlanId = await getCurrentUserPlanId();
+  return {
+    title: currentPlanId ? "Alterar Plano" : "Assinar Plano",
+  };
+}
 
 export default async function ChangePlanPage() {
-  const [plans, currentPlanId] = await Promise.all([
-    getAvailablePlans(),
-    getCurrentUserPlanId(),
-  ]);
+  const currentPlanId = await getCurrentUserPlanId();
 
+  const plans = await getAvailablePlans(currentPlanId);
+
+  const isUpgradeFlow = Boolean(currentPlanId);
+
+  const pageTitle = isUpgradeFlow ? "Alterar plano" : "Escolha seu plano";
+  const pageSubtitle = isUpgradeFlow
+    ? "Escolha o plano que melhor se adapta às suas necessidades de correção."
+    : "Selecione o pacote ideal e comece a enviar suas redações hoje mesmo.";
 
   return (
     <div className="space-y-8 min-h-dvh px-2 md:px-10 lg:px-12 py-4">
       <Button asChild variant='ghost' className="text-slate-500 hover:text-primary hover:bg-transparent!">
-        <Link href="/assinatura">
+        <Link href={isUpgradeFlow ? "/assinatura" : "/perfil"}>
           <ArrowLeft className="size-4 mr-2 " />
           Voltar
         </Link>
       </Button>
 
       <PageHeader
-        title="Alterar plano"
-        subtitle="Escolha o plano que melhor se adapta às suas necessidades de correção."
+        title={pageTitle}
+        subtitle={pageSubtitle}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-        {plans.map((plan) => (
-          <PlanCard
-            key={plan.id}
-            plan={plan}
-            isCurrentPlan={plan.id === currentPlanId}
-          />
-        ))}
-      </div>
+      <PlanGrid
+        plans={plans}
+        currentPlanId={currentPlanId}
+        isUpgradeFlow={isUpgradeFlow}
+      />
 
       <PlanHelpCallout />
     </div>
-  )
+  );
 }

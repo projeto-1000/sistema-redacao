@@ -1,12 +1,25 @@
 import { StudentCredits, StudentSubscription } from "@repo/types";
+import { formatDate } from "@repo/utils";
 import { RefreshCcw, PlusCircle, Plus } from "lucide-react";
 import Link from "next/link";
 
 export function CreditsUsageCard({ credits, subscription }: { credits: StudentCredits, subscription: StudentSubscription }) {
-  const isLifetime = subscription.billing_cycle === 'lifetime' || subscription.status === 'trial';
+  const isLifetime = subscription.interval === 'lifetime' || subscription.status === 'trial';
 
   const totalPlan = subscription.credits_included || 0;
   const planPercentage = totalPlan > 0 ? ((credits.plan_credits || 0) / totalPlan) * 100 : 0;
+
+  const billingBaseDate = subscription.current_period_end
+    ? new Date(subscription.current_period_end)
+    : new Date();
+
+  const today = new Date();
+
+  const nextRenewalDate = new Date(today.getFullYear(), today.getMonth(), billingBaseDate.getDate());
+
+  if (nextRenewalDate <= today) {
+    nextRenewalDate.setMonth(nextRenewalDate.getMonth() + 1);
+  }
 
   return (
     <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
@@ -17,10 +30,10 @@ export function CreditsUsageCard({ credits, subscription }: { credits: StudentCr
             <div>
               <h4 className="font-bold= flex items-center gap-2">
                 <RefreshCcw className="size-4 text-primary" />
-                Créditos do Plano
+                Créditos Mensais do Plano
               </h4>
               <p className="text-xs text-slate-500 mt-1">
-                {isLifetime ? 'Uso vitalício' : 'Renovam no próximo ciclo'}
+                {isLifetime ? 'Uso vitalício' : `Renovam em ${formatDate(nextRenewalDate.toISOString(), 'numeric')}`}
               </p>
             </div>
             <div className="text-right">
@@ -44,7 +57,7 @@ export function CreditsUsageCard({ credits, subscription }: { credits: StudentCr
                 <PlusCircle className="size-4 text-secondary" />
                 Créditos Avulsos
               </h4>
-              <p className="text-xs text-slate-500 mt-1">Comprados separadamente</p>
+              <p className="text-xs text-slate-500 mt-1">Não expiram</p>
             </div>
             <span className="text-3xl font-bold">{credits.extra_credits}</span>
           </div>

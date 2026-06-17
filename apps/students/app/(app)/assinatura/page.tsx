@@ -5,7 +5,7 @@ import { PlanDetailsCard } from "@/components/plan-details";
 import { parseCreditsTransactionsFilters } from "@/utils/parse-filters";
 import { Button } from "@repo/ui/components/button";
 import { PageHeader } from "@repo/ui/components/page-header";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -47,16 +47,43 @@ export default async function SubscriptionPage({
         subtitle="Gerencie sua assinatura, créditos e acompanhe seu histórico de uso."
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <PlanDetailsCard subscription={subscription} />
-        </div>
-        <div className="lg:col-span-1">
-          <CreditsUsageCard credits={credits} subscription={subscription} />
-        </div>
-      </div>
+      {!data.hasSubscription && (
+        <div className="flex flex-col items-center justify-center p-12 rounded-3xl border-2 border-dashed border-border bg-slate-100/80 min-h-[250px] text-center">
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100  mb-6 text-primary">
+            <Sparkles className="size-8" />
+          </div>
 
-      <CreditTransactionsTable data={creditTransactionsData} />
+          <h3 className="text-2xl font-black tracking-tight mb-2">
+            Desbloqueie suas correções de redação
+          </h3>
+
+          <p className="text-slate-500 text-sm max-w-md leading-relaxed mb-8">
+            Você ainda não possui um plano ativo. <br />
+            Escolha o pacote ideal para começar a enviar suas redações e receber análises detalhadas focadas na sua evolução.
+          </p>
+
+          <Button asChild size="lg" className="rounded-xl h-12 px-6 font-bold tracking-wide shadow-md transition-all hover:scale-[1.02]">
+            <Link href="/assinatura/mudar-plano">
+              Conhecer nossos planos
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {data.hasSubscription && (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <PlanDetailsCard subscription={subscription} />
+            </div>
+            <div className="lg:col-span-1">
+              <CreditsUsageCard credits={credits} subscription={subscription} />
+            </div>
+          </div>
+          <CreditTransactionsTable data={creditTransactionsData} />
+        </>
+      )}
+
     </div>
   )
 }

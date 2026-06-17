@@ -8,7 +8,6 @@ export function PlanHelpCallout() {
   return (
     <div className="w-full bg-[#F4F7FC] border border-blue-100/50 rounded-3xl p-8 md:p-10 flex flex-col lg:flex-row items-center justify-between mt-8">
 
-      {/* Lado Esquerdo: Textos e Botões */}
       <div className="max-w-2xl flex flex-col items-start text-left">
         <h3 className="text-2xl font-extrabold text-slate-800 mb-4">
           Precisa de algo diferente?
@@ -32,7 +31,7 @@ export function PlanHelpCallout() {
         </div>
       </div>
 
-      <div className="relative w-full max-w-[260px] h-[300px] shrink-0 flex items-center justify-center">
+      <div className="relative w-full max-w-[350px] h-[300px] shrink-0 flex items-center justify-center">
         <Image
           src="/contact-us.svg"
           alt="Ilustração de Contato e Suporte"

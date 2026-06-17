@@ -118,14 +118,12 @@ export async function getStudentById(studentId: string) {
 
   const { data: plan, error: planError } = await supabase
     .from("plans")
-    .select("name, credits_included, billing_cycle, price")
+    .select("name, credits_included, interval, interval_count, price")
     .eq("id", subscription.plan_id)
     .eq("is_active", true)
     .maybeSingle();
 
   if (planError || !plan) {
-    console.log("caiu aqui");
-    console.log(planError);
     return {
       student: { ...profile, subscription: null, credits: null },
       error: null,
@@ -140,7 +138,8 @@ export async function getStudentById(studentId: string) {
       subscription: {
         ...subscription,
         plan_name: plan.name,
-        billing_cycle: plan.billing_cycle,
+        interval: plan.interval,
+        interval_count: plan.interval_count,
         price: plan.price,
         credits_included: plan.credits_included,
       },
