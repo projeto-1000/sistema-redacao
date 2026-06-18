@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import { EssayTopic, TopicsFilter } from "@repo/types";
+import { EssayTopic, EssayTopicDetail, MotivationalText, TopicsFilter } from "@repo/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { createTopicSchema } from "@repo/validators";
 import { revalidatePath } from "next/cache";
@@ -48,6 +48,35 @@ export async function getTopicsList({ filters, page = 1 }: GetTopicsParams = {})
     totalPages: count ? Math.ceil(count / limit) : 0,
     error: null,
   };
+}
+
+export async function getTopicDetails(id: string): Promise<EssayTopicDetail | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("essay_topics")
+    .select(
+      `
+      *,
+      motivational_texts (*)
+    `
+    )
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Erro ao buscar detalhes do tema:", error);
+    return null;
+  }
+  if (!data) return null;
+
+  if (data.motivational_texts) {
+    data.motivational_texts.sort(
+      (a: MotivationalText, b: MotivationalText) => a.text_number - b.text_number
+    );
+  }
+
+  return data as EssayTopicDetail;
 }
 
 export async function createEssayTopicAction(formData: FormData) {

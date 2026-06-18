@@ -1,9 +1,10 @@
 import { ThemeBadge } from "@repo/ui/components/theme-badge";
-import { TopicDetailsDialog } from "./topic-details-dialog";
 import { Button } from "@repo/ui/components/button";
 import { NotebookPen } from "lucide-react";
 import { EssayTopic } from "@repo/types";
 import Link from "next/link";
+import { TopicDetailsDialog } from "@repo/ui/components/topic-details-dialog"
+import { getTopicDetails } from "@/app/actions/get-topics";
 
 interface TopicsRowProps {
   topic: EssayTopic
@@ -35,7 +36,7 @@ export default function TopicsRow({ topic }: TopicsRowProps) {
       </div>
 
       <div className="lg:col-span-4 xl:col-span-3 flex flex-row gap-2 justify-between md:justify-end mt-4 lg:mt-0">
-        <TopicDetailsDialog topic={topic} />
+        <TopicDetailsDialog topic={topic} getTopicDetailsAction={getTopicDetails} />
 
         <Button
           asChild

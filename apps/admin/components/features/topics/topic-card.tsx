@@ -1,12 +1,12 @@
 'use client'
 
-import { deleteEssayTopicAction } from "@/app/actions/topics"
+import { deleteEssayTopicAction, getTopicDetails } from "@/app/actions/topics"
 import { EssayTopic } from "@repo/types"
 import { Button } from "@repo/ui/components/button"
 import { Menubar, MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem, MenubarSeparator } from "@repo/ui/components/menubar"
 import { ThemeBadge } from "@repo/ui/components/theme-badge"
 import { formatDate } from "@repo/utils"
-import { Calendar, CheckCircle2, EllipsisVertical, Eye, OctagonAlert } from "lucide-react"
+import { Calendar, CheckCircle2, EllipsisVertical, OctagonAlert } from "lucide-react"
 import { useTransition } from "react"
 import { toast } from "sonner"
 import {
@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@repo/ui/components/alert-dialog"
+import { TopicDetailsDialog } from "@repo/ui/components/topic-details-dialog"
 
 interface TopicCardProps {
   topic: EssayTopic
@@ -82,12 +83,11 @@ export default function TopicCard({ topic }: TopicCardProps) {
 
       <div className="flex items-center w-full gap-2 mt-4">
 
-        <Button
-          variant="outline"
+        <TopicDetailsDialog
+          topic={topic}
+          getTopicDetailsAction={getTopicDetails}
           className="flex-1 rounded-xl text-slate-500 font-bold h-10"
-        >
-          <Eye className="size-4 mr-2" /> Ver Proposta
-        </Button>
+          showStartButton={false} />
 
         <Menubar className="shrink-0 w-fit border-none bg-transparent shadow-none p-0 m-0">
           <MenubarMenu>

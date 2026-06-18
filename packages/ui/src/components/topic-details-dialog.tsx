@@ -16,9 +16,13 @@ import { Skeleton } from "@repo/ui/components/skeleton";
 import { BookOpenText, FileText, Info, NotebookPen, AlertCircle, Eye } from "lucide-react";
 import Link from "next/link";
 import type { EssayTopic, MotivationalText, EssayTopicDetail } from "@repo/types";
-import { getTopicDetails } from "@/app/actions/get-topics";
+import { cn } from "@repo/ui/lib/utils"
+
 interface TopicDetailsDialogProps {
   topic: EssayTopic;
+  className?: string;
+  showStartButton?: boolean;
+  getTopicDetailsAction: (topicId: string) => Promise<EssayTopicDetail | null>;
 }
 
 function MotivatingTextSkeleton() {
@@ -46,7 +50,6 @@ function MotivatingTextItem({ item }: { item: MotivationalText }) {
           </div>
         )}
         {item.image_url && (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.image_url}
             alt={`Texto ${item.text_number}`}
@@ -63,7 +66,12 @@ function MotivatingTextItem({ item }: { item: MotivationalText }) {
   );
 }
 
-export function TopicDetailsDialog({ topic }: TopicDetailsDialogProps) {
+export function TopicDetailsDialog({
+  topic,
+  showStartButton = true,
+  getTopicDetailsAction,
+  className = '',
+}: TopicDetailsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [details, setDetails] = useState<EssayTopicDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,7 +79,7 @@ export function TopicDetailsDialog({ topic }: TopicDetailsDialogProps) {
   useEffect(() => {
     if (isOpen && !details) {
       setLoading(true);
-      getTopicDetails(topic.id)
+      getTopicDetailsAction(topic.id)
         .then((data) => {
           setDetails(data);
         })
@@ -79,7 +87,7 @@ export function TopicDetailsDialog({ topic }: TopicDetailsDialogProps) {
           setLoading(false);
         });
     }
-  }, [isOpen, topic.id, details]);
+  }, [isOpen, topic.id, details, getTopicDetailsAction]);
 
   const texts = details?.motivational_texts || [];
   const hasTexts = texts.length > 0;
@@ -90,7 +98,9 @@ export function TopicDetailsDialog({ topic }: TopicDetailsDialogProps) {
         <Button
           suppressHydrationWarning
           variant="outline"
-          className="rounded-2xl text-xs font-bold min-h-10 border-slate-200 text-[#1E3A8A] hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 whitespace-nowrap w-1/2 md:w-fit"
+          className={cn("rounded-2xl text-xs font-bold min-h-10 border-slate-200 text-[#1E3A8A] hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 whitespace-nowrap w-1/2 md:w-fit",
+            className
+          )}
         >
           Ver Proposta
           <Eye className="size-4.5" />
@@ -161,20 +171,22 @@ export function TopicDetailsDialog({ topic }: TopicDetailsDialogProps) {
           </div>
         </ScrollArea>
 
-        <DialogFooter className="p-4 border-t border-slate-200 bg-white sm:justify-between items-center gap-4 shrink-0">
+        <DialogFooter className={`p-4 border-t border-slate-200 bg-white items-center gap-4 shrink-0 ${showStartButton ? 'sm:justify-between' : 'sm:justify-end'}`}>
           <DialogClose asChild>
             <Button variant="ghost" className="font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full px-6">
               Fechar
             </Button>
           </DialogClose>
 
-          <Button asChild
-            className="w-full bg-primary font-bold rounded-full gap-4 h-12 shadow-lg shadow-yellow-500/10">
-            <Link href={`/minhas-redacoes/nova-redacao?id=${topic.id}`} className="w-full sm:w-auto">
-              Iniciar Redação
-              <NotebookPen className="size-4" />
-            </Link>
-          </Button>
+          {showStartButton && (
+            <Button asChild
+              className="w-full bg-primary font-bold rounded-full gap-4 h-12 shadow-lg shadow-yellow-500/10">
+              <Link href={`/minhas-redacoes/nova-redacao?id=${topic.id}`} className="w-full sm:w-auto">
+                Iniciar Redação
+                <NotebookPen className="size-4" />
+              </Link>
+            </Button>
+          )}
         </DialogFooter>
 
       </DialogContent>
