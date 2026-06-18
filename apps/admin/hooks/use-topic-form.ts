@@ -3,22 +3,38 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createTopicSchema, type CreateTopicSchema } from "@repo/validators";
-import { createEssayTopicAction } from "@/app/actions/topics";
+import { createEssayTopic, updateEssayTopic } from "@/app/actions/topics";
 import { toast } from "sonner";
+import type { EssayTopicDetail } from "@repo/types";
 
-export function useTopicForm() {
+export function useTopicForm(initialData?: EssayTopicDetail) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<CreateTopicSchema>({
     resolver: zodResolver(createTopicSchema),
     mode: "onChange",
-    defaultValues: {
-      title: "",
-      sourceType: "ENEM",
-      sourceYear: "",
-      motivationalTexts: [{ sourceReference: "", bodyText: "", imageUrl: undefined }],
-    },
+    defaultValues: initialData
+      ? {
+          title: initialData.title,
+          axis: initialData.axis as CreateTopicSchema["axis"],
+          sourceType: initialData.source_type as CreateTopicSchema["sourceType"],
+          sourceYear: initialData.source_year || "",
+          motivationalTexts:
+            initialData.motivational_texts && initialData.motivational_texts.length > 0
+              ? initialData.motivational_texts.map((text) => ({
+                  sourceReference: text.source_reference || "",
+                  bodyText: text.body_text || "",
+                  imageUrl: text.image_url || undefined,
+                }))
+              : [{ sourceReference: "", bodyText: "", imageUrl: undefined }],
+        }
+      : {
+          title: "",
+          sourceType: "ENEM",
+          sourceYear: "",
+          motivationalTexts: [{ sourceReference: "", bodyText: "", imageUrl: undefined }],
+        },
   });
 
   const handleSubmit = async (data: CreateTopicSchema) => {
@@ -42,14 +58,21 @@ export function useTopicForm() {
 
         formData.append("jsonData", JSON.stringify(jsonPayload));
 
-        const result = await createEssayTopicAction(formData);
+        let result;
+
+        if (initialData?.id) {
+          formData.append("topicId", initialData.id);
+          result = await updateEssayTopic(formData);
+        } else {
+          result = await createEssayTopic(formData);
+        }
 
         if (result?.error) {
           console.error(result.error);
-          toast.error("Erro ao salvar tema");
+          toast.error(initialData ? "Erro ao atualizar tema" : "Erro ao salvar tema");
         } else {
           router.push("/temas");
-          toast.success("Tema salvo!");
+          toast.success(initialData ? "Tema atualizado com sucesso!" : "Tema salvo!");
         }
       } catch (err) {
         toast.error("Erro crítico", {

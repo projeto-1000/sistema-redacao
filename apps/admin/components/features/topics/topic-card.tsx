@@ -1,6 +1,6 @@
 'use client'
 
-import { deleteEssayTopicAction, getTopicDetails } from "@/app/actions/topics"
+import { deleteEssayTopic, getTopicDetails } from "@/app/actions/topics"
 import { EssayTopic } from "@repo/types"
 import { Button } from "@repo/ui/components/button"
 import { Menubar, MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem, MenubarSeparator } from "@repo/ui/components/menubar"
@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@repo/ui/components/alert-dialog"
 import { TopicDetailsDialog } from "@repo/ui/components/topic-details-dialog"
+import Link from "next/link"
 
 interface TopicCardProps {
   topic: EssayTopic
@@ -32,7 +33,7 @@ export default function TopicCard({ topic }: TopicCardProps) {
   const handleDelete = async (id: string) => {
     startTransition(async () => {
       try {
-        await deleteEssayTopicAction(id);
+        await deleteEssayTopic(id);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         toast.error("Erro ao excluir essa tema", { description: "Tente novamente mais tarde." });
@@ -98,8 +99,10 @@ export default function TopicCard({ topic }: TopicCardProps) {
             </MenubarTrigger>
 
             <MenubarContent>
-              <MenubarItem>
-                Editar tema
+              <MenubarItem asChild className="cursor-pointer">
+                <Link href={`/temas/editar/${topic.id}`}>
+                  Editar tema
+                </Link>
               </MenubarItem>
               <MenubarItem>
                 Desativar

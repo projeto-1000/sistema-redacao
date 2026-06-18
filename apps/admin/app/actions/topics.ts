@@ -79,7 +79,7 @@ export async function getTopicDetails(id: string): Promise<EssayTopicDetail | nu
   return data as EssayTopicDetail;
 }
 
-export async function createEssayTopicAction(formData: FormData) {
+export async function createEssayTopic(formData: FormData) {
   const supabase = await createClient();
 
   const rawData = formData.get("jsonData") as string;
@@ -169,7 +169,153 @@ export async function createEssayTopicAction(formData: FormData) {
   }
 }
 
-export async function deleteEssayTopicAction(topicId: string) {
+export async function updateEssayTopic(formData: FormData) {
+  const supabase = await createClient();
+
+  const topicId = formData.get("topicId") as string;
+  const rawData = formData.get("jsonData") as string;
+
+  if (!topicId || !rawData) {
+    return { error: "ID do tema ou dados inválidos." };
+  }
+
+  const parsedData = createTopicSchema.safeParse(JSON.parse(rawData));
+
+  if (!parsedData.success) {
+    console.error("Erros do Zod (Update):", parsedData.error.flatten().fieldErrors);
+    return { error: "Dados inválidos. Verifique os campos obrigatórios." };
+  }
+
+  const data = parsedData.data;
+  const effectiveYear = data.sourceType === "AUTORAL" ? new Date().getFullYear() : data.sourceYear;
+  const formattedSource = data.sourceType.toLowerCase().replace(/\s+/g, "-");
+
+  const uploadedImagePaths: string[] = []; // Usado para rollback se a transação falhar
+  let orphanedImagePaths: string[] = []; // Usado para faxina se a transação for bem-sucedida
+
+  try {
+    // 1. Buscar os textos motivadores antigos para mapear as URLs existentes
+    const { data: existingTexts, error: fetchError } = await supabase
+      .from("motivational_texts")
+      .select("image_url")
+      .eq("topic_id", topicId);
+
+    if (fetchError) throw new Error("Erro ao buscar dados antigos do tema.");
+
+    const oldImageUrls =
+      existingTexts?.map((t) => t.image_url).filter((url): url is string => Boolean(url)) || [];
+
+    // 2. Extrair as URLs que o formulário está reaproveitando (não foram deletadas/alteradas)
+    const keptImageUrls = data.motivationalTexts
+      .map((t) =>
+        typeof t.imageUrl === "string" && t.imageUrl !== "FILE_ATTACHED" ? t.imageUrl : null
+      )
+      .filter(Boolean);
+
+    // 3. Descobrir quais arquivos físicos no Storage ficaram órfãos
+    orphanedImagePaths = oldImageUrls
+      .filter((oldUrl) => !keptImageUrls.includes(oldUrl))
+      .map((url) => {
+        // Extrai apenas o nome do arquivo da URL pública do Supabase
+        return url.split("/").pop() || "";
+      })
+      .filter(Boolean);
+
+    // 4. Upload das novas imagens (FILE_ATTACHED)
+    for (let i = 0; i < data.motivationalTexts.length; i++) {
+      const text = data.motivationalTexts[i];
+      if (!text) continue;
+      if (text.imageUrl === "FILE_ATTACHED") {
+        const file = formData.get(`file_${i}`) as File | null;
+
+        if (file && file.size > 0) {
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${formattedSource}-${effectiveYear}-motivador-${i + 1}-${Date.now()}.${fileExt}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("themes")
+            .upload(fileName, file, { cacheControl: "3600", upsert: false });
+
+          if (uploadError) {
+            throw new Error(`Falha no upload da imagem do texto ${i + 1}.`);
+          }
+
+          uploadedImagePaths.push(fileName);
+
+          const { data: publicUrlData } = supabase.storage.from("themes").getPublicUrl(fileName);
+          text.imageUrl = publicUrlData.publicUrl;
+        } else {
+          text.imageUrl = null;
+        }
+      }
+    }
+
+    const { error: topicError } = await supabase
+      .from("essay_topics")
+      .update({
+        title: data.title,
+        axis: data.axis,
+        source_type: data.sourceType,
+        source_year: effectiveYear,
+      })
+      .eq("id", topicId);
+
+    if (topicError) {
+      throw new Error("Erro ao atualizar a estrutura do tema no banco.");
+    }
+
+    const { error: deleteError } = await supabase
+      .from("motivational_texts")
+      .delete()
+      .eq("topic_id", topicId);
+
+    if (deleteError) {
+      throw new Error("Erro ao limpar os textos motivadores antigos.");
+    }
+
+    const textsToInsert = data.motivationalTexts.map((text) => ({
+      topic_id: topicId,
+      body_text: text.bodyText || null,
+      image_url: text.imageUrl || null,
+      source_reference: text.sourceReference,
+    }));
+
+    if (textsToInsert.length > 0) {
+      const { error: textsError } = await supabase.from("motivational_texts").insert(textsToInsert);
+      if (textsError) {
+        throw new Error("Erro ao vincular os novos textos motivadores.");
+      }
+    }
+
+    if (orphanedImagePaths.length > 0) {
+      const { error: cleanupError } = await supabase.storage
+        .from("themes")
+        .remove(orphanedImagePaths);
+
+      if (cleanupError) {
+        console.error("[WARNING] Falha ao limpar imagens antigas do bucket:", cleanupError);
+      }
+    }
+
+    revalidatePath("/temas");
+    revalidatePath(`/temas/editar/${topicId}`);
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error("Transação de Update falhou. Iniciando Rollback das imagens novas...", error);
+
+    if (uploadedImagePaths.length > 0) {
+      await supabase.storage.from("themes").remove(uploadedImagePaths);
+    }
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Ocorreu um erro crítico ao atualizar o tema.";
+
+    return { error: errorMessage };
+  }
+}
+
+export async function deleteEssayTopic(topicId: string) {
   const supabase = await createClient();
 
   try {
