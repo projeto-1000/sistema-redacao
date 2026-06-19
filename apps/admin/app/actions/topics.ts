@@ -190,11 +190,10 @@ export async function updateEssayTopic(formData: FormData) {
   const effectiveYear = data.sourceType === "AUTORAL" ? new Date().getFullYear() : data.sourceYear;
   const formattedSource = data.sourceType.toLowerCase().replace(/\s+/g, "-");
 
-  const uploadedImagePaths: string[] = []; // Usado para rollback se a transação falhar
-  let orphanedImagePaths: string[] = []; // Usado para faxina se a transação for bem-sucedida
+  const uploadedImagePaths: string[] = [];
+  let orphanedImagePaths: string[] = [];
 
   try {
-    // 1. Buscar os textos motivadores antigos para mapear as URLs existentes
     const { data: existingTexts, error: fetchError } = await supabase
       .from("motivational_texts")
       .select("image_url")
@@ -205,23 +204,19 @@ export async function updateEssayTopic(formData: FormData) {
     const oldImageUrls =
       existingTexts?.map((t) => t.image_url).filter((url): url is string => Boolean(url)) || [];
 
-    // 2. Extrair as URLs que o formulário está reaproveitando (não foram deletadas/alteradas)
     const keptImageUrls = data.motivationalTexts
       .map((t) =>
         typeof t.imageUrl === "string" && t.imageUrl !== "FILE_ATTACHED" ? t.imageUrl : null
       )
       .filter(Boolean);
 
-    // 3. Descobrir quais arquivos físicos no Storage ficaram órfãos
     orphanedImagePaths = oldImageUrls
       .filter((oldUrl) => !keptImageUrls.includes(oldUrl))
       .map((url) => {
-        // Extrai apenas o nome do arquivo da URL pública do Supabase
         return url.split("/").pop() || "";
       })
       .filter(Boolean);
 
-    // 4. Upload das novas imagens (FILE_ATTACHED)
     for (let i = 0; i < data.motivationalTexts.length; i++) {
       const text = data.motivationalTexts[i];
       if (!text) continue;
@@ -312,6 +307,32 @@ export async function updateEssayTopic(formData: FormData) {
       error instanceof Error ? error.message : "Ocorreu um erro crítico ao atualizar o tema.";
 
     return { error: errorMessage };
+  }
+}
+
+export async function toggleTopicStatus(id: string, currentStatus: boolean) {
+  const supabase = await createClient();
+  const newStatus = !currentStatus;
+
+  try {
+    const { error } = await supabase
+      .from("essay_topics")
+      .update({ active: newStatus })
+      .eq("id", id);
+
+    if (error) {
+      throw new Error(`Falha ao alterar o status no banco: ${error.message}`);
+    }
+
+    revalidatePath("/temas");
+
+    return { success: true, newStatus };
+  } catch (error: unknown) {
+    console.error("[TOGGLE_TOPIC_STATUS_ERROR]:", error);
+    return {
+      error:
+        error instanceof Error ? error.message : "Ocorreu um erro crítico ao atualizar o status.",
+    };
   }
 }
 

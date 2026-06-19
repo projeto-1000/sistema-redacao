@@ -1,6 +1,6 @@
 'use client'
 
-import { deleteEssayTopic, getTopicDetails } from "@/app/actions/topics"
+import { deleteEssayTopic, getTopicDetails, toggleTopicStatus } from "@/app/actions/topics"
 import { EssayTopic } from "@repo/types"
 import { Button } from "@repo/ui/components/button"
 import { Menubar, MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem, MenubarSeparator } from "@repo/ui/components/menubar"
@@ -41,6 +41,24 @@ export default function TopicCard({ topic }: TopicCardProps) {
         toast.success("Tema removido", {
           description: "O tema e todos os arquivos associados foram excluídos."
         });
+      }
+    });
+  };
+
+  const handleToggleStatus = () => {
+    startTransition(async () => {
+      try {
+        const result = await toggleTopicStatus(topic.id, topic.active ?? false);
+
+        if (result?.error) {
+          toast.error("Erro ao atualizar status", { description: result.error });
+        } else {
+          toast.success(topic.active ? "Tema desativado" : "Tema ativado", {
+            description: "A visibilidade do tema foi atualizada na plataforma."
+          });
+        }
+      } catch (error) {
+        toast.error("Erro de conexão", { description: "Tente novamente mais tarde." });
       }
     });
   };
@@ -104,8 +122,14 @@ export default function TopicCard({ topic }: TopicCardProps) {
                   Editar tema
                 </Link>
               </MenubarItem>
-              <MenubarItem>
-                Desativar
+              <MenubarItem
+                className="cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleToggleStatus();
+                }}
+              >
+                {topic.active ? "Desativar tema" : "Ativar tema"}
               </MenubarItem>
               <MenubarSeparator />
               <AlertDialog>
