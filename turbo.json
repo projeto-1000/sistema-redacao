@@ -3,7 +3,8 @@
   "ui": "tui",
   "globalEnv": [
     "PAGARME_SECRET_KEY",
-    "NEXT_PUBLIC_PAGARME_PUBLIC_KEY"
+    "NEXT_PUBLIC_PAGARME_PUBLIC_KEY",
+    "SUPABASE_SECRET_KEY"
   ],
   "tasks": {
     "build": {

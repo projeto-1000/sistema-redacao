@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
+      process.env.SUPABASE_SECRET_KEY!
     );
 
     const { error: updateError } = await supabaseAdmin
