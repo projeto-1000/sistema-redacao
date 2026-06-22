@@ -11,7 +11,12 @@ export const registerSchema = z.object({
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
   confirmPassword: z.string().min(1, "Confirme sua senha"), 
   role: z.enum(["STUDENT", "TEACHER", "ADMIN"]),
-  document: z.string().optional(),
+  document: z.string()
+    .min(1, "O documento é obrigatório")
+    .refine((val) => {
+      const clean = val.replace(/\D/g, "");
+      return clean.length === 11 
+    }, "Documento inválido"),
   phone: z.string().optional(),
   terms: z.boolean().refine((val) => val === true, {
     message: "Você precisa aceitar os termos de uso e privacidade.",

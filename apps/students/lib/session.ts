@@ -44,6 +44,7 @@ export async function updateSession(request: NextRequest) {
     "/nova-senha",
     "/api/auth/confirm",
     "/api/webhooks/hotmart",
+    "/api/payments/customers",
   ];
 
   const isPublicRoute = publicRoutes.includes(pathname);

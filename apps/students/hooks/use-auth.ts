@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/client";
 import { ForgotPasswordSchema, LoginSchema, RegisterSchema } from "@repo/validators";
 import { useRouter } from "next/navigation";
+import { createPagarmeCustomer } from "@repo/payments";
 
 export function useAuth() {
   const supabase = createClient();
@@ -57,19 +58,20 @@ export function useAuth() {
     const cleanDocument = data.document ? data.document.replace(/\D/g, "") : null;
     const cleanPhone = data.phone ? data.phone.replace(/\D/g, "") : null;
     const termsAcceptedAt = data.terms ? new Date().toISOString() : null;
-
+    console.log(cleanDocument);
     //TODO: colcoar documento obrigatório pra todos e remover isso aqui
     if (cleanDocument) {
       const { error: rpcError } = await supabase.rpc("check_document_exists", {
-        document: cleanDocument,
+        doc_to_check: cleanDocument,
       });
 
       if (rpcError) {
+        console.log(rpcError);
         throw new Error("Document already registered");
       }
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
@@ -83,9 +85,7 @@ export function useAuth() {
       },
     });
 
-    if (error) {
-      throw new Error(error.message);
-    }
+    if (authError) throw new Error(authError.message);
 
     router.refresh();
     router.push("/inicio");
