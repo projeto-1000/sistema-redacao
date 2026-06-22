@@ -70,7 +70,7 @@ export function useAuth() {
       }
     }
 
-    const { error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
@@ -85,6 +85,30 @@ export function useAuth() {
     });
 
     if (authError) throw new Error(authError.message);
+
+    if (authData.user) {
+      try {
+        await fetch("/api/payments/customers", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            // Simulamos o exato payload que o Webhook enviaria
+            record: {
+              id: authData.user.id,
+              full_name: data.name,
+              email: data.email,
+              document: cleanDocument,
+            },
+          }),
+        });
+        console.log("✅ Aviso enviado para a API de pagamentos com sucesso!");
+      } catch (err) {
+        // O catch garante a resiliência da interface: se a API falhar, o aluno ainda consegue entrar.
+        console.error("🚨 Falha na comunicação com a API de pagamentos:", err);
+      }
+    }
 
     router.refresh();
     router.push("/inicio");
