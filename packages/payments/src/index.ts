@@ -6,7 +6,7 @@ export async function fetchPagarme(endpoint: string, options: RequestInit = {}) 
     throw new Error("CRITICAL_ERROR: Chave secreta do Pagar.me não encontrada.");
   }
 
-  const encodedCredentials = btoa(`${SECRET_KEY}:`);
+const encodedCredentials = Buffer.from(`${SECRET_KEY}:`).toString("base64");
 
   const response = await fetch(`${PAGARME_API_URL}${endpoint}`, {
     ...options,
