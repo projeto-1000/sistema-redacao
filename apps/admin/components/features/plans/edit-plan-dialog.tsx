@@ -26,9 +26,11 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
     resolver: zodResolver(createPlanSchema),
     defaultValues: {
       name: plan.name,
-      billing_cycle: plan.billing_cycle,
-      price: Number(plan.price),
+      interval: plan.interval || "month",
+      interval_count: plan.interval_count || 1,
+      price: (Number(plan.price) / 100).toFixed(2) as unknown as number,
       credits_included: plan.credits_included,
+      credits_expiration_days: plan.credits_expiration_days || 30,
       is_active: plan.is_active,
       description: plan.description || "",
     },
@@ -41,13 +43,13 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
 
     if (result.success) {
       setOpen(false);
-      toast.success("Plano editado com sucesso!")
+      toast.success("Plano editado com sucesso!");
     } else {
-      toast.error("Erro ao salvar plano", { description: 'Tente novamente em instantes.' })
+      toast.error("Erro ao salvar plano", { description: result.error || 'Tente novamente em instantes.' });
     }
   };
 
-  const inputBaseClass = "w-full rounded-xl bg-sky-50 border-sky-100 px-4 py-2.5 text-sm text-slate-700 transition-all focus-visible:border-secondary focus-visible:ring-1 focus-visible:ring-secondary h-11 selection:bg-blue-200";
+  const inputBaseClass = "w-full rounded-xl bg-sky-50 border-sky-100 px-4 py-2.5 text-sm text-slate-700 transition-all min-h-11 selection:bg-blue-200";
   const labelClass = "text-sm font-bold text-slate-600";
 
   return (
@@ -87,20 +89,23 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="billing_cycle"
+                name="interval_count"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className={labelClass}>Tipo de Plano</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel className={labelClass}>Tipo de Plano / Recorrência</FormLabel>
+                    <Select
+                      onValueChange={(val) => field.onChange(Number(val))}
+                      defaultValue={field.value?.toString()}
+                    >
                       <FormControl>
                         <SelectTrigger className={inputBaseClass}>
                           <SelectValue placeholder="Selecione a recorrência" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="monthly">Mensal</SelectItem>
-                        <SelectItem value="quarterly">Trimestral</SelectItem>
-                        <SelectItem value="lifetime">Vitalício</SelectItem>
+                        <SelectItem value="1">Mensal</SelectItem>
+                        <SelectItem value="3">Trimestral</SelectItem>
+                        <SelectItem value="6">Semestral</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage className="text-[10px]" />
@@ -145,10 +150,9 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
                   </FormItem>
                 )}
               />
-
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="is_active"
@@ -184,6 +188,31 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
                       <Input
                         type="number"
                         placeholder="Ex: 4"
+                        className={`${inputBaseClass} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+                        onKeyDown={(e) => {
+                          if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-[10px]" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="credits_expiration_days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Validade (Dias)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Ex: 30"
                         className={`${inputBaseClass} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
                         onKeyDown={(e) => {
                           if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {

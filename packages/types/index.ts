@@ -204,6 +204,7 @@ export interface Plans {
   features: string[] | null;
   external_id: string | null;
   credits_included: number;
+  credits_expiration_days: number;
   trial_days: number;
   interval: "day" | "week" | "month" | "year" | "lifetime";
   interval_count: number | null; 

@@ -3,7 +3,7 @@
 import { updatePlanStatus } from "@/app/actions/plans";
 import { Plans } from "@repo/types"
 import { Button } from "@repo/ui/components/button";
-import { billingCycleMap, formatCurrency } from "@repo/utils";
+import { formatCurrency, getCycleInfo } from "@repo/utils";
 import { Power, PowerOff } from "lucide-react";
 import { useTransition } from "react";
 import { EditPlanDialog } from "./edit-plan-dialog";
@@ -14,7 +14,7 @@ interface PlansRowProps {
 }
 
 export default function PlansRow({ plan }: PlansRowProps) {
-  const cycleInfo = billingCycleMap[plan.billing_cycle];
+  const cycleInfo = getCycleInfo(plan.interval, plan.interval_count);
   const [isPending, startTransition] = useTransition();
 
   const handleUpdateStatus = () => {
@@ -40,7 +40,7 @@ export default function PlansRow({ plan }: PlansRowProps) {
         <span className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
           Tipo
         </span>
-        <p className="text-sm font-medium leading-snug line-clamp-2" title={plan.billing_cycle}>
+        <p className="text-sm font-medium leading-snug line-clamp-2" title={`${plan.interval_count} ${plan.interval}`}>
           {cycleInfo.label}
         </p>
       </div>

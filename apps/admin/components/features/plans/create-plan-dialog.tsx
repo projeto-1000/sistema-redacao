@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CreatePlanFormValues, CreatePlanFormInput, createPlanSchema } from "@repo/validators";
+import { CreatePlanFormInput, createPlanSchema, CreatePlanFormValues } from "@repo/validators";
 import { createPlan } from "@/app/actions/plans";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@repo/ui/components/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/components/form";
@@ -20,9 +20,14 @@ export function CreatePlanDialog() {
   const form = useForm<CreatePlanFormInput>({
     resolver: zodResolver(createPlanSchema),
     defaultValues: {
+      name: "",
+      description: "",
       is_active: true,
       price: "" as unknown as number,
       credits_included: 4,
+      interval: "month",
+      interval_count: 1,
+      credits_expiration_days: 30,
     },
   });
 
@@ -34,9 +39,9 @@ export function CreatePlanDialog() {
     if (result.success) {
       form.reset();
       setOpen(false);
-      toast.success("Plano criado com sucesso!")
+      toast.success("Plano criado com sucesso!");
     } else {
-      toast.error("Erro ao salvar plano", { description: 'Tente novamente em instantes.' })
+      toast.error("Erro ao salvar plano", { description: 'Tente novamente em instantes.' });
     }
   };
 
@@ -78,20 +83,33 @@ export function CreatePlanDialog() {
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="billing_cycle"
+                name="interval_count"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className={labelClass}>Tipo de Plano</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel className={labelClass}>Tipo de Plano / Recorrência</FormLabel>
+                    <Select
+                      onValueChange={(val) => {
+                        const months = Number(val);
+                        field.onChange(months);
+                        if (months === 1) {
+                          form.setValue("credits_expiration_days", 30);
+                        } else if (months === 3) {
+                          form.setValue("credits_expiration_days", 120);
+                        } else if (months === 6) {
+                          form.setValue("credits_expiration_days", 270);
+                        }
+                      }}
+                      value={field.value?.toString()}
+                    >
                       <FormControl>
                         <SelectTrigger className={inputBaseClass}>
                           <SelectValue placeholder="Selecione a recorrência" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="monthly">Mensal</SelectItem>
-                        <SelectItem value="quarterly">Trimestral</SelectItem>
-                        <SelectItem value="lifetime">Vitalício</SelectItem>
+                        <SelectItem value="1">Mensal</SelectItem>
+                        <SelectItem value="3">Trimestral</SelectItem>
+                        <SelectItem value="6">Semestral</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage className="text-[10px]" />
@@ -136,10 +154,9 @@ export function CreatePlanDialog() {
                   </FormItem>
                 )}
               />
-
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="is_active"
@@ -182,6 +199,25 @@ export function CreatePlanDialog() {
                           }
                         }}
                         onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-[10px]" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="credits_expiration_days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Validade (Dias)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Ex: 30"
+                        className={`${inputBaseClass} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
                         {...field}
                       />
                     </FormControl>

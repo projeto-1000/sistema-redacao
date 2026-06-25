@@ -79,7 +79,6 @@ export function useAuth() {
           document: cleanDocument,
           phone: cleanPhone,
           terms_accepted_at: termsAcceptedAt,
-          // user_metadata: { full_name: name, r, document, phone }
         },
       },
     });
@@ -94,7 +93,6 @@ export function useAuth() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            // Simulamos o exato payload que o Webhook enviaria
             record: {
               id: authData.user.id,
               full_name: data.name,
@@ -104,7 +102,6 @@ export function useAuth() {
           }),
         });
       } catch (err) {
-        // O catch garante a resiliência da interface: se a API falhar, o aluno ainda consegue entrar.
         console.error("🚨 Falha na comunicação com a API de pagamentos:", err);
       }
     }
