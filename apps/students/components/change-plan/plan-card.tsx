@@ -32,10 +32,12 @@ export function PlanCard({ plan, isCurrentPlan, isUpgradeFlow }: PlanCardProps) 
       )}
 
       <div className="flex justify-between items-start mb-4">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{plan.name}</h2>
-        {plan.badge && (
+        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
+          {plan.name}
+        </h2>
+        {isPremium && (
           <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
-            {plan.badge}
+            RECOMENDADO
           </span>
         )}
       </div>

@@ -10,7 +10,6 @@ export interface PlanFeature {
 export interface PlanData {
   id: string;
   name: string;
-  badge?: string;
   price: number;
   interval: string;
   interval_count: number | null;
@@ -20,29 +19,25 @@ export interface PlanData {
 export async function getAvailablePlans(currentPlanId: string | null): Promise<PlanData[]> {
   const supabase = await createClient();
 
-  let query = supabase
+  const { data: plans, error } = await supabase
     .from("plans")
-    .select("id, name, price, interval, interval_count, features")
+    .select("id, name, price, interval, interval_count, features, is_public, external_id")
     .eq("is_active", true)
     .order("price", { ascending: true });
-
-  if (currentPlanId) {
-    query = query.or(`is_public.eq.true,id.eq.${currentPlanId}`);
-  } else {
-    query = query.eq("is_public", true);
-  }
-
-  const { data: plans, error } = await query;
 
   if (error || !plans) {
     console.error("Erro ao buscar planos:", error.message);
     return [];
   }
 
-  return plans.map((plan) => ({
+  const availablePlans = plans.filter((plan) => {
+    if (plan.id === currentPlanId) return true;
+    return plan.is_public && plan.price > 0 && plan.external_id !== "internal_mentoria_free";
+  });
+
+  return availablePlans.map((plan) => ({
     id: plan.id,
     name: plan.name,
-    badge: plan.name.toLowerCase().includes("premium") ? "RECOMENDADO" : undefined,
     price: plan.price,
     interval: plan.interval,
     interval_count: plan.interval_count,
