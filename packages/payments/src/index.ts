@@ -1,3 +1,5 @@
+import "server-only";
+
 const PAGARME_API_URL = "https://api.pagar.me/core/v5";
 const SECRET_KEY = process.env.PAGARME_SECRET_KEY;
 
@@ -250,16 +252,6 @@ export async function createPagarmeSubscription({
 
     metadata,
   };
-
-  console.log("[PAGARME_SUBSCRIPTION_DEBUG]", {
-    paymentMethod,
-    hasCardToken: Boolean(cardToken),
-    cardTokenPrefix: cardToken?.slice(0, 6),
-    hasCardId: Boolean(cardId),
-    cardIdPrefix: cardId?.slice(0, 5),
-    payloadKeys: Object.keys(payload),
-    cardKeys: payload.card ? Object.keys(payload.card) : [],
-  });
 
   return fetchPagarme<PagarmeSubscription>("/subscriptions", {
     method: "POST",
