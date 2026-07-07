@@ -1,6 +1,6 @@
 'use client'
 
-import { GradedEssayListItem } from "@/types"
+import { GradedEssayListItem } from "@repo/types"
 import { Avatar } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button"
 import { formatDate } from "@repo/utils";

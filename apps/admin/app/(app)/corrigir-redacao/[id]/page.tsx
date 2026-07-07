@@ -1,6 +1,5 @@
-// import { getCorrectionDraft, saveCorrectionDraft } from "@/app/actions/drafts";
 import { getCorrectionDraft, saveCorrectionDraft } from "@/app/actions/drafts";
-import { getEssayById, saveEssayCorrection } from "@/app/actions/essays";
+import { getEssayById, returnEssay, saveEssayCorrection } from "@/app/actions/essays";
 import { EssayCorrectionWorkspace } from "@repo/ui/components/features/grading/components/essay-correction-workspace";
 import { notFound } from "next/navigation";
 
@@ -29,7 +28,9 @@ export default async function EssayCorrectionPage(props: Props) {
       initialDraft={draft}
       onAutoSave={boundAutoSave}
       onSaveCorrection={boundFinalSave}
+      onReturnEssay={returnEssay}
       redirectPath="/redacoes-corrigidas"
-    />)
+    />
+  )
 
 }

@@ -18,7 +18,7 @@ import {
   DollarSign,
   RefreshCw
 } from "lucide-react";
-import { type PlanData } from "@/app/actions/plans";
+import { PlanData } from "@/types";
 
 interface ConfirmChangePlanProps {
   newPlan: PlanData;

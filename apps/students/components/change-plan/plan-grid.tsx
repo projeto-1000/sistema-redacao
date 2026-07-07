@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { type PlanData } from "@/app/actions/plans";
+import { PlanData } from "@/types";
 import { PlanCard } from "./plan-card";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 

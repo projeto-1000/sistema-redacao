@@ -12,9 +12,9 @@ export interface EssayListItem {
 
 export interface EssaysFilter {
   search?: string;
-  status?: string;
-  totalScore?: string;
-  thematicAxis?: ThematicAxis;
+  status?: EssayStatus | "all";
+  thematicAxis?: ThematicAxis | "all";
+  totalScore?: string | "all";
   from?: string;
   to?: string;
 }

@@ -3,25 +3,19 @@ import { CreditsFilters, TopicsFilter } from "@repo/types";
 
 export type NextSearchParams = { [key: string]: string | string[] | undefined };
 
+function getSearchParamValue(value: string | string[] | undefined) {
+  return typeof value === "string" ? value : undefined;
+}
+
 export function parseEssaysFilters(params: NextSearchParams = {}): EssaysFilter {
-  const allowedKeys: (keyof EssaysFilter)[] = [
-    "search",
-    "status",
-    "thematicAxis",
-    "totalScore",
-    "from",
-    "to",
-  ];
-
-  return allowedKeys.reduce((acc, key) => {
-    const value = params[key];
-
-    if (typeof value === "string") {
-      acc[key] = value;
-    }
-
-    return acc;
-  }, {} as EssaysFilter);
+  return {
+    search: getSearchParamValue(params.search),
+    status: getSearchParamValue(params.status) as EssaysFilter["status"],
+    thematicAxis: getSearchParamValue(params.thematicAxis) as EssaysFilter["thematicAxis"],
+    totalScore: getSearchParamValue(params.totalScore),
+    from: getSearchParamValue(params.from),
+    to: getSearchParamValue(params.to),
+  };
 }
 
 export function parseTopicsFilters(params: NextSearchParams = {}): TopicsFilter {

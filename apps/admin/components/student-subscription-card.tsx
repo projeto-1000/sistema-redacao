@@ -64,7 +64,7 @@ export default function StudentSubscriptionCard({ subscription, credits, hasCred
   const badge = statusBadgeConfig[subscription.status as SubscriptionStatus];
 
   const renderDateText = () => {
-    if (!subscription.current_period_end || subscription.billing_cycle === 'lifetime') {
+    if (!subscription.current_period_end || subscription.interval === 'lifetime') {
       return <>Acesso: <span className="font-bold">Vitalício</span></>;
     }
 

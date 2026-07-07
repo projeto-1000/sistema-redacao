@@ -104,8 +104,6 @@ export async function getEssayById(essayId: string) {
     return null;
   }
 
-  console.log(essay);
-
   return {
     correctedAt: essay.correction_date,
     updatedAt: essay.updated_at,

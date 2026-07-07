@@ -55,8 +55,16 @@ export async function updatePassword(password: string) {
 
   if (error) {
     console.error("Erro ao atualizar senha:", error);
-    throw new Error("Não foi possível atualizar a senha");
+
+    return {
+      success: false,
+      error: "Não foi possível atualizar a senha",
+    };
   }
+
+  return {
+    success: true,
+  };
 }
 
 export async function uploadAvatar(formData: FormData) {

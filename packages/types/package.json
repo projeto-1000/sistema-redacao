@@ -6,5 +6,9 @@
   "types": "./index.ts",
   "scripts": {
     "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "eslint": "9.39.1"
   }
 }

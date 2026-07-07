@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, XCircle } from "lucide-react";
-import { type PlanData } from "@/app/actions/plans";
+import { PlanData } from "@/types";
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ConfirmChangePlan } from "../confirm-change-plan";

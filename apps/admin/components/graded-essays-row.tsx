@@ -13,7 +13,6 @@ interface GradedEssaysRowProps {
 }
 
 export default function GradedEssaysRow({ essay }: GradedEssaysRowProps) {
-
   return (
     <div
       className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3 lg:gap-4 px-4 sm:px-8 py-5 items-center hover:bg-slate-50 transition-colors group"

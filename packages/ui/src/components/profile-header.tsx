@@ -73,16 +73,18 @@ export function ProfileHeader({ user, creditBalanceComponent, secondaryAction }:
         </Button>
 
 
-        <Button
-          asChild
-          variant="outline"
-          className="h-11 rounded-2xl md:w-fit font-medium flex items-center justify-center"
-        >
-          <Link href={secondaryAction?.href}>
-            <CreditCard className="size-5 shrink-0" />
-            {secondaryAction?.label}
-          </Link>
-        </Button>
+        {secondaryAction && (
+          <Button
+            asChild
+            variant="outline"
+            className="h-11 rounded-2xl md:w-fit font-medium flex items-center justify-center"
+          >
+            <Link href={secondaryAction.href}>
+              <CreditCard className="size-5 shrink-0" />
+              {secondaryAction.label}
+            </Link>
+          </Button>
+        )}
       </div>
     </div>
   );
