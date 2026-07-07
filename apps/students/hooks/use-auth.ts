@@ -54,19 +54,17 @@ export function useAuth() {
   };
 
   const register = async (data: RegisterSchema) => {
-    const cleanDocument = data.document ? data.document.replace(/\D/g, "") : null;
-    const cleanPhone = data.phone ? data.phone.replace(/\D/g, "") : null;
+    const cleanDocument = data.document.replace(/\D/g, "");
+    const cleanPhoneCountryCode = data.phoneCountryCode.replace(/\D/g, "") || "55";
+    const cleanPhone = data.phone.replace(/\D/g, "");
     const termsAcceptedAt = data.terms ? new Date().toISOString() : null;
 
-    //TODO: colcoar documento obrigatório pra todos e remover isso aqui
-    if (cleanDocument) {
-      const { error: rpcError } = await supabase.rpc("check_document_exists", {
-        doc_to_check: cleanDocument,
-      });
+    const { error: rpcError } = await supabase.rpc("check_document_exists", {
+      doc_to_check: cleanDocument,
+    });
 
-      if (rpcError) {
-        throw new Error("Document already registered");
-      }
+    if (rpcError) {
+      throw new Error("Document already registered");
     }
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -77,6 +75,7 @@ export function useAuth() {
           full_name: data.name,
           role: data.role,
           document: cleanDocument,
+          phone_country_code: cleanPhoneCountryCode,
           phone: cleanPhone,
           terms_accepted_at: termsAcceptedAt,
         },
@@ -98,6 +97,8 @@ export function useAuth() {
               full_name: data.name,
               email: data.email,
               document: cleanDocument,
+              phone_country_code: cleanPhoneCountryCode,
+              phone: cleanPhone,
             },
           }),
         });

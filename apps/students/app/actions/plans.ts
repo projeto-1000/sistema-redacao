@@ -1,20 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-
-export interface PlanFeature {
-  text: string;
-  included: boolean;
-}
-
-export interface PlanData {
-  id: string;
-  name: string;
-  price: number;
-  interval: string;
-  interval_count: number | null;
-  features: PlanFeature[] | string[];
-}
+import { PlanData } from "@/types";
 
 export async function getAvailablePlans(currentPlanId: string | null): Promise<PlanData[]> {
   const supabase = await createClient();

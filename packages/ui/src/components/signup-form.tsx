@@ -9,8 +9,22 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "./input";
 import { Logo } from "./logo";
 import Link from "next/link";
-import { formatCPF, formatPhone, getErrorMessage } from "@repo/utils";
+import {
+  DEFAULT_PHONE_COUNTRY_CODE,
+  formatCPF,
+  formatPhone,
+  getErrorMessage,
+  getPhoneCountryCodeOptions,
+  onlyDigits,
+} from "@repo/utils";
 import { Checkbox } from "./checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./select";
 import { toast } from "sonner";
 
 type AppType = "admin" | "teacher" | "student";
@@ -36,6 +50,9 @@ const APP_CONFIG: Record<AppType, { title: string; description: string; }> = {
   },
 };
 
+const PHONE_COUNTRY_CODE_OPTIONS = getPhoneCountryCodeOptions();
+
+
 interface SignUpFormProps {
   appType: AppType;
   onSubmit: (values: RegisterSchema) => Promise<void>;
@@ -46,7 +63,6 @@ export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const text = APP_CONFIG[appType];
-  const requiresExtraFields = appType === 'student' || appType === 'teacher';
 
   const form = useForm({
     resolver: zodResolver(registerSchema),
@@ -55,6 +71,7 @@ export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
       name: '',
       email: '',
       document: '',
+      phoneCountryCode: DEFAULT_PHONE_COUNTRY_CODE,
       phone: '',
       password: '',
       confirmPassword: '',
@@ -63,7 +80,11 @@ export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
     },
   });
 
-  const { isValid, isSubmitting, errors } = form.formState;
+  const { isValid, isSubmitting } = form.formState;
+
+  const selectedPhoneCountryCode = form.watch("phoneCountryCode");
+  const isBrazilianPhone =
+    selectedPhoneCountryCode === DEFAULT_PHONE_COUNTRY_CODE;
 
   const handleSubmit = async (values: RegisterSchema) => {
     try {
@@ -141,59 +162,109 @@ export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
                 )}
               />
 
-              {requiresExtraFields && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormField
-                    control={form.control}
-                    name="document"
+              <FormField
+                control={form.control}
+                name="document"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                      CPF
+                    </FormLabel>
 
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">CPF</FormLabel>
+                    <FormControl>
+                      <Input
+                        className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                        placeholder="000.000.000-00"
+                        maxLength={14}
+                        inputMode="numeric"
+                        {...field}
+                        onChange={(e) => {
+                          const maskedValue = formatCPF(e.target.value);
+                          field.onChange(maskedValue);
+                        }}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-[104px_minmax(0,1fr)] gap-3">
+                <FormField
+                  control={form.control}
+                  name="phoneCountryCode"
+                  render={({ field }) => (
+                    <FormItem className="min-w-0">
+                      <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                        País
+                      </FormLabel>
+
+                      <Select
+                        value={field.value}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          form.setValue("phone", "", {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                        }}
+                      >
                         <FormControl>
-                          <Input
-                            className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
-                            placeholder="000.000.000-00"
-                            maxLength={14}
-                            inputMode="numeric"
-                            {...field}
-                            onChange={(e) => {
-                              const maskedValue = formatCPF(e.target.value);
-                              field.onChange(maskedValue);
-                            }}
-                          />
+                          <SelectTrigger
+                            className={`w-full rounded-2xl min-h-12 p-3.5 overflow-hidden [&>span]:truncate ${inputFocusClass}`}
+                          >
+                            <SelectValue placeholder="+55" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">Celular</FormLabel>
-                        <FormControl>
-                          <Input
-                            className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
-                            placeholder="(00) 00000-0000"
-                            maxLength={15}
-                            inputMode="numeric"
+                        <SelectContent>
+                          {PHONE_COUNTRY_CODE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.display}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                            {...field}
-                            onChange={(e) => {
-                              const maskedValue = formatPhone(e.target.value);
-                              field.onChange(maskedValue);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem className="min-w-0">
+                      <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                        Celular
+                      </FormLabel>
+
+                      <FormControl>
+                        <Input
+                          className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                          placeholder={
+                            isBrazilianPhone ? "(00) 00000-0000" : "Digite somente números"
+                          }
+                          maxLength={isBrazilianPhone ? 15 : 20}
+                          inputMode="numeric"
+                          {...field}
+                          onChange={(e) => {
+                            const value = isBrazilianPhone
+                              ? formatPhone(e.target.value)
+                              : onlyDigits(e.target.value).slice(0, 20);
+
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}

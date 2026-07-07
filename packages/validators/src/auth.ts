@@ -1,3 +1,4 @@
+import { isValidCPF, onlyDigits } from "@repo/utils";
 import { z } from "zod";
 
 export const loginSchema = z.object({
@@ -6,18 +7,30 @@ export const loginSchema = z.object({
 });
 
 export const registerSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  email: z.string().email("Email inválido"),
+  name: z.string().trim().min(1, "Nome é obrigatório"),
+  email: z.string().trim().email("Email inválido"),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
   confirmPassword: z.string().min(1, "Confirme sua senha"), 
   role: z.enum(["STUDENT", "TEACHER", "ADMIN"]),
-  document: z.string()
-    .min(1, "O documento é obrigatório")
-    .refine((val) => {
-      const clean = val.replace(/\D/g, "");
-      return clean.length === 11 
-    }, "Documento inválido"),
-  phone: z.string().optional(),
+  document: z
+  .string()
+  .min(1, "CPF é obrigatório")
+  .refine((value) => isValidCPF(value), "CPF inválido"),
+    phoneCountryCode: z
+      .string()
+      .default("55")
+      .refine((value) => {
+        const digits = onlyDigits(value);
+        return digits.length >= 1 && digits.length <= 4;
+      }, "Código do país inválido"),
+
+    phone: z
+      .string()
+      .min(1, "Celular é obrigatório")
+      .refine((value) => {
+        const digits = onlyDigits(value);
+        return digits.length >= 10 && digits.length <= 15;
+      }, "Celular inválido"),
   terms: z.boolean().refine((val) => val === true, {
     message: "Você precisa aceitar os termos de uso e privacidade.",
   }),
@@ -28,24 +41,6 @@ export const registerSchema = z.object({
       path: ["confirmPassword"],
       message: "As senhas não coincidem",
     });
-  }
-
-  // 💡 Validação condicional baseada na role
-  if (data.role !== "ADMIN") {
-    if (!data.document || data.document.length < 11) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["cpf"],
-        message: "CPF é obrigatório para este cadastro",
-      });
-    }
-    if (!data.phone || data.phone.length < 10) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["phone"],
-        message: "Celular é obrigatório para este cadastro",
-      });
-    }
   }
 });
 

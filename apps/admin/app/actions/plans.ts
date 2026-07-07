@@ -60,7 +60,7 @@ export async function createPlan(data: CreatePlanFormValues) {
     const pagarmePayload = {
       name: parsedData.name,
       description: parsedData.description || "Plano de assinaturas",
-      payment_methods: ["credit_card", "boleto"],
+      payment_methods: ["credit_card", "debit_card", "boleto"],
       installments: [1],
       minimum_price: priceInCents,
       currency: "BRL",
@@ -193,7 +193,7 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
       interval: parsedData.interval,
       interval_count: parsedData.interval_count,
       minimum_price: priceInCents,
-      payment_methods: ["credit_card", "boleto"],
+      payment_methods: ["credit_card", "debit_card", "boleto"],
     };
 
     const pagarmeResponse = await fetch(
@@ -268,7 +268,7 @@ export async function updatePlanStatus(id: string, currentStatus: boolean) {
         interval: plan.interval,
         interval_count: plan.interval_count,
         minimum_price: plan.price,
-        payment_methods: ["credit_card", "boleto"],
+        payment_methods: ["credit_card", "debit_card", "boleto"],
       };
 
       const pagarmeResponse = await fetch(
