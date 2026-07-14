@@ -193,8 +193,54 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Could not store Hotmart webhook event" }, { status: 500 });
   }
 
+  const { data: mentorshipAccess, error: mentorshipAccessError } = await supabaseAdmin
+    .from("hotmart_mentorship_accesses")
+    .upsert(
+      {
+        webhook_event_id: webhookEvent.id,
+
+        transaction_id: transaction,
+        product_ucode: productUcode,
+        product_name: productName,
+
+        buyer_email: buyerEmail,
+        buyer_name: buyerName,
+        buyer_document: buyerDocument,
+        buyer_document_type: buyerDocumentType,
+        buyer_phone: buyerPhone,
+        buyer_phone_code: buyerPhoneCode,
+
+        purchase_status: purchaseStatus,
+        approved_at: approvedAt,
+        payment_type: paymentType,
+
+        acquisition_channel: "HOTMART_MENTORIA",
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "transaction_id",
+      }
+    )
+    .select("id, signup_token")
+    .single();
+
+  if (mentorshipAccessError || !mentorshipAccess) {
+    console.error("[HOTMART_MENTORSHIP_ACCESS_STORE_ERROR]", {
+      error: mentorshipAccessError,
+      transaction,
+      buyerEmail,
+      webhookEventId: webhookEvent.id,
+    });
+
+    return NextResponse.json(
+      { error: "Could not store Hotmart mentorship access" },
+      { status: 500 }
+    );
+  }
+
   console.log("[HOTMART_WEBHOOK_ACCEPTED]", {
     webhookEventId: webhookEvent.id,
+    mentorshipAccessId: mentorshipAccess.id,
     eventId: payload.id,
     transaction,
     productUcode,
@@ -205,6 +251,7 @@ export async function POST(req: Request) {
     {
       accepted: true,
       webhookEventId: webhookEvent.id,
+      mentorshipAccessId: mentorshipAccess.id,
       event: payload.event,
       transaction,
       productUcode,
