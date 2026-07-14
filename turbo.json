@@ -4,7 +4,8 @@
   "globalEnv": [
     "PAGARME_SECRET_KEY",
     "NEXT_PUBLIC_PAGARME_PUBLIC_KEY",
-    "SUPABASE_SECRET_KEY"
+    "SUPABASE_SECRET_KEY", 
+    "HOTMART_WEBHOOK_TOKEN"
   ],
   "tasks": {
     "build": {

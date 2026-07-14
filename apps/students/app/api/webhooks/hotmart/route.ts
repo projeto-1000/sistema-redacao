@@ -1,134 +1,94 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
-interface HotmartWebhookV2 {
+export const dynamic = "force-dynamic";
+
+interface HotmartWebhookPayload {
+  id: string;
+  creation_date: number;
   event: string;
-  data: {
-    product: { id: number; name: string };
-    buyer: { email: string; name: string };
-    purchase: { transaction: string; status: string };
+  version: string;
+  data?: {
+    product?: {
+      id?: number;
+      ucode?: string;
+      name?: string;
+    };
+    buyer?: {
+      email?: string;
+      name?: string;
+      first_name?: string;
+      last_name?: string;
+      checkout_phone?: string;
+      checkout_phone_code?: string;
+      document?: string;
+      document_type?: string;
+    };
+    purchase?: {
+      transaction?: string;
+      status?: string;
+      approved_date?: number;
+      payment?: {
+        type?: string;
+      };
+    };
   };
 }
 
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    service: "hotmart-webhook",
+  });
+}
+
 export async function POST(req: Request) {
-  try {
-    const hottok = req.headers.get("x-hotmart-hottok");
-    if (hottok !== process.env.HOTMART_WEBHOOK_TOKEN) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const expectedHottok = process.env.HOTMART_WEBHOOK_TOKEN;
+  const receivedHottok = req.headers.get("x-hotmart-hottok");
 
-    const body: HotmartWebhookV2 = await req.json();
-
-    if (body.event !== "PURCHASE_APPROVED") {
-      return NextResponse.json({ message: "Evento ignorado" }, { status: 200 });
-    }
-
-    const { buyer, purchase } = body.data;
-
-    const creditsToAssign = 4;
-
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    const { data: plan, error: planError } = await supabase
-      .from("plans")
-      .select("id, credits_included")
-      .eq("external_id", "plan_trial_free")
-      .single();
-
-    if (planError || !plan) {
-      throw new Error("Plano 'Teste Gratuito' não encontrado no banco de dados.");
-    }
-
-    let userId: string;
-
-    const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
-      buyer.email,
-      {
-        data: {
-          full_name: buyer.name,
-          acquisition_channel: "HOTMART_MENTORIA",
-        },
-        redirectTo: "http://localhost:3001/nova-senha",
-      }
-    );
-
-    if (inviteError) {
-      if (inviteError.message.includes("already registered") || inviteError.status === 422) {
-        const { data: existingProfile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("email", buyer.email)
-          .single();
-
-        if (!existingProfile) throw new Error("Usuário não encontrado em profiles.");
-        userId = existingProfile.id;
-      } else {
-        throw inviteError;
-      }
-    } else {
-      userId = inviteData.user.id;
-    }
-
-    const { error: inviteLogError } = await supabase.from("hotmart_invites").upsert(
-      {
-        email: buyer.email,
-        transaction_id: purchase.transaction,
-      },
-      { onConflict: "email" }
-    );
-
-    if (inviteLogError) {
-      console.error("Aviso: Falha ao registrar log na hotmart_invites:", inviteLogError);
-    }
-
-    const { error: subError } = await supabase.from("subscriptions").upsert(
-      {
-        user_id: userId,
-        plan_id: plan.id,
-        status: "active",
-        current_period_start: new Date().toISOString(),
-        current_period_end: null,
-      },
-      { onConflict: "user_id" }
-    );
-
-    if (subError) throw subError;
-
-    const { error: txError } = await supabase.from("credit_transactions").insert({
-      user_id: userId,
-      type: "mentorship_bonus",
-      amount: plan.credits_included,
-      description: "Liberação de Teste Gratuito (Acesso via Mentoria)",
-      metadata: { transaction_id: purchase.transaction },
+  if (!expectedHottok) {
+    console.error("[HOTMART_WEBHOOK_CONFIG_ERROR]", {
+      message: "Missing HOTMART_WEBHOOK_TOKEN",
     });
 
-    if (txError) throw txError;
-
-    const { data: currentCredits } = await supabase
-      .from("student_credits")
-      .select("extra_credits")
-      .eq("user_id", userId)
-      .single();
-
-    const { error: creditError } = await supabase.from("student_credits").upsert(
-      {
-        user_id: userId,
-        plan_credits: plan.credits_included,
-        extra_credits: currentCredits?.extra_credits || 0,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" }
-    );
-
-    if (creditError) throw creditError;
-
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Erro interno";
-    console.error("❌ Erro no Webhook:", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Webhook token is not configured" }, { status: 500 });
   }
+
+  if (receivedHottok !== expectedHottok) {
+    console.warn("[HOTMART_WEBHOOK_UNAUTHORIZED]", {
+      hasReceivedHottok: Boolean(receivedHottok),
+    });
+
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let payload: HotmartWebhookPayload;
+
+  try {
+    payload = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+  }
+
+  console.log("[HOTMART_WEBHOOK_RECEIVED]", {
+    id: payload.id,
+    event: payload.event,
+    version: payload.version,
+    productId: payload.data?.product?.id,
+    productUcode: payload.data?.product?.ucode,
+    productName: payload.data?.product?.name,
+    buyerEmail: payload.data?.buyer?.email,
+    buyerName: payload.data?.buyer?.name,
+    transaction: payload.data?.purchase?.transaction,
+    purchaseStatus: payload.data?.purchase?.status,
+    paymentType: payload.data?.purchase?.payment?.type,
+  });
+
+  return NextResponse.json(
+    {
+      received: true,
+      event: payload.event,
+      transaction: payload.data?.purchase?.transaction ?? null,
+    },
+    { status: 200 }
+  );
 }
