@@ -1,7 +1,22 @@
-import { NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/admin";
 import type { HotmartWebhookPayload } from "@/types";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+
+function getHotmartDate(timestamp?: number) {
+  if (!timestamp) {
+    return null;
+  }
+
+  const date = new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toISOString();
+}
 
 export async function GET() {
   return NextResponse.json({
@@ -48,19 +63,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
   }
 
+  const productId = payload.data?.product?.id ?? null;
   const productUcode = payload.data?.product?.ucode;
-  const productName = payload.data?.product?.name;
-  const buyerEmail = payload.data?.buyer?.email;
-  const buyerName = payload.data?.buyer?.name;
+  const productName = payload.data?.product?.name ?? null;
+
+  const buyerEmail = payload.data?.buyer?.email?.trim().toLowerCase();
+  const buyerName = payload.data?.buyer?.name ?? null;
+  const buyerDocument = payload.data?.buyer?.document ?? null;
+  const buyerDocumentType = payload.data?.buyer?.document_type ?? null;
+  const buyerPhone = payload.data?.buyer?.checkout_phone ?? null;
+  const buyerPhoneCode = payload.data?.buyer?.checkout_phone_code ?? null;
+
   const transaction = payload.data?.purchase?.transaction;
   const purchaseStatus = payload.data?.purchase?.status;
-  const paymentType = payload.data?.purchase?.payment?.type;
+  const paymentType = payload.data?.purchase?.payment?.type ?? null;
+  const approvedAt = getHotmartDate(payload.data?.purchase?.approved_date);
 
   console.log("[HOTMART_WEBHOOK_RECEIVED]", {
     id: payload.id,
     event: payload.event,
     version: payload.version,
-    productId: payload.data?.product?.id,
+    productId,
     productUcode,
     productName,
     buyerEmail,
@@ -124,7 +147,54 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing required Hotmart payload fields" }, { status: 400 });
   }
 
+  const supabaseAdmin = createAdminClient();
+
+  const { data: webhookEvent, error: webhookEventError } = await supabaseAdmin
+    .from("hotmart_webhook_events")
+    .upsert(
+      {
+        hotmart_event_id: payload.id,
+        event: payload.event,
+        version: payload.version,
+
+        product_id: productId,
+        product_ucode: productUcode,
+        product_name: productName,
+
+        transaction_id: transaction,
+
+        buyer_email: buyerEmail,
+        buyer_name: buyerName,
+        buyer_document: buyerDocument,
+        buyer_document_type: buyerDocumentType,
+        buyer_phone: buyerPhone,
+        buyer_phone_code: buyerPhoneCode,
+
+        purchase_status: purchaseStatus,
+        payment_type: paymentType,
+        approved_at: approvedAt,
+
+        payload: JSON.parse(JSON.stringify(payload)),
+      },
+      {
+        onConflict: "hotmart_event_id",
+      }
+    )
+    .select("id")
+    .single();
+
+  if (webhookEventError || !webhookEvent) {
+    console.error("[HOTMART_WEBHOOK_STORE_ERROR]", {
+      error: webhookEventError,
+      hotmartEventId: payload.id,
+      transaction,
+    });
+
+    return NextResponse.json({ error: "Could not store Hotmart webhook event" }, { status: 500 });
+  }
+
   console.log("[HOTMART_WEBHOOK_ACCEPTED]", {
+    webhookEventId: webhookEvent.id,
     eventId: payload.id,
     transaction,
     productUcode,
@@ -134,6 +204,7 @@ export async function POST(req: Request) {
   return NextResponse.json(
     {
       accepted: true,
+      webhookEventId: webhookEvent.id,
       event: payload.event,
       transaction,
       productUcode,
