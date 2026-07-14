@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/admin";
 import type { HotmartWebhookPayload } from "@/types";
 import { NextResponse } from "next/server";
+import { sendHotmartMentorshipAccessEmail } from "@/lib/hotmart/emails";
 
 export const dynamic = "force-dynamic";
 
@@ -221,7 +222,7 @@ export async function POST(req: Request) {
         onConflict: "transaction_id",
       }
     )
-    .select("id, signup_token")
+    .select("id, signup_token, signup_email_sent_at")
     .single();
 
   if (mentorshipAccessError || !mentorshipAccess) {
@@ -236,6 +237,36 @@ export async function POST(req: Request) {
       { error: "Could not store Hotmart mentorship access" },
       { status: 500 }
     );
+  }
+
+  if (!mentorshipAccess.signup_email_sent_at) {
+    await sendHotmartMentorshipAccessEmail({
+      to: buyerEmail,
+      buyerName,
+      signupToken: mentorshipAccess.signup_token,
+    });
+
+    const { error: emailSentUpdateError } = await supabaseAdmin
+      .from("hotmart_mentorship_accesses")
+      .update({
+        signup_email_sent_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", mentorshipAccess.id);
+
+    if (emailSentUpdateError) {
+      console.error("[HOTMART_MENTORSHIP_EMAIL_SENT_UPDATE_ERROR]", {
+        error: emailSentUpdateError,
+        mentorshipAccessId: mentorshipAccess.id,
+        transaction,
+        buyerEmail,
+      });
+
+      return NextResponse.json(
+        { error: "Could not update Hotmart mentorship email status" },
+        { status: 500 }
+      );
+    }
   }
 
   console.log("[HOTMART_WEBHOOK_ACCEPTED]", {

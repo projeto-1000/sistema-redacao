@@ -9,9 +9,11 @@ if (!HOTMART_WEBHOOK_TOKEN) {
   throw new Error("Missing HOTMART_WEBHOOK_TOKEN");
 }
 
-const HOTMART_WEBHOOK_URL = `https://students-dev.vercel.app/api/webhooks/hotmart?x-vercel-protection-bypass=${encodeURIComponent(
-  VERCEL_BYPASS_SECRET
-)}`;
+// const HOTMART_WEBHOOK_URL = `https://students-dev.vercel.app/api/webhooks/hotmart?x-vercel-protection-bypass=${encodeURIComponent(
+//   VERCEL_BYPASS_SECRET
+// )}`;
+
+const HOTMART_WEBHOOK_URL = "http://localhost:3001/api/webhooks/hotmart";
 
 async function testHotmartWebhook() {
   const response = await fetch(HOTMART_WEBHOOK_URL, {
@@ -28,11 +30,11 @@ async function testHotmartWebhook() {
       data: {
         product: {
           id: 213344,
-          ucode: "hotmart-product-ucode-test",
+          ucode: "fb056612-bcc6-4217-9e6d-2a5d1110ac2f",
           name: "Mentoria ENEM Teste",
         },
         buyer: {
-          email: "aluno.teste@example.com",
+          email: "fernandaleitefelix@gmail.com",
           name: "Aluno Teste",
           first_name: "Aluno",
           last_name: "Teste",
