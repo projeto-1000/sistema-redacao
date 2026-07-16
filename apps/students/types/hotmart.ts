@@ -133,3 +133,26 @@ export interface HotmartSubscription {
     code?: string;
   };
 }
+
+export interface HotmartMentorshipSignupData {
+  accessId: string;
+  buyerEmail: string;
+  buyerName: string | null;
+  buyerDocument: string | null;
+  buyerDocumentType: string | null;
+  phoneCountryCode: string;
+  phone: string | null;
+  acquisitionChannel: "HOTMART_MENTORIA";
+}
+
+export type HotmartMentorshipSignupActionResult =
+  | {
+      status: "success";
+      data: HotmartMentorshipSignupData;
+    }
+  | {
+      status: "invalid_token";
+    }
+  | {
+      status: "already_claimed";
+    };

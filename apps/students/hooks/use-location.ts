@@ -50,7 +50,6 @@ export function useLocation() {
       .catch((err) => console.error("Falha ao carregar estados:", err));
   }, []);
 
-  // Função para carregar cidades baseada na UF
   const loadCities = async (uf: string) => {
     if (!uf) {
       setCities([]);

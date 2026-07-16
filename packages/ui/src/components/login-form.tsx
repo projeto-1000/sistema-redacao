@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircleIcon, Eye, EyeOff } from "lucide-react";
-import Link from "next/link"; // 💡 Importação do Link do Next.js
+import Link from "next/link";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./form";

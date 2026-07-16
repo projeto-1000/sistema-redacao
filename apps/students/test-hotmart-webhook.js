@@ -35,9 +35,9 @@ async function testHotmartWebhook() {
         },
         buyer: {
           email: "fernandaleitefelix@gmail.com",
-          name: "Aluno Teste",
-          first_name: "Aluno",
-          last_name: "Teste",
+          name: "Fernanda Leite Felix",
+          first_name: "Fernanda",
+          last_name: "Leite Felix",
           checkout_phone: "999999999",
           checkout_phone_code: "11",
           document: "12345678901",

@@ -10,7 +10,6 @@ import { Skeleton } from "@repo/ui/components/skeleton";
 import { Suspense } from "react";
 import { getProfileData } from "@/app/actions/profile";
 import { CreditsCard } from "@/components/credits-card";
-import { OnboardingModal } from "@/components/onboarding-modal";
 
 import type { Metadata } from "next";
 
@@ -132,8 +131,6 @@ export default async function DashboardPage() {
         <Skeleton className="rounded-3xl min-h-[250px] bg-slate-200" />}>
         <RecentEssaysList />
       </Suspense>
-
-      {!user.onboarding_completed && <OnboardingModal />}
     </div >
   );
 }

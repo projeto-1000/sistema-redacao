@@ -1,8 +1,9 @@
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { registerSchema, type RegisterSchema } from "@repo/validators";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "./form";
@@ -52,35 +53,76 @@ const APP_CONFIG: Record<AppType, { title: string; description: string; }> = {
 
 const PHONE_COUNTRY_CODE_OPTIONS = getPhoneCountryCodeOptions();
 
+type SignUpInitialValues = Partial<
+  Pick<
+    RegisterSchema,
+    "name" | "email" | "document" | "phoneCountryCode" | "phone"
+  >
+>;
+
+interface SignUpLockedFields {
+  email?: boolean;
+}
 
 interface SignUpFormProps {
   appType: AppType;
   onSubmit: (values: RegisterSchema) => Promise<void>;
+  title?: string;
+  description?: string;
+  submitLabel?: string;
+  loadingText?: string;
+  initialValues?: SignUpInitialValues;
+  lockedFields?: SignUpLockedFields;
 }
 
-export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
+export function SignUpForm({
+  appType,
+  onSubmit,
+  title,
+  description,
+  submitLabel = "Cadastrar",
+  loadingText = "Criando conta...",
+  initialValues,
+  lockedFields,
+}: SignUpFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const text = APP_CONFIG[appType];
+  const text = {
+    title: title ?? APP_CONFIG[appType].title,
+    description: description ?? APP_CONFIG[appType].description,
+  };
 
   const form = useForm({
     resolver: zodResolver(registerSchema),
     mode: "onChange",
     defaultValues: {
-      name: '',
-      email: '',
-      document: '',
-      phoneCountryCode: DEFAULT_PHONE_COUNTRY_CODE,
-      phone: '',
-      password: '',
-      confirmPassword: '',
+      name: initialValues?.name ?? "",
+      email: initialValues?.email ?? "",
+      document: initialValues?.document ?? "",
+      phoneCountryCode:
+        initialValues?.phoneCountryCode ?? DEFAULT_PHONE_COUNTRY_CODE,
+      phone: initialValues?.phone ?? "",
+      password: "",
+      confirmPassword: "",
       terms: false,
       role: ROLE_MAP[appType],
     },
   });
 
-  const { isValid, isSubmitting } = form.formState;
+  const hasInitialValues = Boolean(initialValues);
+
+  useEffect(() => {
+    if (!hasInitialValues) {
+      return;
+    }
+
+    void form.trigger();
+  }, [form, hasInitialValues]);
+
+  const { isValid, isSubmitting, errors } = form.formState;
+  console.log(isValid)
+  console.log(errors)
 
   const selectedPhoneCountryCode = form.watch("phoneCountryCode");
   const isBrazilianPhone =
@@ -101,10 +143,7 @@ export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
     }
   };
 
-  const inputFocusClass = appType === 'admin'
-    ? 'focus-visible:ring-secondary focus-visible:border-secondary focus-visible:ring-1'
-    : 'focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1';
-
+  const inputFocusClass = 'focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1';
 
   return (
     <div className="w-full max-w-[500px] flex flex-col items-center">
@@ -155,6 +194,8 @@ export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
                       <Input
                         className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                         placeholder="seu@email.com"
+                        readOnly={lockedFields?.email}
+                        aria-readonly={lockedFields?.email}
                         {...field} />
                     </FormControl>
                     <FormMessage />
@@ -359,13 +400,12 @@ export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
 
               <Button
                 type="submit"
-                variant={appType !== 'admin' ? 'default' : 'secondary'}
                 className="w-full font-bold h-12 rounded-xl text-[16px]"
                 disabled={isSubmitting || !isValid}
                 isLoading={isSubmitting}
-                loadingText="Criando conta..."
+                loadingText={loadingText}
               >
-                Cadastrar
+                {submitLabel}
               </Button>
             </form>
           </Form>
@@ -379,7 +419,7 @@ export function SignUpForm({ appType, onSubmit }: SignUpFormProps) {
               Já tem uma conta?
               <Link
                 href="/login"
-                className={`${appType === 'admin' ? 'text-secondary' : 'text-primary'} font-medium hover:underline ml-1`}
+                className='text-primary font-medium hover:underline ml-1'
               >
                 Faça login
               </Link>

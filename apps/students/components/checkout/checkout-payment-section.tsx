@@ -382,11 +382,6 @@ export function CheckoutPaymentSection({
                           <SelectItem value="1">1x</SelectItem>
                         </SelectContent>
                       </Select>
-
-                      {/* <FormDescription>
-                        Outras opções serão liberadas em breve.
-                      </FormDescription> */}
-
                       <FormMessage />
                     </FormItem>
                   )}

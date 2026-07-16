@@ -19,7 +19,7 @@ function getStudentsAppUrl() {
 function buildMentorshipSignupUrl(signupToken: string) {
   const appUrl = getStudentsAppUrl();
 
-  return `${appUrl}/cadastro/mentoria?token=${signupToken}`;
+  return `${appUrl}/cadastro?token=${encodeURIComponent(signupToken)}`;
 }
 
 function escapeHtml(value: string) {
@@ -31,14 +31,7 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
-function buildHotmartMentorshipAccessEmailHtml({
-  buyerName,
-  signupUrl,
-}: {
-  buyerName: string;
-  signupUrl: string;
-}) {
-  const safeBuyerName = escapeHtml(buyerName);
+function buildHotmartMentorshipAccessEmailHtml({ signupUrl }: { signupUrl: string }) {
   const safeSignupUrl = escapeHtml(signupUrl);
 
   return `<!DOCTYPE html>
@@ -81,20 +74,12 @@ function buildHotmartMentorshipAccessEmailHtml({
 
           <tr>
             <td align="center" style="padding: 20px 40px 40px 40px;" class="content-box">
-              <p style="margin: 0 0 10px 0; color: #0052d2; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">ACESSO LIBERADO</p>
+              <p style="margin: 0 0 10px 0; color: #0052d2; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">BEM-VINDO(A)</p>
 
-              <h1 style="margin: 0 20px 15px 20px; color: #111827; font-size: 28px; font-weight: 800; line-height: 1.2;">
-                Seu acesso ao Projeto 1000 já está disponível
-              </h1>
-
-              <p style="margin: 0 0 12px 0; color: #4b5563; font-size: 14px; line-height: 1.6;">
-                Olá, <strong>${safeBuyerName}</strong>!
-              </p>
+              <h1 style="margin: 0 20px 15px 20px; color: #111827; font-size: 28px; font-weight: 800; line-height: 1.2;">Sua jornada rumo à nota 1000 começa agora!</h1>
 
               <p style="margin: 0 0 30px 0; color: #4b5563; font-size: 14px; line-height: 1.6;">
-                Sua compra da mentoria foi aprovada e você recebeu acesso ao Projeto 1000,
-                a plataforma de apoio para seus estudos e redações.
-                Para começar, finalize seu cadastro criando sua senha e confirmando seus dados.
+                Sua conta já está ativa e com <strong>5 correções gratuitas</strong> para usar nas redações propostas durante a mentoria. A gente indica os temas, você coloca a mão na massa e recebe um diagnóstico completo para entender seus pontos fortes, saber onde melhorar e guiar seus estudos rumo à nota 1000.
               </p>
 
               <table role="presentation" border="0" cellpadding="0" cellspacing="0">
@@ -117,83 +102,387 @@ function buildHotmartMentorshipAccessEmailHtml({
             </td>
           </tr>
 
-          <tr>
-            <td align="left" style="padding: 10px 40px 30px 40px;" class="content-box">
-              <h3 style="margin: 0 0 20px 0; color: #111827; font-size: 16px; font-weight: 700; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">Como funciona</h3>
+      <tr>
+  <td
+    align="left"
+    style="padding: 10px 40px 30px 40px;"
+    class="content-box"
+  >
+    <h3
+      style="
+        margin: 0 0 20px 0;
+        color: #111827;
+        font-size: 16px;
+        font-weight: 700;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 10px;
+      "
+    >
+      Como funciona
+    </h3>
 
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                <tr>
-                  <td width="32" valign="top" align="center">
-                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="32">
-                      <tr>
-                        <td align="center" valign="middle" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; width: 32px; height: 32px; border-radius: 16px; font-weight: 700; font-size: 13px; line-height: 1;">1</td>
-                      </tr>
-                      <tr>
-                        <td align="center" valign="top">
-                          <div style="width: 2px; height: 45px; background-color: #bfdbfe; margin: 4px 0;"></div>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                  <td width="16"></td>
-                  <td valign="top" style="padding-top: 6px; padding-bottom: 24px;">
-                    <h4 style="margin: 0 0 6px 0; color: #111827; font-size: 14px; font-weight: 600;">Finalize seu cadastro</h4>
-                    <p style="margin: 0; color: #4b5563; font-size: 13px; line-height: 1.6;">Confirme seus dados, crie sua senha e libere seu acesso à área do aluno.</p>
-                  </td>
-                </tr>
+    <table
+      role="presentation"
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      width="100%"
+    >
+      <tr>
+        <td width="32" valign="top" align="center">
+          <table
+            role="presentation"
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="32"
+          >
+            <tr>
+              <td
+                align="center"
+                valign="middle"
+                style="
+                  background-color: #eff6ff;
+                  color: #2563eb;
+                  border: 1px solid #bfdbfe;
+                  width: 32px;
+                  height: 32px;
+                  border-radius: 16px;
+                  font-weight: 700;
+                  font-size: 13px;
+                  line-height: 1;
+                "
+              >
+                1
+              </td>
+            </tr>
 
-                <tr>
-                  <td width="32" valign="top" align="center">
-                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="32">
-                      <tr>
-                        <td align="center" valign="middle" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; width: 32px; height: 32px; border-radius: 16px; font-weight: 700; font-size: 13px; line-height: 1;">2</td>
-                      </tr>
-                      <tr>
-                        <td align="center" valign="top">
-                          <div style="width: 2px; height: 45px; background-color: #bfdbfe; margin: 4px 0;"></div>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                  <td width="16"></td>
-                  <td valign="top" style="padding-top: 6px; padding-bottom: 24px;">
-                    <h4 style="margin: 0 0 6px 0; color: #111827; font-size: 14px; font-weight: 600;">Escolha um tema</h4>
-                    <p style="margin: 0; color: #4b5563; font-size: 13px; line-height: 1.6;">Acesse propostas de redação com textos motivadores para praticar sua escrita.</p>
-                  </td>
-                </tr>
+            <tr>
+              <td align="center" valign="top">
+                <div
+                  style="
+                    width: 2px;
+                    height: 45px;
+                    background-color: #bfdbfe;
+                    margin: 4px 0;
+                  "
+                ></div>
+              </td>
+            </tr>
+          </table>
+        </td>
 
-                <tr>
-                  <td width="32" valign="top" align="center">
-                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="32">
-                      <tr>
-                        <td align="center" valign="middle" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; width: 32px; height: 32px; border-radius: 16px; font-weight: 700; font-size: 13px; line-height: 1;">3</td>
-                      </tr>
-                    </table>
-                  </td>
-                  <td width="16"></td>
-                  <td valign="top" style="padding-top: 6px;">
-                    <h4 style="margin: 0 0 6px 0; color: #111827; font-size: 14px; font-weight: 600;">Receba feedback</h4>
-                    <p style="margin: 0; color: #4b5563; font-size: 13px; line-height: 1.6;">Envie sua redação e acompanhe seu desempenho por competência.</p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+        <td width="16"></td>
 
-          <tr>
-            <td align="center" style="padding: 0 40px 40px 40px;" class="content-box">
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden;">
-                <tr>
-                  <td style="padding: 30px; text-align: left;" class="text-center-mobile">
-                    <h3 style="margin: 0 0 10px 0; color: #111827; font-size: 16px; font-weight: 700;">Seu acesso está vinculado à mentoria</h3>
-                    <p style="margin: 0; color: #4b5563; font-size: 12px; line-height: 1.5;">
-                      Use o mesmo e-mail da compra para finalizar seu cadastro e garantir a liberação correta do plano Mentoria.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+        <td
+          valign="top"
+          style="padding-top: 6px; padding-bottom: 24px;"
+        >
+          <h4
+            style="
+              margin: 0 0 6px 0;
+              color: #111827;
+              font-size: 14px;
+              font-weight: 600;
+            "
+          >
+            Finalize seu cadastro
+          </h4>
+
+          <p
+            style="
+              margin: 0;
+              color: #4b5563;
+              font-size: 13px;
+              line-height: 1.6;
+            "
+          >
+            Confirme seus dados e crie sua senha. Para garantir a liberação
+            correta do acesso, utilize o mesmo e-mail informado na compra pela
+            Hotmart.
+          </p>
+        </td>
+      </tr>
+
+      <tr>
+        <td width="32" valign="top" align="center">
+          <table
+            role="presentation"
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="32"
+          >
+            <tr>
+              <td
+                align="center"
+                valign="middle"
+                style="
+                  background-color: #eff6ff;
+                  color: #2563eb;
+                  border: 1px solid #bfdbfe;
+                  width: 32px;
+                  height: 32px;
+                  border-radius: 16px;
+                  font-weight: 700;
+                  font-size: 13px;
+                  line-height: 1;
+                "
+              >
+                2
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" valign="top">
+                <div
+                  style="
+                    width: 2px;
+                    height: 45px;
+                    background-color: #bfdbfe;
+                    margin: 4px 0;
+                  "
+                ></div>
+              </td>
+            </tr>
+          </table>
+        </td>
+
+        <td width="16"></td>
+
+        <td
+          valign="top"
+          style="padding-top: 6px; padding-bottom: 24px;"
+        >
+          <h4
+            style="
+              margin: 0 0 6px 0;
+              color: #111827;
+              font-size: 14px;
+              font-weight: 600;
+            "
+          >
+            Receba seus 5 créditos
+          </h4>
+
+          <p
+            style="
+              margin: 0;
+              color: #4b5563;
+              font-size: 13px;
+              line-height: 1.6;
+            "
+          >
+            Assim que o cadastro for concluído, os 5 créditos para correção
+            serão liberados na sua conta.
+          </p>
+        </td>
+      </tr>
+
+      <tr>
+        <td width="32" valign="top" align="center">
+          <table
+            role="presentation"
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="32"
+          >
+            <tr>
+              <td
+                align="center"
+                valign="middle"
+                style="
+                  background-color: #eff6ff;
+                  color: #2563eb;
+                  border: 1px solid #bfdbfe;
+                  width: 32px;
+                  height: 32px;
+                  border-radius: 16px;
+                  font-weight: 700;
+                  font-size: 13px;
+                  line-height: 1;
+                "
+              >
+                3
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" valign="top">
+                <div
+                  style="
+                    width: 2px;
+                    height: 45px;
+                    background-color: #bfdbfe;
+                    margin: 4px 0;
+                  "
+                ></div>
+              </td>
+            </tr>
+          </table>
+        </td>
+
+        <td width="16"></td>
+
+        <td
+          valign="top"
+          style="padding-top: 6px; padding-bottom: 24px;"
+        >
+          <h4
+            style="
+              margin: 0 0 6px 0;
+              color: #111827;
+              font-size: 14px;
+              font-weight: 600;
+            "
+          >
+            Siga os temas da mentoria
+          </h4>
+
+          <p
+            style="
+              margin: 0;
+              color: #4b5563;
+              font-size: 13px;
+              line-height: 1.6;
+            "
+          >
+            Durante a mentoria, vamos indicar os temas que você deverá
+            desenvolver. É hora de colocar a mão na massa e praticar com
+            direcionamento.
+          </p>
+        </td>
+      </tr>
+
+      <tr>
+        <td width="32" valign="top" align="center">
+          <table
+            role="presentation"
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="32"
+          >
+            <tr>
+              <td
+                align="center"
+                valign="middle"
+                style="
+                  background-color: #eff6ff;
+                  color: #2563eb;
+                  border: 1px solid #bfdbfe;
+                  width: 32px;
+                  height: 32px;
+                  border-radius: 16px;
+                  font-weight: 700;
+                  font-size: 13px;
+                  line-height: 1;
+                "
+              >
+                4
+              </td>
+            </tr>
+          </table>
+        </td>
+
+        <td width="16"></td>
+
+        <td valign="top" style="padding-top: 6px;">
+          <h4
+            style="
+              margin: 0 0 6px 0;
+              color: #111827;
+              font-size: 14px;
+              font-weight: 600;
+            "
+          >
+            Envie e acompanhe sua evolução
+          </h4>
+
+          <p
+            style="
+              margin: 0;
+              color: #4b5563;
+              font-size: 13px;
+              line-height: 1.6;
+            "
+          >
+            Use seus créditos para enviar as redações propostas e receber um
+            diagnóstico completo, entender seus pontos fortes, descobrir onde
+            melhorar e guiar seus estudos rumo à nota 1000.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+
+<tr>
+  <td
+    align="center"
+    style="padding: 0 40px 40px 40px;"
+    class="content-box"
+  >
+    <table
+      role="presentation"
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      width="100%"
+      style="
+        background-color: #fff8e6;
+        border-radius: 12px;
+        border: 1px solid #f7c325;
+        overflow: hidden;
+      "
+    >
+      <tr>
+        <td
+          style="padding: 24px 28px; text-align: left;"
+          class="text-center-mobile"
+        >
+          <p
+            style="
+              margin: 0 0 8px 0;
+              color: #9a6700;
+              font-size: 11px;
+              font-weight: 700;
+              letter-spacing: 0.8px;
+              text-transform: uppercase;
+            "
+          >
+            Aproveite bem seus créditos
+          </p>
+
+          <h3
+            style="
+              margin: 0 0 10px 0;
+              color: #111827;
+              font-size: 16px;
+              font-weight: 700;
+            "
+          >
+            Cada redação faz parte da sua evolução
+          </h3>
+
+          <p
+            style="
+              margin: 0;
+              color: #4b5563;
+              font-size: 12px;
+              line-height: 1.6;
+            "
+          >
+            Cada envio para correção utiliza 1 crédito. Por isso, fique de olho
+            nas orientações da mentoria e use seus créditos nos temas indicados
+            para aproveitar ao máximo cada feedback.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
 
           <tr>
             <td align="center" style="padding: 0 40px; margin: 10px 10px;">
@@ -225,7 +514,7 @@ export async function sendHotmartMentorshipAccessEmail({
   const from = getResendFromEmail();
 
   const signupUrl = buildMentorshipSignupUrl(signupToken);
-  const displayName = buyerName?.trim() || "aluno(a)";
+  const displayName = buyerName?.trim() || "Aluno(a)";
 
   const { data, error } = await resend.emails.send({
     from,
@@ -233,19 +522,24 @@ export async function sendHotmartMentorshipAccessEmail({
     subject: "Seu acesso ao Projeto 1000 está liberado! 🚀",
     text: `Olá, ${displayName}!
 
-Sua compra da mentoria foi aprovada e você recebeu acesso ao Projeto 1000.
+Sua jornada rumo à nota 1000 começa agora!
 
-Para finalizar seu cadastro e acessar a plataforma, use o link abaixo:
+Ao finalizar seu cadastro, você receberá 5 créditos para usar nas redações propostas durante a mentoria.
+
+Durante a mentoria, vamos indicar os temas que você deverá desenvolver. Você coloca a mão na massa, envia sua redação pela plataforma e recebe um diagnóstico completo para entender seus pontos fortes, saber onde melhorar e guiar seus estudos rumo à nota 1000.
+
+Para finalizar seu cadastro, acesse:
 
 ${signupUrl}
 
-Use o mesmo e-mail da compra para finalizar seu cadastro e garantir a liberação correta do plano Mentoria.
+Importante: use o mesmo e-mail informado na compra pela Hotmart.
+
+Cada envio para correção utiliza 1 crédito. Por isso, use seus créditos nos temas indicados durante a mentoria para aproveitar ao máximo cada feedback.
 
 Se você não reconhece essa compra, ignore este e-mail.
 
 Equipe Projeto 1000`,
     html: buildHotmartMentorshipAccessEmailHtml({
-      buyerName: displayName,
       signupUrl,
     }),
   });
