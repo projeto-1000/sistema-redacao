@@ -146,7 +146,6 @@ export async function completeHotmartMentorshipSignup({
         plan_id: plan.id,
         status: "active",
         current_period_start: now,
-        current_period_end: null,
         cancel_at_period_end: false,
         external_id: `hotmart:${access.transaction_id}`,
         payment_method: null,
