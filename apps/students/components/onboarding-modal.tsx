@@ -152,16 +152,12 @@ export function OnboardingModal({
             </div>
 
             <h1 className="text-[22px] sm:text-[26px] xl:text-[30px] font-bold mt-6 xl:mt-8 leading-[1.1] tracking-tight">
-              Vamos preparar o seu caminho para a sua
-              nota 1000.
+              Vamos preparar o seu caminho para a sua nota 1000.
             </h1>
 
             <p className="mt-5 text-blue-100/90 text-[13px] md:text-[15px] leading-relaxed">
-              Precisamos de algumas informações rápidas
-              para personalizar sua jornada, recomendar
-              temas de redação e ajustar os critérios de
-              correção dos nossos professores ao seu
-              perfil.
+              Precisamos de algumas informações rápidas para personalizar sua jornada,
+              recomendar temas de redação e ajustar os critérios de correção dos nossos professores ao seu perfil.
             </p>
           </div>
         </div>
@@ -171,15 +167,15 @@ export function OnboardingModal({
             <div className="flex gap-1.5">
               <div
                 className={`w-6 h-1.5 rounded-full transition-colors duration-300 ${step >= 1
-                    ? "bg-[#0A4BCC]"
-                    : "bg-slate-200"
+                  ? "bg-[#0A4BCC]"
+                  : "bg-slate-200"
                   }`}
               />
 
               <div
                 className={`w-6 h-1.5 rounded-full transition-colors duration-300 ${step >= 2
-                    ? "bg-[#0A4BCC]"
-                    : "bg-slate-200"
+                  ? "bg-[#0A4BCC]"
+                  : "bg-slate-200"
                   }`}
               />
             </div>
@@ -209,9 +205,7 @@ export function OnboardingModal({
                             </FormLabel>
 
                             <p className="text-[13px] text-slate-500 mt-0.5">
-                              Isso nos ajuda a definir o
-                              nível de exigência das
-                              correções.
+                              Isso nos ajuda a definir o nível de exigência das correções.
                             </p>
                           </div>
 
@@ -223,14 +217,10 @@ export function OnboardingModal({
                             >
                               {EDUCATION_LEVELS.map(
                                 (educationLevel) => (
-                                  <FormItem
-                                    key={educationLevel}
-                                  >
+                                  <FormItem key={educationLevel}>
                                     <FormControl>
                                       <RadioGroupItem
-                                        value={
-                                          educationLevel
-                                        }
+                                        value={educationLevel}
                                         className="peer sr-only"
                                       />
                                     </FormControl>
@@ -268,8 +258,7 @@ export function OnboardingModal({
                       render={({ field }) => (
                         <FormItem className="space-y-3">
                           <FormLabel className="font-bold">
-                            Estudou em qual tipo de
-                            instituição?
+                            Estudou em qual tipo de instituição?
                           </FormLabel>
 
                           <FormControl>
@@ -312,8 +301,7 @@ export function OnboardingModal({
                         render={({ field }) => (
                           <FormItem className="space-y-3">
                             <FormLabel className="font-bold leading-tight block">
-                              Já sabe qual curso quer
-                              fazer?
+                              Já sabe qual curso quer fazer?
                             </FormLabel>
 
                             <FormControl>
@@ -376,15 +364,12 @@ export function OnboardingModal({
                           render={({ field }) => (
                             <FormItem>
                               <Select
-                                value={
-                                  field.value ?? ""
-                                }
-                                onValueChange={
-                                  field.onChange
-                                }
+                                value={field.value ?? ""}
+                                onValueChange={field.onChange}
                               >
                                 <FormControl>
-                                  <SelectTrigger className="mt-1 bg-slate-200 border-transparent min-h-11 w-auto rounded-xl text-slate-800 font-medium focus-visible:ring-[#0A4BCC]">
+                                  <SelectTrigger className="mt-1 bg-slate-200 border-transparent min-h-11 w-auto rounded-xl text-slate-800 font-medium focus-visible:border-[#0A4BCC] focus-visible:ring-1 focus-visible:ring-[#0A4BCC] focus:border-[#0A4BCC] focus:ring-0 focus:ring-[#0A4BCC],
+                                  ">
                                     <SelectValue placeholder="Selecione o curso" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -435,7 +420,7 @@ export function OnboardingModal({
                               }}
                             >
                               <FormControl>
-                                <SelectTrigger className="bg-slate-200 border-transparent min-h-11 w-auto rounded-xl text-slate-800 font-medium focus:ring-[#0A4BCC]">
+                                <SelectTrigger className="bg-slate-200 border-transparent min-h-11 w-auto rounded-xl text-slate-800 font-medium focus-visible:border-[#0A4BCC] focus-visible:ring-1 focus-visible:ring-[#0A4BCC] focus:border-[#0A4BCC] focus:ring-0 focus:ring-[#0A4BCC]">
                                   <SelectValue placeholder="Selecione o Estado" />
                                 </SelectTrigger>
                               </FormControl>
@@ -478,7 +463,7 @@ export function OnboardingModal({
                                     !selectedUF ||
                                     isLoadingCities
                                   }
-                                  className="bg-slate-200 border-transparent min-h-11 w-auto rounded-xl text-slate-800 focus:ring-[#0A4BCC]"
+                                  className="bg-slate-200 border-transparent min-h-11 w-auto rounded-xl text-slate-800 focus-visible:border-[#0A4BCC] focus-visible:ring-1 focus-visible:ring-[#0A4BCC] focus:border-[#0A4BCC] focus:ring-0 focus:ring-[#0A4BCC]"
                                 >
                                   <SelectValue
                                     placeholder={

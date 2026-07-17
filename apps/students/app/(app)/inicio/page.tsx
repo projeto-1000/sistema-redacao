@@ -51,7 +51,6 @@ export default async function DashboardPage() {
     redirect("/login");
   }
   const { user, competencies, globalStats, evolution, hasData } = data;
-
   return (
     <div className="space-y-8 min-h-dvh px-2 md:px-10 lg:px-12 py-4">
       <Suspense fallback={

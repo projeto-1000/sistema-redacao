@@ -13,16 +13,20 @@ import Link from "next/link";
 
 interface PlanDetailsCardProps {
   subscription: StudentSubscription;
+  planCredits: number;
 }
 
 export function PlanDetailsCard({
   subscription,
+  planCredits,
 }: PlanDetailsCardProps) {
-  const normalizedPlanName =
-    subscription.plan_name.trim().toLowerCase();
+  const isFreeTrial =
+    subscription.plan_external_id ===
+    "internal_free_trial";
 
   const isMentorship =
-    normalizedPlanName === "mentoria";
+    subscription.plan_external_id ===
+    "internal_mentoria_free";
 
   const isLifetime =
     subscription.interval === "lifetime";
@@ -30,13 +34,36 @@ export function PlanDetailsCard({
   const isTrial =
     subscription.status === "trial";
 
-  const canCancelSubscription =
-    !isLifetime && !isMentorship && !isTrial;
+  const hasFreeCredit =
+    isFreeTrial && planCredits > 0;
 
-  const status =
+  const hasFinishedFreeTrial =
+    isFreeTrial && planCredits <= 0;
+
+  const canCancelSubscription =
+    !isLifetime &&
+    !isMentorship &&
+    !isTrial &&
+    !isFreeTrial;
+
+  const defaultStatus =
     statusBadgeConfig[
     subscription.status as SubscriptionStatus
     ] ?? statusBadgeConfig.trial;
+
+  const status = isFreeTrial
+    ? hasFreeCredit
+      ? {
+        label: "Disponível",
+        classes:
+          "bg-emerald-100 text-emerald-700",
+      }
+      : {
+        label: "Concluído",
+        classes:
+          "bg-slate-100 text-slate-600",
+      }
+    : defaultStatus;
 
   function getPlanLabel(): string {
     if (subscription.interval === "month") {
@@ -60,7 +87,13 @@ export function PlanDetailsCard({
     return "";
   }
 
-  function getPrice(): string {
+  function getDescription(): string {
+    if (isFreeTrial) {
+      return hasFreeCredit
+        ? "Você ganhou uma correção gratuita para conhecer a plataforma."
+        : "Seu crédito gratuito já foi utilizado.";
+    }
+
     if (isMentorship) {
       return "Benefício incluído na mentoria";
     }
@@ -101,12 +134,18 @@ export function PlanDetailsCard({
   }
 
   function getPeriodLabel(): string {
-    if (isLifetime) {
-      return "Validade";
+    if (isFreeTrial) {
+      return hasFreeCredit
+        ? "Benefício disponível"
+        : "Teste gratuito";
     }
 
     if (isMentorship) {
       return "Acesso disponível até";
+    }
+
+    if (isLifetime) {
+      return "Validade";
     }
 
     if (isTrial) {
@@ -117,6 +156,12 @@ export function PlanDetailsCard({
   }
 
   function getPeriodValue(): string {
+    if (isFreeTrial) {
+      return hasFreeCredit
+        ? "1 correção gratuita"
+        : "Correção gratuita utilizada";
+    }
+
     if (isLifetime) {
       return "Acesso vitalício";
     }
@@ -129,6 +174,18 @@ export function PlanDetailsCard({
       subscription.current_period_end,
       "numeric"
     );
+  }
+
+  function getActionLabel(): string {
+    if (
+      isFreeTrial ||
+      isMentorship ||
+      hasFinishedFreeTrial
+    ) {
+      return "Conhecer planos";
+    }
+
+    return "Alterar plano";
   }
 
   const planLabel = getPlanLabel();
@@ -156,13 +213,28 @@ export function PlanDetailsCard({
 
           {!isLifetime &&
             !isMentorship &&
+            !isFreeTrial &&
             planLabel &&
             ` • ${planLabel}`}
         </h2>
 
         <p className="font-medium text-slate-500">
-          {getPrice()}
+          {getDescription()}
         </p>
+
+        {hasFinishedFreeTrial && (
+          <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3">
+            <p className="text-sm font-bold text-slate-900">
+              Continue evoluindo nas suas redações
+            </p>
+
+            <p className="mt-1 text-sm leading-relaxed text-slate-600">
+              Escolha um plano para receber novos
+              créditos e continuar enviando redações
+              para correção.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mt-8">
@@ -194,9 +266,7 @@ export function PlanDetailsCard({
               className="h-11 w-full rounded-xl font-medium md:w-auto"
             >
               <Link href="/assinatura/mudar-plano">
-                {isMentorship
-                  ? "Conhecer planos"
-                  : "Alterar plano"}
+                {getActionLabel()}
               </Link>
             </Button>
           </div>

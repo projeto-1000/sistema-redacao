@@ -74,7 +74,10 @@ export default async function SubscriptionPage({
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <PlanDetailsCard subscription={subscription} />
+              <PlanDetailsCard
+                subscription={subscription}
+                planCredits={credits?.plan_credits ?? 0}
+              />
             </div>
             <div className="lg:col-span-1">
               <CreditsUsageCard credits={credits} subscription={subscription} />

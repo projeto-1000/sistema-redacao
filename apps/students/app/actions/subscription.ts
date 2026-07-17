@@ -15,41 +15,89 @@ export async function getSubscriptionData() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
-  const [subscriptionData, creditsData] = await Promise.all([
+  const [subscriptionResult, creditsResult] = await Promise.all([
     supabase.from("subscriptions").select("*").eq("user_id", user.id).maybeSingle(),
+
     supabase.from("student_credits").select("*").eq("user_id", user.id).maybeSingle(),
   ]);
 
-  const subscription = subscriptionData.data;
-  const credits = creditsData.data;
+  if (subscriptionResult.error) {
+    console.error("[GET_SUBSCRIPTION_ERROR]", subscriptionResult.error);
 
-  if (!subscription) {
-    return { hasSubscription: false };
+    return null;
   }
 
-  const { data: plan, error } = await supabase
+  if (creditsResult.error) {
+    console.error("[GET_STUDENT_CREDITS_ERROR]", creditsResult.error);
+
+    return null;
+  }
+
+  const subscription = subscriptionResult.data;
+  const credits = creditsResult.data;
+
+  /*
+   * Esse estado não deve mais acontecer normalmente,
+   * porque todo aluno passa a receber um plano.
+   *
+   * Mantemos apenas como proteção para inconsistências
+   * ou usuários legados ainda não migrados.
+   */
+  if (!subscription) {
+    return {
+      hasSubscription: false as const,
+      subscription: null,
+      credits: null,
+    };
+  }
+
+  const { data: plan, error: planError } = await supabase
     .from("plans")
-    .select("name, credits_included, interval, interval_count, price")
+    .select(
+      `
+          name,
+          external_id,
+          credits_included,
+          interval,
+          interval_count,
+          price
+        `
+    )
     .eq("id", subscription.plan_id)
     .eq("is_active", true)
     .maybeSingle();
 
-  if (error || !plan) {
-    return { hasSubscription: false };
+  if (planError) {
+    console.error("[GET_SUBSCRIPTION_PLAN_ERROR]", planError);
+
+    return null;
+  }
+
+  if (!plan) {
+    return {
+      hasSubscription: false as const,
+      subscription: null,
+      credits: null,
+    };
   }
 
   return {
-    hasSubscription: true,
+    hasSubscription: true as const,
+
     subscription: {
       ...subscription,
       plan_name: plan.name,
+      plan_external_id: plan.external_id,
       interval: plan.interval,
       interval_count: plan.interval_count,
       price: plan.price,
       credits_included: plan.credits_included,
     },
+
     credits: credits
       ? {
           ...credits,
