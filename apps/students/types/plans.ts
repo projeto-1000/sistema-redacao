@@ -16,5 +16,4 @@ export type PlanSelectionMode =
   | "new_subscription"
   | "change_plan"
   | "canceled_subscription"
-  | "mentorship_pending"
   | "payment_issue";

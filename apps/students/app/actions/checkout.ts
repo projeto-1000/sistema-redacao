@@ -26,7 +26,6 @@ type CheckoutOperation = "new_subscription" | "subscription_reactivation";
 
 type CheckoutBlockReason =
   | "active_paid_subscription"
-  | "mentorship"
   | "payment_issue"
   | "unsupported_subscription";
 
@@ -73,11 +72,6 @@ async function resolveCheckoutAccess({
     };
   }
 
-  /*
-   * Cenário defensivo.
-   * Normalmente todo aluno já terá Plano Gratuito
-   * ou Mentoria.
-   */
   if (!currentSubscription) {
     return {
       allowed: true,
@@ -115,21 +109,15 @@ async function resolveCheckoutAccess({
 
   const isPaidPlan = currentPlan.price > 0 && currentPlan.is_public;
 
-  /*
-   * Decisão pendente sobre coexistência entre
-   * Mentoria e assinatura paga.
-   */
   if (isMentorship) {
     return {
-      allowed: false,
-      reason: "mentorship",
+      allowed: true,
+      operation: "new_subscription",
+      currentSubscriptionId: currentSubscription.id,
+      previousSubscriptionExternalId: currentSubscription.external_id,
     };
   }
 
-  /*
-   * Não permitimos criar outra assinatura enquanto
-   * houver pendência financeira.
-   */
   if (currentSubscription.status === "past_due" || currentSubscription.status === "unpaid") {
     return {
       allowed: false,
@@ -137,10 +125,6 @@ async function resolveCheckoutAccess({
     };
   }
 
-  /*
-   * Plano pago ativo deve utilizar a action específica
-   * de troca de plano, nunca o checkout comum.
-   */
   if (
     isPaidPlan &&
     (currentSubscription.status === "active" || currentSubscription.status === "trial")
@@ -151,12 +135,6 @@ async function resolveCheckoutAccess({
     };
   }
 
-  /*
-   * Plano pago cancelado:
-   *
-   * Mesmo plano  → reativação.
-   * Outro plano  → nova assinatura.
-   */
   if (isPaidPlan && currentSubscription.status === "canceled") {
     return {
       allowed: true,
@@ -169,9 +147,6 @@ async function resolveCheckoutAccess({
     };
   }
 
-  /*
-   * Plano Gratuito → primeira assinatura paga.
-   */
   if (isFreeTrial) {
     return {
       allowed: true,
@@ -191,9 +166,6 @@ function getCheckoutBlockMessage(reason: CheckoutBlockReason): string {
   switch (reason) {
     case "active_paid_subscription":
       return "Você já possui uma assinatura ativa. Utilize a opção de alterar plano.";
-
-    case "mentorship":
-      return "A contratação de planos para alunos da mentoria está temporariamente indisponível.";
 
     case "payment_issue":
       return "Regularize sua assinatura atual antes de contratar outro plano.";

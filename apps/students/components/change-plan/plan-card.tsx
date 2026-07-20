@@ -1,10 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 import type {
   PlanData,
@@ -43,6 +40,81 @@ export function PlanCard({
     ? plan.price / 3
     : plan.price;
 
+  function renderPlanAction() {
+    if (isCurrentPaidPlan) {
+      return (
+        <Button
+          disabled
+          className="h-12 w-full cursor-default rounded-xl border border-slate-200 bg-slate-100 font-bold text-slate-400 opacity-100"
+        >
+          Plano atual
+        </Button>
+      );
+    }
+
+    if (selectionMode === "payment_issue") {
+      return (
+        <Button
+          asChild
+          variant="outline"
+          className="h-12 w-full rounded-xl font-bold"
+        >
+          <Link href="/assinatura">
+            Ver minha assinatura
+          </Link>
+        </Button>
+      );
+    }
+
+    if (
+      selectionMode === "canceled_subscription" &&
+      isPreviousCanceledPlan
+    ) {
+      return (
+        <Button
+          asChild
+          className="h-12 w-full rounded-xl font-bold"
+        >
+          <Link
+            href={`/assinatura/checkout?planId=${plan.id}`}
+          >
+            Reativar assinatura
+          </Link>
+        </Button>
+      );
+    }
+
+    if (selectionMode === "change_plan") {
+      return (
+        <ConfirmChangePlan
+          newPlan={plan}
+          currentPlanName={
+            currentPlanName ?? "Seu plano atual"
+          }
+          currentPlanEssays={0}
+        />
+      );
+    }
+
+    const buttonLabel =
+      selectionMode === "canceled_subscription"
+        ? "Assinar novo plano"
+        : "Assinar agora";
+
+    return (
+      <Button
+        asChild
+        className="h-12 w-full rounded-xl font-bold tracking-wide shadow-sm transition-all hover:scale-[1.01]"
+      >
+        <Link
+          href={`/assinatura/checkout?planId=${plan.id}`}
+        >
+          {buttonLabel}
+        </Link>
+      </Button>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -80,8 +152,7 @@ export function PlanCard({
 
       <div className="mb-8">
         <p className="mb-6 min-h-10 text-sm leading-relaxed text-slate-500">
-          O pacote ideal focado na evolução constante
-          da sua nota.
+          O pacote ideal focado na evolução constante da sua nota.
         </p>
 
         <p className="flex items-baseline text-4xl font-extrabold tracking-tight text-slate-800">
@@ -148,69 +219,7 @@ export function PlanCard({
       </ul>
 
       <div className="mt-auto">
-        {isCurrentPaidPlan ? (
-          <Button
-            disabled
-            className="h-12 w-full cursor-default rounded-xl border border-slate-200 bg-slate-100 font-bold text-slate-400 opacity-100"
-          >
-            Plano atual
-          </Button>
-        ) : selectionMode ===
-          "mentorship_pending" ? (
-          <Button
-            disabled
-            className="h-12 w-full rounded-xl font-bold"
-          >
-            Disponível em breve
-          </Button>
-        ) : selectionMode ===
-          "payment_issue" ? (
-          <Button
-            asChild
-            variant="outline"
-            className="h-12 w-full rounded-xl font-bold"
-          >
-            <Link href="/assinatura">
-              Ver minha assinatura
-            </Link>
-          </Button>
-        ) : selectionMode ===
-          "canceled_subscription" &&
-          isPreviousCanceledPlan ? (
-          <Button
-            asChild
-            className="h-12 w-full rounded-xl font-bold"
-          >
-            <Link
-              href={`/assinatura/checkout?planId=${plan.id}`}
-            >
-              Reativar assinatura
-            </Link>
-          </Button>
-        ) : selectionMode === "change_plan" ? (
-          <ConfirmChangePlan
-            newPlan={plan}
-            currentPlanName={
-              currentPlanName ??
-              "Seu plano atual"
-            }
-            currentPlanEssays={0}
-          />
-        ) : (
-          <Button
-            asChild
-            className="h-12 w-full rounded-xl font-bold tracking-wide shadow-sm transition-all hover:scale-[1.01]"
-          >
-            <Link
-              href={`/assinatura/checkout?planId=${plan.id}`}
-            >
-              {selectionMode ===
-                "canceled_subscription"
-                ? "Assinar novo plano"
-                : "Assinar agora"}
-            </Link>
-          </Button>
-        )}
+        {renderPlanAction()}
       </div>
     </div>
   );

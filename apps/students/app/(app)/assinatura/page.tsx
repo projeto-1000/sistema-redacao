@@ -72,7 +72,7 @@ export default async function SubscriptionPage({
 
       {data.hasSubscription && (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <PlanDetailsCard
                 subscription={subscription}
@@ -86,6 +86,21 @@ export default async function SubscriptionPage({
             <div className="lg:col-span-1">
               <CreditsUsageCard credits={credits} subscription={subscription} />
             </div>
+          </div> */}
+          <div className="space-y-6">
+            <PlanDetailsCard
+              subscription={subscription}
+              planCredits={
+                subscription.plan_external_id === "internal_free_trial"
+                  ? credits?.free_credits ?? 0
+                  : credits?.plan_credits ?? 0
+              }
+            />
+
+            <CreditsUsageCard
+              credits={credits}
+              subscription={subscription}
+            />
           </div>
           <CreditTransactionsTable data={creditTransactionsData} />
         </>

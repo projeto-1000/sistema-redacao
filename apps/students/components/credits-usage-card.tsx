@@ -196,36 +196,35 @@ export function CreditsUsageCard({
       : RefreshCcw;
 
   return (
-    <div className="h-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <div className="grid grid-cols-1 divide-y divide-slate-200">
-        <div className="p-6 md:p-8">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div>
-              <h4 className="flex items-center gap-2 font-bold">
-                <PlanIcon className="size-4 text-primary" />
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
+      <div className="flex  flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h4 className="flex items-center gap-2 font-bold">
+              <PlanIcon className="size-4 text-primary" />
+              {title}
+            </h4>
 
-                {title}
-              </h4>
-
-              <p className="mt-1 text-xs text-slate-500">
-                {description}
-              </p>
-            </div>
-
-            <div className="shrink-0 text-right">
-              <span className="text-3xl font-bold text-slate-900">
-                {availableCredits}
-              </span>
-
-              {totalCredits !== null && (
-                <span className="ml-1 text-sm font-medium text-slate-400">
-                  / {totalCredits}
-                </span>
-              )}
-            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              {description}
+            </p>
           </div>
 
-          {showProgress && (
+          <div className="shrink-0 text-right">
+            <span className="text-3xl font-bold text-slate-900">
+              {availableCredits}
+            </span>
+
+            {totalCredits !== null && (
+              <span className="ml-1 text-sm font-medium text-slate-400">
+                / {totalCredits}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {showProgress && (
+          <div className="mt-auto pt-6">
             <div className="h-2.5 w-full rounded-full bg-slate-100">
               <div
                 className="h-2.5 rounded-full bg-primary transition-all duration-500"
@@ -234,39 +233,41 @@ export function CreditsUsageCard({
                 }}
               />
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
 
-        {hasFreeCredit && !isFreeTrial && (
-          <div className="bg-slate-50/30 p-6 md:p-8">
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <div>
-                <h4 className="flex items-center gap-2 font-bold">
-                  <Gift className="size-4 text-primary" />
+      {hasFreeCredit && !isFreeTrial && (
+        <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h4 className="flex items-center gap-2 font-bold">
+                <Gift className="size-4 text-primary" />
 
-                  Correção gratuita
-                </h4>
+                Correção gratuita
+              </h4>
 
-                <p className="mt-1 text-xs text-slate-500">
-                  Válida até{" "}
-                  {formatDate(
-                    freeCreditExpiresAt,
-                    "numeric"
-                  )}
-                </p>
-              </div>
-
-              <div className="shrink-0 text-right">
-                <span className="text-3xl font-bold text-slate-900">
-                  {freeCredits}
-                </span>
-
-                <span className="ml-1 text-sm font-medium text-slate-400">
-                  / 1
-                </span>
-              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Válida até{" "}
+                {formatDate(
+                  freeCreditExpiresAt,
+                  "numeric"
+                )}
+              </p>
             </div>
 
+            <div className="shrink-0 text-right">
+              <span className="text-3xl font-bold text-slate-900">
+                {freeCredits}
+              </span>
+
+              <span className="ml-1 text-sm font-medium text-slate-400">
+                / 1
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-auto pt-6">
             <div className="h-2.5 w-full rounded-full bg-slate-100">
               <div
                 className="h-2.5 rounded-full bg-primary transition-all duration-500"
@@ -279,40 +280,42 @@ export function CreditsUsageCard({
               />
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {hasMentorshipCycle &&
-          !isMentorshipPlan && (
-            <div className="bg-slate-50/30 p-6 md:p-8">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <div>
-                  <h4 className="flex items-center gap-2 font-bold">
-                    <Gift className="size-4 text-primary" />
+      {hasMentorshipCycle &&
+        !isMentorshipPlan && (
+          <div className="flex  flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h4 className="flex items-center gap-2 font-bold">
+                  <Gift className="size-4 text-primary" />
 
-                    Créditos da Mentoria
-                  </h4>
+                  Créditos da Mentoria
+                </h4>
 
-                  <p className="mt-1 text-xs text-slate-500">
-                    {mentorshipDescription}
-                  </p>
-                </div>
-
-                <div className="shrink-0 text-right">
-                  <span className="text-3xl font-bold text-slate-900">
-                    {mentorshipAvailableCredits}
-                  </span>
-
-                  {mentorshipTotalCredits !==
-                    null && (
-                      <span className="ml-1 text-sm font-medium text-slate-400">
-                        / {mentorshipTotalCredits}
-                      </span>
-                    )}
-                </div>
+                <p className="mt-1 text-xs text-slate-500">
+                  {mentorshipDescription}
+                </p>
               </div>
 
-              {mentorshipTotalCredits !==
-                null && (
+              <div className="shrink-0 text-right">
+                <span className="text-3xl font-bold text-slate-900">
+                  {mentorshipAvailableCredits}
+                </span>
+
+                {mentorshipTotalCredits !==
+                  null && (
+                    <span className="ml-1 text-sm font-medium text-slate-400">
+                      / {mentorshipTotalCredits}
+                    </span>
+                  )}
+              </div>
+            </div>
+
+            {mentorshipTotalCredits !==
+              null && (
+                <div className="mt-auto pt-6">
                   <div className="h-2.5 w-full rounded-full bg-slate-100">
                     <div
                       className="h-2.5 rounded-full bg-primary transition-all duration-500"
@@ -321,37 +324,37 @@ export function CreditsUsageCard({
                       }}
                     />
                   </div>
-                )}
-            </div>
-          )}
+                </div>
+              )}
+          </div>
+        )}
 
-        <div className="bg-slate-50/30 p-6 md:p-8">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div>
-              <h4 className="flex items-center gap-2 font-bold">
-                <PlusCircle className="size-4 text-secondary" />
+      <div className="flex  flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h4 className="flex items-center gap-2 font-bold">
+              <PlusCircle className="size-4 text-secondary" />
 
-                Créditos Extra
-              </h4>
+              Créditos Extra
+            </h4>
 
-              <p className="mt-1 text-xs text-slate-500">
-                Não expiram
-              </p>
-            </div>
-
-            <span className="text-3xl font-bold">
-              {credits.extra_credits ?? 0}
-            </span>
+            <p className="mt-1 text-xs text-slate-500">
+              Não expiram
+            </p>
           </div>
 
-          <Link
-            href="/assinatura/comprar-creditos"
-            className="flex items-center justify-end gap-2 text-right text-[13px] font-medium text-slate-700 transition-colors hover:font-bold hover:text-secondary"
-          >
-            <Plus className="size-4" />
-            Comprar mais créditos
-          </Link>
+          <span className="text-3xl font-bold text-slate-900">
+            {credits.extra_credits ?? 0}
+          </span>
         </div>
+
+        <Link
+          href="/assinatura/comprar-creditos"
+          className="mt-auto flex items-center justify-end gap-2 pt-6 text-[13px] font-medium text-slate-700 transition-colors hover:font-bold hover:text-secondary"
+        >
+          <Plus className="size-4" />
+          Comprar mais créditos
+        </Link>
       </div>
     </div>
   );

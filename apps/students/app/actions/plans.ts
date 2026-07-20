@@ -47,7 +47,7 @@ function getPlanKind({
   return "other";
 }
 
-export async function getAvailablePlans(_currentPlanId?: string | null): Promise<PlanData[]> {
+export async function getAvailablePlans(): Promise<PlanData[]> {
   const supabase = await createClient();
 
   const { data: plans, error } = await supabase
@@ -176,24 +176,4 @@ export async function getCurrentUserSubscriptionContext(): Promise<CurrentUserSu
 
     cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
   };
-}
-
-/*
- * Mantemos temporariamente para não quebrar a página
- * atual antes de atualizarmos os componentes.
- *
- * Será removida no próximo passo.
- */
-export async function getCurrentUserPlanId(): Promise<string | null> {
-  const context = await getCurrentUserSubscriptionContext();
-
-  if (!context) {
-    return null;
-  }
-
-  if (context.status !== "active" && context.status !== "trial") {
-    return null;
-  }
-
-  return context.planId;
 }

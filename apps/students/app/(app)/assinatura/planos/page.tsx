@@ -1,54 +1,16 @@
 import {
   getAvailablePlans,
   getCurrentUserSubscriptionContext,
-  type CurrentUserSubscriptionContext,
 } from "@/app/actions/plans";
 import { PlanGrid } from "@/components/change-plan/plan-grid";
 import { PlanHelpCallout } from "@/components/change-plan/plan-helper-callout";
 import type { PlanSelectionMode } from "@/types";
 import { Button } from "@repo/ui/components/button";
 import { PageHeader } from "@repo/ui/components/page-header";
-import { ArrowLeft, CircleAlert, Info } from "lucide-react";
+import { ArrowLeft, CircleAlert } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
-
-function getSelectionMode(
-  context: CurrentUserSubscriptionContext | null
-): PlanSelectionMode {
-  if (!context) {
-    return "new_subscription";
-  }
-
-  if (context.planKind === "mentorship") {
-    return "mentorship_pending";
-  }
-
-  if (context.planKind === "free_trial") {
-    return "new_subscription";
-  }
-
-  if (context.planKind === "paid") {
-    if (
-      context.status === "active" ||
-      context.status === "trial"
-    ) {
-      return "change_plan";
-    }
-
-    if (context.status === "canceled") {
-      return "canceled_subscription";
-    }
-
-    if (
-      context.status === "past_due" ||
-      context.status === "unpaid"
-    ) {
-      return "payment_issue";
-    }
-  }
-
-  return "new_subscription";
-}
+import { getSelectionMode } from "@/utils/get-plan-selection-mode";
 
 function getPageContent(mode: PlanSelectionMode) {
   switch (mode) {
@@ -64,13 +26,6 @@ function getPageContent(mode: PlanSelectionMode) {
         title: "Escolha seu plano",
         subtitle:
           "Reative seu plano anterior ou escolha uma nova opção para continuar enviando redações.",
-      };
-
-    case "mentorship_pending":
-      return {
-        title: "Conheça nossos planos",
-        subtitle:
-          "Confira as opções disponíveis para continuar praticando além das correções da mentoria.",
       };
 
     case "payment_issue":
@@ -147,26 +102,6 @@ export default async function PlansPage() {
         title={title}
         subtitle={subtitle}
       />
-
-      {selectionMode ===
-        "mentorship_pending" && (
-          <div className="mx-auto flex max-w-5xl gap-3 rounded-2xl border border-blue-100 bg-blue-50/60 px-5 py-4">
-            <Info className="mt-0.5 size-5 shrink-0 text-blue-600" />
-
-            <div>
-              <p className="font-bold ">
-                Assinaturas para alunos da mentoria
-              </p>
-
-              <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                Estamos definindo como os planos pagos
-                funcionarão junto aos créditos da
-                mentoria. Por enquanto, a contratação
-                está temporariamente indisponível.
-              </p>
-            </div>
-          </div>
-        )}
 
       {selectionMode === "payment_issue" && (
         <div className="mx-auto flex max-w-5xl gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
