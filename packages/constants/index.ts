@@ -201,6 +201,7 @@ export const transactionLabels: Record<string, string> = {
   subscription_reactivation: "Reativação da assinatura",
   mentorship_expiration: "Vencimento da mentoria",
   plan_expiration: "Expiração de créditos do plano",
+  free_credit_expiration: "Expiração do crédito gratuito",
 };
 
 export const COMPETENCIES = [

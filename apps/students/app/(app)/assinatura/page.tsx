@@ -76,7 +76,11 @@ export default async function SubscriptionPage({
             <div className="lg:col-span-2">
               <PlanDetailsCard
                 subscription={subscription}
-                planCredits={credits?.plan_credits ?? 0}
+                planCredits={
+                  subscription.plan_external_id === "internal_free_trial"
+                    ? credits?.free_credits ?? 0
+                    : credits?.plan_credits ?? 0
+                }
               />
             </div>
             <div className="lg:col-span-1">

@@ -19,10 +19,25 @@ export async function getSubscriptionData() {
     return null;
   }
 
-  const [subscriptionResult, creditsResult] = await Promise.all([
+  const referenceAt = new Date();
+  const referenceAtIso = referenceAt.toISOString();
+
+  const [subscriptionResult, creditsResult, freeCreditResult] = await Promise.all([
     supabase.from("subscriptions").select("*").eq("user_id", user.id).maybeSingle(),
 
     supabase.from("student_credits").select("*").eq("user_id", user.id).maybeSingle(),
+
+    supabase
+      .from("free_credit_allocations")
+      .select(
+        `
+          remaining_amount,
+          expires_at,
+          status
+        `
+      )
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
 
   if (subscriptionResult.error) {
@@ -37,16 +52,18 @@ export async function getSubscriptionData() {
     return null;
   }
 
+  if (freeCreditResult.error) {
+    console.error("[GET_FREE_CREDIT_ALLOCATION_ERROR]", freeCreditResult.error);
+
+    return null;
+  }
+
   const subscription = subscriptionResult.data;
+
   const credits = creditsResult.data;
 
-  /*
-   * Esse estado não deve mais acontecer normalmente,
-   * porque todo aluno passa a receber um plano.
-   *
-   * Mantemos apenas como proteção para inconsistências
-   * ou usuários legados ainda não migrados.
-   */
+  const freeCreditAllocation = freeCreditResult.data;
+
   if (!subscription) {
     return {
       hasSubscription: false as const,
@@ -85,6 +102,17 @@ export async function getSubscriptionData() {
     };
   }
 
+  const freeCreditExpirationTime = freeCreditAllocation?.expires_at
+    ? new Date(freeCreditAllocation.expires_at).getTime()
+    : null;
+
+  const hasValidFreeCredit =
+    freeCreditAllocation?.status === "active" &&
+    freeCreditAllocation.remaining_amount > 0 &&
+    freeCreditExpirationTime !== null &&
+    !Number.isNaN(freeCreditExpirationTime) &&
+    freeCreditExpirationTime > referenceAt.getTime();
+
   let mentorshipCycle: {
     cycle_number: number;
     amount: number;
@@ -93,37 +121,33 @@ export async function getSubscriptionData() {
     expires_at: string;
   } | null = null;
 
-  if (plan.external_id === "internal_mentoria_free") {
-    const referenceAt = new Date().toISOString();
-
-    const { data: currentCycle, error: mentorshipCycleError } = await supabase
-      .from("mentorship_credit_allocations")
-      .select(
-        `
-        cycle_number,
-        amount,
-        remaining_amount,
-        compensatory_refunds,
-        expires_at
+  const { data: currentCycle, error: mentorshipCycleError } = await supabase
+    .from("mentorship_credit_allocations")
+    .select(
       `
-      )
-      .eq("user_id", user.id)
-      .lte("available_at", referenceAt)
-      .gt("expires_at", referenceAt)
-      .in("status", ["scheduled", "active", "consumed"])
-      .order("cycle_number", {
-        ascending: true,
-      })
-      .maybeSingle();
+      cycle_number,
+      amount,
+      remaining_amount,
+      compensatory_refunds,
+      expires_at
+    `
+    )
+    .eq("user_id", user.id)
+    .lte("available_at", referenceAtIso)
+    .gt("expires_at", referenceAtIso)
+    .in("status", ["scheduled", "active", "consumed"])
+    .order("cycle_number", {
+      ascending: true,
+    })
+    .maybeSingle();
 
-    if (mentorshipCycleError) {
-      console.error("[GET_MENTORSHIP_CYCLE_ERROR]", mentorshipCycleError);
+  if (mentorshipCycleError) {
+    console.error("[GET_MENTORSHIP_CYCLE_ERROR]", mentorshipCycleError);
 
-      return null;
-    }
-
-    mentorshipCycle = currentCycle;
+    return null;
   }
+
+  mentorshipCycle = currentCycle;
 
   return {
     hasSubscription: true as const,
@@ -142,7 +166,9 @@ export async function getSubscriptionData() {
 
       mentorship_cycle_number: mentorshipCycle?.cycle_number ?? null,
 
-      mentorship_cycle_remaining: mentorshipCycle?.remaining_amount ?? null,
+      mentorship_cycle_remaining: mentorshipCycle
+        ? mentorshipCycle.remaining_amount + mentorshipCycle.compensatory_refunds
+        : null,
 
       mentorship_cycle_total: mentorshipCycle
         ? mentorshipCycle.amount + mentorshipCycle.compensatory_refunds
@@ -154,7 +180,13 @@ export async function getSubscriptionData() {
     credits: credits
       ? {
           ...credits,
+
+          free_credits: hasValidFreeCredit ? freeCreditAllocation.remaining_amount : 0,
+
+          free_credit_expires_at: hasValidFreeCredit ? freeCreditAllocation.expires_at : null,
+
           renew_date: subscription.current_period_end,
+
           total_credits: plan.credits_included,
         }
       : null,

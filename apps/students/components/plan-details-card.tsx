@@ -66,7 +66,7 @@ export function PlanDetailsCard({
 
   const status = isCancellationScheduled
     ? {
-      label: "Cancelada",
+      label: "Cancelado",
       classes:
         "bg-amber-100 text-amber-800",
     }

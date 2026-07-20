@@ -197,6 +197,8 @@ export interface StudentSubscription {
   mentorship_cycle_end: string | null;
 }
 export interface StudentCredits {
+  free_credits: number;
+  free_credit_expires_at: string | null;
   plan_credits: number
   extra_credits: number
   total_credits: number
@@ -258,7 +260,8 @@ export type TransactionType =
   | "essay_refund"
   | "mentorship_expiration"
   | "free_trial_grant"
-  | "plan_expiration";
+  | "plan_expiration"
+  | "free_credit_expiration";
 
   export interface CreditTransaction {
   id: string;
