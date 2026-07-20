@@ -1,84 +1,145 @@
 "use client";
 
-import { CheckCircle2, XCircle } from "lucide-react";
-import { PlanData } from "@/types";
+import Link from "next/link";
+import {
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
+
+import type {
+  PlanData,
+  PlanSelectionMode,
+} from "@/types";
+import { ConfirmChangePlan } from "../confirm-change-plan";
+
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
-import { ConfirmChangePlan } from "../confirm-change-plan";
-import Link from "next/link";
 import { formatCurrency } from "@repo/utils";
 
 interface PlanCardProps {
   plan: PlanData;
-  isCurrentPlan: boolean;
-  isUpgradeFlow: boolean;
+  isCurrentPaidPlan: boolean;
+  isPreviousCanceledPlan: boolean;
+  currentPlanName: string | null;
+  selectionMode: PlanSelectionMode;
 }
 
-export function PlanCard({ plan, isCurrentPlan, isUpgradeFlow }: PlanCardProps) {
-  const isPremium = plan.name.toLowerCase().includes("premium");
-  const isQuarterly = plan.interval === "month" && plan.interval_count === 3;
-  const displayedPrice = isQuarterly ? plan.price / 3 : plan.price;
+export function PlanCard({
+  plan,
+  isCurrentPaidPlan,
+  isPreviousCanceledPlan,
+  currentPlanName,
+  selectionMode,
+}: PlanCardProps) {
+  const isPremium = plan.name
+    .toLowerCase()
+    .includes("premium");
+
+  const isQuarterly =
+    plan.interval === "month" &&
+    plan.interval_count === 3;
+
+  const displayedPrice = isQuarterly
+    ? plan.price / 3
+    : plan.price;
 
   return (
-    <div className={cn(
-      "flex flex-col bg-white border-2 rounded-3xl p-8 relative transition-all h-full",
-      isPremium ? "border-primary shadow-sm" : "border-slate-100 hover:border-slate-200",
-    )}>
-
-      {isCurrentPlan && (
-        <span className="absolute -top-3 right-6 bg-primary text-amber-950 text-[10px] font-extrabold px-3 py-1.5 rounded-sm uppercase tracking-wider shadow-sm">
-          Seu Plano Atual
+    <div
+      className={cn(
+        "relative flex h-full flex-col rounded-3xl border-2 bg-white p-8 transition-all",
+        isPremium
+          ? "border-primary shadow-sm"
+          : "border-slate-100 hover:border-slate-200"
+      )}
+    >
+      {isCurrentPaidPlan && (
+        <span className="absolute -top-3 right-6 rounded-sm bg-primary px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-950 shadow-sm">
+          Seu plano atual
         </span>
       )}
 
-      <div className="flex justify-between items-start mb-4">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
+      {isPreviousCanceledPlan &&
+        selectionMode ===
+        "canceled_subscription" && (
+          <span className="absolute -top-3 left-6 rounded-sm bg-slate-700 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-sm">
+            Plano anterior
+          </span>
+        )}
+
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-800">
           {plan.name}
         </h2>
+
         {isPremium && (
-          <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
-            RECOMENDADO
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-800">
+            Recomendado
           </span>
         )}
       </div>
 
       <div className="mb-8">
-        <p className="text-sm text-slate-500 mb-6 min-h-10 leading-relaxed">
-          {"O pacote ideal focado na evolução constante da sua nota."}
+        <p className="mb-6 min-h-10 text-sm leading-relaxed text-slate-500">
+          O pacote ideal focado na evolução constante
+          da sua nota.
         </p>
 
-        <p className="text-4xl font-extrabold text-slate-800 flex items-baseline tracking-tight">
-          <span className="text-2xl mr-1 font-bold">R$</span>
-          {(displayedPrice / 100).toFixed(2).replace(".", ",")}
-          <span className="text-sm text-slate-500 font-medium ml-1">/mês</span>
+        <p className="flex items-baseline text-4xl font-extrabold tracking-tight text-slate-800">
+          <span className="mr-1 text-2xl font-bold">
+            R$
+          </span>
+
+          {(displayedPrice / 100)
+            .toFixed(2)
+            .replace(".", ",")}
+
+          <span className="ml-1 text-sm font-medium text-slate-500">
+            /mês
+          </span>
         </p>
 
-        <div className="h-5 mt-1">
+        <div className="mt-1 h-5">
           {isQuarterly && (
-            <p className="text-xs text-slate-400 font-semibold">
-              Cobrança total de {formatCurrency(plan.price)} a cada 3 meses
+            <p className="text-xs font-semibold text-slate-400">
+              Cobrança total de{" "}
+              {formatCurrency(plan.price)} a cada 3
+              meses
             </p>
           )}
         </div>
       </div>
 
-      <ul className="flex flex-col gap-4 mb-10 grow">
-        {plan.features.map((feature: any, index: number) => {
-          const isIncluded = typeof feature === "string" ? true : feature.included;
-          const text = typeof feature === "string" ? feature : feature.text;
+      <ul className="mb-10 flex grow flex-col gap-4">
+        {plan.features.map((feature, index) => {
+          const isIncluded =
+            typeof feature === "string"
+              ? true
+              : feature.included;
+
+          const text =
+            typeof feature === "string"
+              ? feature
+              : feature.text;
 
           return (
-            <li key={index} className="flex items-center gap-3">
+            <li
+              key={`${text}-${index}`}
+              className="flex items-center gap-3"
+            >
               {isIncluded ? (
                 <CheckCircle2 className="size-5 shrink-0 text-primary" />
               ) : (
                 <XCircle className="size-5 shrink-0 text-slate-300" />
               )}
 
-              <span className={cn(
-                "text-sm font-semibold",
-                isIncluded ? "text-slate-700" : "text-slate-400 line-through decoration-slate-200"
-              )}>
+              <span
+                className={cn(
+                  "text-sm font-semibold",
+                  isIncluded
+                    ? "text-slate-700"
+                    : "text-slate-400 line-through decoration-slate-200"
+                )}
+              >
                 {text}
               </span>
             </li>
@@ -87,28 +148,70 @@ export function PlanCard({ plan, isCurrentPlan, isUpgradeFlow }: PlanCardProps) 
       </ul>
 
       <div className="mt-auto">
-        {isCurrentPlan ? (
+        {isCurrentPaidPlan ? (
           <Button
             disabled
-            className="w-full h-12 rounded-xl bg-slate-100 text-slate-400 font-bold opacity-100 cursor-default border border-slate-200"
+            className="h-12 w-full cursor-default rounded-xl border border-slate-200 bg-slate-100 font-bold text-slate-400 opacity-100"
           >
-            Ativo Atualmente
+            Plano atual
           </Button>
-        ) : isUpgradeFlow ? (
+        ) : selectionMode ===
+          "mentorship_pending" ? (
+          <Button
+            disabled
+            className="h-12 w-full rounded-xl font-bold"
+          >
+            Disponível em breve
+          </Button>
+        ) : selectionMode ===
+          "payment_issue" ? (
+          <Button
+            asChild
+            variant="outline"
+            className="h-12 w-full rounded-xl font-bold"
+          >
+            <Link href="/assinatura">
+              Ver minha assinatura
+            </Link>
+          </Button>
+        ) : selectionMode ===
+          "canceled_subscription" &&
+          isPreviousCanceledPlan ? (
+          <Button
+            asChild
+            className="h-12 w-full rounded-xl font-bold"
+          >
+            <Link
+              href={`/assinatura/checkout?planId=${plan.id}`}
+            >
+              Reativar assinatura
+            </Link>
+          </Button>
+        ) : selectionMode === "change_plan" ? (
           <ConfirmChangePlan
             newPlan={plan}
-            currentPlanName="Seu plano atual"
+            currentPlanName={
+              currentPlanName ??
+              "Seu plano atual"
+            }
             currentPlanEssays={0}
           />
         ) : (
-          <Button asChild className="w-full h-12 rounded-xl font-bold tracking-wide transition-all hover:scale-[1.01] shadow-sm">
-            <Link href={`/assinatura/checkout?planId=${plan.id}`}>
-              Assinar agora
+          <Button
+            asChild
+            className="h-12 w-full rounded-xl font-bold tracking-wide shadow-sm transition-all hover:scale-[1.01]"
+          >
+            <Link
+              href={`/assinatura/checkout?planId=${plan.id}`}
+            >
+              {selectionMode ===
+                "canceled_subscription"
+                ? "Assinar novo plano"
+                : "Assinar agora"}
             </Link>
           </Button>
         )}
       </div>
-
     </div>
   );
 }

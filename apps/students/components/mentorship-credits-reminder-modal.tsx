@@ -100,18 +100,6 @@ export function MentorshipCreditsReminderModal({
             </p>
           </div>
 
-          {/* <p className="text-center text-sm text-slate-600">
-            Quer enviar mais redações?{" "}
-            <Link
-              href="/assinatura/comprar-creditos"
-              onClick={onClose}
-              className="inline-flex items-center gap-1 font-bold text-[#0A4BCC] hover:underline"
-            >
-              Conheça nossos planos
-              <ArrowRight className="size-3.5" />
-            </Link>
-          </p> */}
-
           <div className="flex items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900">
@@ -132,7 +120,7 @@ export function MentorshipCreditsReminderModal({
               asChild
             >
               <Link
-                href="/assinatura/comprar-creditos"
+                href="/assinatura/planos"
                 onClick={onClose}
               >
                 Ver planos

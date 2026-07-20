@@ -11,3 +11,10 @@ export interface PlanData {
   interval_count: number | null;
   features: PlanFeature[] | string[];
 }
+
+export type PlanSelectionMode =
+  | "new_subscription"
+  | "change_plan"
+  | "canceled_subscription"
+  | "mentorship_pending"
+  | "payment_issue";

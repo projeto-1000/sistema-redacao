@@ -199,9 +199,15 @@ export interface PagarmeSubscription {
   boleto_due_days?: number;
   created_at?: string;
   updated_at?: string;
+  canceled_at?: string;
   customer?: PagarmeCustomer;
   card?: PagarmeCard;
   metadata?: Record<string, string>;
+}
+export interface CancelPagarmeSubscriptionParams {
+  subscriptionId: string;
+  cancelPendingInvoices?: boolean;
+  idempotencyKey?: string;
 }
 
 export async function createPagarmeSubscription({
@@ -257,4 +263,35 @@ export async function createPagarmeSubscription({
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export async function cancelPagarmeSubscription({
+  subscriptionId,
+  cancelPendingInvoices = true,
+  idempotencyKey,
+}: CancelPagarmeSubscriptionParams) {
+  if (!subscriptionId.startsWith("sub_")) {
+    throw new Error(
+      "ID da assinatura Pagar.me inválido."
+    );
+  }
+
+  const headers: HeadersInit = {};
+
+  if (idempotencyKey) {
+    headers["Idempotency-Key"] =
+      idempotencyKey;
+  }
+
+  return fetchPagarme<PagarmeSubscription>(
+    `/subscriptions/${subscriptionId}`,
+    {
+      method: "DELETE",
+      headers,
+      body: JSON.stringify({
+        cancel_pending_invoices:
+          cancelPendingInvoices,
+      }),
+    }
+  );
 }

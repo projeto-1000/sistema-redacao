@@ -159,13 +159,19 @@ export interface StudentSubscription {
   id: string;
   user_id: string;
   plan_id: string;
-
   status: SubscriptionStatus;
 
   current_period_start: string | null;
   current_period_end: string | null;
 
   cancel_at_period_end: boolean;
+
+  cancellation_requested_at: string | null;
+  cancellation_effective_at: string | null;
+  cancellation_reason: string | null;
+  cancellation_provider_status: string | null;
+  provider_canceled_at: string | null;
+  canceled_at: string | null;
 
   created_at: string;
   updated_at: string;
@@ -184,6 +190,11 @@ export interface StudentSubscription {
 
   price: number;
   credits_included: number;
+
+  mentorship_cycle_number: number | null;
+  mentorship_cycle_remaining: number | null;
+  mentorship_cycle_total: number | null;
+  mentorship_cycle_end: string | null;
 }
 export interface StudentCredits {
   plan_credits: number
@@ -236,14 +247,18 @@ export interface Plans {
 }
 
 export type TransactionType = 
-  | 'new_subscription' 
-  | 'mentorship_bonus' 
-  | 'plan_renewal' 
-  | 'standalone_purchase' 
-  | 'essay_usage' 
-  | 'plan_change' 
-  | 'administrative_adjustment'
-  | 'essay_refund';
+  | "plan_renewal"
+  | "standalone_purchase"
+  | "essay_usage"
+  | "plan_change"
+  | "administrative_adjustment"
+  | "new_subscription"
+  | "subscription_reactivation"
+  | "mentorship_bonus"
+  | "essay_refund"
+  | "mentorship_expiration"
+  | "free_trial_grant"
+  | "plan_expiration";
 
   export interface CreditTransaction {
   id: string;

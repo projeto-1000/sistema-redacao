@@ -85,17 +85,70 @@ export async function getSubscriptionData() {
     };
   }
 
+  let mentorshipCycle: {
+    cycle_number: number;
+    amount: number;
+    remaining_amount: number;
+    compensatory_refunds: number;
+    expires_at: string;
+  } | null = null;
+
+  if (plan.external_id === "internal_mentoria_free") {
+    const referenceAt = new Date().toISOString();
+
+    const { data: currentCycle, error: mentorshipCycleError } = await supabase
+      .from("mentorship_credit_allocations")
+      .select(
+        `
+        cycle_number,
+        amount,
+        remaining_amount,
+        compensatory_refunds,
+        expires_at
+      `
+      )
+      .eq("user_id", user.id)
+      .lte("available_at", referenceAt)
+      .gt("expires_at", referenceAt)
+      .in("status", ["scheduled", "active", "consumed"])
+      .order("cycle_number", {
+        ascending: true,
+      })
+      .maybeSingle();
+
+    if (mentorshipCycleError) {
+      console.error("[GET_MENTORSHIP_CYCLE_ERROR]", mentorshipCycleError);
+
+      return null;
+    }
+
+    mentorshipCycle = currentCycle;
+  }
+
   return {
     hasSubscription: true as const,
 
     subscription: {
       ...subscription,
+
       plan_name: plan.name,
       plan_external_id: plan.external_id,
+
       interval: plan.interval,
       interval_count: plan.interval_count,
+
       price: plan.price,
       credits_included: plan.credits_included,
+
+      mentorship_cycle_number: mentorshipCycle?.cycle_number ?? null,
+
+      mentorship_cycle_remaining: mentorshipCycle?.remaining_amount ?? null,
+
+      mentorship_cycle_total: mentorshipCycle
+        ? mentorshipCycle.amount + mentorshipCycle.compensatory_refunds
+        : null,
+
+      mentorship_cycle_end: mentorshipCycle?.expires_at ?? null,
     },
 
     credits: credits

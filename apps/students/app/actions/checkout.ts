@@ -22,6 +22,187 @@ import {
   normalizePlanFeatures,
 } from "@/utils/checkout-utils";
 
+type CheckoutOperation = "new_subscription" | "subscription_reactivation";
+
+type CheckoutBlockReason =
+  | "active_paid_subscription"
+  | "mentorship"
+  | "payment_issue"
+  | "unsupported_subscription";
+
+type CheckoutAccess =
+  | {
+      allowed: true;
+      operation: CheckoutOperation;
+      currentSubscriptionId: string | null;
+      previousSubscriptionExternalId: string | null;
+    }
+  | {
+      allowed: false;
+      reason: CheckoutBlockReason;
+    };
+
+async function resolveCheckoutAccess({
+  userId,
+  targetPlanId,
+}: {
+  userId: string;
+  targetPlanId: string;
+}): Promise<CheckoutAccess> {
+  const supabaseAdmin = createAdminClient();
+
+  const { data: currentSubscription, error: subscriptionError } = await supabaseAdmin
+    .from("subscriptions")
+    .select(
+      `
+        id,
+        plan_id,
+        status,
+        external_id
+      `
+    )
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (subscriptionError) {
+    console.error("[CHECKOUT_CURRENT_SUBSCRIPTION_ERROR]", subscriptionError);
+
+    return {
+      allowed: false,
+      reason: "unsupported_subscription",
+    };
+  }
+
+  /*
+   * Cenário defensivo.
+   * Normalmente todo aluno já terá Plano Gratuito
+   * ou Mentoria.
+   */
+  if (!currentSubscription) {
+    return {
+      allowed: true,
+      operation: "new_subscription",
+      currentSubscriptionId: null,
+      previousSubscriptionExternalId: null,
+    };
+  }
+
+  const { data: currentPlan, error: currentPlanError } = await supabaseAdmin
+    .from("plans")
+    .select(
+      `
+        id,
+        external_id,
+        price,
+        is_public
+      `
+    )
+    .eq("id", currentSubscription.plan_id)
+    .maybeSingle();
+
+  if (currentPlanError || !currentPlan) {
+    console.error("[CHECKOUT_CURRENT_PLAN_ERROR]", currentPlanError);
+
+    return {
+      allowed: false,
+      reason: "unsupported_subscription",
+    };
+  }
+
+  const isFreeTrial = currentPlan.external_id === "internal_free_trial";
+
+  const isMentorship = currentPlan.external_id === "internal_mentoria_free";
+
+  const isPaidPlan = currentPlan.price > 0 && currentPlan.is_public;
+
+  /*
+   * Decisão pendente sobre coexistência entre
+   * Mentoria e assinatura paga.
+   */
+  if (isMentorship) {
+    return {
+      allowed: false,
+      reason: "mentorship",
+    };
+  }
+
+  /*
+   * Não permitimos criar outra assinatura enquanto
+   * houver pendência financeira.
+   */
+  if (currentSubscription.status === "past_due" || currentSubscription.status === "unpaid") {
+    return {
+      allowed: false,
+      reason: "payment_issue",
+    };
+  }
+
+  /*
+   * Plano pago ativo deve utilizar a action específica
+   * de troca de plano, nunca o checkout comum.
+   */
+  if (
+    isPaidPlan &&
+    (currentSubscription.status === "active" || currentSubscription.status === "trial")
+  ) {
+    return {
+      allowed: false,
+      reason: "active_paid_subscription",
+    };
+  }
+
+  /*
+   * Plano pago cancelado:
+   *
+   * Mesmo plano  → reativação.
+   * Outro plano  → nova assinatura.
+   */
+  if (isPaidPlan && currentSubscription.status === "canceled") {
+    return {
+      allowed: true,
+      operation:
+        currentSubscription.plan_id === targetPlanId
+          ? "subscription_reactivation"
+          : "new_subscription",
+      currentSubscriptionId: currentSubscription.id,
+      previousSubscriptionExternalId: currentSubscription.external_id,
+    };
+  }
+
+  /*
+   * Plano Gratuito → primeira assinatura paga.
+   */
+  if (isFreeTrial) {
+    return {
+      allowed: true,
+      operation: "new_subscription",
+      currentSubscriptionId: currentSubscription.id,
+      previousSubscriptionExternalId: currentSubscription.external_id,
+    };
+  }
+
+  return {
+    allowed: false,
+    reason: "unsupported_subscription",
+  };
+}
+
+function getCheckoutBlockMessage(reason: CheckoutBlockReason): string {
+  switch (reason) {
+    case "active_paid_subscription":
+      return "Você já possui uma assinatura ativa. Utilize a opção de alterar plano.";
+
+    case "mentorship":
+      return "A contratação de planos para alunos da mentoria está temporariamente indisponível.";
+
+    case "payment_issue":
+      return "Regularize sua assinatura atual antes de contratar outro plano.";
+
+    default:
+      return "Não foi possível iniciar o checkout para sua assinatura atual.";
+  }
+}
+
 export async function getCheckoutPageData(planId: string): Promise<CheckoutPageData | null> {
   const supabase = await createClient();
 
@@ -196,6 +377,8 @@ async function grantSubscriptionCredits({
   plan,
   paymentId,
   subscriptionId,
+  transactionType,
+  previousSubscriptionExternalId,
 }: {
   supabaseAdmin: ReturnType<typeof createAdminClient>;
   userId: string;
@@ -209,21 +392,31 @@ async function grantSubscriptionCredits({
   };
   paymentId: string;
   subscriptionId: string;
+  transactionType: CheckoutOperation;
+  previousSubscriptionExternalId: string | null;
 }) {
   if (plan.credits_included <= 0) {
     return;
   }
 
+  const isReactivation = transactionType === "subscription_reactivation";
+
+  const description = isReactivation
+    ? `Liberação de ${plan.credits_included} crédito(s) pela reativação do plano ${plan.name}.`
+    : `Liberação de ${plan.credits_included} crédito(s) do plano ${plan.name}.`;
+
   const { error } = await supabaseAdmin.from("credit_transactions").insert({
     user_id: userId,
-    type: "new_subscription",
+    type: transactionType,
     amount: plan.credits_included,
-    description: `Liberação de ${plan.credits_included} crédito(s) do plano ${plan.name}.`,
+    description,
     student_payment_id: paymentId,
     metadata: {
       source: "checkout",
-      grant_type: "subscription_initial_cycle",
+      grant_type: isReactivation ? "subscription_reactivation_cycle" : "subscription_initial_cycle",
+      checkout_operation: transactionType,
       subscription_id: subscriptionId,
+      previous_subscription_external_id: previousSubscriptionExternalId,
       plan_id: plan.id,
       plan_name: plan.name,
       interval: plan.interval,
@@ -233,6 +426,8 @@ async function grantSubscriptionCredits({
   });
 
   if (error && error.code !== "23505") {
+    console.error("[GRANT_SUBSCRIPTION_CREDITS_ERROR]", error);
+
     throw new Error("Não foi possível liberar os créditos da assinatura.");
   }
 }
@@ -292,6 +487,17 @@ export async function createCheckoutSubscription(
   if (!canCheckout) {
     throw new Error("Este plano não está disponível para checkout.");
   }
+
+  const checkoutAccess = await resolveCheckoutAccess({
+    userId: user.id,
+    targetPlanId: plan.id,
+  });
+
+  if (!checkoutAccess.allowed) {
+    throw new Error(getCheckoutBlockMessage(checkoutAccess.reason));
+  }
+
+  const checkoutOperation = checkoutAccess.operation;
 
   const pagarmePlanId = plan.external_id;
 
@@ -389,6 +595,13 @@ export async function createCheckoutSubscription(
       plan_id: plan.id,
       local_subscription_code: subscriptionCode,
       source: "students_checkout",
+      checkout_operation: checkoutOperation,
+
+      ...(checkoutAccess.previousSubscriptionExternalId
+        ? {
+            previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
+          }
+        : {}),
     },
   });
 
@@ -419,6 +632,8 @@ export async function createCheckoutSubscription(
         pagarme_status: pagarmeSubscription.status,
         local_subscription_code: subscriptionCode,
         failure_reason: "card_payment_failed",
+        checkout_operation: checkoutOperation,
+        previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
       },
     });
 
@@ -445,9 +660,11 @@ export async function createCheckoutSubscription(
         metadata: {
           provider: "pagarme",
           pagarme_subscription_id: pagarmeSubscription.id,
+          previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
           pagarme_customer_id: pagarmeCustomerId,
           pagarme_status: pagarmeSubscription.status,
           saved_card: Boolean(savedCardId),
+          checkout_operation: checkoutOperation,
         },
         updated_at: new Date().toISOString(),
       },
@@ -461,12 +678,6 @@ export async function createCheckoutSubscription(
   if (subscriptionError || !localSubscription) {
     throw new Error("Não foi possível salvar a assinatura no sistema.");
   }
-
-  await supabaseAdmin.from("subscription_history").insert({
-    subscription_id: localSubscription.id,
-    old_status: null,
-    new_status: localSubscriptionStatus,
-  });
 
   const { data: payment, error: paymentError } = await supabaseAdmin
     .from("student_payments")
@@ -489,6 +700,8 @@ export async function createCheckoutSubscription(
         pagarme_customer_id: pagarmeCustomerId,
         pagarme_status: pagarmeSubscription.status,
         local_subscription_code: subscriptionCode,
+        checkout_operation: checkoutOperation,
+        previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
       },
     })
     .select("id")
@@ -505,6 +718,8 @@ export async function createCheckoutSubscription(
       plan,
       paymentId: payment.id,
       subscriptionId: localSubscription.id,
+      transactionType: checkoutOperation,
+      previousSubscriptionExternalId: checkoutAccess.previousSubscriptionExternalId,
     });
   }
 

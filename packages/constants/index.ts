@@ -197,6 +197,10 @@ export const transactionLabels: Record<string, string> = {
   plan_change: 'Mudança de Plano',
   administrative_adjustment: 'Ajuste Administrativo',
   essay_refund: 'Devolução de Redação',
+  free_trial_grant: 'Crédito Gratuito', 
+  subscription_reactivation: "Reativação da assinatura",
+  mentorship_expiration: "Vencimento da mentoria",
+  plan_expiration: "Expiração de créditos do plano",
 };
 
 export const COMPETENCIES = [

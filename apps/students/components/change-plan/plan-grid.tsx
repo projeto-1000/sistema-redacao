@@ -1,69 +1,116 @@
 "use client";
 
 import { useState } from "react";
-import { PlanData } from "@/types";
+import type {
+  PlanData,
+  PlanSelectionMode,
+} from "@/types";
+
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@repo/ui/components/tabs";
 import { PlanCard } from "./plan-card";
-import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+
 
 interface PlanGridProps {
   plans: PlanData[];
-  currentPlanId: string | null;
-  isUpgradeFlow: boolean;
+  currentPaidPlanId: string | null;
+  previousCanceledPlanId: string | null;
+  currentPlanName: string | null;
+  selectionMode: PlanSelectionMode;
 }
 
-export function PlanGrid({ plans, currentPlanId, isUpgradeFlow }: PlanGridProps) {
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "quarterly">("monthly");
+export function PlanGrid({
+  plans,
+  currentPaidPlanId,
+  previousCanceledPlanId,
+  currentPlanName,
+  selectionMode,
+}: PlanGridProps) {
+  const [billingPeriod, setBillingPeriod] =
+    useState<"monthly" | "quarterly">(
+      "monthly"
+    );
 
   const filteredPlans = plans.filter((plan) => {
-    const isMonthly = plan.interval === "month" && plan.interval_count === 1;
-    const isQuarterly = plan.interval === "month" && plan.interval_count === 3;
+    const isMonthly =
+      plan.interval === "month" &&
+      plan.interval_count === 1;
 
-    if (billingPeriod === "monthly" && isMonthly) return true;
-    if (billingPeriod === "quarterly" && isQuarterly) return true;
+    const isQuarterly =
+      plan.interval === "month" &&
+      plan.interval_count === 3;
 
-    if (plan.id === currentPlanId && !isMonthly && !isQuarterly) return true;
+    if (
+      billingPeriod === "monthly" &&
+      isMonthly
+    ) {
+      return true;
+    }
+
+    if (
+      billingPeriod === "quarterly" &&
+      isQuarterly
+    ) {
+      return true;
+    }
 
     return false;
   });
 
   return (
     <div className="space-y-8">
-
-      <div className="flex justify-center w-full">
+      <div className="flex w-full justify-center">
         <Tabs
           defaultValue="monthly"
-          onValueChange={(value) => setBillingPeriod(value as "monthly" | "quarterly")}
+          onValueChange={(value) =>
+            setBillingPeriod(
+              value as
+              | "monthly"
+              | "quarterly"
+            )
+          }
         >
-          <TabsList className="min-h-12 p-1 bg-slate-100 border border-slate-200 rounded-2xl">
-
+          <TabsList className="min-h-12 rounded-2xl border border-slate-200 bg-slate-100 p-1">
             <TabsTrigger
               value="monthly"
-              className="px-8 py-2.5 rounded-xl text-sm font-bold tracking-tight data-[state=active]:bg-white data-[state=active]:text-slate-900! data-[state=active]:shadow-sm text-slate-400!"
+              className="rounded-xl px-8 py-2.5 text-sm font-bold tracking-tight text-slate-400! data-[state=active]:bg-white data-[state=active]:text-slate-900! data-[state=active]:shadow-sm"
             >
               Mensal
             </TabsTrigger>
 
             <TabsTrigger
               value="quarterly"
-              className="px-6 py-2.5 rounded-xl text-sm font-bold tracking-tight flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-slate-900! data-[state=active]:shadow-sm text-slate-400!"
+              className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold tracking-tight text-slate-400! data-[state=active]:bg-white data-[state=active]:text-slate-900! data-[state=active]:shadow-sm"
             >
               Trimestral
-              <span className="bg-primary/20 text-primary text-[10px] font-black px-2 py-0.5 rounded-md uppercase">
+
+              <span className="rounded-md bg-primary/20 px-2 py-0.5 text-[10px] font-black uppercase text-primary">
                 Desconto
               </span>
             </TabsTrigger>
-
           </TabsList>
         </Tabs>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto">
+      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
         {filteredPlans.map((plan) => (
           <PlanCard
             key={plan.id}
             plan={plan}
-            isCurrentPlan={plan.id === currentPlanId}
-            isUpgradeFlow={isUpgradeFlow}
+            isCurrentPaidPlan={
+              plan.id === currentPaidPlanId
+            }
+            isPreviousCanceledPlan={
+              plan.id ===
+              previousCanceledPlanId
+            }
+            currentPlanName={
+              currentPlanName
+            }
+            selectionMode={selectionMode}
           />
         ))}
       </div>

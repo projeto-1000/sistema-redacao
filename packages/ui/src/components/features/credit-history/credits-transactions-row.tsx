@@ -1,63 +1,144 @@
 import { transactionLabels } from "@repo/constants";
 import { CreditTransaction } from "@repo/types";
-import { formatDate, formatCurrency } from "@repo/utils";
+import { formatCurrency, formatDate } from "@repo/utils";
 
 interface CreditTableRowProps {
   tx: CreditTransaction;
 }
 
-export function CreditTableRow({ tx }: CreditTableRowProps) {
-  const label = transactionLabels[tx.type];
+interface TransactionDisplay {
+  primaryValue: string;
+  secondaryValue: string | null;
+  valueClassName: string;
+}
 
-  const date = formatDate(tx.created_at, 'numeric');
+const CREDIT_GRANT_TYPES: CreditTransaction["type"][] = [
+  "plan_renewal",
+  "standalone_purchase",
+  "new_subscription",
+  "free_trial_grant",
+  "mentorship_bonus",
+];
 
-  let primaryValue = '';
-  let secondaryValue: string | null = null;
-  let valueColor = 'text-slate-900';
+function formatCreditsAmount(
+  amount: number,
+  options?: {
+    showPositiveSign?: boolean;
+  }
+): string {
+  const absoluteAmount = Math.abs(amount);
+  const label =
+    absoluteAmount === 1 ? "crédito" : "créditos";
 
-  if (tx.type === 'essay_usage') {
-    primaryValue = `${tx.amount} crédito`;
-    valueColor = 'text-slate-500 font-semibold';
-  }
-  else if (tx.type === 'essay_refund') {
-    primaryValue = `+${tx.amount} crédito`;
-    valueColor = 'text-emerald-600 font-bold';
-  }
-  else if (tx.type === 'mentorship_bonus') {
-    primaryValue = `+${tx.amount} créditos`;
-    valueColor = 'text-emerald-600 font-bold';
-  }
-  else if (['plan_renewal', 'standalone_purchase', 'new_subscription'].includes(tx.type)) {
-    primaryValue = `+${tx.amount} créditos`;
-    valueColor = 'text-emerald-600 font-bold';
+  let sign = "";
 
-    const priceInCents = tx.metadata?.price_in_cents;
-    if (priceInCents && priceInCents > 0) {
-      secondaryValue = formatCurrency(priceInCents);
-    }
+  if (amount < 0) {
+    sign = "-";
+  } else if (options?.showPositiveSign) {
+    sign = "+";
   }
 
-  else {
-    primaryValue = tx.amount > 0 ? `+${tx.amount}` : `${tx.amount}`;
-    valueColor = tx.amount > 0 ? 'text-emerald-600 font-bold' : 'text-slate-900 font-bold';
+  return `${sign}${absoluteAmount} ${label}`;
+}
+
+function getSecondaryValue(
+  tx: CreditTransaction
+): string | null {
+  const priceInCents = tx.metadata?.price_in_cents;
+
+  if (
+    typeof priceInCents !== "number" ||
+    priceInCents <= 0
+  ) {
+    return null;
   }
+
+  return formatCurrency(priceInCents);
+}
+
+function getTransactionDisplay(
+  tx: CreditTransaction
+): TransactionDisplay {
+  if (tx.type === "essay_usage") {
+    return {
+      primaryValue: formatCreditsAmount(tx.amount),
+      secondaryValue: null,
+      valueClassName:
+        "font-semibold text-slate-500",
+    };
+  }
+
+  if (tx.type === "essay_refund") {
+    return {
+      primaryValue: formatCreditsAmount(tx.amount, {
+        showPositiveSign: true,
+      }),
+      secondaryValue: null,
+      valueClassName:
+        "font-bold text-emerald-600",
+    };
+  }
+
+  if (CREDIT_GRANT_TYPES.includes(tx.type)) {
+    return {
+      primaryValue: formatCreditsAmount(tx.amount, {
+        showPositiveSign: true,
+      }),
+      secondaryValue: getSecondaryValue(tx),
+      valueClassName:
+        "font-bold text-emerald-600",
+    };
+  }
+
+  return {
+    primaryValue:
+      tx.amount > 0
+        ? `+${tx.amount}`
+        : String(tx.amount),
+    secondaryValue: null,
+    valueClassName:
+      tx.amount > 0
+        ? "font-bold text-emerald-600"
+        : "font-bold text-slate-900",
+  };
+}
+
+export function CreditTableRow({
+  tx,
+}: CreditTableRowProps) {
+  const label =
+    transactionLabels[tx.type] ?? tx.type;
+
+  const date = formatDate(
+    tx.created_at,
+    "numeric"
+  );
+
+  const {
+    primaryValue,
+    secondaryValue,
+    valueClassName,
+  } = getTransactionDisplay(tx);
 
   return (
-    <div className="flex justify-between items-center py-4 border-b border-slate-100 last:border-0">
+    <div className="flex items-center justify-between border-b border-slate-100 py-4 last:border-0">
       <div>
-        <p className="font-bold text-slate-800">{label}</p>
-        <p className="text-[13px] font-medium text-slate-400 mt-1 capitalize">
+        <p className="font-bold text-slate-800">
+          {label}
+        </p>
+
+        <p className="mt-1 text-[13px] font-medium capitalize text-slate-400">
           {date}
         </p>
       </div>
 
-      <div className="text-right flex flex-col items-end">
-        <span className={valueColor}>
+      <div className="flex flex-col items-end text-right">
+        <span className={valueClassName}>
           {primaryValue}
         </span>
 
         {secondaryValue && (
-          <span className="text-[12px] font-medium text-slate-600/90 mt-1">
+          <span className="mt-1 text-[12px] font-medium text-slate-600/90">
             {secondaryValue}
           </span>
         )}

@@ -1,7 +1,7 @@
 import { getCreditsHistory, getSubscriptionData } from "@/app/actions/subscription";
 import CreditTransactionsTable from "@repo/ui/components/features/credit-history/credits-transactions-table";
 import { CreditsUsageCard } from "@/components/credits-usage-card";
-import { PlanDetailsCard } from "@/components/plan-details";
+import { PlanDetailsCard } from "@/components/plan-details-card";
 import { parseCreditsTransactionsFilters } from "@/utils/parse-filters";
 import { Button } from "@repo/ui/components/button";
 import { PageHeader } from "@repo/ui/components/page-header";
@@ -63,7 +63,7 @@ export default async function SubscriptionPage({
           </p>
 
           <Button asChild size="lg" className="rounded-xl h-12 px-6 font-bold tracking-wide shadow-md transition-all hover:scale-[1.02]">
-            <Link href="/assinatura/mudar-plano">
+            <Link href="/assinatura/planos">
               Conhecer nossos planos
             </Link>
           </Button>

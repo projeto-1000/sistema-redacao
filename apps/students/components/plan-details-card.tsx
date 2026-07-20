@@ -1,5 +1,7 @@
+import Link from "next/link";
+
 import { statusBadgeConfig } from "@repo/constants";
-import {
+import type {
   StudentSubscription,
   SubscriptionStatus,
 } from "@repo/types";
@@ -9,7 +11,8 @@ import {
   formatCurrency,
   formatDate,
 } from "@repo/utils";
-import Link from "next/link";
+
+import { CancelSubscriptionDialog } from "@/components/subscription/cancel-subscription-dialog";
 
 interface PlanDetailsCardProps {
   subscription: StudentSubscription;
@@ -40,30 +43,46 @@ export function PlanDetailsCard({
   const hasFinishedFreeTrial =
     isFreeTrial && planCredits <= 0;
 
+  const isCancellationScheduled =
+    subscription.cancel_at_period_end;
+
+  const cancellationEffectiveAt =
+    subscription.cancellation_effective_at ??
+    subscription.current_period_end;
+
   const canCancelSubscription =
+    subscription.status === "active" &&
     !isLifetime &&
     !isMentorship &&
     !isTrial &&
-    !isFreeTrial;
+    !isFreeTrial &&
+    !isCancellationScheduled &&
+    Boolean(subscription.current_period_end);
 
   const defaultStatus =
     statusBadgeConfig[
     subscription.status as SubscriptionStatus
     ] ?? statusBadgeConfig.trial;
 
-  const status = isFreeTrial
-    ? hasFreeCredit
-      ? {
-        label: "Disponível",
-        classes:
-          "bg-emerald-100 text-emerald-700",
-      }
-      : {
-        label: "Concluído",
-        classes:
-          "bg-slate-100 text-slate-600",
-      }
-    : defaultStatus;
+  const status = isCancellationScheduled
+    ? {
+      label: "Cancelada",
+      classes:
+        "bg-amber-100 text-amber-800",
+    }
+    : isFreeTrial
+      ? hasFreeCredit
+        ? {
+          label: "Disponível",
+          classes:
+            "bg-emerald-100 text-emerald-700",
+        }
+        : {
+          label: "Concluído",
+          classes:
+            "bg-slate-100 text-slate-600",
+        }
+      : defaultStatus;
 
   function getPlanLabel(): string {
     if (subscription.interval === "month") {
@@ -88,6 +107,13 @@ export function PlanDetailsCard({
   }
 
   function getDescription(): string {
+    if (isCancellationScheduled) {
+      return `Seu plano continuará disponível até ${formatDate(
+        cancellationEffectiveAt,
+        "numeric"
+      )}. Depois dessa data, não haverá uma nova cobrança.`;
+    }
+
     if (isFreeTrial) {
       return hasFreeCredit
         ? "Você ganhou uma correção gratuita para conhecer a plataforma."
@@ -134,6 +160,10 @@ export function PlanDetailsCard({
   }
 
   function getPeriodLabel(): string {
+    if (isCancellationScheduled) {
+      return "Acesso disponível até";
+    }
+
     if (isFreeTrial) {
       return hasFreeCredit
         ? "Benefício disponível"
@@ -156,6 +186,16 @@ export function PlanDetailsCard({
   }
 
   function getPeriodValue(): string {
+    if (
+      isCancellationScheduled &&
+      cancellationEffectiveAt
+    ) {
+      return formatDate(
+        cancellationEffectiveAt,
+        "numeric"
+      );
+    }
+
     if (isFreeTrial) {
       return hasFreeCredit
         ? "1 correção gratuita"
@@ -193,7 +233,7 @@ export function PlanDetailsCard({
   return (
     <div className="flex h-full flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
       <div>
-        <div className="mb-2 flex items-start justify-between">
+        <div className="mb-2 flex items-start justify-between gap-3">
           <Badge
             variant="secondary"
             className="border-0 bg-slate-100 text-slate-600 hover:bg-slate-100"
@@ -224,7 +264,7 @@ export function PlanDetailsCard({
 
         {hasFinishedFreeTrial && (
           <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3">
-            <p className="text-sm font-bold text-slate-900">
+            <p className="text-sm font-bold ">
               Continue evoluindo nas suas redações
             </p>
 
@@ -235,6 +275,7 @@ export function PlanDetailsCard({
             </p>
           </div>
         )}
+
       </div>
 
       <div className="mt-8">
@@ -251,21 +292,24 @@ export function PlanDetailsCard({
             </p>
           </div>
 
-          <div className="flex w-full gap-3 md:w-auto">
-            {canCancelSubscription && (
-              <Button
-                variant="outline"
-                className="h-11 w-full rounded-xl border-slate-300 text-slate-700 md:w-auto"
-              >
-                Cancelar assinatura
-              </Button>
-            )}
+          <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
+            {canCancelSubscription &&
+              subscription.current_period_end && (
+                <CancelSubscriptionDialog
+                  planName={
+                    subscription.plan_name
+                  }
+                  effectiveAt={
+                    subscription.current_period_end
+                  }
+                />
+              )}
 
             <Button
               asChild
               className="h-11 w-full rounded-xl font-medium md:w-auto"
             >
-              <Link href="/assinatura/mudar-plano">
+              <Link href="/assinatura/planos">
                 {getActionLabel()}
               </Link>
             </Button>

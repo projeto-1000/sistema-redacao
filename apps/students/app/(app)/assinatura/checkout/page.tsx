@@ -28,7 +28,7 @@ export default async function CheckoutPage({
     : params.planId;
 
   if (!planId) {
-    redirect("/assinatura/mudar-plano");
+    redirect("/assinatura/planos");
   }
 
   const data = await getCheckoutPageData(planId);
@@ -44,7 +44,7 @@ export default async function CheckoutPage({
         variant="ghost"
         className="text-slate-500 hover:text-primary hover:bg-transparent!"
       >
-        <Link href="/assinatura/mudar-plano">
+        <Link href="/assinatura/planos">
           <ArrowLeft className="size-4 mr-2" />
           Voltar para planos
         </Link>

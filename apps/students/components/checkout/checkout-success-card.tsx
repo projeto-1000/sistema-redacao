@@ -105,7 +105,7 @@ export function CheckoutSuccessCard({ data }: CheckoutSuccessCardProps) {
             variant="outline"
             className="h-12 rounded-2xl px-6 font-bold sm:flex-1"
           >
-            <Link href="/assinatura/mudar-plano">
+            <Link href="/assinatura/planos">
               Ver assinatura
               <ArrowRight className="ml-2 size-4" />
             </Link>
