@@ -12,12 +12,21 @@ import { ConfirmChangePlan } from "../confirm-change-plan";
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
 import { formatCurrency } from "@repo/utils";
-
+import type { PlanUpgradeCalculation } from "@/utils/calculate-plan-upgrade";
 interface PlanCardProps {
   plan: PlanData;
   isCurrentPaidPlan: boolean;
   isPreviousCanceledPlan: boolean;
+
   currentPlanName: string | null;
+  currentPlanPrice?: number | null;
+  currentPlanCreditsIncluded?: number | null;
+
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+
+  upgradePreview?: PlanUpgradeCalculation | null;
+
   selectionMode: PlanSelectionMode;
 }
 
@@ -26,6 +35,11 @@ export function PlanCard({
   isCurrentPaidPlan,
   isPreviousCanceledPlan,
   currentPlanName,
+  currentPlanPrice,
+  currentPlanCreditsIncluded,
+  currentPeriodStart,
+  currentPeriodEnd,
+  upgradePreview,
   selectionMode,
 }: PlanCardProps) {
   const isPremium = plan.name
@@ -85,13 +99,39 @@ export function PlanCard({
     }
 
     if (selectionMode === "change_plan") {
+      const hasCurrentPlanData =
+        currentPlanName !== null &&
+        currentPlanPrice !== null &&
+        currentPlanPrice !== undefined &&
+        currentPlanCreditsIncluded !== null &&
+        currentPlanCreditsIncluded !== undefined &&
+        currentPeriodStart !== null &&
+        currentPeriodStart !== undefined &&
+        currentPeriodEnd !== null &&
+        currentPeriodEnd !== undefined;
+
+      if (!hasCurrentPlanData) {
+        return (
+          <Button
+            disabled
+            className="h-12 w-full rounded-xl font-bold"
+          >
+            Dados indisponíveis
+          </Button>
+        );
+      }
+
       return (
         <ConfirmChangePlan
           newPlan={plan}
-          currentPlanName={
-            currentPlanName ?? "Seu plano atual"
+          currentPlanName={currentPlanName}
+          currentPlanPrice={currentPlanPrice}
+          currentPlanCreditsIncluded={
+            currentPlanCreditsIncluded
           }
-          currentPlanEssays={0}
+          currentPeriodStart={currentPeriodStart}
+          currentPeriodEnd={currentPeriodEnd}
+          initialUpgradePreview={upgradePreview}
         />
       );
     }

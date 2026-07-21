@@ -80,26 +80,7 @@ export async function POST(req: Request) {
   const paymentType = payload.data?.purchase?.payment?.type ?? null;
   const approvedAt = getHotmartDate(payload.data?.purchase?.approved_date);
 
-  console.log("[HOTMART_WEBHOOK_RECEIVED]", {
-    id: payload.id,
-    event: payload.event,
-    version: payload.version,
-    productId,
-    productUcode,
-    productName,
-    buyerEmail,
-    buyerName,
-    transaction,
-    purchaseStatus,
-    paymentType,
-  });
-
   if (payload.event !== "PURCHASE_APPROVED") {
-    console.log("[HOTMART_WEBHOOK_IGNORED]", {
-      reason: "unsupported_event",
-      event: payload.event,
-    });
-
     return NextResponse.json(
       {
         ignored: true,
@@ -110,11 +91,6 @@ export async function POST(req: Request) {
   }
 
   if (purchaseStatus !== "APPROVED") {
-    console.log("[HOTMART_WEBHOOK_IGNORED]", {
-      reason: "purchase_not_approved",
-      purchaseStatus,
-    });
-
     return NextResponse.json(
       {
         ignored: true,
@@ -125,11 +101,6 @@ export async function POST(req: Request) {
   }
 
   if (productUcode !== mentorshipProductUcode) {
-    console.log("[HOTMART_WEBHOOK_IGNORED]", {
-      reason: "product_not_mapped",
-      productUcode,
-    });
-
     return NextResponse.json(
       {
         ignored: true,
@@ -268,15 +239,6 @@ export async function POST(req: Request) {
       );
     }
   }
-
-  console.log("[HOTMART_WEBHOOK_ACCEPTED]", {
-    webhookEventId: webhookEvent.id,
-    mentorshipAccessId: mentorshipAccess.id,
-    eventId: payload.id,
-    transaction,
-    productUcode,
-    buyerEmail,
-  });
 
   return NextResponse.json(
     {

@@ -15,12 +15,21 @@ export interface CurrentUserSubscriptionContext {
   planExternalId: string | null;
   planKind: CurrentPlanKind;
 
+  planPrice: number;
+  planCreditsIncluded: number;
+  planInterval: string;
+  planIntervalCount: number;
+
   status: SubscriptionStatus;
 
   currentPeriodStart: string | null;
   currentPeriodEnd: string | null;
 
   cancelAtPeriodEnd: boolean;
+
+  pendingPlanId: string | null;
+  pendingChangeType: "downgrade" | null;
+  pendingChangeAt: string | null;
 }
 
 function getPlanKind({
@@ -57,6 +66,7 @@ export async function getAvailablePlans(): Promise<PlanData[]> {
         id,
         name,
         price,
+        credits_included,
         interval,
         interval_count,
         features
@@ -79,6 +89,7 @@ export async function getAvailablePlans(): Promise<PlanData[]> {
     id: plan.id,
     name: plan.name,
     price: plan.price,
+    credits_included: plan.credits_included,
     interval: plan.interval,
     interval_count: plan.interval_count,
     features: plan.features ?? [],
@@ -113,7 +124,10 @@ export async function getCurrentUserSubscriptionContext(): Promise<CurrentUserSu
         status,
         current_period_start,
         current_period_end,
-        cancel_at_period_end
+        cancel_at_period_end,
+        pending_plan_id,
+        pending_change_type,
+        pending_change_at
       `
     )
     .eq("user_id", user.id)
@@ -133,12 +147,15 @@ export async function getCurrentUserSubscriptionContext(): Promise<CurrentUserSu
     .from("plans")
     .select(
       `
-        id,
-        name,
-        external_id,
-        price,
-        is_public
-      `
+      id,
+      name,
+      external_id,
+      price,
+      credits_included,
+      interval,
+      interval_count,
+      is_public
+    `
     )
     .eq("id", subscription.plan_id)
     .maybeSingle();
@@ -168,6 +185,11 @@ export async function getCurrentUserSubscriptionContext(): Promise<CurrentUserSu
       isPublic: plan.is_public,
     }),
 
+    planPrice: plan.price,
+    planCreditsIncluded: plan.credits_included,
+    planInterval: plan.interval,
+    planIntervalCount: plan.interval_count ?? 1,
+
     status: subscription.status as SubscriptionStatus,
 
     currentPeriodStart: subscription.current_period_start,
@@ -175,5 +197,10 @@ export async function getCurrentUserSubscriptionContext(): Promise<CurrentUserSu
     currentPeriodEnd: subscription.current_period_end,
 
     cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+    pendingPlanId: subscription.pending_plan_id,
+
+    pendingChangeType: subscription.pending_change_type as "downgrade" | null,
+
+    pendingChangeAt: subscription.pending_change_at,
   };
 }

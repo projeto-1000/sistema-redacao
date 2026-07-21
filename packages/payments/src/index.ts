@@ -295,3 +295,346 @@ export async function cancelPagarmeSubscription({
     }
   );
 }
+export interface GetPagarmeSubscriptionParams {
+  subscriptionId: string;
+}
+
+export async function getPagarmeSubscription({
+  subscriptionId,
+}: GetPagarmeSubscriptionParams) {
+  if (!subscriptionId.startsWith("sub_")) {
+    throw new Error(
+      "ID da assinatura Pagar.me inválido."
+    );
+  }
+
+  return fetchPagarme<PagarmeSubscription>(
+    `/subscriptions/${subscriptionId}`,
+    {
+      method: "GET",
+    }
+  );
+}
+
+export interface CreatePagarmeOrderParams {
+  code: string;
+  customerId: string;
+  cardId: string;
+
+  amount: number;
+  itemCode: string;
+  itemDescription: string;
+
+  statementDescriptor?: string;
+  metadata?: Record<string, string>;
+  idempotencyKey?: string;
+}
+
+export interface PagarmeChargeTransaction {
+  id?: string;
+  status?: string;
+  success?: boolean;
+}
+
+export interface PagarmeCharge {
+  id: string;
+  code?: string;
+  status: string;
+  amount: number;
+  paid_amount?: number;
+  payment_method?: string;
+  paid_at?: string;
+  created_at?: string;
+  last_transaction?: PagarmeChargeTransaction;
+}
+
+export interface PagarmeOrder {
+  id: string;
+  code?: string;
+  status: string;
+  amount: number;
+  closed?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  charges?: PagarmeCharge[];
+  metadata?: Record<string, string>;
+}
+
+export async function createPagarmeOrder({
+  code,
+  customerId,
+  cardId,
+  amount,
+  itemCode,
+  itemDescription,
+  statementDescriptor = "REDACAO1000",
+  metadata,
+  idempotencyKey,
+}: CreatePagarmeOrderParams) {
+  if (!customerId.startsWith("cus_")) {
+    throw new Error(
+      "ID do cliente Pagar.me inválido."
+    );
+  }
+
+  if (!cardId.startsWith("card_")) {
+    throw new Error(
+      "ID do cartão Pagar.me inválido."
+    );
+  }
+
+  if (!Number.isInteger(amount) || amount <= 0) {
+    throw new Error(
+      "O valor da cobrança precisa ser um número inteiro positivo em centavos."
+    );
+  }
+
+  const headers: HeadersInit = {};
+
+  if (idempotencyKey) {
+    headers["Idempotency-Key"] =
+      idempotencyKey;
+  }
+
+  const payload = {
+    code,
+
+    items: [
+      {
+        code: itemCode,
+        description: itemDescription,
+        amount,
+        quantity: 1,
+      },
+    ],
+
+    customer_id: customerId,
+
+    payments: [
+      {
+        payment_method: "credit_card",
+
+        credit_card: {
+          installments: 1,
+          statement_descriptor:
+            statementDescriptor,
+          card_id: cardId,
+        },
+      },
+    ],
+
+    closed: true,
+    metadata,
+  };
+
+  return fetchPagarme<PagarmeOrder>(
+    "/orders",
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+    }
+  );
+}
+
+export interface PagarmePricingScheme {
+  scheme_type: string;
+  price?: number;
+  minimum_price?: number;
+  package_size?: number;
+}
+
+export interface PagarmeSubscriptionItem {
+  id: string;
+  name?: string;
+  description?: string;
+  quantity: number;
+  status: string;
+  cycles?: number;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
+  pricing_scheme: PagarmePricingScheme;
+}
+
+export interface PagarmePaginatedResponse<TData> {
+  data: TData[];
+  paging?: {
+    total?: number;
+    previous?: string;
+    next?: string;
+  };
+}
+
+export interface ListPagarmeSubscriptionItemsParams {
+  subscriptionId: string;
+}
+
+export async function listPagarmeSubscriptionItems({
+  subscriptionId,
+}: ListPagarmeSubscriptionItemsParams) {
+  if (!subscriptionId.startsWith("sub_")) {
+    throw new Error(
+      "ID da assinatura Pagar.me inválido."
+    );
+  }
+
+  return fetchPagarme<
+    PagarmePaginatedResponse<PagarmeSubscriptionItem>
+  >(
+    `/subscriptions/${subscriptionId}/items?status=active&size=100`,
+    {
+      method: "GET",
+    }
+  );
+}
+
+export interface UpdatePagarmeSubscriptionItemParams {
+  subscriptionId: string;
+  itemId: string;
+
+  name: string;
+  description: string;
+
+  price: number;
+  quantity?: number;
+
+  status?: "active" | "inactive";
+}
+
+export async function updatePagarmeSubscriptionItem({
+  subscriptionId,
+  itemId,
+  name,
+  description,
+  price,
+  quantity = 1,
+  status = "active",
+}: UpdatePagarmeSubscriptionItemParams) {
+  if (!subscriptionId.startsWith("sub_")) {
+    throw new Error(
+      "ID da assinatura Pagar.me inválido."
+    );
+  }
+
+  if (!itemId.startsWith("si_")) {
+    throw new Error(
+      "ID do item da assinatura Pagar.me inválido."
+    );
+  }
+
+  if (!Number.isInteger(price) || price <= 0) {
+    throw new Error(
+      "O preço precisa ser um número inteiro positivo em centavos."
+    );
+  }
+
+  if (
+    !Number.isInteger(quantity) ||
+    quantity <= 0
+  ) {
+    throw new Error(
+      "A quantidade precisa ser um número inteiro positivo."
+    );
+  }
+
+  return fetchPagarme<PagarmeSubscriptionItem>(
+    `/subscriptions/${subscriptionId}/items/${itemId}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        name,
+        description,
+        quantity,
+        status,
+
+        pricing_scheme: {
+          scheme_type: "unit",
+          price,
+        },
+      }),
+    }
+  );
+}
+
+export interface PagarmeOrderPaymentResult {
+  isPaid: boolean;
+  status: string;
+  chargeId: string | null;
+  paidAt: string | null;
+}
+
+export function getPagarmeOrderPaymentResult(
+  order: PagarmeOrder
+): PagarmeOrderPaymentResult {
+  const charge =
+    order.charges?.[0] ?? null;
+
+  const status =
+    charge?.status ??
+    order.status ??
+    "failed";
+
+  const isPaid =
+    order.status === "paid" &&
+    charge?.status === "paid";
+
+  return {
+    isPaid,
+    status,
+    chargeId: charge?.id ?? null,
+    paidAt: isPaid
+      ? charge?.paid_at ?? new Date().toISOString()
+      : null,
+  };
+}
+
+export interface FindPagarmeOrderByCodeParams {
+  code: string;
+}
+
+export async function findPagarmeOrderByCode({
+  code,
+}: FindPagarmeOrderByCodeParams) {
+  const normalizedCode = code.trim();
+
+  if (!normalizedCode) {
+    throw new Error(
+      "O código do pedido é obrigatório."
+    );
+  }
+
+  const searchParams = new URLSearchParams({
+    code: normalizedCode,
+    page: "1",
+    size: "1",
+  });
+
+  const response = await fetchPagarme<
+    PagarmePaginatedResponse<PagarmeOrder>
+  >(`/orders?${searchParams.toString()}`, {
+    method: "GET",
+  });
+
+  return response.data[0] ?? null;
+}
+
+export interface PagarmeWebhook<TData = unknown> {
+  id: string;
+  event: string;
+  status: "pending" | "sent" | "failed";
+  data: TData;
+}
+
+export async function getPagarmeWebhook<TData = unknown>({
+  webhookId,
+}: {
+  webhookId: string;
+}): Promise<PagarmeWebhook<TData>> {
+  return fetchPagarme<PagarmeWebhook<TData>>(
+    `/hooks/${webhookId}`,
+    {
+      method: "GET",
+    }
+  );
+}

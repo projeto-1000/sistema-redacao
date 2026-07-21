@@ -18,6 +18,7 @@ const CREDIT_GRANT_TYPES: CreditTransaction["type"][] = [
   "new_subscription",
   "free_trial_grant",
   "mentorship_bonus",
+  "plan_change"
 ];
 
 function formatCreditsAmount(
@@ -106,8 +107,7 @@ function getTransactionDisplay(
 export function CreditTableRow({
   tx,
 }: CreditTableRowProps) {
-  const label =
-    transactionLabels[tx.type] ?? tx.type;
+  const label = transactionLabels[tx.type] ?? tx.type;
 
   const date = formatDate(
     tx.created_at,

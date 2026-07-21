@@ -120,9 +120,7 @@ export function SignUpForm({
     void form.trigger();
   }, [form, hasInitialValues]);
 
-  const { isValid, isSubmitting, errors } = form.formState;
-  console.log(isValid)
-  console.log(errors)
+  const { isValid, isSubmitting } = form.formState;
 
   const selectedPhoneCountryCode = form.watch("phoneCountryCode");
   const isBrazilianPhone =

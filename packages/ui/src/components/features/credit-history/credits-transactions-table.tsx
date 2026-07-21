@@ -2,14 +2,10 @@ import { History } from "lucide-react";
 import { CreditTransaction } from "@repo/types";
 import { CreditTableRow } from "./credits-transactions-row";
 import { TablePagination } from "../../table-pagination";
-
-
-// Tipagem genérica para o erro, mantendo o pacote UI agnóstico ao backend
 interface GenericError {
   message: string;
   [key: string]: any;
 }
-
 interface CreditsHistoryListProps {
   data: {
     transactions: CreditTransaction[];

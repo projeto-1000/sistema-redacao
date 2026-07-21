@@ -22,8 +22,6 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
     (key) => essay.scores[key as keyof typeof essay.scores] === 200
   );
 
-  console.log(essay.status)
-
   return (
     <div className="px-4 md:px-10 lg:px-12 py-4">
 

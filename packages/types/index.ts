@@ -166,6 +166,11 @@ export interface StudentSubscription {
 
   cancel_at_period_end: boolean;
 
+  pending_plan_id: string | null;
+  pending_change_type: "downgrade" | null;
+  pending_change_at: string | null;
+  pending_plan_name: string | null;
+
   cancellation_requested_at: string | null;
   cancellation_effective_at: string | null;
   cancellation_reason: string | null;

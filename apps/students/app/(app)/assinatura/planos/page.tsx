@@ -11,6 +11,10 @@ import { ArrowLeft, CircleAlert } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getSelectionMode } from "@/utils/get-plan-selection-mode";
+import {
+  calculatePlanUpgrade,
+  type PlanUpgradeCalculation,
+} from "@/utils/calculate-plan-upgrade";
 
 function getPageContent(mode: PlanSelectionMode) {
   switch (mode) {
@@ -58,6 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+
 export default async function PlansPage() {
   const [currentContext, plans] =
     await Promise.all([
@@ -67,6 +72,55 @@ export default async function PlansPage() {
 
   const selectionMode =
     getSelectionMode(currentContext);
+
+  const upgradePreviews: Record<
+    string,
+    PlanUpgradeCalculation
+  > = {};
+
+  if (
+    selectionMode === "change_plan" &&
+    currentContext?.currentPeriodStart &&
+    currentContext.currentPeriodEnd
+  ) {
+    for (const plan of plans) {
+      const hasSamePeriod =
+        plan.interval ===
+        currentContext.planInterval &&
+        (plan.interval_count ?? 1) ===
+        currentContext.planIntervalCount;
+
+      const isUpgrade =
+        plan.price >
+        currentContext.planPrice &&
+        plan.credits_included >
+        currentContext.planCreditsIncluded;
+
+      if (!hasSamePeriod || !isUpgrade) {
+        continue;
+      }
+
+      upgradePreviews[plan.id] =
+        calculatePlanUpgrade({
+          currentPlanPrice:
+            currentContext.planPrice,
+
+          newPlanPrice: plan.price,
+
+          currentPlanCredits:
+            currentContext.planCreditsIncluded,
+
+          newPlanCredits:
+            plan.credits_included,
+
+          currentPeriodStart:
+            currentContext.currentPeriodStart,
+
+          currentPeriodEnd:
+            currentContext.currentPeriodEnd,
+        });
+    }
+  }
 
   const { title, subtitle } =
     getPageContent(selectionMode);
@@ -113,9 +167,7 @@ export default async function PlansPage() {
             </p>
 
             <p className="mt-1 text-sm leading-relaxed text-amber-900/80">
-              Existe uma pendência na sua assinatura
-              atual. Resolva essa situação antes de
-              contratar ou trocar de plano.
+              Existe uma pendência na sua assinatura atual. Resolva essa situação antes de okcontratar ou trocar de plano.
             </p>
           </div>
         </div>
@@ -130,6 +182,19 @@ export default async function PlansPage() {
         currentPlanName={
           currentContext?.planName ?? null
         }
+        currentPlanPrice={
+          currentContext?.planPrice ?? null
+        }
+        currentPlanCreditsIncluded={
+          currentContext?.planCreditsIncluded ?? null
+        }
+        currentPeriodStart={
+          currentContext?.currentPeriodStart ?? null
+        }
+        currentPeriodEnd={
+          currentContext?.currentPeriodEnd ?? null
+        }
+        upgradePreviews={upgradePreviews}
         selectionMode={selectionMode}
       />
 

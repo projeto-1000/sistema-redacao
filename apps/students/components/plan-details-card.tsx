@@ -46,6 +46,11 @@ export function PlanDetailsCard({
   const isCancellationScheduled =
     subscription.cancel_at_period_end;
 
+  const isPlanChangeScheduled =
+    subscription.pending_change_type === "downgrade" &&
+    Boolean(subscription.pending_plan_id) &&
+    Boolean(subscription.pending_change_at);
+
   const cancellationEffectiveAt =
     subscription.cancellation_effective_at ??
     subscription.current_period_end;
@@ -262,6 +267,32 @@ export function PlanDetailsCard({
           {getDescription()}
         </p>
 
+        {isPlanChangeScheduled &&
+          subscription.pending_change_at && (
+            <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="text-sm font-bold text-amber-800">
+                Alteração de plano agendada
+              </p>
+
+              <p className="mt-1 text-sm leading-relaxed text-amber-700">
+                Seu plano será alterado para{" "}
+                <strong>
+                  {subscription.pending_plan_name ??
+                    "o novo plano"}
+                </strong>{" "}
+                em{" "}
+                <strong>
+                  {formatDate(
+                    subscription.pending_change_at,
+                    "numeric"
+                  )}
+                </strong>.
+                Até lá, você continua com o plano{" "}
+                <strong>{subscription.plan_name}</strong>.
+              </p>
+            </div>
+          )}
+
         {hasFinishedFreeTrial && (
           <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3">
             <p className="text-sm font-bold ">
@@ -269,9 +300,7 @@ export function PlanDetailsCard({
             </p>
 
             <p className="mt-1 text-sm leading-relaxed text-slate-600">
-              Escolha um plano para receber novos
-              créditos e continuar enviando redações
-              para correção.
+              Escolha um plano para receber novos créditos e continuar enviando redações para correção.
             </p>
           </div>
         )}
@@ -305,14 +334,23 @@ export function PlanDetailsCard({
                 />
               )}
 
-            <Button
-              asChild
-              className="h-11 w-full rounded-xl font-medium md:w-auto"
-            >
-              <Link href="/assinatura/planos">
-                {getActionLabel()}
-              </Link>
-            </Button>
+            {isPlanChangeScheduled ? (
+              <Button
+                disabled
+                className="h-11 w-full rounded-xl font-medium md:w-auto"
+              >
+                Alteração agendada
+              </Button>
+            ) : (
+              <Button
+                asChild
+                className="h-11 w-full rounded-xl font-medium md:w-auto"
+              >
+                <Link href="/assinatura/planos">
+                  {getActionLabel()}
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -44,6 +44,7 @@ export async function updateSession(request: NextRequest) {
     "/nova-senha",
     "/api/auth/confirm",
     "/api/webhooks/hotmart",
+    "/api/webhooks/pagarme",
     "/api/payments/customers",
   ];
 

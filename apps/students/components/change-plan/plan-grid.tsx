@@ -12,13 +12,24 @@ import {
   TabsTrigger,
 } from "@repo/ui/components/tabs";
 import { PlanCard } from "./plan-card";
-
-
+import type { PlanUpgradeCalculation } from "@/utils/calculate-plan-upgrade";
 interface PlanGridProps {
   plans: PlanData[];
   currentPaidPlanId: string | null;
   previousCanceledPlanId: string | null;
+
   currentPlanName: string | null;
+  currentPlanPrice?: number | null;
+  currentPlanCreditsIncluded?: number | null;
+
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+
+  upgradePreviews?: Record<
+    string,
+    PlanUpgradeCalculation
+  >;
+
   selectionMode: PlanSelectionMode;
 }
 
@@ -27,6 +38,11 @@ export function PlanGrid({
   currentPaidPlanId,
   previousCanceledPlanId,
   currentPlanName,
+  currentPlanPrice,
+  currentPlanCreditsIncluded,
+  currentPeriodStart,
+  currentPeriodEnd,
+  upgradePreviews,
   selectionMode,
 }: PlanGridProps) {
   const [billingPeriod, setBillingPeriod] =
@@ -104,11 +120,17 @@ export function PlanGrid({
               plan.id === currentPaidPlanId
             }
             isPreviousCanceledPlan={
-              plan.id ===
-              previousCanceledPlanId
+              plan.id === previousCanceledPlanId
             }
-            currentPlanName={
-              currentPlanName
+            currentPlanName={currentPlanName}
+            currentPlanPrice={currentPlanPrice}
+            currentPlanCreditsIncluded={
+              currentPlanCreditsIncluded
+            }
+            currentPeriodStart={currentPeriodStart}
+            currentPeriodEnd={currentPeriodEnd}
+            upgradePreview={
+              upgradePreviews?.[plan.id] ?? null
             }
             selectionMode={selectionMode}
           />

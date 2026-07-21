@@ -102,6 +102,24 @@ export async function getSubscriptionData() {
     };
   }
 
+  let pendingPlanName: string | null = null;
+
+  if (subscription.pending_plan_id) {
+    const { data: pendingPlan, error: pendingPlanError } = await supabase
+      .from("plans")
+      .select("name")
+      .eq("id", subscription.pending_plan_id)
+      .maybeSingle();
+
+    if (pendingPlanError) {
+      console.error("[GET_PENDING_SUBSCRIPTION_PLAN_ERROR]", pendingPlanError);
+
+      return null;
+    }
+
+    pendingPlanName = pendingPlan?.name ?? null;
+  }
+
   const freeCreditExpirationTime = freeCreditAllocation?.expires_at
     ? new Date(freeCreditAllocation.expires_at).getTime()
     : null;
@@ -175,6 +193,8 @@ export async function getSubscriptionData() {
         : null,
 
       mentorship_cycle_end: mentorshipCycle?.expires_at ?? null,
+
+      pending_plan_name: pendingPlanName,
     },
 
     credits: credits

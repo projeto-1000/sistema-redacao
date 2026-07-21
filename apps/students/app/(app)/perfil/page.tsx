@@ -22,7 +22,6 @@ export default async function ProfilePage() {
   }
 
   const { user, globalStats, competencies, evolution, hasData } = data
-  console.log(user.credits)
 
   return (
     <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-6">

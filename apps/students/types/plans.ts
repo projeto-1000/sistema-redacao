@@ -7,6 +7,7 @@ export interface PlanData {
   id: string;
   name: string;
   price: number;
+  credits_included: number;
   interval: string;
   interval_count: number | null;
   features: PlanFeature[] | string[];
