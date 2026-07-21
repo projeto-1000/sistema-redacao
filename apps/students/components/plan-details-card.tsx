@@ -13,7 +13,7 @@ import {
 } from "@repo/utils";
 
 import { CancelSubscriptionDialog } from "@/components/subscription/cancel-subscription-dialog";
-
+import { CancelPlanChangeDialog } from "@/components/subscription/cancel-plan-change-dialog";
 interface PlanDetailsCardProps {
   subscription: StudentSubscription;
   planCredits: number;
@@ -62,6 +62,7 @@ export function PlanDetailsCard({
     !isTrial &&
     !isFreeTrial &&
     !isCancellationScheduled &&
+    !isPlanChangeScheduled &&
     Boolean(subscription.current_period_end);
 
   const defaultStatus =
@@ -334,13 +335,18 @@ export function PlanDetailsCard({
                 />
               )}
 
-            {isPlanChangeScheduled ? (
-              <Button
-                disabled
-                className="h-11 w-full rounded-xl font-medium md:w-auto"
-              >
-                Alteração agendada
-              </Button>
+            {isPlanChangeScheduled &&
+              subscription.pending_change_at ? (
+              <CancelPlanChangeDialog
+                currentPlanName={subscription.plan_name}
+                pendingPlanName={
+                  subscription.pending_plan_name ??
+                  "novo plano"
+                }
+                effectiveAt={
+                  subscription.pending_change_at
+                }
+              />
             ) : (
               <Button
                 asChild
@@ -351,6 +357,7 @@ export function PlanDetailsCard({
                 </Link>
               </Button>
             )}
+
           </div>
         </div>
       </div>
