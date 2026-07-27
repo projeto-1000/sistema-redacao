@@ -1,5 +1,7 @@
 import { createAdminClient } from "@/lib/admin";
-import { getPagarmeWebhook, type PagarmeWebhook } from "@repo/payments";
+
+import { getPagarmeWebhook, PagarmeApiError, type PagarmeWebhook } from "@repo/payments";
+
 import { NextResponse } from "next/server";
 
 interface IncomingPagarmeWebhook {
@@ -15,22 +17,216 @@ interface PagarmeInvoiceWebhookData {
   status?: string;
   payment_method?: string;
 
-  paid_at?: string | null;
+  created_at?: string | null;
   updated_at?: string | null;
 
-  period?: {
+  charge?: {
+    id?: string;
+    status?: string;
+
+    paid_at?: string | null;
+    updated_at?: string | null;
+
+    recurrence_cycle?: string | null;
+
+    last_transaction?: {
+      id?: string;
+      status?: string;
+      success?: boolean;
+
+      created_at?: string | null;
+      updated_at?: string | null;
+
+      acquirer_return_code?: string | number | null;
+      acquirer_message?: string | null;
+
+      gateway_response?: {
+        code?: string | number | null;
+        message?: string | null;
+      };
+    };
+  };
+
+  cycle?: {
     start_at?: string;
     end_at?: string;
+    billing_at?: string;
+    status?: string;
+    cycle?: number;
   };
 
   subscription?: {
     id?: string;
-
-    current_cycle?: {
-      start_at?: string;
-      end_at?: string;
-    };
+    code?: string;
+    status?: string;
   };
+}
+
+interface PagarmeSubscriptionWebhookData {
+  id?: string;
+  code?: string;
+  status?: string;
+
+  created_at?: string | null;
+  updated_at?: string | null;
+  canceled_at?: string | null;
+
+  customer?: {
+    id?: string;
+  };
+
+  plan?: {
+    id?: string;
+  };
+}
+
+type PagarmeWebhookData = PagarmeInvoiceWebhookData | PagarmeSubscriptionWebhookData;
+
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+function buildStoredInvoicePayload(webhook: PagarmeWebhook<PagarmeInvoiceWebhookData>) {
+  const invoice = webhook.data;
+
+  const transaction = invoice.charge?.last_transaction;
+
+  return {
+    id: webhook.id,
+    event: webhook.event,
+    status: webhook.status,
+
+    data: {
+      id: invoice.id ?? null,
+      amount: invoice.amount ?? null,
+      status: invoice.status ?? null,
+
+      payment_method: invoice.payment_method ?? null,
+
+      created_at: invoice.created_at ?? null,
+
+      updated_at: invoice.updated_at ?? null,
+
+      charge: {
+        id: invoice.charge?.id ?? null,
+
+        status: invoice.charge?.status ?? null,
+
+        paid_at: invoice.charge?.paid_at ?? null,
+
+        updated_at: invoice.charge?.updated_at ?? null,
+
+        recurrence_cycle: invoice.charge?.recurrence_cycle ?? null,
+
+        last_transaction: {
+          id: transaction?.id ?? null,
+
+          status: transaction?.status ?? null,
+
+          success: transaction?.success ?? null,
+
+          created_at: transaction?.created_at ?? null,
+
+          updated_at: transaction?.updated_at ?? null,
+
+          acquirer_return_code: transaction?.acquirer_return_code ?? null,
+
+          acquirer_message: transaction?.acquirer_message ?? null,
+
+          gateway_response: {
+            code: transaction?.gateway_response?.code ?? null,
+
+            message: transaction?.gateway_response?.message ?? null,
+          },
+        },
+      },
+
+      cycle: {
+        start_at: invoice.cycle?.start_at ?? null,
+
+        end_at: invoice.cycle?.end_at ?? null,
+
+        billing_at: invoice.cycle?.billing_at ?? null,
+
+        status: invoice.cycle?.status ?? null,
+
+        cycle: invoice.cycle?.cycle ?? null,
+      },
+
+      subscription: {
+        id: invoice.subscription?.id ?? null,
+
+        code: invoice.subscription?.code ?? null,
+
+        status: invoice.subscription?.status ?? null,
+      },
+    },
+  };
+}
+
+function buildStoredSubscriptionPayload(webhook: PagarmeWebhook<PagarmeSubscriptionWebhookData>) {
+  const subscription = webhook.data;
+
+  return {
+    id: webhook.id,
+    event: webhook.event,
+    status: webhook.status,
+
+    data: {
+      id: subscription.id ?? null,
+
+      code: subscription.code ?? null,
+
+      status: subscription.status ?? null,
+
+      created_at: subscription.created_at ?? null,
+
+      updated_at: subscription.updated_at ?? null,
+
+      canceled_at: subscription.canceled_at ?? null,
+
+      customer: {
+        id: subscription.customer?.id ?? null,
+      },
+
+      plan: {
+        id: subscription.plan?.id ?? null,
+      },
+    },
+  };
+}
+
+function buildStoredWebhookPayload(webhook: PagarmeWebhook<PagarmeWebhookData>) {
+  if (webhook.event === "subscription.canceled") {
+    return buildStoredSubscriptionPayload(
+      webhook as PagarmeWebhook<PagarmeSubscriptionWebhookData>
+    );
+  }
+
+  return buildStoredInvoicePayload(webhook as PagarmeWebhook<PagarmeInvoiceWebhookData>);
+}
+
+async function markWebhookIgnored(admin: AdminClient, webhookEventId: string) {
+  const now = new Date().toISOString();
+
+  return admin
+    .from("pagarme_webhook_events")
+    .update({
+      status: "ignored",
+      processed_at: now,
+      error_message: null,
+      updated_at: now,
+    })
+    .eq("id", webhookEventId);
+}
+
+async function markWebhookFailed(admin: AdminClient, webhookEventId: string, errorMessage: string) {
+  return admin
+    .from("pagarme_webhook_events")
+    .update({
+      status: "failed",
+      error_message: errorMessage,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", webhookEventId);
 }
 
 export async function POST(request: Request) {
@@ -50,16 +246,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Webhook inválido." }, { status: 400 });
   }
 
-  let verifiedWebhook: PagarmeWebhook<PagarmeInvoiceWebhookData>;
+  let verifiedWebhook: PagarmeWebhook<PagarmeWebhookData>;
 
   try {
-    verifiedWebhook = await getPagarmeWebhook<PagarmeInvoiceWebhookData>({
+    verifiedWebhook = await getPagarmeWebhook<PagarmeWebhookData>({
       webhookId,
     });
   } catch (error) {
     console.error("[PAGARME_WEBHOOK_VERIFICATION_ERROR]", error);
 
-    return NextResponse.json({ error: "Não foi possível validar o webhook." }, { status: 401 });
+    const isAuthenticationError =
+      error instanceof PagarmeApiError && (error.status === 401 || error.status === 403);
+
+    return NextResponse.json(
+      {
+        error: isAuthenticationError
+          ? "Não foi possível autenticar o webhook."
+          : "O webhook ainda não está disponível para validação.",
+      },
+      {
+        status: isAuthenticationError ? 401 : 503,
+
+        headers: isAuthenticationError
+          ? undefined
+          : {
+              "Retry-After": "2",
+            },
+      }
+    );
   }
 
   if (verifiedWebhook.id !== webhookId || verifiedWebhook.event !== incomingEventType) {
@@ -80,12 +294,7 @@ export async function POST(request: Request) {
       event_type: verifiedWebhook.event,
       status: "received",
 
-      payload: {
-        id: verifiedWebhook.id,
-        event: verifiedWebhook.event,
-        status: verifiedWebhook.status,
-        data: verifiedWebhook.data,
-      },
+      payload: buildStoredWebhookPayload(verifiedWebhook),
     })
     .select("id")
     .single();
@@ -95,10 +304,10 @@ export async function POST(request: Request) {
       .from("pagarme_webhook_events")
       .select(
         `
-        id,
-        event_type,
-        status
-      `
+          id,
+          event_type,
+          status
+        `
       )
       .eq("external_id", webhookId)
       .maybeSingle();
@@ -137,16 +346,14 @@ export async function POST(request: Request) {
     webhookEventId = insertedWebhookEvent.id;
   }
 
-  if (verifiedWebhook.event !== "invoice.paid") {
-    const { error: ignoredEventError } = await supabaseAdmin
-      .from("pagarme_webhook_events")
-      .update({
-        status: "ignored",
-        processed_at: new Date().toISOString(),
-        error_message: null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", webhookEventId);
+  const supportedEvents = new Set([
+    "invoice.paid",
+    "invoice.payment_failed",
+    "subscription.canceled",
+  ]);
+
+  if (!supportedEvents.has(verifiedWebhook.event)) {
+    const { error: ignoredEventError } = await markWebhookIgnored(supabaseAdmin, webhookEventId);
 
     if (ignoredEventError) {
       console.error("[IGNORE_PAGARME_WEBHOOK_ERROR]", ignoredEventError);
@@ -160,43 +367,263 @@ export async function POST(request: Request) {
     return NextResponse.json({
       received: true,
       ignored: true,
+      reason: "unsupported_event",
       webhookEventId,
     });
   }
 
-  const invoice = verifiedWebhook.data;
+  /*
+   * -----------------------------------------------
+   * SUBSCRIPTION.CANCELED
+   * -----------------------------------------------
+   */
+  if (verifiedWebhook.event === "subscription.canceled") {
+    const subscription = verifiedWebhook.data as PagarmeSubscriptionWebhookData;
+
+    const subscriptionExternalId = subscription.id;
+
+    const subscriptionStatus = subscription.status?.toLowerCase();
+
+    if (!subscriptionExternalId || subscriptionStatus !== "canceled") {
+      const errorMessage = "Os dados da assinatura cancelada estão incompletos.";
+
+      await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+
+      return NextResponse.json({ error: errorMessage }, { status: 422 });
+    }
+
+    const canceledAt =
+      subscription.canceled_at ?? subscription.updated_at ?? new Date().toISOString();
+
+    const { data: cancellationData, error: cancellationError } = await supabaseAdmin.rpc(
+      "process_pagarme_subscription_cancellation",
+      {
+        p_webhook_event_id: webhookEventId,
+
+        p_subscription_external_id: subscriptionExternalId,
+
+        p_subscription_status: subscriptionStatus,
+
+        p_canceled_at: canceledAt,
+      }
+    );
+
+    if (cancellationError) {
+      console.error("[PROCESS_PAGARME_CANCELLATION_RPC_ERROR]", cancellationError);
+
+      return NextResponse.json(
+        { error: "Não foi possível processar o cancelamento da assinatura." },
+        { status: 500 }
+      );
+    }
+
+    const cancellationResult = cancellationData as {
+      success?: boolean;
+      message?: string;
+      duplicate?: boolean;
+      ignored?: boolean;
+      reason?: string;
+      credits_expired?: number;
+    } | null;
+
+    if (!cancellationResult?.success) {
+      console.error("[PROCESS_PAGARME_CANCELLATION_ERROR]", cancellationResult);
+
+      return NextResponse.json(
+        {
+          error:
+            cancellationResult?.message ??
+            "Não foi possível processar o cancelamento da assinatura.",
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      received: true,
+      processed: true,
+
+      duplicate: cancellationResult.duplicate ?? false,
+
+      ignored: cancellationResult.ignored ?? false,
+
+      reason: cancellationResult.reason ?? null,
+
+      creditsExpired: cancellationResult.credits_expired ?? 0,
+
+      webhookEventId,
+    });
+  }
+
+  /*
+   * A partir daqui, o evento é relacionado a uma
+   * fatura.
+   */
+  const invoice = verifiedWebhook.data as PagarmeInvoiceWebhookData;
 
   const subscriptionExternalId = invoice.subscription?.id;
 
-  const periodStart = invoice.period?.start_at ?? invoice.subscription?.current_cycle?.start_at;
+  const recurrenceCycle = invoice.charge?.recurrence_cycle;
 
-  const periodEnd = invoice.period?.end_at ?? invoice.subscription?.current_cycle?.end_at;
+  /*
+   * A primeira cobrança é tratada pelo checkout.
+   */
+  if (recurrenceCycle === "first") {
+    const { error: ignoreFirstInvoiceError } = await markWebhookIgnored(
+      supabaseAdmin,
+      webhookEventId
+    );
 
-  if (
-    !invoice.id ||
-    invoice.status !== "paid" ||
-    !invoice.amount ||
-    invoice.amount <= 0 ||
-    !subscriptionExternalId ||
-    !periodStart ||
-    !periodEnd
-  ) {
-    const errorMessage = "Os dados da fatura paga estão incompletos.";
+    if (ignoreFirstInvoiceError) {
+      console.error("[IGNORE_FIRST_INVOICE_WEBHOOK_ERROR]", ignoreFirstInvoiceError);
 
-    await supabaseAdmin
-      .from("pagarme_webhook_events")
-      .update({
-        status: "failed",
-        error_message: errorMessage,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", webhookEventId);
+      return NextResponse.json(
+        { error: "Não foi possível finalizar a primeira cobrança ignorada." },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json({ error: errorMessage }, { status: 422 });
+    return NextResponse.json({
+      received: true,
+      ignored: true,
+
+      reason:
+        verifiedWebhook.event === "invoice.paid"
+          ? "initial_subscription_invoice"
+          : "initial_subscription_payment_failure",
+
+      webhookEventId,
+    });
   }
 
-  const { data: renewalData, error: renewalError } = await supabaseAdmin.rpc(
-    "process_pagarme_subscription_renewal",
+  /*
+   * -----------------------------------------------
+   * INVOICE.PAID
+   * -----------------------------------------------
+   */
+  if (verifiedWebhook.event === "invoice.paid") {
+    const periodStart = invoice.cycle?.start_at;
+
+    const periodEnd = invoice.cycle?.end_at;
+
+    if (
+      !invoice.id ||
+      invoice.status !== "paid" ||
+      !invoice.amount ||
+      invoice.amount <= 0 ||
+      !subscriptionExternalId ||
+      !periodStart ||
+      !periodEnd
+    ) {
+      const errorMessage = "Os dados da fatura paga estão incompletos.";
+
+      await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+
+      return NextResponse.json({ error: errorMessage }, { status: 422 });
+    }
+
+    const { data: renewalData, error: renewalError } = await supabaseAdmin.rpc(
+      "process_pagarme_subscription_renewal",
+      {
+        p_webhook_event_id: webhookEventId,
+
+        p_subscription_external_id: subscriptionExternalId,
+
+        p_invoice_external_id: invoice.id,
+
+        p_invoice_amount: invoice.amount,
+
+        p_invoice_status: invoice.status,
+
+        p_payment_method: invoice.payment_method ?? null,
+
+        p_period_start: periodStart,
+
+        p_period_end: periodEnd,
+
+        p_paid_at:
+          invoice.charge?.paid_at ??
+          invoice.charge?.updated_at ??
+          invoice.updated_at ??
+          invoice.created_at ??
+          new Date().toISOString(),
+      }
+    );
+
+    if (renewalError) {
+      console.error("[PROCESS_PAGARME_RENEWAL_RPC_ERROR]", renewalError);
+
+      return NextResponse.json(
+        { error: "Não foi possível processar a renovação." },
+        { status: 500 }
+      );
+    }
+
+    const renewalResult = renewalData as {
+      success?: boolean;
+      message?: string;
+      duplicate?: boolean;
+    } | null;
+
+    if (!renewalResult?.success) {
+      console.error("[PROCESS_PAGARME_RENEWAL_ERROR]", renewalResult);
+
+      return NextResponse.json(
+        { error: renewalResult?.message ?? "Não foi possível processar a renovação." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      received: true,
+      processed: true,
+
+      duplicate: renewalResult.duplicate ?? false,
+
+      webhookEventId,
+    });
+  }
+
+  /*
+   * -----------------------------------------------
+   * INVOICE.PAYMENT_FAILED
+   * -----------------------------------------------
+   */
+  if (!invoice.id || !invoice.amount || invoice.amount <= 0 || !subscriptionExternalId) {
+    const errorMessage = "Os dados da falha de pagamento estão incompletos.";
+
+    await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+
+    return NextResponse.json(
+      {
+        error: errorMessage,
+      },
+      {
+        status: 422,
+      }
+    );
+  }
+
+  const lastTransaction = invoice.charge?.last_transaction;
+
+  const rawFailureCode =
+    lastTransaction?.acquirer_return_code ?? lastTransaction?.gateway_response?.code ?? null;
+
+  const failureCode = rawFailureCode === null ? null : String(rawFailureCode);
+
+  const failureMessage =
+    lastTransaction?.acquirer_message ?? lastTransaction?.gateway_response?.message ?? null;
+
+  const failedAt =
+    lastTransaction?.updated_at ??
+    lastTransaction?.created_at ??
+    invoice.charge?.updated_at ??
+    invoice.updated_at ??
+    invoice.created_at ??
+    new Date().toISOString();
+
+  const { data: failureData, error: failureError } = await supabaseAdmin.rpc(
+    "process_pagarme_subscription_payment_failure",
     {
       p_webhook_event_id: webhookEventId,
 
@@ -206,35 +633,42 @@ export async function POST(request: Request) {
 
       p_invoice_amount: invoice.amount,
 
-      p_invoice_status: invoice.status,
+      p_invoice_status: invoice.status ?? "payment_failed",
 
       p_payment_method: invoice.payment_method ?? null,
 
-      p_period_start: periodStart,
+      p_failure_code: failureCode,
 
-      p_period_end: periodEnd,
+      p_failure_message: failureMessage,
 
-      p_paid_at: invoice.paid_at ?? invoice.updated_at ?? new Date().toISOString(),
+      p_failed_at: failedAt,
     }
   );
 
-  if (renewalError) {
-    console.error("[PROCESS_PAGARME_RENEWAL_RPC_ERROR]", renewalError);
+  if (failureError) {
+    console.error("[PROCESS_PAGARME_PAYMENT_FAILURE_RPC_ERROR]", failureError);
 
-    return NextResponse.json({ error: "Não foi possível processar a renovação." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Não foi possível processar a falha de pagamento." },
+      { status: 500 }
+    );
   }
 
-  const renewalResult = renewalData as {
+  const failureResult = failureData as {
     success?: boolean;
     message?: string;
     duplicate?: boolean;
+    ignored?: boolean;
+    reason?: string;
   } | null;
 
-  if (!renewalResult?.success) {
-    console.error("[PROCESS_PAGARME_RENEWAL_ERROR]", renewalResult);
+  if (!failureResult?.success) {
+    console.error("[PROCESS_PAGARME_PAYMENT_FAILURE_ERROR]", failureResult);
 
     return NextResponse.json(
-      { error: renewalResult?.message ?? "Não foi possível processar a renovação." },
+      {
+        error: failureResult?.message ?? "Não foi possível processar a falha de pagamento.",
+      },
       { status: 500 }
     );
   }
@@ -242,7 +676,13 @@ export async function POST(request: Request) {
   return NextResponse.json({
     received: true,
     processed: true,
-    duplicate: renewalResult.duplicate ?? false,
+
+    duplicate: failureResult.duplicate ?? false,
+
+    ignored: failureResult.ignored ?? false,
+
+    reason: failureResult.reason ?? null,
+
     webhookEventId,
   });
 }

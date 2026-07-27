@@ -35,11 +35,9 @@ export interface CurrentUserSubscriptionContext {
 function getPlanKind({
   externalId,
   price,
-  isPublic,
 }: {
   externalId: string | null;
   price: number;
-  isPublic: boolean;
 }): CurrentPlanKind {
   if (externalId === "internal_free_trial") {
     return "free_trial";
@@ -49,7 +47,11 @@ function getPlanKind({
     return "mentorship";
   }
 
-  if (price > 0 && isPublic) {
+  /*
+   * is_public controla apenas a visibilidade do plano
+   * no catálogo, não o tipo da assinatura.
+   */
+  if (price > 0) {
     return "paid";
   }
 
@@ -182,7 +184,6 @@ export async function getCurrentUserSubscriptionContext(): Promise<CurrentUserSu
     planKind: getPlanKind({
       externalId: plan.external_id,
       price: plan.price,
-      isPublic: plan.is_public,
     }),
 
     planPrice: plan.price,

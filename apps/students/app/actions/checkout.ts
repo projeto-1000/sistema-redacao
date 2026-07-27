@@ -623,12 +623,27 @@ export async function createCheckoutSubscription(
         user_id: user.id,
         plan_id: plan.id,
         status: localSubscriptionStatus,
+
         current_period_start: pagarmeSubscription.current_cycle?.start_at ?? null,
         current_period_end: pagarmeSubscription.current_cycle?.end_at ?? null,
         cancel_at_period_end: false,
+
+        pending_plan_id: null,
+        pending_change_type: null,
+        pending_change_at: null,
+
+        cancellation_requested_at: null,
+        cancellation_effective_at: null,
+        cancellation_reason: null,
+        cancellation_provider_status: null,
+        provider_canceled_at: null,
+        canceled_at: null,
+        cancellation_metadata: {},
+
         external_id: pagarmeSubscription.id,
         payment_method: input.paymentMethod,
         payment_card_id: savedCardId,
+
         metadata: {
           provider: "pagarme",
           pagarme_subscription_id: pagarmeSubscription.id,
@@ -638,11 +653,10 @@ export async function createCheckoutSubscription(
           saved_card: Boolean(savedCardId),
           checkout_operation: checkoutOperation,
         },
+
         updated_at: new Date().toISOString(),
       },
-      {
-        onConflict: "user_id",
-      }
+      { onConflict: "user_id" }
     )
     .select("id")
     .single();

@@ -1,11 +1,82 @@
 import { createClient } from "@/lib/server";
-import { CreditTransaction, CreditsFilters } from "@repo/types";
+import type {
+  CreditTransaction,
+  CreditsFilters,
+  HistoryDisplayItem,
+  SubscriptionHistoryRpcRow,
+} from "@repo/types";
+import { buildSubscriptionHistoryResult } from "@repo/utils";
+
 import { PostgrestError } from "@supabase/supabase-js";
 
 interface GetCreditsHistoryParams {
   filters?: CreditsFilters;
   page?: number;
   limit?: number;
+}
+
+export async function getSubscriptionHistory({
+  filters,
+  page = 1,
+  limit = 10,
+}: GetCreditsHistoryParams = {}): Promise<{
+  items: HistoryDisplayItem[];
+  totalPages: number;
+  error: Error | null;
+}> {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error("Usuário não autenticado.");
+    }
+
+    const { data, error } = await supabase.rpc("get_subscription_history_events", {
+      /*
+       * A RPC usa auth.uid() quando
+       * p_user_id é nulo.
+       */
+      p_user_id: null,
+
+      p_page: page,
+      p_limit: limit,
+
+      p_transaction_type: filters?.type ?? null,
+
+      p_from: filters?.from ?? null,
+
+      p_to: filters?.to ?? null,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const { items, totalPages } = buildSubscriptionHistoryResult({
+      rows: (data ?? []) as SubscriptionHistoryRpcRow[],
+      limit,
+    });
+
+    return {
+      items,
+      totalPages,
+      error: null,
+    };
+  } catch (error) {
+    console.error("[GET_SUBSCRIPTION_HISTORY_ERROR]", error);
+
+    return {
+      items: [],
+      totalPages: 0,
+
+      error: error instanceof Error ? error : new Error("Não foi possível carregar o histórico."),
+    };
+  }
 }
 
 export async function getSubscriptionData() {

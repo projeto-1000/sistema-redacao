@@ -1,13 +1,18 @@
-import { getCreditsHistory, getSubscriptionData } from "@/app/actions/subscription";
-import CreditTransactionsTable from "@repo/ui/components/features/credit-history/credits-transactions-table";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowLeft, Sparkles } from "lucide-react";
+
+import {
+  getSubscriptionData,
+  getSubscriptionHistory,
+} from "@/app/actions/subscription";
 import { CreditsUsageCard } from "@/components/credits-usage-card";
 import { PlanDetailsCard } from "@/components/plan-details-card";
 import { parseCreditsTransactionsFilters } from "@/utils/parse-filters";
+
 import { Button } from "@repo/ui/components/button";
+import { HistoryList } from "@repo/ui/components/features/history/history-list";
 import { PageHeader } from "@repo/ui/components/page-header";
-import { ArrowLeft, Sparkles } from "lucide-react";
-import Link from "next/link";
-import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Minha Assinatura",
@@ -16,31 +21,41 @@ export const metadata: Metadata = {
 export default async function SubscriptionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<{
+    [key: string]:
+    | string
+    | string[]
+    | undefined;
+  }>;
 }) {
-
   const resolvedSearchParams = await searchParams;
+
   const page = Number(resolvedSearchParams?.page) || 1;
 
   const filters = parseCreditsTransactionsFilters(resolvedSearchParams);
 
   const data = await getSubscriptionData();
 
-  if (!data) return null
+  if (!data) {
+    return null;
+  }
 
   const { subscription, credits } = data;
 
-  const creditTransactionsData = await getCreditsHistory({ filters, page })
+  const subscriptionHistoryData = await getSubscriptionHistory({ filters, page, });
 
   return (
-    <div className="space-y-8 min-h-dvh px-2 md:px-10 lg:px-12 py-4">
-      <Button asChild variant='ghost' className="text-slate-500 hover:text-primary hover:bg-transparent!">
+    <div className="min-h-dvh space-y-8 px-2 py-4 md:px-10 lg:px-12">
+      <Button
+        asChild
+        variant="ghost"
+        className="text-slate-500 hover:bg-transparent! hover:text-primary"
+      >
         <Link href="/perfil">
-          <ArrowLeft className="size-4 mr-2 " />
+          <ArrowLeft className="mr-2 size-4" />
           Voltar para o perfil
         </Link>
       </Button>
-
 
       <PageHeader
         title="Minha Assinatura"
@@ -48,21 +63,30 @@ export default async function SubscriptionPage({
       />
 
       {!data.hasSubscription && (
-        <div className="flex flex-col items-center justify-center p-12 rounded-3xl border-2 border-dashed border-border bg-slate-100/80 min-h-[250px] text-center">
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100  mb-6 text-primary">
+        <div className="flex min-h-[250px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-slate-100/80 p-12 text-center">
+          <div className="mb-6 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-primary">
             <Sparkles className="size-8" />
           </div>
 
-          <h3 className="text-2xl font-black tracking-tight mb-2">
+          <h3 className="mb-2 text-2xl font-black tracking-tight">
             Desbloqueie suas correções de redação
           </h3>
 
-          <p className="text-slate-500 text-sm max-w-md leading-relaxed mb-8">
-            Você ainda não possui um plano ativo. <br />
-            Escolha o pacote ideal para começar a enviar suas redações e receber análises detalhadas focadas na sua evolução.
+          <p className="mb-8 max-w-md text-sm leading-relaxed text-slate-500">
+            Você ainda não possui um plano
+            ativo.
+            <br />
+            Escolha o pacote ideal para começar
+            a enviar suas redações e receber
+            análises detalhadas focadas na sua
+            evolução.
           </p>
 
-          <Button asChild size="lg" className="rounded-xl h-12 px-6 font-bold tracking-wide shadow-md transition-all hover:scale-[1.02]">
+          <Button
+            asChild
+            size="lg"
+            className="h-12 rounded-xl px-6 font-bold tracking-wide shadow-md transition-all hover:scale-[1.02]"
+          >
             <Link href="/assinatura/planos">
               Conhecer nossos planos
             </Link>
@@ -72,26 +96,12 @@ export default async function SubscriptionPage({
 
       {data.hasSubscription && (
         <>
-          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <PlanDetailsCard
-                subscription={subscription}
-                planCredits={
-                  subscription.plan_external_id === "internal_free_trial"
-                    ? credits?.free_credits ?? 0
-                    : credits?.plan_credits ?? 0
-                }
-              />
-            </div>
-            <div className="lg:col-span-1">
-              <CreditsUsageCard credits={credits} subscription={subscription} />
-            </div>
-          </div> */}
           <div className="space-y-6">
             <PlanDetailsCard
               subscription={subscription}
               planCredits={
-                subscription.plan_external_id === "internal_free_trial"
+                subscription.plan_external_id ===
+                  "internal_free_trial"
                   ? credits?.free_credits ?? 0
                   : credits?.plan_credits ?? 0
               }
@@ -102,10 +112,15 @@ export default async function SubscriptionPage({
               subscription={subscription}
             />
           </div>
-          <CreditTransactionsTable data={creditTransactionsData} />
+
+          <HistoryList
+            data={subscriptionHistoryData}
+            title="Histórico de créditos e cobranças"
+            description="Acompanhe pagamentos, créditos recebidos, envios de redação e expirações."
+            emptyMessage="Nenhuma movimentação encontrada."
+          />
         </>
       )}
-
     </div>
-  )
+  );
 }

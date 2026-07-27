@@ -59,7 +59,9 @@ export async function requestSubscriptionCancellation(
         status,
         current_period_end,
         cancel_at_period_end,
-        cancellation_effective_at
+        cancellation_requested_at,
+        cancellation_effective_at,
+        cancellation_provider_status
       `
     )
     .eq("user_id", user.id)
@@ -81,12 +83,10 @@ export async function requestSubscriptionCancellation(
     };
   }
 
-  /*
-   * Torna a action idempotente no nosso banco.
-   * Se o cancelamento já estiver agendado,
-   * apenas devolvemos o estado atual.
-   */
-  if (subscription.cancel_at_period_end) {
+  if (
+    subscription.cancel_at_period_end &&
+    subscription.cancellation_provider_status === "canceled"
+  ) {
     const effectiveAt = subscription.cancellation_effective_at ?? subscription.current_period_end;
 
     if (!effectiveAt) {
@@ -115,13 +115,12 @@ export async function requestSubscriptionCancellation(
     .from("plans")
     .select(
       `
-        id,
-        name,
-        price,
-        interval,
-        external_id,
-        is_public
-      `
+          id,
+          name,
+          price,
+          interval,
+          external_id
+        `
     )
     .eq("id", subscription.plan_id)
     .maybeSingle();
@@ -148,7 +147,7 @@ export async function requestSubscriptionCancellation(
 
   const isLifetime = plan.interval === "lifetime";
 
-  const isPaidPlan = plan.price > 0 && plan.is_public === true;
+  const isPaidPlan = plan.price > 0;
 
   if (isFreeTrial || isMentorship || isLifetime || !isPaidPlan) {
     return {
@@ -192,27 +191,12 @@ export async function requestSubscriptionCancellation(
     };
   }
 
-  const requestedAt = new Date().toISOString();
+  const requestedAt = subscription.cancellation_requested_at ?? new Date().toISOString();
 
   try {
-    /*
-     * A recorrência é encerrada imediatamente
-     * no provedor. O acesso restante será
-     * controlado pelo nosso banco.
-     */
-    const canceledSubscription = await cancelPagarmeSubscription({
-      subscriptionId: subscription.external_id,
-      cancelPendingInvoices: true,
-      idempotencyKey: `subscription-cancel-${subscription.external_id}`,
-    });
-
-    const { data: updatedSubscription, error: updateError } = await supabaseAdmin
+    const { data: scheduledSubscription, error: scheduleCancellationError } = await supabaseAdmin
       .from("subscriptions")
       .update({
-        /*
-         * O status local permanece active até
-         * cancellation_effective_at.
-         */
         cancel_at_period_end: true,
 
         cancellation_requested_at: requestedAt,
@@ -221,6 +205,65 @@ export async function requestSubscriptionCancellation(
 
         cancellation_reason: input.reason,
 
+        cancellation_provider_status: "pending",
+
+        provider_canceled_at: null,
+
+        cancellation_metadata: {
+          source: "student_self_service",
+
+          requested_by_user_id: user.id,
+
+          reason: input.reason,
+
+          details: cancellationDetails,
+
+          provider_subscription_id: subscription.external_id,
+
+          provider_status: "pending",
+
+          provider_canceled_at: null,
+
+          cancel_pending_invoices: true,
+        },
+        pending_plan_id: null,
+        pending_change_type: null,
+        pending_change_at: null,
+
+        updated_at: requestedAt,
+      })
+      .eq("id", subscription.id)
+      .eq("user_id", user.id)
+      .eq("external_id", subscription.external_id)
+      .eq("status", "active")
+      .select("id")
+      .maybeSingle();
+
+    if (scheduleCancellationError || !scheduledSubscription) {
+      console.error("[SCHEDULE_SUBSCRIPTION_CANCELLATION_ERROR]", {
+        error: scheduleCancellationError,
+        userId: user.id,
+        subscriptionId: subscription.id,
+        providerSubscriptionId: subscription.external_id,
+      });
+
+      return {
+        success: false,
+        message: "Não foi possível agendar o cancelamento da assinatura.",
+      };
+    }
+
+    const canceledSubscription = await cancelPagarmeSubscription({
+      subscriptionId: subscription.external_id,
+
+      cancelPendingInvoices: true,
+
+      idempotencyKey: `subscription-cancel-${subscription.external_id}`,
+    });
+
+    const { data: updatedSubscription, error: updateError } = await supabaseAdmin
+      .from("subscriptions")
+      .update({
         cancellation_provider_status: canceledSubscription.status,
 
         provider_canceled_at: canceledSubscription.canceled_at ?? null,
@@ -243,16 +286,17 @@ export async function requestSubscriptionCancellation(
           cancel_pending_invoices: true,
         },
 
-        updated_at: requestedAt,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", subscription.id)
       .eq("user_id", user.id)
       .eq("external_id", subscription.external_id)
+      .eq("cancel_at_period_end", true)
       .select("id")
       .maybeSingle();
 
     if (updateError || !updatedSubscription) {
-      console.error("[CANCELLATION_LOCAL_UPDATE_ERROR]", {
+      console.error("[CANCELLATION_LOCAL_CONFIRMATION_ERROR]", {
         error: updateError,
         userId: user.id,
         subscriptionId: subscription.id,
@@ -263,7 +307,7 @@ export async function requestSubscriptionCancellation(
       return {
         success: false,
         message:
-          "A recorrência foi interrompida, mas não foi possível atualizar a assinatura na plataforma. Nossa equipe precisa verificar o cancelamento.",
+          "A renovação foi interrompida, mas não foi possível confirmar o resultado na plataforma. O cancelamento permanece agendado.",
       };
     }
 
@@ -283,10 +327,13 @@ export async function requestSubscriptionCancellation(
       providerSubscriptionId: subscription.external_id,
     });
 
+    revalidatePath("/assinatura");
+    revalidatePath("/assinatura/planos");
+
     return {
       success: false,
       message:
-        "Não foi possível cancelar a assinatura no momento. Nenhuma alteração foi realizada.",
+        "O cancelamento foi registrado, mas ainda não foi possível confirmar o resultado com o provedor de pagamento. Tente novamente.",
     };
   }
 }

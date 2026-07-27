@@ -9,11 +9,12 @@ import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import {
   formatCurrency,
-  formatDate,
+  formatDate
 } from "@repo/utils";
 
-import { CancelSubscriptionDialog } from "@/components/subscription/cancel-subscription-dialog";
 import { CancelPlanChangeDialog } from "@/components/subscription/cancel-plan-change-dialog";
+import { CancelSubscriptionDialog } from "@/components/subscription/cancel-subscription-dialog";
+
 interface PlanDetailsCardProps {
   subscription: StudentSubscription;
   planCredits: number;
@@ -36,6 +37,9 @@ export function PlanDetailsCard({
 
   const isTrial =
     subscription.status === "trial";
+
+  const isCanceled =
+    subscription.status === "canceled";
 
   const hasFreeCredit =
     isFreeTrial && planCredits > 0;
@@ -72,7 +76,7 @@ export function PlanDetailsCard({
 
   const status = isCancellationScheduled
     ? {
-      label: "Cancelado",
+      label: "Cancelamento agendado",
       classes:
         "bg-amber-100 text-amber-800",
     }
@@ -113,6 +117,10 @@ export function PlanDetailsCard({
   }
 
   function getDescription(): string {
+    if (isCanceled) {
+      return "Sua assinatura foi encerrada. Sua conta continua disponível e você pode assinar novamente quando quiser.";
+    }
+
     if (isCancellationScheduled) {
       return `Seu plano continuará disponível até ${formatDate(
         cancellationEffectiveAt,
@@ -166,6 +174,10 @@ export function PlanDetailsCard({
   }
 
   function getPeriodLabel(): string {
+    if (isCanceled) {
+      return "Plano encerrado em";
+    }
+
     if (isCancellationScheduled) {
       return "Acesso disponível até";
     }
@@ -192,6 +204,16 @@ export function PlanDetailsCard({
   }
 
   function getPeriodValue(): string {
+    if (
+      isCanceled &&
+      cancellationEffectiveAt
+    ) {
+      return formatDate(
+        cancellationEffectiveAt,
+        "numeric"
+      );
+    }
+
     if (
       isCancellationScheduled &&
       cancellationEffectiveAt
@@ -223,6 +245,10 @@ export function PlanDetailsCard({
   }
 
   function getActionLabel(): string {
+    if (isCanceled) {
+      return "Assinar novamente";
+    }
+
     if (
       isFreeTrial ||
       isMentorship ||
@@ -244,7 +270,9 @@ export function PlanDetailsCard({
             variant="secondary"
             className="border-0 bg-slate-100 text-slate-600 hover:bg-slate-100"
           >
-            Plano atual
+            {isCanceled
+              ? "Último plano"
+              : "Plano atual"}
           </Badge>
 
           <div
@@ -287,25 +315,29 @@ export function PlanDetailsCard({
                     subscription.pending_change_at,
                     "numeric"
                   )}
-                </strong>.
-                Até lá, você continua com o plano{" "}
-                <strong>{subscription.plan_name}</strong>.
+                </strong>
+                . Até lá, você continua com o plano{" "}
+                <strong>
+                  {subscription.plan_name}
+                </strong>
+                .
               </p>
             </div>
           )}
 
         {hasFinishedFreeTrial && (
           <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3">
-            <p className="text-sm font-bold ">
+            <p className="text-sm font-bold">
               Continue evoluindo nas suas redações
             </p>
 
             <p className="mt-1 text-sm leading-relaxed text-slate-600">
-              Escolha um plano para receber novos créditos e continuar enviando redações para correção.
+              Escolha um plano para receber novos
+              créditos e continuar enviando redações
+              para correção.
             </p>
           </div>
         )}
-
       </div>
 
       <div className="mt-8">
@@ -338,7 +370,9 @@ export function PlanDetailsCard({
             {isPlanChangeScheduled &&
               subscription.pending_change_at ? (
               <CancelPlanChangeDialog
-                currentPlanName={subscription.plan_name}
+                currentPlanName={
+                  subscription.plan_name
+                }
                 pendingPlanName={
                   subscription.pending_plan_name ??
                   "novo plano"
@@ -357,7 +391,6 @@ export function PlanDetailsCard({
                 </Link>
               </Button>
             )}
-
           </div>
         </div>
       </div>

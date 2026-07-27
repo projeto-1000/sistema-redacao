@@ -3,41 +3,129 @@ import "server-only";
 const PAGARME_API_URL = "https://api.pagar.me/core/v5";
 const SECRET_KEY = process.env.PAGARME_SECRET_KEY;
 
-export async function fetchPagarme<TResponse = unknown>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<TResponse> {
-  if (!SECRET_KEY) {
-    throw new Error("CRITICAL_ERROR: Chave secreta do Pagar.me não encontrada.");
+const WEBHOOK_LOOKUP_RETRY_DELAYS_MS = [
+  250,
+  500,
+  1000,
+  2000,
+] as const;
+
+export class PagarmeApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly statusText: string,
+    public readonly errorData: unknown
+  ) {
+    super(message);
+
+    this.name = "PagarmeApiError";
+  }
+}
+
+function sleep(milliseconds: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
+}
+
+function isRetryableWebhookLookupError(
+  error: unknown
+) {
+  if (!(error instanceof PagarmeApiError)) {
+    return false;
   }
 
-  const encodedCredentials = Buffer.from(`${SECRET_KEY}:`).toString("base64");
+  if (
+    error.status === 404 ||
+    error.status === 429 ||
+    error.status >= 500
+  ) {
+    return true;
+  }
 
-  const response = await fetch(`${PAGARME_API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Basic ${encodedCredentials}`,
-      ...options.headers,
-    },
-  });
+  if (error.status !== 400) {
+    return false;
+  }
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
+  const serializedError =
+    JSON.stringify(error.errorData)
+      .toLowerCase();
 
-    console.error("[PAGARME_API_ERROR]", {
-      endpoint,
-      status: response.status,
-      statusText: response.statusText,
-      errorData,
-    });
+  return serializedError.includes(
+    "webhook not found"
+  );
+}
 
+
+export async function fetchPagarme<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  if (!SECRET_KEY) {
     throw new Error(
-      `Falha na requisição ao Pagar.me: ${response.status} - ${response.statusText}`
+      "PAGARME_SECRET_KEY não configurada."
     );
   }
 
-  return response.json() as Promise<TResponse>;
+  const authorization = Buffer.from(
+    `${SECRET_KEY}:`
+  ).toString("base64");
+
+  const response = await fetch(
+    `${PAGARME_API_URL}${endpoint}`,
+    {
+      ...options,
+
+      headers: {
+        Authorization:
+          `Basic ${authorization}`,
+
+        Accept: "application/json",
+        "Content-Type": "application/json",
+
+        ...options.headers,
+      },
+
+      cache: "no-store",
+    }
+  );
+
+  const rawResponse =
+    await response.text();
+
+  let responseData: unknown = null;
+
+  if (rawResponse) {
+    try {
+      responseData =
+        JSON.parse(rawResponse);
+    } catch {
+      responseData = rawResponse;
+    }
+  }
+
+  if (!response.ok) {
+    console.error(
+      "[PAGARME_API_ERROR]",
+      {
+        endpoint,
+        status: response.status,
+        statusText:
+          response.statusText,
+        errorData: responseData,
+      }
+    );
+
+    throw new PagarmeApiError(
+      `Falha na requisição ao Pagar.me: ${response.status} - ${response.statusText}`,
+      response.status,
+      response.statusText,
+      responseData
+    );
+  }
+
+  return responseData as T;
 }
 
  export interface CreateCustomerParams {
@@ -626,15 +714,63 @@ export interface PagarmeWebhook<TData = unknown> {
   data: TData;
 }
 
-export async function getPagarmeWebhook<TData = unknown>({
+export async function getPagarmeWebhook<
+  TData
+>({
   webhookId,
 }: {
   webhookId: string;
 }): Promise<PagarmeWebhook<TData>> {
-  return fetchPagarme<PagarmeWebhook<TData>>(
-    `/hooks/${webhookId}`,
-    {
-      method: "GET",
+  let lastError: unknown;
+
+  for (
+    let attempt = 0;
+    attempt <=
+      WEBHOOK_LOOKUP_RETRY_DELAYS_MS.length;
+    attempt += 1
+  ) {
+    try {
+      return await fetchPagarme<
+        PagarmeWebhook<TData>
+      >(`/hooks/${webhookId}`, {
+        method: "GET",
+      });
+    } catch (error) {
+      lastError = error;
+
+      const retryDelay =
+        WEBHOOK_LOOKUP_RETRY_DELAYS_MS[
+          attempt
+        ];
+
+      if (
+        retryDelay === undefined ||
+        !isRetryableWebhookLookupError(
+          error
+        )
+      ) {
+        throw error;
+      }
+
+      console.warn(
+        "[PAGARME_WEBHOOK_LOOKUP_RETRY]",
+        {
+          webhookId,
+          failedAttempt:
+            attempt + 1,
+          nextAttempt:
+            attempt + 2,
+          retryDelay,
+        }
+      );
+
+      await sleep(retryDelay);
     }
-  );
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(
+        "Não foi possível consultar o webhook."
+      );
 }

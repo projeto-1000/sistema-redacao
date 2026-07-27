@@ -283,6 +283,79 @@ export type TransactionType =
   created_at: string;
 }
 
+export type SubscriptionHistoryEvent =
+  | SubscriptionHistoryCreditEvent
+  | SubscriptionHistoryPaymentEvent;
+
+export interface SubscriptionHistoryCreditEvent {
+  kind: "credit_transaction";
+
+  id: string;
+  user_id: string;
+
+  created_at: string;
+
+  transaction_type: TransactionType;
+  amount: number;
+  description: string | null;
+
+  student_payment_id: string | null;
+
+  metadata: Record<string, unknown> | null;
+}
+
+export interface SubscriptionHistoryPaymentEvent {
+  kind: "payment";
+
+  id: string;
+  user_id: string;
+
+  created_at: string;
+  paid_at: string | null;
+
+  amount_in_cents: number;
+  credits_amount: number | null;
+
+  status: string;
+  payment_method: string | null;
+
+  plan_id: string | null;
+  plan_name: string | null;
+
+  subscription_id: string | null;
+
+  metadata: Record<string, unknown> | null;
+}
+
+export type HistoryItemCategory =
+  | "credit_grant"
+  | "credit_usage"
+  | "credit_expiration"
+  | "payment"
+  | "refund"
+  | "adjustment";
+
+export type HistoryValueTone =
+  | "positive"
+  | "negative"
+  | "neutral"
+  | "warning";
+
+export interface HistoryDisplayItem {
+  id: string;
+
+  title: string;
+  description: string | null;
+
+  createdAt: string;
+
+  primaryValue: string;
+  secondaryValue: string | null;
+
+  category: HistoryItemCategory;
+  valueTone: HistoryValueTone;
+}
+
 export interface CreditsFilters {
   type?: TransactionType;
   from?: string;
@@ -295,4 +368,34 @@ export interface CreditPackage {
   credits: number;
   price: number;
   popular?: boolean;
+}
+export interface SubscriptionHistoryRpcRow {
+  kind: "credit_transaction" | "payment";
+
+  id: string;
+  user_id: string;
+  created_at: string;
+
+  transaction_type: TransactionType | null;
+  credit_amount: number | null;
+  description: string | null;
+  student_payment_id: string | null;
+
+  paid_at: string | null;
+  amount_in_cents: number | null;
+  credits_amount: number | null;
+  payment_status: string | null;
+  payment_method: string | null;
+
+  plan_id: string | null;
+  plan_name: string | null;
+  subscription_id: string | null;
+
+  metadata: Record<string, unknown> | null;
+
+  /*
+   * PostgreSQL bigint pode chegar como número
+   * ou string, dependendo da configuração.
+   */
+  total_count: number | string | null;
 }
