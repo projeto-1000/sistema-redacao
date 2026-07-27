@@ -10,7 +10,7 @@ interface EssayContentProps {
 
 export default function EssayContent({ text, highlights, generalComment, bestScores }: EssayContentProps) {
   return (
-    <div className="lg:col-span-3 space-y-8">
+    <div className="space-y-8">
       <div className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden">
 
         <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between w-full">

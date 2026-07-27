@@ -12,6 +12,7 @@ import {
 import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { finalCorrectionSchema } from "@repo/validators";
 interface GetPendingEssaysParams {
   status: EssayStatus | EssayStatus[];
   filters?: PendingEssaysFilter;
@@ -158,6 +159,19 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
 
+  const validationResult = finalCorrectionSchema.safeParse(payload);
+
+  if (!validationResult.success) {
+    console.error("Dados inválidos ao finalizar correção:", validationResult.error.flatten());
+
+    return {
+      success: false,
+      error: "Preencha corretamente todos os campos obrigatórios antes de finalizar.",
+    };
+  }
+
+  const correction = validationResult.data;
+
   const { error } = await supabase
     .from("essays")
     .update({
@@ -166,19 +180,24 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
       correction_date: new Date().toISOString(),
       updated_at: new Date().toISOString(),
 
-      score_c1: payload.scores.c1,
-      score_c2: payload.scores.c2,
-      score_c3: payload.scores.c3,
-      score_c4: payload.scores.c4,
-      score_c5: payload.scores.c5,
-      comment_c1: payload.comments.c1,
-      comment_c2: payload.comments.c2,
-      comment_c3: payload.comments.c3,
-      comment_c4: payload.comments.c4,
-      comment_c5: payload.comments.c5,
+      score_c1: correction.scores.c1,
+      score_c2: correction.scores.c2,
+      score_c3: correction.scores.c3,
+      score_c4: correction.scores.c4,
+      score_c5: correction.scores.c5,
 
-      general_comment: payload.general_comment,
-      highlights: payload.highlights,
+      comment_c1: correction.comments.c1,
+      comment_c2: correction.comments.c2,
+      comment_c3: correction.comments.c3,
+      comment_c4: correction.comments.c4,
+      comment_c5: correction.comments.c5,
+
+      general_comment: correction.general_comment,
+      main_bottleneck: correction.main_bottleneck,
+      next_essay_priorities: correction.next_essay_priorities,
+      rewrite_tasks: correction.rewrite_tasks,
+
+      highlights: correction.highlights,
     })
     .eq("id", essayId);
 
@@ -299,6 +318,9 @@ export async function getGradedEssay(id: string) {
       c5: data.comment_c5,
     },
     generalComment: data.general_comment,
+    mainBottleneck: data.main_bottleneck,
+    nextEssayPriorities: data.next_essay_priorities ?? [],
+    rewriteTasks: data.rewrite_tasks ?? [],
   };
 }
 

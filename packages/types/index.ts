@@ -76,15 +76,40 @@ export interface Competencies {
   score: number;
   comment: string | null;
 }
+// export interface CorrectionPayload {
+//   scores: Record<string, number>;
+//   comments: Record<string, string>;
+//   general_comment: string;
+//   highlights: {
+//     id: string;
+//     text: string;
+//     compId: string;
+//   }[];
+// }
+
+export type CorrectionCompetencyId =
+  | "c1"
+  | "c2"
+  | "c3"
+  | "c4"
+  | "c5";
+
+export interface CorrectionHighlight {
+  id: string;
+  text: string;
+  compId: string;
+  startIndex: number;
+  endIndex: number;
+}
+
 export interface CorrectionPayload {
-  scores: Record<string, number>;
-  comments: Record<string, string>;
+  scores: Record<CorrectionCompetencyId, number>;
+  comments: Record<CorrectionCompetencyId, string>;
   general_comment: string;
-  highlights: {
-    id: string;
-    text: string;
-    compId: string;
-  }[];
+  main_bottleneck: string;
+  next_essay_priorities: string[];
+  rewrite_tasks: string[];
+  highlights: CorrectionHighlight[];
 }
 
 export type EssayType = {

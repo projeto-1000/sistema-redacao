@@ -5,6 +5,7 @@ import EssayHeader from "@repo/ui/components/features/essays/components/essay-he
 import EssayContent from "@repo/ui/components/features/essays/components/essay-content";
 import { EssayScoreCard, EssayCompetencies } from "@repo/ui/components/features/essays/components/essay-sidebar";
 import type { Metadata } from "next";
+import EssayImprovementPlan from "@repo/ui/components/features/essays/components/essay-improvement-plan";
 
 export const metadata: Metadata = {
   title: "Detalhes da Redação",
@@ -34,16 +35,17 @@ export default async function GradedEssayPage({
       />
 
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-        <EssayContent
-          text={essay.text}
-          highlights={essay.highlights}
-          generalComment={essay.generalComment}
-          bestScores={bestScores}
-        />
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-5">
+        <div className="space-y-8 lg:col-span-3">
+          <EssayContent
+            text={essay.text}
+            highlights={essay.highlights}
+            generalComment={essay.generalComment}
+            bestScores={bestScores}
+          />
+        </div>
 
-
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           <EssayScoreCard
             totalScore={essay.totalScore}
           />
@@ -52,8 +54,15 @@ export default async function GradedEssayPage({
             scores={essay.scores}
             comments={essay.comments}
           />
-        </div>
 
+          <EssayImprovementPlan
+            mainBottleneck={essay.mainBottleneck}
+            nextEssayPriorities={
+              essay.nextEssayPriorities
+            }
+            rewriteTasks={essay.rewriteTasks}
+          />
+        </div>
       </div>
     </div>
   );

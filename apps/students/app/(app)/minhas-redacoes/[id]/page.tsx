@@ -6,7 +6,7 @@ import { EssayCompetencies, EssayScoreCard } from "@repo/ui/components/features/
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReturnedEssayCard from "@repo/ui/components/features/grading/components/returned-essay-card";
-import { es } from "react-day-picker/locale";
+import EssayImprovementPlan from "@repo/ui/components/features/essays/components/essay-improvement-plan";
 
 export const metadata: Metadata = {
   title: "Detalhes da Redação",
@@ -33,14 +33,14 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
 
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-        <EssayContent
-          text={essay.text}
-          highlights={essay.highlights}
-          generalComment={essay.generalComment}
-          bestScores={bestScores}
-
-        />
-
+        <div className="space-y-8 lg:col-span-3">
+          <EssayContent
+            text={essay.text}
+            highlights={essay.highlights}
+            generalComment={essay.generalComment}
+            bestScores={bestScores}
+          />
+        </div>
 
         <div className="lg:col-span-2 space-y-6">
           {essay.status === 'corrected' ? (
@@ -52,6 +52,14 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
               <EssayCompetencies
                 scores={essay.scores}
                 comments={essay.comments}
+              />
+
+              <EssayImprovementPlan
+                mainBottleneck={essay.mainBottleneck}
+                nextEssayPriorities={
+                  essay.nextEssayPriorities
+                }
+                rewriteTasks={essay.rewriteTasks}
               />
             </>
           ) : (
