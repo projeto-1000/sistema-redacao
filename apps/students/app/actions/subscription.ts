@@ -276,7 +276,9 @@ export async function getSubscriptionData() {
 
           free_credit_expires_at: hasValidFreeCredit ? freeCreditAllocation.expires_at : null,
 
-          renew_date: subscription.current_period_end,
+          renew_date: subscription.cancel_at_period_end
+            ? subscription.current_period_end
+            : subscription.next_billing_at,
 
           total_credits: plan.credits_included,
         }

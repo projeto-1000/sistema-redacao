@@ -583,6 +583,10 @@ export async function createCheckoutSubscription(
 
   const localSubscriptionStatus = mapPagarmeSubscriptionStatus(pagarmeSubscription.status);
 
+  if (localSubscriptionStatus === "active" && !pagarmeSubscription.next_billing_at) {
+    throw new Error("A Pagar.me não informou a próxima data de cobrança.");
+  }
+
   if (isCardPayment && localSubscriptionStatus !== "active") {
     const { error: failedPaymentError } = await supabaseAdmin.from("student_payments").insert({
       user_id: user.id,
@@ -626,6 +630,7 @@ export async function createCheckoutSubscription(
 
         current_period_start: pagarmeSubscription.current_cycle?.start_at ?? null,
         current_period_end: pagarmeSubscription.current_cycle?.end_at ?? null,
+        next_billing_at: pagarmeSubscription.next_billing_at ?? null,
         cancel_at_period_end: false,
 
         pending_plan_id: null,
@@ -650,6 +655,7 @@ export async function createCheckoutSubscription(
           previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
           pagarme_customer_id: pagarmeCustomerId,
           pagarme_status: pagarmeSubscription.status,
+          next_billing_at: pagarmeSubscription.next_billing_at ?? null,
           saved_card: Boolean(savedCardId),
           checkout_operation: checkoutOperation,
         },
@@ -688,6 +694,9 @@ export async function createCheckoutSubscription(
         local_subscription_code: subscriptionCode,
         checkout_operation: checkoutOperation,
         previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
+        current_period_start: pagarmeSubscription.current_cycle?.start_at ?? null,
+        current_period_end: pagarmeSubscription.current_cycle?.end_at ?? null,
+        next_billing_at: pagarmeSubscription.next_billing_at ?? null,
       },
     })
     .select("id")

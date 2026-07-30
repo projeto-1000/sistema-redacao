@@ -1,6 +1,11 @@
 import { createAdminClient } from "@/lib/admin";
 
-import { getPagarmeWebhook, PagarmeApiError, type PagarmeWebhook } from "@repo/payments";
+import {
+  getPagarmeSubscription,
+  getPagarmeWebhook,
+  PagarmeApiError,
+  type PagarmeWebhook,
+} from "@repo/payments";
 
 import { NextResponse } from "next/server";
 
@@ -522,6 +527,48 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: errorMessage }, { status: 422 });
     }
 
+    let nextBillingAt: string | null = null;
+
+    try {
+      const pagarmeSubscription = await getPagarmeSubscription({
+        subscriptionId: subscriptionExternalId,
+      });
+
+      nextBillingAt = pagarmeSubscription.next_billing_at ?? null;
+    } catch (error) {
+      console.error("[GET_PAGARME_SUBSCRIPTION_AFTER_RENEWAL_ERROR]", error);
+
+      const errorMessage = "Não foi possível consultar a próxima cobrança da assinatura.";
+
+      await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+
+      return NextResponse.json(
+        { error: errorMessage },
+        {
+          status: 503,
+          headers: {
+            "Retry-After": "2",
+          },
+        }
+      );
+    }
+
+    if (!nextBillingAt) {
+      const errorMessage = "A Pagar.me não informou a próxima data de cobrança.";
+
+      await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+
+      return NextResponse.json(
+        { error: errorMessage },
+        {
+          status: 503,
+          headers: {
+            "Retry-After": "2",
+          },
+        }
+      );
+    }
+
     const { data: renewalData, error: renewalError } = await supabaseAdmin.rpc(
       "process_pagarme_subscription_renewal",
       {
@@ -540,6 +587,8 @@ export async function POST(request: Request) {
         p_period_start: periodStart,
 
         p_period_end: periodEnd,
+
+        p_next_billing_at: nextBillingAt,
 
         p_paid_at:
           invoice.charge?.paid_at ??
@@ -577,9 +626,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       received: true,
       processed: true,
-
       duplicate: renewalResult.duplicate ?? false,
-
       webhookEventId,
     });
   }
@@ -594,14 +641,7 @@ export async function POST(request: Request) {
 
     await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
 
-    return NextResponse.json(
-      {
-        error: errorMessage,
-      },
-      {
-        status: 422,
-      }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 422 });
   }
 
   const lastTransaction = invoice.charge?.last_transaction;
@@ -666,9 +706,7 @@ export async function POST(request: Request) {
     console.error("[PROCESS_PAGARME_PAYMENT_FAILURE_ERROR]", failureResult);
 
     return NextResponse.json(
-      {
-        error: failureResult?.message ?? "Não foi possível processar a falha de pagamento.",
-      },
+      { error: failureResult?.message ?? "Não foi possível processar a falha de pagamento." },
       { status: 500 }
     );
   }

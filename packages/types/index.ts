@@ -188,8 +188,8 @@ export interface StudentSubscription {
 
   current_period_start: string | null;
   current_period_end: string | null;
-
   cancel_at_period_end: boolean;
+  next_billing_at: string | null;
 
   pending_plan_id: string | null;
   pending_change_type: "downgrade" | null;

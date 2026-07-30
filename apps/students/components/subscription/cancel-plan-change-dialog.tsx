@@ -77,14 +77,14 @@ export function CancelPlanChangeDialog({
           variant="outline"
           className="h-11 w-full rounded-xl font-medium md:w-auto"
         >
-          Cancelar alteração
+          Desfazer mudança de plano
         </Button>
       </AlertDialogTrigger>
 
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Cancelar alteração de plano?
+            Desfazer mudança de plano de plano?
           </AlertDialogTitle>
 
           <AlertDialogDescription>
@@ -118,9 +118,9 @@ export function CancelPlanChangeDialog({
             disabled={isPending}
             onClick={handleCancelPlanChange}
             isLoading={isPending}
-            loadingText="Cancelando..."
+            loadingText="Desafazendo..."
           >
-            Cancelar alteração
+            Desfazer mudança de plano
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
