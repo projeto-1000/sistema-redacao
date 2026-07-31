@@ -13,6 +13,7 @@ export function useAuth() {
   const login = async (data: LoginSchema) => {
     try {
       setIsLoggingIn(true);
+      setAuthError(null);
 
       const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
@@ -23,11 +24,9 @@ export function useAuth() {
         throw error;
       }
 
-      router.refresh();
-      router.push("/inicio");
+      router.replace("/inicio");
     } catch (error: any) {
       setAuthError(error.message);
-    } finally {
       setIsLoggingIn(false);
     }
   };
@@ -43,13 +42,21 @@ export function useAuth() {
 
       if (error) {
         console.error("Erro no reset de senha:", error.message);
-        return { success: false, error: "Não foi possível processar a solicitação no momento." };
+
+        return {
+          success: false,
+          error: "Não foi possível processar a solicitação no momento.",
+        };
       }
 
       return { success: true };
     } catch (err) {
       console.error("Erro em requestPasswordReset:", err);
-      return { success: false, error: "Erro interno no servidor." };
+
+      return {
+        success: false,
+        error: "Erro interno no servidor.",
+      };
     }
   };
 
@@ -82,7 +89,9 @@ export function useAuth() {
       },
     });
 
-    if (authError) throw new Error(authError.message);
+    if (authError) {
+      throw new Error(authError.message);
+    }
 
     if (authData.user) {
       try {

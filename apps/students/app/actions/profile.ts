@@ -1,7 +1,6 @@
 "use server";
 
 import type { UserData } from "@repo/types";
-import type { StudentCreditSummary } from "@/types/credits";
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
 import { SetPasswordSchema } from "@repo/validators";
