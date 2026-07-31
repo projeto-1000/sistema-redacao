@@ -50,7 +50,8 @@ export default async function DashboardPage() {
   if (!data) {
     redirect("/login");
   }
-  const { user, competencies, globalStats, evolution, hasData } = data;
+  const { user, credits, competencies, globalStats, evolution, hasData } = data;
+
   return (
     <div className="space-y-8 min-h-dvh px-2 md:px-10 lg:px-12 py-4">
       <Suspense fallback={
@@ -68,7 +69,7 @@ export default async function DashboardPage() {
           </div>
 
           <div className="flex justify-center sm:justify-end">
-            <CreditsCard credits={user.credits} />
+            <CreditsCard credits={credits} />
           </div>
         </div>
       </Suspense>

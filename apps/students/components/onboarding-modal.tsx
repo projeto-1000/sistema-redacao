@@ -43,13 +43,25 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 
-export type OnboardingNextStep =
-  | "DONE"
-  | "HOTMART_MENTORSHIP_REMINDER";
+export type OnboardingCompletionResult =
+  | {
+    nextStep: "DONE";
+    freeCreditExpiresAt: null;
+  }
+  | {
+    nextStep: "HOTMART_MENTORSHIP_REMINDER";
+    freeCreditExpiresAt: null;
+  }
+  | {
+    nextStep: "FREE_CREDIT_REMINDER";
+    freeCreditExpiresAt: string;
+  };
 
 interface OnboardingModalProps {
   open: boolean;
-  onCompleted: (nextStep: OnboardingNextStep) => void;
+  onCompleted: (
+    result: OnboardingCompletionResult
+  ) => void;
 }
 
 const EDUCATION_LEVELS = [
@@ -105,7 +117,8 @@ export function OnboardingModal({
   const onSubmit: SubmitHandler<OnboardingSchema> = async (
     data
   ) => {
-    const result = await completeStudentOnboarding(data);
+    const result =
+      await completeStudentOnboarding(data);
 
     if (!result.success) {
       toast.error(result.error);
@@ -116,12 +129,33 @@ export function OnboardingModal({
       result.nextStep ===
       "HOTMART_MENTORSHIP_REMINDER"
     ) {
-      onCompleted("HOTMART_MENTORSHIP_REMINDER");
+      onCompleted({
+        nextStep:
+          "HOTMART_MENTORSHIP_REMINDER",
+        freeCreditExpiresAt: null,
+      });
+
+      return;
+    }
+
+    if (
+      result.nextStep === "FREE_CREDIT_REMINDER"
+    ) {
+      onCompleted({
+        nextStep: "FREE_CREDIT_REMINDER",
+        freeCreditExpiresAt:
+          result.freeCreditExpiresAt,
+      });
+
       return;
     }
 
     toast.success("Tudo pronto! Vamos começar.");
-    onCompleted("DONE");
+
+    onCompleted({
+      nextStep: "DONE",
+      freeCreditExpiresAt: null,
+    });
   };
 
   return (

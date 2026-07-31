@@ -1,6 +1,7 @@
 "use server";
 
-import { UserData } from "@repo/types";
+import type { UserData } from "@repo/types";
+import type { StudentCreditSummary } from "@/types/credits";
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
 import { SetPasswordSchema } from "@repo/validators";
@@ -31,7 +32,7 @@ export async function getProfileData() {
       .eq("id", user.id)
       .single(),
 
-    supabase.from("student_credits").select("plan_credits").eq("user_id", user.id).maybeSingle(),
+    supabase.rpc("get_current_student_credit_summary"),
 
     supabase.from("student_performance_stats").select("*").eq("student_id", user.id).maybeSingle(),
 
@@ -48,6 +49,11 @@ export async function getProfileData() {
   ]);
 
   const profile = profileRes.data;
+
+  if (creditsRes.error) {
+    console.error("[GET_STUDENT_CREDIT_SUMMARY_ERROR]", creditsRes.error);
+  }
+
   const credits = creditsRes.data;
   const stats = statsRes.data;
   const evolution = evolutionRes.data;
@@ -61,10 +67,12 @@ export async function getProfileData() {
     user: {
       name: profile.full_name,
       email: profile.email,
-      credits: credits?.plan_credits || 0,
       avatarUrl: profile.avatar_url,
       onboarding_completed: profile?.onboarding_completed,
     } as UserData,
+
+    credits,
+
     competencies: {
       C1: stats?.avg_c1 || 0,
       C2: stats?.avg_c2 || 0,
