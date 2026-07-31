@@ -2,42 +2,65 @@
 
 import { useState } from "react";
 import { LogOut, Menu, X } from "lucide-react";
+
 import { Button } from "./button";
 import { Logo } from "./logo";
+
 interface NavItem {
   label: string;
   href: string;
 }
+
 interface HeaderProps {
   items: NavItem[];
   activePath?: string;
-  onLogout: () => void;
+  onLogout: () => Promise<void>;
 }
 
 export function Header({
   items,
-  activePath = '',
+  activePath = "",
   onLogout,
 }: HeaderProps) {
-
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    try {
+      setIsLoggingOut(true);
+      await onLogout();
+
+    } catch (error) {
+      setIsLoggingOut(false);
+      console.error("[HEADER_LOGOUT_ERROR]", error);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-solid border-slate-200 bg-white/80 backdrop-blur-md px-6 h-16 flex items-center justify-between shadow-sm">
+    <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between border-b border-solid border-slate-200 bg-white/80 px-6 shadow-sm backdrop-blur-md">
       <a href="/">
         <Logo className="h-12" />
       </a>
 
-      <div className="hidden md:flex! items-center justify-end gap-6">
+      <div className="hidden items-center justify-end gap-6 md:flex!">
         <nav className="flex items-center gap-4 text-sm font-medium">
           {items.map((item) => {
             const isActive = activePath === item.href;
+
             return (
               <a
                 key={item.href}
                 href={item.href}
                 className={`
-                  py-1 border-b-2 transition-colors duration-300
-                  ${isActive ? 'border-primary font-bold' : 'text-gray-600 border-transparent hover:text-primary'}`}
+                  border-b-2 py-1 transition-colors duration-300
+                  ${isActive
+                    ? "border-primary font-bold"
+                    : "border-transparent text-gray-600 hover:text-primary"
+                  }
+                `}
               >
                 {item.label}
               </a>
@@ -47,50 +70,74 @@ export function Header({
 
         <Button
           size="sm"
-          onClick={onLogout}
-          className="bg-transparent text-red-500 hover:text-red-700 hover:bg-red-50 gap-2 font-bold"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          isLoading={isLoggingOut}
+          loadingText="Saindo..."
+          className="gap-2 bg-transparent font-bold text-red-500 hover:bg-red-50 hover:text-red-700"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="size-4" />
           Sair
         </Button>
       </div>
 
       <div className="flex md:hidden!">
         <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 text-gray-600 hover:text-gray-900"
+          type="button"
+          disabled={isLoggingOut}
+          onClick={() =>
+            setIsMobileMenuOpen(
+              !isMobileMenuOpen
+            )
+          }
+          className="p-2 text-gray-600 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-50"
         >
-          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {isMobileMenuOpen ? (
+            <X className="size-6" />
+          ) : (
+            <Menu className="size-6" />
+          )}
         </button>
       </div>
 
       {isMobileMenuOpen && (
-        <div className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 shadow-xl md:hidden flex flex-col p-4 animate-in slide-in-from-top-2 duration-200">
+        <div className="absolute left-0 top-16 flex w-full animate-in flex-col border-b border-slate-200 bg-white p-4 shadow-xl duration-200 slide-in-from-top-2 md:hidden">
           <nav className="flex flex-col gap-2">
             {items.map((item) => {
-              const isActive = activePath === item.href;
+              const isActive =
+                activePath === item.href;
+
               return (
                 <a
                   key={item.href}
                   href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() =>
+                    setIsMobileMenuOpen(false)
+                  }
                   className={`
-                    px-4 py-3 rounded-md text-sm font-medium transition-colors 
-                    ${isActive ? 'border-primary font-bold' : 'text-gray-600 border-transparent hover:text-primary'}
-                    `}>
+                    rounded-md px-4 py-3 text-sm font-medium transition-colors
+                    ${isActive
+                      ? "border-primary font-bold"
+                      : "border-transparent text-gray-600 hover:text-primary"
+                    }
+                  `}
+                >
                   {item.label}
                 </a>
               );
             })}
 
-            <div className="h-px bg-slate-100 my-2" />
+            <div className="my-2 h-px bg-slate-100" />
 
             <Button
               size="sm"
-              onClick={onLogout}
-              className="justify-start px-4 py-3 bg-transparent text-red-500 hover:text-red-700 hover:bg-red-50 gap-2 w-full font-bold"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              isLoading={isLoggingOut}
+              loadingText="Saindo..."
+              className="w-full justify-start gap-2 bg-transparent px-4 py-3 font-bold text-red-500 hover:bg-red-50 hover:text-red-700"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="size-4" />
               Sair
             </Button>
           </nav>

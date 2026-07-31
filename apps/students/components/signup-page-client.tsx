@@ -14,7 +14,7 @@ interface SignupPageClientProps {
 
 export function SignupPageClient({ context }: SignupPageClientProps) {
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, isRegistering } = useAuth();
 
   const isHotmartMentorship = context.source === "HOTMART_MENTORIA";
 
@@ -66,6 +66,7 @@ export function SignupPageClient({ context }: SignupPageClientProps) {
           : undefined
       }
       onSubmit={handleRegister}
+      isPending={isRegistering}
     />
   );
 }

@@ -47,6 +47,7 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
   >("idle");
   const router = useRouter();
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const form = useForm<CheckoutFormInput>({
     resolver: zodResolver(checkoutSchema),
@@ -125,8 +126,7 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
 
       setCheckoutStatus("tokenized");
       setCheckoutMessage("Assinatura criada com sucesso.");
-
-      router.refresh();
+      setIsRedirecting(true);
 
       router.push(
         `/assinatura/checkout/sucesso?subscriptionId=${result.localSubscriptionId}`
@@ -140,6 +140,8 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
       );
     }
   }
+
+  const isLoading = form.formState.isSubmitting || isRedirecting;
 
   return (
     <Form {...form}>
@@ -184,7 +186,7 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
               type="submit"
               disabled={!canContinue}
               className="h-12 rounded-2xl px-8 font-bold lg:min-w-44"
-              isLoading={form.formState.isSubmitting}
+              isLoading={isLoading}
               loadingText="Finalizando"
             >
               Finalizar assinatura

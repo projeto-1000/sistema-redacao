@@ -8,6 +8,7 @@ export function useAuth() {
   const router = useRouter();
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   const login = async (data: LoginSchema) => {
@@ -95,6 +96,7 @@ export function useAuth() {
 
     if (authData.user) {
       try {
+        setIsRegistering(true);
         await fetch("/api/payments/customers", {
           method: "POST",
           headers: {
@@ -117,7 +119,8 @@ export function useAuth() {
     }
 
     router.refresh();
-    router.push("/inicio");
+    router.replace("/inicio");
+    setIsRegistering(false);
   };
 
   return {
@@ -126,5 +129,6 @@ export function useAuth() {
     register,
     forgotPassword,
     isLoggingIn,
+    isRegistering,
   };
 }

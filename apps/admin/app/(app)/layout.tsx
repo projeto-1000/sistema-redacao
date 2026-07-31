@@ -25,9 +25,14 @@ export default function AppLayout({
   ];
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    const { error } =
+      await supabase.auth.signOut();
+
+    if (error) {
+      throw error;
+    }
+
+    router.replace("/login");
   };
 
   return (

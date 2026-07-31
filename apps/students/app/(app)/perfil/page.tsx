@@ -21,7 +21,7 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const { user, globalStats, competencies, evolution, hasData } = data
+  const { user, credits, globalStats, competencies, evolution, hasData } = data
 
   return (
     <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-6">
@@ -29,7 +29,7 @@ export default async function ProfilePage() {
       <ProfileHeader
         user={user}
         creditBalanceComponent={
-          <CreditsCard credits={user.credits} />
+          <CreditsCard credits={credits} />
         }
         secondaryAction={{
           label: "Gerenciar assinatura",

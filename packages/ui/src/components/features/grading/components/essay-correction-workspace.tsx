@@ -130,11 +130,14 @@ export function EssayCorrectionWorkspace({
   );
   const rewriteTasks = watch("rewrite_tasks");
 
+
   const [highlights, setHighlights] = useState<Highlight[]>(
     (initialDraft?.highlights as Highlight[]) || []
   );
 
   const [activeHighlightComp, setActiveHighlightComp] = useState<string | null>(null);
+
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const isInitialMount = useRef(true);
 
@@ -190,6 +193,7 @@ export function EssayCorrectionWorkspace({
             "Redação corrigida com sucesso!"
           );
 
+          setIsRedirecting(true);
           router.push(redirectPath);
           return;
         }
@@ -326,7 +330,7 @@ export function EssayCorrectionWorkspace({
           <StickyScore
             totalScore={totalScore}
             canSave={isValid}
-            isSaving={isSubmitting}
+            isSaving={isSubmitting || isRedirecting}
             onSave={handleSave}
           />
         </div>

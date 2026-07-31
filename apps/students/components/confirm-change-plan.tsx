@@ -58,6 +58,7 @@ export function ConfirmChangePlan({
 }: ConfirmChangePlanProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"confirm" | "processing" | "success">("confirm");
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
 
   const isDowngrade = newPlan.price < currentPlanPrice;
@@ -183,16 +184,20 @@ export function ConfirmChangePlan({
   };
 
   const handleCloseAfterSuccess = () => {
-    handleOpenChange(false);
+    if (isRedirecting) return;
+
+    setIsRedirecting(true);
     router.push("/assinatura");
-    router.refresh();
   };
 
   return (
-    <Dialog open={open}
+    <Dialog
+      open={open}
       onOpenChange={(nextOpen) => {
-        if (!nextOpen && step === "success") {
-          handleCloseAfterSuccess();
+        if (
+          !nextOpen &&
+          (step === "processing" || step === "success")
+        ) {
           return;
         }
 

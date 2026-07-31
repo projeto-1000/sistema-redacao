@@ -59,16 +59,14 @@ function AppLayoutContent({
   } = useStudentProfile();
 
   const handleLogout = async () => {
-    const { error: logoutError } =
+    const { error } =
       await supabase.auth.signOut();
 
-    if (logoutError) {
-      console.error("[LOGOUT_ERROR]", logoutError);
-      return;
+    if (error) {
+      throw error;
     }
 
     router.replace("/login");
-    router.refresh();
   };
 
   return (

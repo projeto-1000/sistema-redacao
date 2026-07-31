@@ -73,6 +73,7 @@ interface SignUpFormProps {
   loadingText?: string;
   initialValues?: SignUpInitialValues;
   lockedFields?: SignUpLockedFields;
+  isPending?: boolean;
 }
 
 export function SignUpForm({
@@ -84,6 +85,7 @@ export function SignUpForm({
   loadingText = "Criando conta...",
   initialValues,
   lockedFields,
+  isPending = false,
 }: SignUpFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -110,6 +112,7 @@ export function SignUpForm({
     },
   });
 
+
   const hasInitialValues = Boolean(initialValues);
 
   useEffect(() => {
@@ -121,6 +124,9 @@ export function SignUpForm({
   }, [form, hasInitialValues]);
 
   const { isValid, isSubmitting } = form.formState;
+
+  const isLoading = isSubmitting || isPending;
+
 
   const selectedPhoneCountryCode = form.watch("phoneCountryCode");
   const isBrazilianPhone =
@@ -399,8 +405,8 @@ export function SignUpForm({
               <Button
                 type="submit"
                 className="w-full font-bold h-12 rounded-xl text-[16px]"
-                disabled={isSubmitting || !isValid}
-                isLoading={isSubmitting}
+                disabled={isLoading || !isValid}
+                isLoading={isLoading}
                 loadingText={loadingText}
               >
                 {submitLabel}

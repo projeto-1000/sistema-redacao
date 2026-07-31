@@ -14,6 +14,7 @@ export function useAuth() {
   const login = async (data: LoginSchema) => {
     try {
       setIsLoggingIn(true);
+      setAuthError(null);
 
       const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
@@ -24,11 +25,9 @@ export function useAuth() {
         throw error;
       }
 
-      router.refresh();
-      router.push("/inicio");
+      router.replace("/inicio");
     } catch (error: any) {
       setAuthError(error.message);
-    } finally {
       setIsLoggingIn(false);
     }
   };
@@ -52,12 +51,10 @@ export function useAuth() {
         throw error;
       }
 
-      router.refresh();
-      router.push("/inicio");
+      router.replace("/inicio");
     } catch (error: any) {
-      throw new Error(error.message);
-    } finally {
       setIsRegistering(false);
+      throw new Error(error.message);
     }
   };
 
