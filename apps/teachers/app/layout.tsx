@@ -6,6 +6,7 @@ import { TooltipProvider } from "@repo/ui/components/tooltip";
 
 import { Footer } from "@repo/ui/components/footer";
 import { Toaster } from "@repo/ui/components/toaster";
+import { RouteTransition } from "@repo/ui/components/route-transition";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -29,7 +30,9 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
         <TooltipProvider>
-          {children}
+          <RouteTransition>
+            {children}
+          </RouteTransition>
           <Footer />
           <Toaster />
         </TooltipProvider>
