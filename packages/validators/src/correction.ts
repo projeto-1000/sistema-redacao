@@ -88,12 +88,10 @@ export const finalCorrectionSchema = z.object({
       "O principal gargalo deve ter no máximo 500 caracteres."
     ),
 
-  next_essay_priorities: z
-    .array(requiredListItemSchema)
-    .length(
-      3,
-      "Informe exatamente três prioridades para a próxima redação."
-    ),
+next_essay_priorities: z
+  .array(requiredListItemSchema)
+  .min(1, "Informe pelo menos uma prioridade para a próxima redação.")
+  .max(3, "Informe no máximo três prioridades para a próxima redação."),
 
   rewrite_tasks: z
     .array(requiredListItemSchema)

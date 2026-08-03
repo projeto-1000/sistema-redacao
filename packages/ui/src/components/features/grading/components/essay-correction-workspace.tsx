@@ -63,17 +63,14 @@ function normalizeInitialFormValues(
       c5: "",
     },
 
-    general_comment:
-      initialDraft?.general_comment ?? "",
+    general_comment: initialDraft?.general_comment ?? "",
 
-    main_bottleneck:
-      initialDraft?.main_bottleneck ?? "",
+    main_bottleneck: initialDraft?.main_bottleneck ?? "",
 
-    next_essay_priorities: [
-      priorities[0] ?? "",
-      priorities[1] ?? "",
-      priorities[2] ?? "",
-    ],
+    next_essay_priorities:
+      priorities.length > 0
+        ? priorities.slice(0, 3)
+        : [""],
 
     rewrite_tasks:
       rewriteTasks.length > 0
