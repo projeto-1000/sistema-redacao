@@ -46,7 +46,8 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
-    mode: "onBlur",
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       email: "",
       password: "",
@@ -90,6 +91,9 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
                       <Input
                         className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                         placeholder="seu@email.com"
+                        onInput={(event) => {
+                          field.onChange(event.currentTarget.value);
+                        }}
                         {...field}
                       />
                     </FormControl>
@@ -109,8 +113,12 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
                         <Input
                           className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                           type={showPassword ? "text" : "password"}
+                          autoComplete="current-password"
                           placeholder="******"
                           {...field}
+                          onInput={(event) => {
+                            field.onChange(event.currentTarget.value);
+                          }}
                         />
                         <Button
                           type="button"
@@ -129,7 +137,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
                     </FormControl>
                     <FormMessage />
 
-                    <Link href="/esqueci-minha-senha" className="block mt-2 text-right text-sm text-slate-500 hover:underline">
+                    <Link href="/esqueci-minha-senha" className="block mt-2 w-fit text-sm text-slate-500 hover:underline">
                       Esqueceu sua senha?
                     </Link>
                   </FormItem>
