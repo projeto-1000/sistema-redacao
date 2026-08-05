@@ -30,6 +30,12 @@ Production must never receive a migration that has not already been validated in
 The baseline does not import Development users, application rows, or plans. Production plans must be
 registered manually so their payment-provider identifiers belong to the Production environment.
 
+The existing Development database predates this migration history. Do not execute the initial schema
+migration or the baseline seed against it. First compare its schema and migration history with the
+versioned baseline. Mark the initial schema migration as applied only after that comparison. Review
+and apply the security migrations separately so Development and Production enforce the same runtime
+behavior without recreating Development data.
+
 Theme image values in the seed are portable Storage object paths rather than Development URLs. The
 47 reviewed image files must be uploaded to the Production `themes` bucket using the same paths
 before go-live. The applications convert these paths into the correct environment-specific public
@@ -42,6 +48,8 @@ After go-live, never edit or delete an already-applied migration. Create a new f
 reverts the specific change, validate it in Development, and only then apply it to Production.
 
 Database backups are a recovery layer, not a replacement for reviewed migrations.
+
+Use `COMPATIBILITY_CHECKLIST.md` as the required release gate for database-dependent changes.
 
 ## Required environment values
 
