@@ -80,6 +80,14 @@ export async function getTopicDetails(id: string): Promise<EssayTopicDetail | nu
   if (!data) return null;
 
   if (data.motivational_texts) {
+    data.motivational_texts = data.motivational_texts.map((text: MotivationalText) => {
+      if (!text.image_url || text.image_url.startsWith("http")) return text;
+
+      const { data: publicUrlData } = supabase.storage.from("themes").getPublicUrl(text.image_url);
+
+      return { ...text, image_url: publicUrlData.publicUrl };
+    });
+
     data.motivational_texts.sort(
       (a: MotivationalText, b: MotivationalText) => a.text_number - b.text_number
     );

@@ -168,7 +168,7 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResponse> 
       }
     }
 
-    const newFileName = `${user.id}-${Date.now()}.jpg`;
+    const newFileName = `${user.id}/${Date.now()}.jpg`;
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
