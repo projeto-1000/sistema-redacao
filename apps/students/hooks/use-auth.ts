@@ -37,8 +37,7 @@ export function useAuth() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-        redirectTo: `http://localhost:3001/api/auth/callback?next=${targetUrl}`,
-        // redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?next=/nova-senha`,
+        redirectTo: `${window.location.origin}/api/auth/callback?next=${targetUrl}`,
       });
 
       if (error) {
