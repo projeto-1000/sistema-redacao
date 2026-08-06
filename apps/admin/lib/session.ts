@@ -38,7 +38,7 @@ export async function updateSession(request: NextRequest) {
     ? await supabase.rpc("get_my_role")
     : { data: null };
 
-  const publicRoutes = ["/login", "/"];
+  const publicRoutes = ["/login", "/esqueci-minha-senha", "/"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
   if (!isPublicRoute) {
