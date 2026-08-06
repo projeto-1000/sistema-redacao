@@ -11,6 +11,19 @@ interface GetTopicsParams {
   page?: number;
 }
 
+const THEME_PUBLIC_PATH_MARKER = "/storage/v1/object/public/themes/";
+
+function getThemeObjectPath(value: string | null | undefined) {
+  if (!value) return null;
+  if (!value.startsWith("http://") && !value.startsWith("https://")) return value;
+
+  const markerIndex = value.indexOf(THEME_PUBLIC_PATH_MARKER);
+  if (markerIndex === -1) return null;
+
+  const [objectPath] = value.slice(markerIndex + THEME_PUBLIC_PATH_MARKER.length).split("?");
+  return objectPath ? decodeURIComponent(objectPath) : null;
+}
+
 export async function getTopicsList({ filters, page = 1 }: GetTopicsParams = {}): Promise<{
   topics: EssayTopic[];
   totalPages: number;
@@ -71,6 +84,14 @@ export async function getTopicDetails(id: string): Promise<EssayTopicDetail | nu
   if (!data) return null;
 
   if (data.motivational_texts) {
+    data.motivational_texts = data.motivational_texts.map((text: MotivationalText) => {
+      if (!text.image_url || text.image_url.startsWith("http")) return text;
+
+      const { data: publicUrlData } = supabase.storage.from("themes").getPublicUrl(text.image_url);
+
+      return { ...text, image_url: publicUrlData.publicUrl };
+    });
+
     data.motivational_texts.sort(
       (a: MotivationalText, b: MotivationalText) => a.text_number - b.text_number
     );
@@ -115,11 +136,9 @@ export async function createEssayTopic(formData: FormData) {
 
         uploadedImagePaths.push(fileName);
 
-        const { data: publicUrlData } = supabase.storage.from("themes").getPublicUrl(fileName);
-
         const currentText = data.motivationalTexts[i];
         if (currentText) {
-          currentText.imageUrl = publicUrlData.publicUrl;
+          currentText.imageUrl = fileName;
         }
       }
     }
@@ -140,10 +159,11 @@ export async function createEssayTopic(formData: FormData) {
       throw new Error("Erro ao criar a estrutura do tema no banco.");
     }
 
-    const textsToInsert = data.motivationalTexts.map((text) => ({
+    const textsToInsert = data.motivationalTexts.map((text, index) => ({
       topic_id: topic.id,
+      text_number: index + 1,
       body_text: text.bodyText || null,
-      image_url: text.imageUrl || null,
+      image_url: getThemeObjectPath(text.imageUrl),
       source_reference: text.sourceReference,
     }));
 
@@ -201,21 +221,20 @@ export async function updateEssayTopic(formData: FormData) {
 
     if (fetchError) throw new Error("Erro ao buscar dados antigos do tema.");
 
-    const oldImageUrls =
-      existingTexts?.map((t) => t.image_url).filter((url): url is string => Boolean(url)) || [];
+    const oldImagePaths =
+      existingTexts
+        ?.map((text) => getThemeObjectPath(text.image_url))
+        .filter((path): path is string => Boolean(path)) || [];
 
-    const keptImageUrls = data.motivationalTexts
-      .map((t) =>
-        typeof t.imageUrl === "string" && t.imageUrl !== "FILE_ATTACHED" ? t.imageUrl : null
+    const keptImagePaths = data.motivationalTexts
+      .map((text) =>
+        typeof text.imageUrl === "string" && text.imageUrl !== "FILE_ATTACHED"
+          ? getThemeObjectPath(text.imageUrl)
+          : null
       )
-      .filter(Boolean);
+      .filter((path): path is string => Boolean(path));
 
-    orphanedImagePaths = oldImageUrls
-      .filter((oldUrl) => !keptImageUrls.includes(oldUrl))
-      .map((url) => {
-        return url.split("/").pop() || "";
-      })
-      .filter(Boolean);
+    orphanedImagePaths = oldImagePaths.filter((oldPath) => !keptImagePaths.includes(oldPath));
 
     for (let i = 0; i < data.motivationalTexts.length; i++) {
       const text = data.motivationalTexts[i];
@@ -237,8 +256,7 @@ export async function updateEssayTopic(formData: FormData) {
 
           uploadedImagePaths.push(fileName);
 
-          const { data: publicUrlData } = supabase.storage.from("themes").getPublicUrl(fileName);
-          text.imageUrl = publicUrlData.publicUrl;
+          text.imageUrl = fileName;
         } else {
           text.imageUrl = null;
         }
@@ -268,10 +286,11 @@ export async function updateEssayTopic(formData: FormData) {
       throw new Error("Erro ao limpar os textos motivadores antigos.");
     }
 
-    const textsToInsert = data.motivationalTexts.map((text) => ({
+    const textsToInsert = data.motivationalTexts.map((text, index) => ({
       topic_id: topicId,
+      text_number: index + 1,
       body_text: text.bodyText || null,
-      image_url: text.imageUrl || null,
+      image_url: getThemeObjectPath(text.imageUrl),
       source_reference: text.sourceReference,
     }));
 
@@ -353,7 +372,9 @@ export async function deleteEssayTopic(topicId: string) {
     if (dbError) throw dbError;
 
     if (texts && texts.length > 0) {
-      const filePaths = texts.map((t) => t.image_url).filter((path): path is string => !!path);
+      const filePaths = texts
+        .map((text) => getThemeObjectPath(text.image_url))
+        .filter((path): path is string => Boolean(path));
 
       const { error: storageError } = await supabase.storage.from("themes").remove(filePaths);
 
@@ -364,8 +385,8 @@ export async function deleteEssayTopic(topicId: string) {
 
     revalidatePath("/temas");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro na exclusão total:", error);
-    return { error: error.message || "Falha ao excluir o tema." };
+    return { error: error instanceof Error ? error.message : "Falha ao excluir o tema." };
   }
 }

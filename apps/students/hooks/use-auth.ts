@@ -26,8 +26,8 @@ export function useAuth() {
       }
 
       router.replace("/inicio");
-    } catch (error: any) {
-      setAuthError(error.message);
+    } catch (error: unknown) {
+      setAuthError(error instanceof Error ? error.message : "Não foi possível entrar.");
       setIsLoggingIn(false);
     }
   };
@@ -37,8 +37,7 @@ export function useAuth() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-        redirectTo: `http://localhost:3001/api/auth/callback?next=${targetUrl}`,
-        // redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?next=/nova-senha`,
+        redirectTo: `${window.location.origin}/api/auth/callback?next=${targetUrl}`,
       });
 
       if (error) {
@@ -81,7 +80,6 @@ export function useAuth() {
       options: {
         data: {
           full_name: data.name,
-          role: data.role,
           document: cleanDocument,
           phone_country_code: cleanPhoneCountryCode,
           phone: cleanPhone,

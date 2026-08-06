@@ -1,7 +1,11 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/session";
 
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/api/auth/callback")) {
+    return NextResponse.next();
+  }
+
   return await updateSession(request);
 }
 

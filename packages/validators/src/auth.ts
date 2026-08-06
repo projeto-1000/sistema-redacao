@@ -11,7 +11,6 @@ export const registerSchema = z.object({
   email: z.string().trim().email("Email inválido"),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
   confirmPassword: z.string().min(1, "Confirme sua senha"), 
-  role: z.enum(["STUDENT", "TEACHER", "ADMIN"]),
   document: z
   .string()
   .min(1, "CPF é obrigatório")

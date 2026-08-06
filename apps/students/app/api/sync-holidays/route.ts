@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/admin";
 
 // Tipagem para a resposta da Brasil API
 interface BrasilApiHoliday {
@@ -8,12 +8,16 @@ interface BrasilApiHoliday {
   type: string;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+    const cronSecret = process.env.CRON_SECRET;
+    const authorization = request.headers.get("authorization");
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    if (!cronSecret || authorization !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+    }
+
+    const supabase = createAdminClient();
 
     const years = [new Date().getFullYear(), new Date().getFullYear() + 1];
 

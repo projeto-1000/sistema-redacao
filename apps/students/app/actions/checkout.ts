@@ -328,7 +328,8 @@ async function getOrCreatePagarmeCustomerId() {
   }
 
   if (profile.pagarme_customer_id !== customer.id) {
-    const { error: updateError } = await supabase
+    const supabaseAdmin = createAdminClient();
+    const { error: updateError } = await supabaseAdmin
       .from("profiles")
       .update({
         pagarme_customer_id: customer.id,

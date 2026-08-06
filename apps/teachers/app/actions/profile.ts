@@ -80,7 +80,7 @@ export async function uploadAvatar(formData: FormData) {
   if (!file) throw new Error("Nenhum arquivo enviado");
 
   const fileExt = file.name.split(".").pop();
-  const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+  const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
   const { error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file, {
     upsert: true,

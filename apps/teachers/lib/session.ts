@@ -34,9 +34,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const userRole = user?.user_metadata?.role;
+  const { data: userRole } = user
+    ? await supabase.rpc("get_my_role")
+    : { data: null };
 
-  const publicRoutes = ["/login", "/cadastro", "/"];
+  const publicRoutes = ["/login", "/esqueci-minha-senha", "/"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
   if (!isPublicRoute) {
@@ -54,7 +56,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  if (user && userRole === ALLOWED_ROLE && (pathname === "/login" || pathname === "/cadastro")) {
+  if (user && userRole === ALLOWED_ROLE && pathname === "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/inicio";
     return NextResponse.redirect(url);

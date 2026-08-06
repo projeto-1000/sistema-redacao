@@ -21,10 +21,7 @@ export async function completeHotmartMentorshipSignup({
     throw new Error("Link de cadastro inválido.");
   }
 
-  const parsedValues = registerSchema.parse({
-    ...values,
-    role: "STUDENT",
-  });
+  const parsedValues = registerSchema.parse(values);
 
   const supabase = await createClient();
   const supabaseAdmin = createAdminClient();
@@ -95,7 +92,6 @@ export async function completeHotmartMentorshipSignup({
     options: {
       data: {
         full_name: parsedValues.name.trim(),
-        role: "STUDENT",
         document: cleanDocument,
         phone_country_code: cleanPhoneCountryCode,
         phone: cleanPhone,
