@@ -24,6 +24,8 @@ Production must never receive a migration that has not already been validated in
 - `20260805000001_initial_schema.sql` reproduces the verified Development schema without data.
 - `20260805000002_initial_security.sql` enables RLS, defines access policies, protects privileged
   profile fields, restricts RPC execution, creates Storage buckets, and configures private receipts.
+- `20260806000004_secure_user_roles.sql` makes `profiles.role` authoritative, defaults public
+  signups to `STUDENT`, and prevents authenticated users from changing their own role.
 - `seed.sql` contains only reviewed, non-sensitive reference data: 33 essay topics, 121
   motivational items with corrected numbering, and the 2026/2027 holidays.
 
@@ -40,6 +42,15 @@ Theme image values in the seed are portable Storage object paths rather than Dev
 47 reviewed image files must be uploaded to the Production `themes` bucket using the same paths
 before go-live. The applications convert these paths into the correct environment-specific public
 URLs when reading a topic.
+
+## User roles
+
+Application authorization must read `profiles.role` through `get_my_role()`. Never authorize from
+`auth.users.raw_user_meta_data`, because users can update their own user metadata.
+
+Public email and Hotmart signups always create students. Privileged users must be provisioned by a
+trusted administrative process that sets `app_metadata.app_role` to `TEACHER` or `ADMIN`; this value
+must never come from a public form or browser request.
 
 ## Rollback strategy
 

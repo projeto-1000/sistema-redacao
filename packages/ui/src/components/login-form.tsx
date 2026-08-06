@@ -168,7 +168,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
           )}
         </CardContent>
 
-        {appType !== 'admin' && (
+        {appType === 'student' && (
           <CardFooter className="flex flex-col justify-center p-0 mt-6">
             <div className="w-full pt-4 border-t border-[#e8e4ce] text-center">
               <p>

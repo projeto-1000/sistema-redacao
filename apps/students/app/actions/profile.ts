@@ -213,12 +213,7 @@ export async function setNewPassword(data: SetPasswordSchema) {
     return { error: "A senha deve ter pelo menos 6 caracteres." };
   }
 
-  const { error } = await supabase.auth.updateUser({
-    password,
-    data: {
-      role: "STUDENT",
-    },
-  });
+  const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
     return { error: error.message };
@@ -228,7 +223,7 @@ export async function setNewPassword(data: SetPasswordSchema) {
   //TODO: descobrir se preciso mesmo mandar a info do onboaarding
   const { error: errorProfile } = await supabase
     .from("profiles")
-    .update({ terms_accepted_at, role: "STUDENT", onboarding_completed: false })
+    .update({ terms_accepted_at, onboarding_completed: false })
     .eq("id", user.id);
 
   if (errorProfile) {

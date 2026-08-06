@@ -34,7 +34,9 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const userRole = user?.user_metadata?.role;
+  const { data: userRole } = user
+    ? await supabase.rpc("get_my_role")
+    : { data: null };
 
   const publicRoutes = [
     "/login",

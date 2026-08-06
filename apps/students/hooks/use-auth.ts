@@ -26,8 +26,8 @@ export function useAuth() {
       }
 
       router.replace("/inicio");
-    } catch (error: any) {
-      setAuthError(error.message);
+    } catch (error: unknown) {
+      setAuthError(error instanceof Error ? error.message : "Não foi possível entrar.");
       setIsLoggingIn(false);
     }
   };
@@ -81,7 +81,6 @@ export function useAuth() {
       options: {
         data: {
           full_name: data.name,
-          role: data.role,
           document: cleanDocument,
           phone_country_code: cleanPhoneCountryCode,
           phone: cleanPhone,

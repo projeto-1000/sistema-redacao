@@ -30,12 +30,6 @@ import { toast } from "sonner";
 
 type AppType = "admin" | "teacher" | "student";
 
-const ROLE_MAP: Record<AppType, "STUDENT" | "TEACHER" | "ADMIN"> = {
-  student: "STUDENT",
-  teacher: "TEACHER",
-  admin: "ADMIN",
-};
-
 const APP_CONFIG: Record<AppType, { title: string; description: string; }> = {
   student: {
     title: "Crie sua conta",
@@ -108,7 +102,6 @@ export function SignUpForm({
       password: "",
       confirmPassword: "",
       terms: false,
-      role: ROLE_MAP[appType],
     },
   });
 
@@ -136,7 +129,7 @@ export function SignUpForm({
     try {
       form.clearErrors("root");
       await onSubmit(values);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { title, description } = getErrorMessage(error);
 
       toast.error(title, {
