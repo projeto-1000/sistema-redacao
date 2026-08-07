@@ -27,7 +27,11 @@ export const createTopicSchema = z.object({
   axis: z.enum(THEMATIC_AXES, {
     errorMap: () => ({ message: "Selecione um eixo temático válido" })
   }),
-  sourceType: z.enum(["ENEM", "ENEM PPL", "AUTORAL"]),
+  sourceType: z.enum([
+    "ENEM",
+    "ENEM PPL/Reaplicação",
+    "AUTORAL"
+  ]),
   sourceYear: z.coerce.number()
     .min(1998, "Ano inválido")
     .max(new Date().getFullYear())

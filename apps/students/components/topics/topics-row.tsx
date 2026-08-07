@@ -20,6 +20,18 @@ export default function TopicsRow({ topic }: TopicsRowProps) {
         <h4 className="font-bold leading-snug group-hover:text-[#1E3A8A] transition-colors wrap-break-word">
           {topic.title}
         </h4>
+
+        <div className="mt-2 text-xs text-slate-500">
+          {topic.source_type}
+
+          {topic.source_type !== "AUTORAL" && topic.source_year && (
+            <>
+              {" • "}
+              {topic.source_year}
+            </>
+          )}
+        </div>
+
         <div className="lg:hidden mt-3">
           <ThemeBadge
             className="inline-flex px-3 py-1 text-[10px] font-bold uppercase rounded-full border"
