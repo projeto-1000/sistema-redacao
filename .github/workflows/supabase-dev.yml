@@ -1,0 +1,21 @@
+name: Supabase DEV Migration
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  migrate:
+    name: Apply DEV migrations
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: Apply migrations
+        run: supabase db push --db-url "${{ secrets.SUPABASE_DEV_DB_URL }}"

@@ -27,7 +27,7 @@ export async function getTopicsList({
 
     let query = supabase
       .from("essay_topics")
-      .select("id, title, axis, created_at", { count: "exact" })
+      .select("id, title, axis, source_type, source_year, created_at", { count: "exact" })
       .eq("active", true);
 
     if (filters?.search) {

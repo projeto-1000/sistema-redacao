@@ -92,7 +92,9 @@ export function TopicInfoForm() {
                     <SelectContent>
                       <SelectItem value="AUTORAL">Autoral</SelectItem>
                       <SelectItem value="ENEM">ENEM</SelectItem>
-                      <SelectItem value="ENEM PPL">ENEM PPL</SelectItem>
+                      <SelectItem value="ENEM PPL/Reaplicação">
+                        ENEM PPL/Reaplicação
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
