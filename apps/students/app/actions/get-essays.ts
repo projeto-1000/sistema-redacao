@@ -2,6 +2,7 @@ import { createClient } from "@/lib/server";
 import { EssayListItem, EssaysFilter } from "@/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
+import { normalizeCorrectionHighlights } from "@repo/validators";
 
 interface GetEssaysParams {
   filters?: EssaysFilter;
@@ -110,7 +111,7 @@ export async function getEssayById(essayId: string) {
     title: essay.title,
     totalScore: essay.total_score,
     text: essay.content,
-    highlights: essay.highlights || [],
+    highlights: normalizeCorrectionHighlights(essay.highlights),
     scores: {
       c1: essay.score_c1,
       c2: essay.score_c2,

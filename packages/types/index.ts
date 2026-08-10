@@ -100,8 +100,11 @@ export type CorrectionCompetencyId =
 export interface CorrectionHighlight {
   id: string;
   text: string;
-  compId: string;
+  compId: CorrectionCompetencyId;
+  comment: string;
+  /** Inclusive UTF-16 offset in the original essay content. */
   startIndex: number;
+  /** Exclusive UTF-16 offset in the original essay content. */
   endIndex: number;
 }
 

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { X, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { MessageSquareText, Trash2, X } from "lucide-react";
 import { HIGHLIGHT_STYLES } from "../../constants";
+import type { CorrectionHighlight } from "@repo/types";
+import { LineNumberedText } from "../../essays/components/line-numbered-text";
 
 const COMP_BUTTONS = [
   { id: "c1", bg: "bg-comp-1" },
@@ -15,18 +17,13 @@ const COMP_BUTTONS = [
 interface PopoverState {
   x: number;
   y: number;
+  placement: "above" | "below";
   startIndex: number;
   endIndex: number;
   text: string;
   existingId?: string;
 }
-export interface Highlight {
-  id: string;
-  text: string;
-  compId: string;
-  startIndex: number;
-  endIndex: number;
-}
+export type Highlight = CorrectionHighlight;
 interface EssayViewerProps {
   essay: {
     id: string;
@@ -35,20 +32,91 @@ interface EssayViewerProps {
   };
   highlights: Highlight[];
   activeHighlightComp: string | null;
+  activeHighlightId: string | null;
   onHighlightsChange: (newHighlights: Highlight[]) => void;
   onActiveHighlightChange: (compId: string | null) => void;
+  onActiveHighlightIdChange: (id: string | null) => void;
+  onHighlightCommentChange: (id: string, comment: string) => void;
 }
 
 export function EssayViewer({
   essay,
   highlights,
   activeHighlightComp,
+  activeHighlightId,
   onHighlightsChange,
-  onActiveHighlightChange
+  onActiveHighlightChange,
+  onActiveHighlightIdChange,
+  onHighlightCommentChange,
 }: EssayViewerProps) {
 
   const [popover, setPopover] = useState<PopoverState | null>(null);
   const textRef = useRef<HTMLDivElement>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const highlightRefs = useRef(new Map<string, HTMLElement>());
+
+  const activeHighlight = popover?.existingId
+    ? highlights.find((highlight) => highlight.id === popover.existingId)
+    : null;
+
+  const getPopoverPosition = (rect: DOMRect) => {
+    const halfWidth = 180;
+    const x = Math.min(
+      Math.max(rect.left + rect.width / 2, halfWidth),
+      window.innerWidth - halfWidth
+    );
+    const placement = rect.top > 260 ? "above" : "below";
+
+    return {
+      x,
+      y: placement === "above" ? rect.top - 10 : rect.bottom + 10,
+      placement,
+    } as const;
+  };
+
+  const openHighlightEditor = (highlight: Highlight, element: HTMLElement) => {
+    const position = getPopoverPosition(element.getBoundingClientRect());
+
+    setPopover({
+      ...position,
+      startIndex: highlight.startIndex,
+      endIndex: highlight.endIndex,
+      text: highlight.text,
+      existingId: highlight.id,
+    });
+  };
+
+  useEffect(() => {
+    if (!activeHighlightId) {
+      if (popover?.existingId) setPopover(null);
+      return;
+    }
+
+    const highlight = highlights.find(({ id }) => id === activeHighlightId);
+    const element = highlightRefs.current.get(activeHighlightId);
+    if (!highlight || !element) return;
+
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    const timer = window.setTimeout(() => {
+      openHighlightEditor(highlight, element);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+    // The highlight content changes while the textarea is edited; only a new
+    // active id should trigger scrolling and repositioning.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHighlightId]);
+
+  useEffect(() => {
+    if (!popover?.existingId) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      commentInputRef.current?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [popover?.existingId]);
 
   const getAbsoluteRange = (selection: Selection) => {
     if (!textRef.current || selection.rangeCount === 0) return null;
@@ -64,7 +132,7 @@ export function EssayViewer({
     return { start, end, range };
   };
 
-  const handleAddHighlight = (compId: string, startIndex: number, endIndex: number, selectedText: string) => {
+  const handleAddHighlight = (compId: string, startIndex: number, endIndex: number) => {
     const cleanHighlights = highlights.filter(h => {
       const isOverlapping = Math.max(startIndex, h.startIndex) < Math.min(endIndex, h.endIndex);
       return !isOverlapping;
@@ -72,8 +140,9 @@ export function EssayViewer({
 
     const newHighlight: Highlight = {
       id: crypto.randomUUID(),
-      text: selectedText,
-      compId: compId.toLowerCase(),
+      text: essay.content.slice(startIndex, endIndex),
+      compId: compId.toLowerCase() as CorrectionHighlight["compId"],
+      comment: "",
       startIndex,
       endIndex
     };
@@ -83,12 +152,14 @@ export function EssayViewer({
     window.getSelection()?.removeAllRanges();
     setPopover(null);
     onActiveHighlightChange(null);
+    onActiveHighlightIdChange(newHighlight.id);
   };
 
   const handleRemoveHighlight = (id: string) => {
     onHighlightsChange(highlights.filter(h => h.id !== id));
     window.getSelection()?.removeAllRanges();
     setPopover(null);
+    onActiveHighlightIdChange(null);
   };
 
   const handleSelectionEnd = (e: React.MouseEvent | React.TouchEvent) => {
@@ -101,6 +172,7 @@ export function EssayViewer({
       if (!selection || selection.isCollapsed || !selectedText) {
         if ((e.target as HTMLElement).tagName !== 'MARK') {
           setPopover(null);
+          onActiveHighlightIdChange(null);
         }
         return;
       }
@@ -109,15 +181,15 @@ export function EssayViewer({
       if (!absRange) return;
 
       if (activeHighlightComp) {
-        handleAddHighlight(activeHighlightComp, absRange.start, absRange.end, selectedText);
+        handleAddHighlight(activeHighlightComp, absRange.start, absRange.end);
         return;
       }
 
       const rect = absRange.range.getBoundingClientRect();
 
+      onActiveHighlightIdChange(null);
       setPopover({
-        x: rect.left + (rect.width / 2),
-        y: rect.top - 10,
+        ...getPopoverPosition(rect),
         startIndex: absRange.start,
         endIndex: absRange.end,
         text: selectedText
@@ -127,15 +199,24 @@ export function EssayViewer({
 
   const handleMarkClick = (e: React.MouseEvent, hl: Highlight) => {
     e.stopPropagation();
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    setPopover({
-      x: rect.left + (rect.width / 2),
-      y: rect.top - 10,
-      startIndex: hl.startIndex,
-      endIndex: hl.endIndex,
-      text: hl.text,
-      existingId: hl.id
-    });
+    const element = e.currentTarget as HTMLElement;
+    onActiveHighlightIdChange(hl.id);
+    openHighlightEditor(hl, element);
+  };
+
+  const handleMarkKeyDown = (e: React.KeyboardEvent, hl: Highlight) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+
+    e.preventDefault();
+    const element = e.currentTarget as HTMLElement;
+    onActiveHighlightIdChange(hl.id);
+    openHighlightEditor(hl, element);
+  };
+
+  const handleClosePopover = () => {
+    window.getSelection()?.removeAllRanges();
+    setPopover(null);
+    onActiveHighlightIdChange(null);
   };
 
   const renderContent = () => {
@@ -153,8 +234,21 @@ export function EssayViewer({
       elements.push(
         <mark
           key={hl.id}
+          ref={(element) => {
+            if (element) highlightRefs.current.set(hl.id, element);
+            else highlightRefs.current.delete(hl.id);
+          }}
+          data-highlight-id={hl.id}
+          role="button"
+          tabIndex={0}
           onClick={(e) => handleMarkClick(e, hl)}
-          className={`cursor-pointer transition-colors hover:opacity-80 pb-0.5 rounded-sm ${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]}`}
+          onKeyDown={(e) => handleMarkKeyDown(e, hl)}
+          aria-pressed={activeHighlightId === hl.id}
+          className={`cursor-pointer rounded-sm pb-0.5 transition-all hover:opacity-80 ${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]} ${
+            activeHighlightId === hl.id
+              ? "ring-2 ring-slate-700/70 ring-offset-2"
+              : ""
+          }`}
         >
           {fullText.slice(hl.startIndex, hl.endIndex)}
         </mark>
@@ -170,38 +264,91 @@ export function EssayViewer({
     return elements;
   };
 
-  const renderPopoverContent = () => (
-    <>
+  const renderPopoverContent = () => {
+    if (activeHighlight) {
+      return (
+        <div className="w-[min(22rem,calc(100vw-2rem))] text-slate-900">
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <MessageSquareText className="size-4 text-indigo-500" />
+                <span className="text-xs font-black uppercase tracking-wider text-slate-700">
+                  Comentário específico · {activeHighlight.compId.toUpperCase()}
+                </span>
+              </div>
+              <p className="mt-1 truncate text-xs text-slate-500">
+                “{activeHighlight.text}”
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleClosePopover}
+              aria-label="Fechar comentário específico"
+              className="shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+
+          <label htmlFor={`highlight-comment-${activeHighlight.id}`} className="sr-only">
+            Comentário específico do trecho
+          </label>
+          <textarea
+            ref={commentInputRef}
+            id={`highlight-comment-${activeHighlight.id}`}
+            value={activeHighlight.comment}
+            onChange={(event) =>
+              onHighlightCommentChange(activeHighlight.id, event.target.value)
+            }
+            maxLength={2000}
+            rows={4}
+            placeholder="Explique o problema ou a orientação para este trecho..."
+            className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700 outline-none placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200"
+          />
+
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <span className="text-[10px] text-slate-400">
+              {activeHighlight.comment.length}/2000
+            </span>
+            <button
+              type="button"
+              onClick={() => handleRemoveHighlight(activeHighlight.id)}
+              className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
+            >
+              <Trash2 className="size-3.5" />
+              Remover apontamento
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <>
       <span className="text-[10px] font-black uppercase tracking-widest opacity-50 mr-1 hidden sm:block">
-        {popover?.existingId ? "Opções" : "Vincular"}
+        Vincular
       </span>
 
-      {!popover?.existingId && COMP_BUTTONS.map((btn) => (
+      {COMP_BUTTONS.map((btn) => (
         <button
+          type="button"
           key={btn.id}
-          onClick={() => handleAddHighlight(btn.id, popover!.startIndex, popover!.endIndex, popover!.text)}
+          onClick={() => handleAddHighlight(btn.id, popover!.startIndex, popover!.endIndex)}
           className={`size-8 md:size-7 rounded-full text-[11px] md:text-[10px] font-black hover:scale-110 transition-transform ${btn.bg} text-white opacity-90 hover:opacity-100 shadow-md`}
         >
           {btn.id.toUpperCase()}
         </button>
       ))}
 
-      {popover?.existingId && (
-        <button
-          onClick={() => handleRemoveHighlight(popover.existingId!)}
-          className="px-3 py-1.5 text-sm font-bold text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex items-center gap-2"
-        >
-          <Trash2 className="size-4 md:size-4" /> <span className="hidden sm:inline">Remover</span>
-        </button>
-      )}
-
       <div className="w-px h-5 md:h-4 bg-slate-700 mx-1 md:mx-2"></div>
 
-      <button onClick={() => { window.getSelection()?.removeAllRanges(); setPopover(null); }} className="p-2 md:p-1.5 text-slate-400 hover:bg-slate-700 rounded-lg transition-colors">
+      <button type="button" onClick={handleClosePopover} className="p-2 md:p-1.5 text-slate-400 hover:bg-slate-700 rounded-lg transition-colors">
         <X className="size-5 md:size-4" />
       </button>
-    </>
-  );
+      </>
+    );
+  };
 
   return (
     <div className="lg:col-span-7 bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-fit relative">
@@ -218,26 +365,26 @@ export function EssayViewer({
           {essay.title}
         </h2>
 
-        <div
-          ref={textRef}
-          className="text-slate-800 text-base md:text-lg leading-relaxed text-justify wrap-break-word whitespace-pre-wrap selection:bg-amber-200/50"
+        <LineNumberedText
+          contentRef={textRef}
+          contentClassName="text-justify text-base leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word selection:bg-amber-200/50 md:text-lg"
         >
           {renderContent()}
-        </div>
+        </LineNumberedText>
       </div>
 
       {popover && (
         <>
-          <div className="md:hidden ignore-selection fixed z-9999 w-max bg-slate-900 text-white px-4 py-3 rounded-full shadow-2xl flex items-center justify-center gap-2 bottom-40 left-1/2 transform -translate-x-1/2 animate-in fade-in slide-in-from-bottom-6 duration-200 border border-slate-700/50">
+          <div className={`md:hidden ignore-selection fixed bottom-40 z-9999 shadow-2xl flex items-center justify-center left-1/2 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-6 duration-200 ${popover.existingId ? "rounded-2xl border border-slate-200 bg-white p-4" : "w-max rounded-full border border-slate-700/50 bg-slate-900 px-4 py-3 text-white"}`}>
             {renderPopoverContent()}
           </div>
 
           <div
-            className="hidden md:flex ignore-selection fixed z-9999 w-max bg-slate-900 text-white px-3 py-2.5 rounded-2xl shadow-2xl items-center gap-2 transform -translate-x-1/2 -translate-y-full mb-2 animate-in fade-in zoom-in-95 duration-200"
+            className={`hidden md:flex ignore-selection fixed z-9999 w-max rounded-2xl shadow-2xl items-center gap-2 -translate-x-1/2 animate-in fade-in zoom-in-95 duration-200 ${popover.existingId ? "border border-slate-200 bg-white p-4" : "bg-slate-900 px-3 py-2.5 text-white"} ${popover.placement === "above" ? "-translate-y-full" : ""}`}
             style={{ top: popover.y, left: popover.x }}
           >
             {renderPopoverContent()}
-            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 rotate-45"></div>
+            <div className={`absolute left-1/2 size-3 -translate-x-1/2 rotate-45 ${popover.existingId ? "border-slate-200 bg-white" : "bg-slate-900"} ${popover.placement === "above" ? "-bottom-1.5 border-b border-r" : "-top-1.5 border-l border-t"}`}></div>
           </div>
         </>
       )}
