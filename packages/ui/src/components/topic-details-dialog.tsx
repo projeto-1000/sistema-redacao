@@ -107,7 +107,7 @@ export function TopicDetailsDialog({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="min-w-4xl h-[90vh] md:max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col rounded-3xl border-0 outline-none focus:outline-none focus:ring-0 shadow-xl bg-white">
+      <DialogContent className="w-calc(100% - 2rem)  md:min-w-4xl h-[90vh] md:max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col rounded-3xl border-0 outline-none focus:outline-none focus:ring-0 shadow-xl bg-white">
 
         <DialogHeader className="px-6 py-5 border-b border-slate-200 bg-white shrink-0">
           <div className="flex items-center gap-3">

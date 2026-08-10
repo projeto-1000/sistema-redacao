@@ -19,7 +19,10 @@ export interface EssayTopic {
   id: string;
   title: string;
   axis: ThematicAxis;
-  source_type: 'ENEM' | 'AUTORAL' | 'ENEM PPL';
+  source_type:
+  | 'ENEM'
+  | 'AUTORAL'
+  | 'ENEM PPL/Reaplicação';
   source_year: number | null;
   active: boolean;
   created_at: string;
