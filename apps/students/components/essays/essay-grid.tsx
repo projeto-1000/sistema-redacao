@@ -13,7 +13,7 @@ interface EssayGridProps {
 
 export async function EssayGrid({ filters, page }: EssayGridProps) {
   const { essays, totalPages, error } = await getStudentEssays({ filters, page });
-  console.log(essays)
+
   const searchTerm = filters?.search
 
   if (error) {
