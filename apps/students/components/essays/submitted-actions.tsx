@@ -1,5 +1,6 @@
 import { EssayStatus } from "@repo/types";
 import { Button } from "@repo/ui/components/button";
+import { Clock3 } from "lucide-react";
 import Link from "next/link";
 
 const statusConfig: Record<Exclude<EssayStatus, "draft">, { label: string; disabled: boolean }> = {
@@ -16,6 +17,15 @@ interface SubmittedActionsProps {
 
 export function SubmittedActions({ status, essayId }: SubmittedActionsProps) {
   const action = statusConfig[status];
+
+  if (status === "pending") {
+    return (
+      <div className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-accent/50 px-4 text-sm font-semibold text-secondary/70">
+        <Clock3 className="size-4 shrink-0" aria-hidden="true" />
+        <span>Aguardando correção</span>
+      </div>
+    );
+  }
 
   if (action.disabled) {
     return (
