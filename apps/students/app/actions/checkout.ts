@@ -24,6 +24,16 @@ import {
 
 type CheckoutOperation = "new_subscription" | "subscription_reactivation";
 
+interface FinalizeCheckoutSubscriptionResult {
+  success: boolean;
+  duplicate: boolean;
+  subscription_id: string;
+  contract_id: string;
+  contract_version: number;
+  payment_id: string;
+  credit_transaction_id: string | null;
+}
+
 type CheckoutBlockReason =
   | "active_paid_subscription"
   | "payment_issue"
@@ -344,67 +354,6 @@ async function getOrCreatePagarmeCustomerId() {
   return customer.id;
 }
 
-async function grantSubscriptionCredits({
-  supabaseAdmin,
-  userId,
-  plan,
-  paymentId,
-  subscriptionId,
-  transactionType,
-  previousSubscriptionExternalId,
-}: {
-  supabaseAdmin: ReturnType<typeof createAdminClient>;
-  userId: string;
-  plan: {
-    id: string;
-    name: string;
-    credits_included: number;
-    interval: string;
-    interval_count: number;
-    credits_expiration_days: number | null;
-  };
-  paymentId: string;
-  subscriptionId: string;
-  transactionType: CheckoutOperation;
-  previousSubscriptionExternalId: string | null;
-}) {
-  if (plan.credits_included <= 0) {
-    return;
-  }
-
-  const isReactivation = transactionType === "subscription_reactivation";
-
-  const description = isReactivation
-    ? `Liberação de ${plan.credits_included} crédito(s) pela reativação do plano ${plan.name}.`
-    : `Liberação de ${plan.credits_included} crédito(s) do plano ${plan.name}.`;
-
-  const { error } = await supabaseAdmin.from("credit_transactions").insert({
-    user_id: userId,
-    type: transactionType,
-    amount: plan.credits_included,
-    description,
-    student_payment_id: paymentId,
-    metadata: {
-      source: "checkout",
-      grant_type: isReactivation ? "subscription_reactivation_cycle" : "subscription_initial_cycle",
-      checkout_operation: transactionType,
-      subscription_id: subscriptionId,
-      previous_subscription_external_id: previousSubscriptionExternalId,
-      plan_id: plan.id,
-      plan_name: plan.name,
-      interval: plan.interval,
-      interval_count: plan.interval_count,
-      credits_expiration_days: plan.credits_expiration_days,
-    },
-  });
-
-  if (error && error.code !== "23505") {
-    console.error("[GRANT_SUBSCRIPTION_CREDITS_ERROR]", error);
-
-    throw new Error("Não foi possível liberar os créditos da assinatura.");
-  }
-}
-
 export async function createCheckoutSubscription(
   input: CreateCheckoutSubscriptionInput
 ): Promise<CreateCheckoutSubscriptionResult> {
@@ -621,109 +570,71 @@ export async function createCheckoutSubscription(
     throw new Error("Pagamento não autorizado. Confira os dados do cartão ou tente outro cartão.");
   }
 
-  const { data: localSubscription, error: subscriptionError } = await supabaseAdmin
-    .from("subscriptions")
-    .upsert(
-      {
-        user_id: user.id,
-        plan_id: plan.id,
-        status: localSubscriptionStatus,
+  const providerSubscriptionItemId =
+    pagarmeSubscription.items?.find(
+      (item) => item.status === "active" && item.id.startsWith("si_")
+    )?.id ??
+    pagarmeSubscription.items?.find((item) => item.id.startsWith("si_"))?.id ??
+    null;
 
-        current_period_start: pagarmeSubscription.current_cycle?.start_at ?? null,
-        current_period_end: pagarmeSubscription.current_cycle?.end_at ?? null,
-        next_billing_at: pagarmeSubscription.next_billing_at ?? null,
-        cancel_at_period_end: false,
+  const finalizedAt = new Date().toISOString();
+  const contractEffectiveAt =
+    pagarmeSubscription.current_cycle?.start_at ??
+    pagarmeSubscription.created_at ??
+    finalizedAt;
 
-        pending_plan_id: null,
-        pending_change_type: null,
-        pending_change_at: null,
-
-        cancellation_requested_at: null,
-        cancellation_effective_at: null,
-        cancellation_reason: null,
-        cancellation_provider_status: null,
-        provider_canceled_at: null,
-        canceled_at: null,
-        cancellation_metadata: {},
-
-        external_id: pagarmeSubscription.id,
-        payment_method: input.paymentMethod,
-        payment_card_id: savedCardId,
-
-        metadata: {
-          provider: "pagarme",
-          pagarme_subscription_id: pagarmeSubscription.id,
-          previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
-          pagarme_customer_id: pagarmeCustomerId,
-          pagarme_status: pagarmeSubscription.status,
-          next_billing_at: pagarmeSubscription.next_billing_at ?? null,
-          saved_card: Boolean(savedCardId),
-          checkout_operation: checkoutOperation,
-        },
-
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" }
-    )
-    .select("id")
-    .single();
-
-  if (subscriptionError || !localSubscription) {
-    throw new Error("Não foi possível salvar a assinatura no sistema.");
-  }
-
-  const { data: payment, error: paymentError } = await supabaseAdmin
-    .from("student_payments")
-    .insert({
-      user_id: user.id,
-      subscription_id: localSubscription.id,
-      plan_id: plan.id,
-      payment_card_id: savedCardId,
-      kind: "subscription",
-      provider: "pagarme",
-      external_id: pagarmeSubscription.id,
-      amount: plan.price,
-      credits_amount: plan.credits_included,
-      status: pagarmeSubscription.status ?? localSubscriptionStatus,
-      payment_method: input.paymentMethod,
-      paid_at: localSubscriptionStatus === "active" ? new Date().toISOString() : null,
-      metadata: {
+  const { data: finalizationData, error: finalizationError } = await supabaseAdmin.rpc(
+    "finalize_checkout_subscription",
+    {
+      p_user_id: user.id,
+      p_plan_id: plan.id,
+      p_plan_name: plan.name,
+      p_price_cents: plan.price,
+      p_currency: (pagarmeSubscription.currency ?? "BRL").toUpperCase(),
+      p_credits_included: plan.credits_included,
+      p_interval: plan.interval,
+      p_interval_count: plan.interval_count,
+      p_credits_expiration_days: plan.credits_expiration_days,
+      p_provider_plan_id: pagarmePlanId,
+      p_provider_subscription_item_id: providerSubscriptionItemId,
+      p_provider_subscription_id: pagarmeSubscription.id,
+      p_subscription_status: localSubscriptionStatus,
+      p_current_period_start: pagarmeSubscription.current_cycle?.start_at ?? null,
+      p_current_period_end: pagarmeSubscription.current_cycle?.end_at ?? null,
+      p_next_billing_at: pagarmeSubscription.next_billing_at ?? null,
+      p_payment_method: input.paymentMethod,
+      p_payment_card_id: savedCardId,
+      p_subscription_metadata: {
         provider: "pagarme",
         pagarme_subscription_id: pagarmeSubscription.id,
+        previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
         pagarme_customer_id: pagarmeCustomerId,
         pagarme_status: pagarmeSubscription.status,
-        local_subscription_code: subscriptionCode,
-        checkout_operation: checkoutOperation,
-        previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
-        current_period_start: pagarmeSubscription.current_cycle?.start_at ?? null,
-        current_period_end: pagarmeSubscription.current_cycle?.end_at ?? null,
         next_billing_at: pagarmeSubscription.next_billing_at ?? null,
+        saved_card: Boolean(savedCardId),
+        checkout_operation: checkoutOperation,
       },
-    })
-    .select("id")
-    .single();
+      p_payment_status: pagarmeSubscription.status ?? localSubscriptionStatus,
+      p_paid_at: localSubscriptionStatus === "active" ? finalizedAt : null,
+      p_effective_at: contractEffectiveAt,
+      p_checkout_operation: checkoutOperation,
+      p_previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
+    }
+  );
 
-  if (paymentError || !payment) {
-    throw new Error("Não foi possível registrar o pagamento do aluno.");
-  }
+  const finalization = finalizationData as FinalizeCheckoutSubscriptionResult | null;
 
-  if (localSubscriptionStatus === "active") {
-    await grantSubscriptionCredits({
-      supabaseAdmin,
-      userId: user.id,
-      plan,
-      paymentId: payment.id,
-      subscriptionId: localSubscription.id,
-      transactionType: checkoutOperation,
-      previousSubscriptionExternalId: checkoutAccess.previousSubscriptionExternalId,
-    });
+  if (finalizationError || !finalization?.success) {
+    console.error("[FINALIZE_CHECKOUT_SUBSCRIPTION_ERROR]", finalizationError);
+
+    throw new Error("Não foi possível concluir a assinatura no sistema.");
   }
 
   return {
     success: true,
     subscriptionId: pagarmeSubscription.id,
-    localSubscriptionId: localSubscription.id,
-    paymentId: payment.id,
+    localSubscriptionId: finalization.subscription_id,
+    paymentId: finalization.payment_id,
     savedCardId,
     status: localSubscriptionStatus,
   };
