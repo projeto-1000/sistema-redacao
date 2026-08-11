@@ -186,6 +186,58 @@ export type SubscriptionStatus =
   | "canceled"
   | "unpaid";
 
+export type SubscriptionContractStatus =
+  | "active"
+  | "pending"
+  | "superseded"
+  | "canceled";
+
+export type SubscriptionContractSource =
+  | "checkout"
+  | "upgrade"
+  | "downgrade"
+  | "backfill"
+  | "free_trial"
+  | "mentorship";
+
+export type SubscriptionContractBillingMode =
+  | "recurring"
+  | "one_time"
+  | "free";
+
+export type SubscriptionContractInterval =
+  | "day"
+  | "week"
+  | "month"
+  | "year"
+  | "lifetime";
+
+export interface SubscriptionContract {
+  id: string;
+  subscription_id: string;
+  version: number;
+  status: SubscriptionContractStatus;
+  source: SubscriptionContractSource;
+  billing_mode: SubscriptionContractBillingMode;
+  effective_at: string;
+  ended_at: string | null;
+  plan_id: string;
+  plan_name: string;
+  price_cents: number;
+  currency: string;
+  credits_included: number;
+  interval: SubscriptionContractInterval;
+  interval_count: number | null;
+  credits_expiration_days: number;
+  provider_plan_id: string | null;
+  provider_subscription_item_id: string | null;
+  benefits_schema_version: number;
+  benefits_snapshot: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface StudentSubscription {
   id: string;
   user_id: string;
