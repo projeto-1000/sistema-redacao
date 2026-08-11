@@ -12,7 +12,7 @@ import {
 import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { finalCorrectionSchema } from "@repo/validators";
+import { finalCorrectionSchema, normalizeCorrectionHighlights } from "@repo/validators";
 interface GetPendingEssaysParams {
   status: EssayStatus | EssayStatus[];
   filters?: PendingEssaysFilter;
@@ -302,7 +302,7 @@ export async function getGradedEssay(id: string) {
     title: data.title,
     totalScore: data.total_score,
     text: data.content,
-    highlights: data.highlights || [],
+    highlights: normalizeCorrectionHighlights(data.highlights),
     scores: {
       c1: data.score_c1,
       c2: data.score_c2,

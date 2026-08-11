@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/server";
-import { EssayListItem, EssaysFilter } from "@/types";
+import { EssaysFilter } from "@/types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
+import { normalizeCorrectionHighlights } from "@repo/validators";
+import type { EssayCardListItem } from "@/utils/get-essay-card-date";
 
 interface GetEssaysParams {
   filters?: EssaysFilter;
@@ -14,7 +16,7 @@ export async function getStudentEssays({
   page = 1,
   limit = 10,
 }: GetEssaysParams = {}): Promise<{
-  essays: EssayListItem[];
+  essays: EssayCardListItem[];
   totalPages: number;
   error: PostgrestError | null;
 }> {
@@ -33,7 +35,7 @@ export async function getStudentEssays({
 
   let query = supabase
     .from("essays")
-    .select("id, title, submission_date, status, total_score, thematic_axis, topic_id, due_date", {
+    .select("id, title, created_at, submission_date, correction_date, updated_at, status, total_score, thematic_axis, topic_id, due_date", {
       count: "exact",
     })
     .eq("student_id", user.id);
@@ -110,7 +112,7 @@ export async function getEssayById(essayId: string) {
     title: essay.title,
     totalScore: essay.total_score,
     text: essay.content,
-    highlights: essay.highlights || [],
+    highlights: normalizeCorrectionHighlights(essay.highlights),
     scores: {
       c1: essay.score_c1,
       c2: essay.score_c2,

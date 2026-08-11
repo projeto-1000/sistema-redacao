@@ -3,6 +3,8 @@
 import { Button } from "@repo/ui/components/button";
 import { Highlighter, CheckCircle2 } from "lucide-react";
 import { COMPETENCY_STYLES, SCORE_LEVELS } from "../../constants";
+import type { CorrectionHighlight } from "@repo/types";
+import { HighlightCommentsPanel } from "./highlight-comments-panel";
 
 interface CompetencyCardProps {
   comp: {
@@ -14,6 +16,9 @@ interface CompetencyCardProps {
   onActivateHighlightMode: (id: string) => void;
   score?: number;
   comment?: string;
+  highlights: CorrectionHighlight[];
+  activeHighlightId: string | null;
+  onSelectHighlight: (id: string) => void;
   onScoreChange: (newScore: number) => void;
   onCommentChange: (newComment: string) => void;
 }
@@ -24,6 +29,9 @@ export function CompetencyCard({
   onActivateHighlightMode,
   score,
   comment,
+  highlights,
+  activeHighlightId,
+  onSelectHighlight,
   onScoreChange,
   onCommentChange
 }: CompetencyCardProps) {
@@ -96,6 +104,12 @@ export function CompetencyCard({
         value={comment}
         onChange={(e) => onCommentChange(e.target.value)}
         maxLength={300}
+      />
+
+      <HighlightCommentsPanel
+        highlights={highlights}
+        activeHighlightId={activeHighlightId}
+        onSelectHighlight={onSelectHighlight}
       />
     </div>
   );

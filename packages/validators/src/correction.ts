@@ -21,7 +21,7 @@ const requiredListItemSchema = z
   .min(1, "Preencha todos os itens da lista.")
   .max(250, "Cada item deve ter no máximo 250 caracteres.");
 
-const correctionHighlightSchema = z
+export const correctionHighlightSchema = z
   .object({
     id: z.string().min(1, "O destaque precisa ter um identificador."),
 
@@ -29,9 +29,11 @@ const correctionHighlightSchema = z
       .string()
       .min(1, "O texto destacado não pode estar vazio."),
 
-    compId: z
-      .string()
-      .min(1, "O destaque precisa estar associado a uma competência."),
+    compId: z.enum(["c1", "c2", "c3", "c4", "c5"], {
+      message: "O destaque precisa estar associado a uma competência válida.",
+    }),
+
+    comment: correctionCommentSchema.default(""),
 
     startIndex: z
       .number()
@@ -45,13 +47,24 @@ const correctionHighlightSchema = z
   })
   .refine(
     (highlight) =>
-      highlight.endIndex >= highlight.startIndex,
+      highlight.endIndex > highlight.startIndex,
     {
       path: ["endIndex"],
       message:
         "A posição final do destaque deve ser maior ou igual à inicial.",
     }
   );
+
+export const correctionHighlightsSchema = z.array(correctionHighlightSchema);
+
+export function normalizeCorrectionHighlights(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((highlight) => {
+    const result = correctionHighlightSchema.safeParse(highlight);
+    return result.success ? [result.data] : [];
+  });
+}
 
 export const finalCorrectionSchema = z.object({
   scores: z.object({
@@ -104,7 +117,7 @@ next_essay_priorities: z
       "Informe no máximo três tarefas de reescrita."
     ),
 
-  highlights: z.array(correctionHighlightSchema),
+  highlights: correctionHighlightsSchema,
 });
 
 export type FinalCorrectionInput = z.input<

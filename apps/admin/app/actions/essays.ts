@@ -9,7 +9,7 @@ import {
   PendingEssayListItem,
   PendingEssaysFilter,
 } from "@repo/types";
-import { finalCorrectionSchema } from "@repo/validators";
+import { finalCorrectionSchema, normalizeCorrectionHighlights } from "@repo/validators";
 import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -261,6 +261,7 @@ export async function getGradedEssay(id: string) {
 
   return {
     ...essayData,
+    highlights: normalizeCorrectionHighlights(essayData.highlights),
     student_name: student.full_name,
     teacher_name: teacher?.full_name ?? "Corretor não informado",
     scores: {
