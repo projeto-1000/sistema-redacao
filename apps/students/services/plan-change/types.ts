@@ -10,9 +10,17 @@ export interface UpgradePlanSummary {
 export interface PlanUpgradePreview extends PlanUpgradeCalculation {
   subscriptionId: string;
   subscriptionExternalId: string | null;
+  currentContractId: string;
 
   currentPlan: UpgradePlanSummary;
   newPlan: UpgradePlanSummary;
+
+  newContractTerms: {
+    interval: string;
+    intervalCount: number | null;
+    creditsExpirationDays: number;
+    providerPlanId: string | null;
+  };
 }
 
 export type ExecutePlanUpgradeResult =
