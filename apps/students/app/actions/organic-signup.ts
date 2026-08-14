@@ -175,7 +175,7 @@ export async function completeOrganicSignup(
     .eq("id", attempt.id)
     .or(`processing_at.is.null,processing_at.lte.${processingLockCutoff}`)
     .is("completed_at", null)
-    .select("id")
+    .select("id, processing_at, completed_at")
     .maybeSingle();
 
   if (claimError) {
@@ -184,6 +184,7 @@ export async function completeOrganicSignup(
       message: claimError.message,
       details: claimError.details,
       hint: claimError.hint,
+      hasData: Boolean(claimedAttempt),
     });
     return { success: false, error: "Não foi possível finalizar o cadastro." };
   }
