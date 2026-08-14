@@ -178,6 +178,11 @@ export async function completeOrganicSignup(
     .select("id, processing_at, completed_at")
     .maybeSingle();
 
+  console.log("[ORGANIC_SIGNUP_CLAIM_RESULT]", {
+    data: claimedAttempt,
+    error: claimError,
+  });
+
   if (claimError) {
     console.error("[ORGANIC_SIGNUP_CLAIM_ERROR]", {
       code: claimError.code,
@@ -190,6 +195,13 @@ export async function completeOrganicSignup(
   }
 
   if (!claimedAttempt) {
+    console.error("[ORGANIC_SIGNUP_CLAIM_EMPTY]", {
+      attemptId: attempt.id,
+      processingAt: attempt.processing_at,
+      completedAt: attempt.completed_at,
+      now: new Date().toISOString(),
+    });
+
     return {
       success: false,
       error: "Este cadastro já está sendo finalizado.",
