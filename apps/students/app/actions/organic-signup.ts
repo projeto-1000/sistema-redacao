@@ -179,6 +179,12 @@ export async function completeOrganicSignup(
     .maybeSingle();
 
   if (claimError) {
+    console.error("[ORGANIC_SIGNUP_CLAIM_ERROR]", {
+      code: claimError.code,
+      message: claimError.message,
+      details: claimError.details,
+      hint: claimError.hint,
+    });
     return { success: false, error: "Não foi possível finalizar o cadastro." };
   }
 
