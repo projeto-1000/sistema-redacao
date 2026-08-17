@@ -66,12 +66,16 @@ export function useAuth() {
     const cleanPhone = data.phone.replace(/\D/g, "");
     const termsAcceptedAt = data.terms ? new Date().toISOString() : null;
 
-    const { error: rpcError } = await supabase.rpc("check_document_exists", {
+    const { data: documentExists, error: rpcError } = await supabase.rpc("check_document_exists", {
       doc_to_check: cleanDocument,
     });
 
     if (rpcError) {
-      throw new Error("Document already registered");
+      throw new Error("Não foi possível verificar o CPF no momento.");
+    }
+
+    if (documentExists === true) {
+      throw new Error("Este CPF já está cadastrado.");
     }
 
     const { data: authData, error: authError } = await supabase.auth.signUp({

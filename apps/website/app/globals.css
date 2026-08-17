@@ -1,0 +1,449 @@
+@import "tailwindcss";
+@import "@repo/tailwind-config";
+@source "../";
+@source "../../../packages/ui/src/components";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-navy-deep: var(--navy-deep);
+  --color-navy-mid: var(--navy-mid);
+  --color-paper: var(--paper);
+  --color-paper-ink: var(--paper-ink);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-pastel-blue: var(--pastel-blue);
+  --color-pastel-yellow: var(--pastel-yellow);
+  --color-pastel-green: var(--pastel-green);
+  --color-pastel-purple: var(--pastel-purple);
+  --font-display: var(--font-poppins), system-ui, sans-serif;
+  --font-sans: var(--font-poppins), system-ui, sans-serif;
+  --font-serif: var(--font-poppins), system-ui, sans-serif;
+}
+
+:root {
+  --radius: 1.25rem;
+
+  /* Base — plataforma Projeto 1000 */
+  --background: oklch(1 0 0); /* branco */
+  --foreground: oklch(0.21 0.045 266); /* navy #0B1123 */
+  --navy-deep: oklch(0.19 0.045 266); /* navy escuro dos cards de destaque */
+  --navy-mid: oklch(0.28 0.055 266);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.045 266);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.045 266);
+
+  --primary: oklch(0.56 0.2 262); /* azul da plataforma #1960ea */
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.97 0.012 255); /* cinza-azulado muito claro */
+  --secondary-foreground: oklch(0.21 0.045 266);
+
+  --muted: oklch(0.97 0.012 255);
+  --muted-foreground: oklch(0.55 0.03 258); /* cinza-azulado texto secundário */
+
+  --accent: oklch(0.85 0.16 90); /* amarelo #f5c327 */
+  --accent-foreground: oklch(0.21 0.045 266);
+
+  --destructive: oklch(0.62 0.22 27);
+  --destructive-foreground: oklch(1 0 0);
+  --success: oklch(0.68 0.16 155);
+  --warning: oklch(0.75 0.16 65);
+
+  --border: oklch(0.92 0.012 255);
+  --input: oklch(0.92 0.012 255);
+  --ring: oklch(0.56 0.2 262);
+
+  /* Pastéis — fundo dos círculos de ícone */
+  --pastel-blue: oklch(0.95 0.03 258);
+  --pastel-yellow: oklch(0.96 0.05 95);
+  --pastel-green: oklch(0.95 0.045 160);
+  --pastel-purple: oklch(0.95 0.035 300);
+
+  /* Papel (mockup de caderno) */
+  --paper: oklch(0.99 0.005 95);
+  --paper-ink: oklch(0.21 0.045 266);
+
+  --shadow-soft:
+    0 1px 2px rgba(11, 17, 35, 0.04), 0 8px 24px -12px rgba(11, 17, 35, 0.12);
+  --shadow-card:
+    0 1px 3px rgba(11, 17, 35, 0.05), 0 18px 40px -24px rgba(11, 17, 35, 0.22);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+    font-weight: 700;
+  }
+  h1 {
+    line-height: 1.05;
+  }
+  h2 {
+    line-height: 1.1;
+  }
+}
+
+/* ============================================================
+   BLOCOS ESCUROS — inversão local de tokens
+   ============================================================ */
+.on-navy {
+  background-color: var(--primary);
+  --foreground: oklch(1 0 0);
+  --card-foreground: oklch(1 0 0);
+  --muted-foreground: oklch(0.92 0.03 262);
+  --border: oklch(1 0 0 / 22%);
+  --card: oklch(1 0 0 / 12%);
+  --secondary: oklch(1 0 0 / 14%);
+  color: oklch(1 0 0);
+}
+
+.paper-block {
+  background-color: var(--paper);
+  color: var(--paper-ink);
+}
+.paper-block .muted-ink {
+  color: color-mix(in oklab, var(--paper-ink) 60%, transparent);
+}
+
+/* ============================================================
+   COMPONENTES / PADRÕES DA PLATAFORMA
+   ============================================================ */
+.card-soft {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.input-base {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  padding: 0.9rem 1.1rem;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.input-base::placeholder {
+  color: var(--muted-foreground);
+}
+.input-base:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 18%, transparent);
+}
+
+.icon-bubble {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ============================================================
+   MOVIMENTO
+   ============================================================ */
+@keyframes marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes word-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(4px);
+  }
+  60% {
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes word-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes reveal-up {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-blob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(18px, -24px, 0) scale(1.06);
+  }
+}
+
+@keyframes highlight-in {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.marquee-track {
+  display: inline-flex;
+  gap: 3rem;
+  animation: marquee 40s linear infinite;
+  will-change: transform;
+}
+
+.reveal {
+  opacity: 0;
+}
+.reveal.reveal-in {
+  animation: reveal-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.press-fx {
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease;
+}
+.press-fx:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+.press-fx:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@layer components {
+  :where(.arrow-slide) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .arrow-slide > svg {
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .arrow-slide:hover > svg {
+    transform: translateX(4px);
+  }
+}
+
+.story-link {
+  position: relative;
+  display: inline-block;
+}
+.story-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  height: 3px;
+  border-radius: 999px;
+  width: 100%;
+  background-color: var(--primary);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.story-link:hover::after,
+.story-link[data-active="true"]::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Accordion (+ que vira ×) */
+.faq-plus {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.faq-plus::before,
+.faq-plus::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  background-color: currentColor;
+  border-radius: 2px;
+}
+.faq-plus::before {
+  width: 20px;
+  height: 2px;
+}
+.faq-plus::after {
+  width: 2px;
+  height: 20px;
+}
+details[open] > summary .faq-plus {
+  transform: rotate(45deg);
+}
+
+.faq-bar {
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+details[open] .faq-bar {
+  transform: scaleY(1);
+}
+
+.sticker {
+  display: inline-block;
+  transform: rotate(-2deg);
+  transition: transform 240ms ease;
+}
+.sticker:hover {
+  transform: rotate(0deg) scale(1.04);
+}
+.sticker-tilt-left {
+  transform: rotate(-3deg);
+}
+.sticker-tilt-right {
+  transform: rotate(2deg);
+}
+
+.float-blob {
+  animation: float-blob 12s ease-in-out infinite;
+}
+
+.serif-accent {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 800;
+}
+
+/* Marca-texto amarelo */
+.highlight-mark {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+.highlight-mark::before {
+  content: "";
+  position: absolute;
+  left: -0.12em;
+  right: -0.12em;
+  bottom: 0.06em;
+  height: 0.45em;
+  background: var(--accent);
+  opacity: 0.6;
+  border-radius: 999px;
+  transform: scaleX(0);
+  transform-origin: left;
+  z-index: -1;
+  animation: highlight-in 900ms cubic-bezier(0.22, 1, 0.36, 1) 200ms forwards;
+}
+.highlight-mark.highlight-thick::before {
+  height: 0.55em;
+  opacity: 0.75;
+}
+
+.tilt-card {
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+  --tilt-glow: 0;
+}
+.tilt-card > * {
+  transform: translateZ(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .reveal,
+  .reveal.reveal-in,
+  .float-blob,
+  .press-fx,
+  .arrow-slide > svg,
+  .highlight-mark::before {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .highlight-mark::before {
+    transform: scaleX(1) !important;
+    opacity: 0.6 !important;
+  }
+}

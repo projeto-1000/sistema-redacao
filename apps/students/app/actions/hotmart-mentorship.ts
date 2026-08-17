@@ -67,11 +67,18 @@ export async function completeHotmartMentorshipSignup({
   const cleanPhone = parsedValues.phone.replace(/\D/g, "");
   const termsAcceptedAt = parsedValues.terms ? new Date().toISOString() : null;
 
-  const { error: documentError } = await supabaseAdmin.rpc("check_document_exists", {
-    doc_to_check: cleanDocument,
-  });
+  const { data: documentExists, error: documentError } = await supabaseAdmin.rpc(
+    "check_document_exists",
+    {
+      doc_to_check: cleanDocument,
+    }
+  );
 
   if (documentError) {
+    throw new Error("Não foi possível verificar o CPF no momento.");
+  }
+
+  if (documentExists === true) {
     throw new Error("Este CPF já está cadastrado.");
   }
 
