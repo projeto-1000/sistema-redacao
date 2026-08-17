@@ -84,14 +84,20 @@ export async function POST(request: Request) {
 
     if (documentExists === true) {
       return NextResponse.json(
-        { error: "Este CPF já está cadastrado." },
+        {
+          code: "DOCUMENT_ALREADY_REGISTERED",
+          error: "Este CPF já está cadastrado.",
+        },
         { status: 409, headers: corsHeaders }
       );
     }
 
     if (await authUserExistsByEmail(supabaseAdmin, details.email)) {
       return NextResponse.json(
-        { error: "Este e-mail já está cadastrado." },
+        {
+          code: "EMAIL_ALREADY_REGISTERED",
+          error: "Este e-mail já está cadastrado.",
+        },
         { status: 409, headers: corsHeaders }
       );
     }
