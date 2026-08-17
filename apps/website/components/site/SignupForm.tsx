@@ -37,7 +37,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/components/select";
-import { ArrowRight, CircleAlert, LogIn, MessageCircle } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  CircleAlert,
+  LogIn,
+  MessageCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -45,6 +51,10 @@ import { upsertWebsiteLead } from "@/lib/leads.actions";
 import { getStudentsUrl, SUPPORT_URL } from "@/lib/site-links";
 
 const countryCodeOptions = getPhoneCountryCodeOptions();
+const fieldLabelClassName =
+  "text-xs font-bold uppercase tracking-wide text-foreground/70";
+const fieldControlClassName =
+  "h-[50px]! rounded-[1rem] border-border bg-background px-[1.1rem] py-[0.9rem] text-[0.95rem]! shadow-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20";
 
 type DuplicateCode = "DOCUMENT_ALREADY_REGISTERED" | "EMAIL_ALREADY_REGISTERED";
 
@@ -199,31 +209,34 @@ export function SignupForm() {
   }
 
   return (
-    <Card
-      className="border-border bg-card shadow-[var(--shadow-card)]"
-      id="signup"
-    >
-      <CardHeader>
-        <CardTitle className="font-display text-2xl">
-          Crie sua conta gratuita
+    <Card className="card-soft gap-0 p-6 sm:p-8">
+      <CardHeader className="gap-0 p-0">
+        <CardTitle className="font-display text-2xl font-extrabold leading-normal">
+          Criar minha conta grátis
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Preencha seus dados. Sua senha será definida na próxima etapa.
+        <p className="mt-2 text-sm text-muted-foreground">
+          1 crédito de correção humana. Sem cartão de crédito.
         </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="mt-6 p-0">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="grid gap-4"
+          >
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome completo</FormLabel>
+                <FormItem className="gap-1.5">
+                  <FormLabel className={fieldLabelClassName}>
+                    NOME COMPLETO
+                  </FormLabel>
                   <FormControl>
                     <Input
                       autoComplete="name"
-                      placeholder="Digite seu nome completo"
+                      placeholder="Como podemos te chamar?"
+                      className={fieldControlClassName}
                       {...field}
                     />
                   </FormControl>
@@ -235,13 +248,15 @@ export function SignupForm() {
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>E-mail</FormLabel>
+                <FormItem className="gap-1.5">
+                  <FormLabel className={fieldLabelClassName}>E-MAIL</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
+                      inputMode="email"
                       autoComplete="email"
-                      placeholder="seu@email.com"
+                      placeholder="seuemail@exemplo.com"
+                      className={fieldControlClassName}
                       {...field}
                     />
                   </FormControl>
@@ -251,36 +266,17 @@ export function SignupForm() {
             />
             <FormField
               control={form.control}
-              name="document"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CPF</FormLabel>
-                  <FormControl>
-                    <Input
-                      inputMode="numeric"
-                      maxLength={14}
-                      placeholder="000.000.000-00"
-                      {...field}
-                      onChange={(event) =>
-                        field.onChange(formatCPF(event.target.value))
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-[112px_minmax(0,1fr)] gap-3">
-              <FormField
-                control={form.control}
-                name="phoneCountryCode"
-                render={({ field }) => (
-                  <FormItem className="min-w-0">
-                    <FormLabel>País</FormLabel>
+              name="phoneCountryCode"
+              render={({ field: countryCodeField }) => (
+                <FormItem className="gap-1.5">
+                  <FormLabel className={fieldLabelClassName}>
+                    WHATSAPP
+                  </FormLabel>
+                  <div className="grid grid-cols-[108px_minmax(0,1fr)] items-start gap-3">
                     <Select
-                      value={field.value}
+                      value={countryCodeField.value}
                       onValueChange={(value) => {
-                        field.onChange(value);
+                        countryCodeField.onChange(value);
                         form.setValue("phone", "", {
                           shouldDirty: true,
                           shouldValidate: true,
@@ -288,8 +284,18 @@ export function SignupForm() {
                       }}
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="+55" />
+                        <SelectTrigger
+                          aria-label="Código do país"
+                          className={`w-full ${fieldControlClassName}`}
+                        >
+                          <SelectValue placeholder="+55">
+                            {
+                              countryCodeOptions.find(
+                                (option) =>
+                                  option.value === countryCodeField.value,
+                              )?.display
+                            }
+                          </SelectValue>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -300,69 +306,95 @@ export function SignupForm() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem className="min-w-0">
-                    <FormLabel>WhatsApp</FormLabel>
-                    <FormControl>
-                      <Input
-                        inputMode="numeric"
-                        maxLength={isBrazil ? 15 : 20}
-                        placeholder={
-                          isBrazil
-                            ? "(00) 00000-0000"
-                            : "Digite somente números"
-                        }
-                        {...field}
-                        onChange={(event) =>
-                          field.onChange(
-                            isBrazil
-                              ? formatPhone(event.target.value)
-                              : onlyDigits(event.target.value).slice(0, 20),
-                          )
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem className="min-w-0 gap-1.5">
+                          <FormControl>
+                            <Input
+                              aria-label="WhatsApp"
+                              inputMode="numeric"
+                              maxLength={isBrazil ? 15 : 20}
+                              placeholder={
+                                isBrazil
+                                  ? "(11) 91234-5678"
+                                  : "Digite somente números"
+                              }
+                              className={fieldControlClassName}
+                              {...field}
+                              onChange={(event) =>
+                                field.onChange(
+                                  isBrazil
+                                    ? formatPhone(event.target.value)
+                                    : onlyDigits(event.target.value).slice(
+                                        0,
+                                        20,
+                                      ),
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="document"
+              render={({ field }) => (
+                <FormItem className="gap-1.5">
+                  <FormLabel className={fieldLabelClassName}>CPF</FormLabel>
+                  <FormControl>
+                    <Input
+                      inputMode="numeric"
+                      maxLength={14}
+                      placeholder="000.000.000-00"
+                      className={fieldControlClassName}
+                      {...field}
+                      onChange={(event) =>
+                        field.onChange(formatCPF(event.target.value))
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="terms"
               render={({ field }) => (
-                <FormItem className="flex items-start gap-3 rounded-xl border border-border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={(checked) =>
-                        field.onChange(checked === true)
-                      }
-                    />
-                  </FormControl>
-                  <div className="space-y-1">
-                    <FormLabel className="normal-case leading-relaxed">
-                      Li e aceito os{" "}
-                      <Link href="/termos" className="text-primary underline">
-                        Termos de Uso
-                      </Link>{" "}
-                      e a{" "}
-                      <Link
-                        href="/privacidade"
-                        className="text-primary underline"
-                      >
-                        Política de Privacidade
-                      </Link>
-                      .
-                    </FormLabel>
-                    <FormMessage />
+                <FormItem className="gap-0">
+                  <div className="flex items-start gap-3">
+                    <FormControl>
+                      <Checkbox
+                        className="mt-0.5"
+                        checked={field.value}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked === true)
+                        }
+                      />
+                    </FormControl>
+                    <div className="min-w-0">
+                      <FormLabel className="block text-xs font-normal leading-relaxed text-muted-foreground">
+                        Autorizo o contato do Projeto 1000 por WhatsApp e e-mail
+                        e aceito a{" "}
+                        <Link
+                          href="/privacidade"
+                          className="font-semibold text-primary hover:underline"
+                        >
+                          Política de Privacidade
+                        </Link>
+                        .
+                      </FormLabel>
+                      <FormMessage className="mt-1.5" />
+                    </div>
                   </div>
                 </FormItem>
               )}
@@ -377,18 +409,42 @@ export function SignupForm() {
             )}
             <Button
               type="submit"
-              size="lg"
-              className="arrow-slide w-full rounded-full"
-              disabled={form.formState.isSubmitting || !form.formState.isValid}
+              className="press-fx arrow-slide mt-1 h-auto w-full rounded-full px-6 py-4 text-sm font-bold"
+              disabled={!form.formState.isValid}
+              isLoading={form.formState.isSubmitting}
+              loadingText="Enviando..."
             >
-              {form.formState.isSubmitting ? (
-                "Continuando..."
-              ) : (
-                <>
-                  Continuar para criar senha <ArrowRight className="h-4 w-4" />
-                </>
-              )}
+              Criar minha conta gratuita <ArrowRight className="h-4 w-4" />
             </Button>
+
+            <ul className="mt-1 grid gap-2 text-xs text-muted-foreground">
+              {[
+                "Correção individual feita por professor",
+                "Nota nas cinco competências do Enem",
+                "Próximos passos e tarefa de reescrita",
+              ].map((benefit) => (
+                <li key={benefit} className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
+                  {benefit}
+                </li>
+              ))}
+            </ul>
+
+            <p className="mt-1 text-center text-xs text-muted-foreground">
+              Já tem uma conta?{" "}
+              {loginUrl ? (
+                <a
+                  href={loginUrl}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  Entrar na plataforma
+                </a>
+              ) : (
+                <span className="font-semibold text-primary">
+                  Entrar na plataforma
+                </span>
+              )}
+            </p>
           </form>
         </Form>
       </CardContent>
