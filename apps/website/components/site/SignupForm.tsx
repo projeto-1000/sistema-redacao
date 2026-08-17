@@ -298,10 +298,24 @@ export function SignupForm() {
                           </SelectValue>
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent
+                        position="popper"
+                        align="start"
+                        sideOffset={6}
+                        className="max-h-[300px]! w-[min(20rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] overflow-y-auto border-primary/20"
+                      >
                         {countryCodeOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.display} · {option.label}
+                          <SelectItem
+                            key={option.value}
+                            value={option.value}
+                            className="min-h-10 px-3 py-2.5 pr-9 focus:bg-primary/10 focus:text-primary data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold data-[state=checked]:text-primary [&>span:last-child]:min-w-0 [&>span:last-child]:flex-1 [&>span:last-child]:overflow-hidden"
+                          >
+                            <span
+                              className="block truncate"
+                              title={`${option.display} · ${option.label}`}
+                            >
+                              {option.display} · {option.label}
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>
