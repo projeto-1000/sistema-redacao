@@ -166,40 +166,27 @@ export async function completeOrganicSignup(
   const processingAt = new Date().toISOString();
   const processingLockCutoff = new Date(processingLockCutoffMs).toISOString();
   const { data: claimedAttempt, error: claimError } = await supabaseAdmin
-    .from("signup_attempts")
-    .update({
-      processing_at: processingAt,
-      last_error_code: null,
-      last_error_at: null,
+    .rpc("claim_signup_attempt", {
+      p_attempt_id: attempt.id,
+      p_processing_at: processingAt,
+      p_lock_cutoff: processingLockCutoff,
     })
-    .eq("id", attempt.id)
-    .or(`processing_at.is.null,processing_at.lte.${processingLockCutoff}`)
-    .is("completed_at", null)
     .select("id, processing_at, completed_at")
     .maybeSingle();
 
-  console.log("[ORGANIC_SIGNUP_CLAIM_RESULT]", {
-    data: claimedAttempt,
-    error: claimError,
-  });
-
   if (claimError) {
-    console.error("[ORGANIC_SIGNUP_CLAIM_ERROR]", {
-      code: claimError.code,
-      message: claimError.message,
-      details: claimError.details,
-      hint: claimError.hint,
-      hasData: Boolean(claimedAttempt),
+    console.error("[ORGANIC_SIGNUP_ERROR]", {
+      attempt_id: attempt.id,
+      error_code: "CLAIM_FAILED",
     });
+
     return { success: false, error: "Não foi possível finalizar o cadastro." };
   }
 
   if (!claimedAttempt) {
-    console.error("[ORGANIC_SIGNUP_CLAIM_EMPTY]", {
-      attemptId: attempt.id,
-      processingAt: attempt.processing_at,
-      completedAt: attempt.completed_at,
-      now: new Date().toISOString(),
+    console.error("[ORGANIC_SIGNUP_ERROR]", {
+      attempt_id: attempt.id,
+      error_code: "CLAIM_NOT_ACQUIRED",
     });
 
     return {
