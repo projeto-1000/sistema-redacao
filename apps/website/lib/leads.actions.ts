@@ -89,13 +89,9 @@ export async function upsertWebsiteLead(input: {
   const leadsUrl = process.env.LEADS_SUPABASE_URL;
   const leadsSecretKey = process.env.LEADS_SUPABASE_SECRET_KEY;
 
-  if (!leadsUrl || !leadsSecretKey) {
-    console.warn("[WEBSITE_LEAD_SKIPPED]", {
-      code: "LEADS_CONFIG_MISSING",
-    });
-
-    return { ok: true };
-  }
+if (!leadsUrl || !leadsSecretKey) {
+  return { ok: true };
+}
 
   const registration = parsedRegistration.data;
 
