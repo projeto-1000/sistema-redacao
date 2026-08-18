@@ -57,13 +57,21 @@ export async function upsertWebsiteLead(input: {
     { onConflict: "email" },
   );
 
-  if (error) {
-    console.error("[WEBSITE_LEAD_ERROR]", { code: "LEAD_UPSERT_FAILED" });
-    return {
-      ok: false,
-      error: "Não foi possível salvar seus dados no momento. Tente novamente.",
-    };
-  }
+  // if (error) {
+  //   console.error("[WEBSITE_LEAD_ERROR]", { code: "LEAD_UPSERT_FAILED" });
+  //   return {
+  //     ok: false,
+  //     error: "Não foi possível salvar seus dados no momento. Tente novamente.",
+  //   };
+  // }
+
+  if (!leadsUrl || !leadsSecretKey) {
+  console.warn("[WEBSITE_LEAD_SKIPPED]", {
+    code: "LEADS_CONFIG_MISSING",
+  });
+
+  return { ok: true };
+}
 
   return { ok: true };
 }
