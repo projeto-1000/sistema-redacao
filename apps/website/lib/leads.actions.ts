@@ -9,68 +9,6 @@ import {
 
 const UTM_VALUE_MAX_LENGTH = 200;
 
-// export async function upsertWebsiteLead(input: {
-//   registration: RegistrationDetailsSchema;
-//   utm: Record<string, string>;
-// }): Promise<{ ok: true } | { ok: false; error: string }> {
-//   const parsedRegistration = registrationDetailsSchema.safeParse(
-//     input.registration,
-//   );
-
-//   if (!parsedRegistration.success) {
-//     return {
-//       ok: false,
-//       error: "Revise os dados informados e tente novamente.",
-//     };
-//   }
-
-//   const leadsUrl = process.env.LEADS_SUPABASE_URL;
-//   const leadsSecretKey = process.env.LEADS_SUPABASE_SECRET_KEY;
-
-//   if (!leadsUrl || !leadsSecretKey) {
-//     console.error("[WEBSITE_LEAD_ERROR]", { code: "LEADS_CONFIG_MISSING" });
-//     return {
-//       ok: false,
-//       error: "Não foi possível salvar seus dados no momento. Tente novamente.",
-//     };
-//   }
-
-//   const registration = parsedRegistration.data;
-//   const utm = Object.fromEntries(
-//     Object.entries(input.utm)
-//       .filter(
-//         ([key, value]) => key.startsWith("utm_") && typeof value === "string",
-//       )
-//       .map(([key, value]) => [key, value.slice(0, UTM_VALUE_MAX_LENGTH)]),
-//   );
-
-//   const leadsClient = createClient(leadsUrl, leadsSecretKey, {
-//     auth: { autoRefreshToken: false, persistSession: false },
-//   });
-
-//   const { error } = await leadsClient.from("leads").upsert(
-//     {
-//       nome: registration.name.trim(),
-//       email: registration.email.trim().toLowerCase(),
-//       cpf: onlyDigits(registration.document),
-//       whatsapp: `${onlyDigits(registration.phoneCountryCode)}${onlyDigits(registration.phone)}`,
-//       origem: "site-cadastro",
-//       utm,
-//     },
-//     { onConflict: "email" },
-//   );
-
-//   if (error) {
-//     console.error("[WEBSITE_LEAD_ERROR]", { code: "LEAD_UPSERT_FAILED" });
-//     return {
-//       ok: false,
-//       error: "Não foi possível salvar seus dados no momento. Tente novamente.",
-//     };
-//   }
-
-//   return { ok: true };
-// }
-
 export async function upsertWebsiteLead(input: {
   registration: RegistrationDetailsSchema;
   utm: Record<string, string>;
@@ -89,12 +27,12 @@ export async function upsertWebsiteLead(input: {
   const leadsUrl = process.env.LEADS_SUPABASE_URL;
   const leadsSecretKey = process.env.LEADS_SUPABASE_SECRET_KEY;
 
-if (!leadsUrl || !leadsSecretKey) {
-  return { ok: true };
-}
+  if (!leadsUrl || !leadsSecretKey) {
+    console.warn("[WEBSITE_LEAD_SKIPPED]", { code: "LEADS_CONFIG_MISSING" });
+    return { ok: true };
+  }
 
   const registration = parsedRegistration.data;
-
   const utm = Object.fromEntries(
     Object.entries(input.utm)
       .filter(
@@ -104,10 +42,7 @@ if (!leadsUrl || !leadsSecretKey) {
   );
 
   const leadsClient = createClient(leadsUrl, leadsSecretKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
+    auth: { autoRefreshToken: false, persistSession: false },
   });
 
   const { error } = await leadsClient.from("leads").upsert(
@@ -119,26 +54,16 @@ if (!leadsUrl || !leadsSecretKey) {
       origem: "site-cadastro",
       utm,
     },
-    {
-      onConflict: "email",
-    },
+    { onConflict: "email" },
   );
 
   if (error) {
-    console.error("[WEBSITE_LEAD_ERROR]", {
-      code: "LEAD_UPSERT_FAILED",
-      message: error.message,
-    });
-
+    console.error("[WEBSITE_LEAD_ERROR]", { code: "LEAD_UPSERT_FAILED" });
     return {
       ok: false,
       error: "Não foi possível salvar seus dados no momento. Tente novamente.",
     };
   }
-
-  console.log("[WEBSITE_LEAD_CREATED]", {
-    email: registration.email,
-  });
 
   return { ok: true };
 }

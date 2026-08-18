@@ -159,7 +159,7 @@ export function SignupForm() {
     const isDocument = duplicateCode === "DOCUMENT_ALREADY_REGISTERED";
 
     return (
-      <Card className="border-border bg-card shadow-(--shadow-card)">
+      <Card className="border-border bg-card shadow-[var(--shadow-card)]">
         <CardHeader>
           <span className="icon-bubble mb-3 h-12 w-12 bg-pastel-yellow">
             <CircleAlert className="h-6 w-6 text-foreground" />
@@ -342,9 +342,9 @@ export function SignupForm() {
                                   isBrazil
                                     ? formatPhone(event.target.value)
                                     : onlyDigits(event.target.value).slice(
-                                      0,
-                                      20,
-                                    ),
+                                        0,
+                                        20,
+                                      ),
                                 )
                               }
                             />
