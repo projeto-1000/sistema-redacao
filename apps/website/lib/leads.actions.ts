@@ -108,7 +108,10 @@ export async function upsertWebsiteLead(input: {
   );
 
   const leadsClient = createClient(leadsUrl, leadsSecretKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
   });
 
   const { error } = await leadsClient.from("leads").upsert(
@@ -120,18 +123,26 @@ export async function upsertWebsiteLead(input: {
       origem: "site-cadastro",
       utm,
     },
-    { onConflict: "email" },
+    {
+      onConflict: "email",
+    },
   );
 
   if (error) {
     console.error("[WEBSITE_LEAD_ERROR]", {
       code: "LEAD_UPSERT_FAILED",
-      error,
+      message: error.message,
     });
 
-    // Não bloqueia cadastro caso o CRM/leads esteja indisponível
-    return { ok: true };
+    return {
+      ok: false,
+      error: "Não foi possível salvar seus dados no momento. Tente novamente.",
+    };
   }
+
+  console.log("[WEBSITE_LEAD_CREATED]", {
+    email: registration.email,
+  });
 
   return { ok: true };
 }

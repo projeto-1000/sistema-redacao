@@ -257,7 +257,7 @@ export default function CadastroPage() {
       <section>
         <Container className="pb-16 md:pb-20">
           <Reveal>
-            <div className="on-navy grid items-start gap-8 rounded-[2rem] p-8 shadow-[var(--shadow-card)] sm:p-12 md:grid-cols-[1fr_0.6fr]">
+            <div className="on-navy grid items-start gap-8 rounded-4xl p-8 shadow-(--shadow-card) sm:p-12 md:grid-cols-[1fr_0.6fr]">
               <div>
                 <span className="pill bg-accent/15 text-accent">
                   Quem está por trás
@@ -316,7 +316,7 @@ export default function CadastroPage() {
                 alt="Fernando Entratice, professor de redação e criador do Projeto 1000"
                 width={260}
                 height={325}
-                className="mx-auto aspect-[4/5] w-full max-w-[260px] rounded-[1.5rem] object-cover shadow-2xl"
+                className="mx-auto aspect-4/5-full max-w-[260px] rounded-3xl object-cover shadow-2xl"
               />
             </div>
           </Reveal>
@@ -353,7 +353,7 @@ export default function CadastroPage() {
       <section>
         <Container className="py-16 md:py-20">
           <Reveal>
-            <div className="on-navy rounded-[2rem] p-8 text-center shadow-[var(--shadow-card)] sm:p-12">
+            <div className="on-navy rounded-4xl p-8 text-center shadow-(--shadow-card) sm:p-12">
               <h2 className="font-display text-2xl font-extrabold uppercase sm:text-4xl">
                 Saiba por onde começar. Receba sua correção com caminho.
               </h2>
