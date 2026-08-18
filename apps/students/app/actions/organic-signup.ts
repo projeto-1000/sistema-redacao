@@ -1,6 +1,10 @@
 "use server";
 
 import { createAdminClient } from "@/lib/admin";
+import {
+  getDataCrazySyncErrorCode,
+  syncStudentToDataCrazy,
+} from "@/lib/integrations/datacrazy/sync-student";
 import { authUserExistsByEmail, hashSignupToken } from "@/lib/organic-signup";
 import { createClient } from "@/lib/server";
 import { createPagarmeCustomer } from "@repo/payments";
@@ -298,6 +302,15 @@ export async function completeOrganicSignup(
       error:
         "Sua conta foi criada, mas não foi possível concluir o fluxo. Faça login para continuar.",
     };
+  }
+
+  try {
+    await syncStudentToDataCrazy(authUserId);
+  } catch (error) {
+    console.error("[DATACRAZY_SYNC_ERROR]", {
+      user_id: authUserId,
+      error_code: getDataCrazySyncErrorCode(error),
+    });
   }
 
   return {

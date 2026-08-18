@@ -28,11 +28,8 @@ export async function upsertWebsiteLead(input: {
   const leadsSecretKey = process.env.LEADS_SUPABASE_SECRET_KEY;
 
   if (!leadsUrl || !leadsSecretKey) {
-    console.error("[WEBSITE_LEAD_ERROR]", { code: "LEADS_CONFIG_MISSING" });
-    return {
-      ok: false,
-      error: "Não foi possível salvar seus dados no momento. Tente novamente.",
-    };
+    console.warn("[WEBSITE_LEAD_SKIPPED]", { code: "LEADS_CONFIG_MISSING" });
+    return { ok: true };
   }
 
   const registration = parsedRegistration.data;
