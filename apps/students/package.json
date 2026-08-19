@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@repo/datacrazy": "workspace:*",
     "@repo/payments": "workspace:*",
     "@repo/types": "workspace:*",
     "@repo/ui": "workspace:*",

@@ -2,6 +2,10 @@
 
 import { createClient } from "@/lib/server";
 import { createAdminClient } from "@/lib/admin";
+import {
+  getDataCrazySyncErrorCode,
+  syncStudentToDataCrazy,
+} from "@/lib/integrations/datacrazy/sync-student";
 import type {
   CheckoutPageData,
   CheckoutProfileForPagarme,
@@ -628,6 +632,19 @@ export async function createCheckoutSubscription(
     console.error("[FINALIZE_CHECKOUT_SUBSCRIPTION_ERROR]", finalizationError);
 
     throw new Error("Não foi possível concluir a assinatura no sistema.");
+  }
+
+  if (!finalization.duplicate) {
+    try {
+      await syncStudentToDataCrazy(user.id, "subscription_updated");
+    } catch (error) {
+      console.error("[DATACRAZY_SYNC_ERROR]", {
+        user_id: user.id,
+        subscription_id: finalization.subscription_id,
+        event: "subscription_updated",
+        error_code: getDataCrazySyncErrorCode(error),
+      });
+    }
   }
 
   return {

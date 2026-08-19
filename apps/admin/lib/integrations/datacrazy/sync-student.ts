@@ -1,6 +1,3 @@
-import "server-only";
-
-import { createAdminClient } from "@/lib/admin";
 import {
   sendDataCrazyStudentPayload,
   type DataCrazyDeliveryErrorCode,
@@ -8,6 +5,7 @@ import {
   type DataCrazyStudentPayload,
 } from "@repo/datacrazy";
 import { onlyDigits } from "@repo/utils";
+import { createClient } from "@supabase/supabase-js";
 
 const PLAN_LABELS: Record<string, string> = {
   internal_free_trial: "Grátis",
@@ -31,8 +29,7 @@ const ESSAY_STATUS_LABELS: Record<string, string> = {
   returned: "Devolvida",
 };
 
-type DataCrazySyncErrorCode =
-  | DataCrazyDeliveryErrorCode
+type DataCrazySyncErrorCode = DataCrazyDeliveryErrorCode
   | "STUDENT_STATE_FETCH_FAILED"
   | "PROFILE_NOT_FOUND"
   | "SUBSCRIPTION_NOT_FOUND"
@@ -42,9 +39,7 @@ type DataCrazySyncErrorCode =
   | "ESSAY_STATUS_NOT_MAPPED"
   | "UNKNOWN_ERROR";
 
-export type { DataCrazyEvent, DataCrazyStudentPayload } from "@repo/datacrazy";
-
-export class DataCrazySyncError extends Error {
+class DataCrazySyncError extends Error {
   constructor(public readonly code: DataCrazySyncErrorCode) {
     super(code);
     this.name = "DataCrazySyncError";
@@ -157,4 +152,20 @@ export async function syncStudentToDataCrazy(
   if (!deliveryResult.ok) {
     throw new DataCrazySyncError(deliveryResult.errorCode);
   }
+}
+
+function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SECRET_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 }
