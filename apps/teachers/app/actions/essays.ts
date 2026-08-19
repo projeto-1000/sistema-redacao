@@ -2,6 +2,10 @@
 
 import { createClient } from "@/lib/server";
 import {
+  getDataCrazySyncErrorCode,
+  syncStudentToDataCrazy,
+} from "@/lib/integrations/datacrazy/sync-student";
+import {
   CorrectionPayload,
   EssayStatus,
   GradedEssayListItem,
@@ -172,7 +176,7 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
 
   const correction = validationResult.data;
 
-  const { error } = await supabase
+  const { data: correctedEssay, error } = await supabase
     .from("essays")
     .update({
       status: "corrected",
@@ -199,9 +203,11 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
 
       highlights: correction.highlights,
     })
-    .eq("id", essayId);
+    .eq("id", essayId)
+    .select("student_id, status")
+    .single();
 
-  if (error) {
+  if (error || !correctedEssay || correctedEssay.status !== "corrected") {
     console.error("Erro ao salvar correção:", error);
     return { success: false, error: "Não foi possível salvar a correção final." };
   }
@@ -211,6 +217,17 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
     .delete()
     .eq("essay_id", essayId)
     .eq("teacher_id", user.id);
+
+  try {
+    await syncStudentToDataCrazy(correctedEssay.student_id, "essay_status_updated");
+  } catch (error) {
+    console.error("[DATACRAZY_SYNC_ERROR]", {
+      essay_id: essayId,
+      student_id: correctedEssay.student_id,
+      event: "essay_status_updated",
+      error_code: getDataCrazySyncErrorCode(error),
+    });
+  }
 
   revalidatePath("/inicio");
   revalidatePath(`/corrigir-redacao/${essayId}`);

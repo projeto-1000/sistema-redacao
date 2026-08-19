@@ -305,7 +305,7 @@ export async function completeOrganicSignup(
   }
 
   try {
-    await syncStudentToDataCrazy(authUserId);
+    await syncStudentToDataCrazy(authUserId, "user_signup");
   } catch (error) {
     console.error("[DATACRAZY_SYNC_ERROR]", {
       user_id: authUserId,

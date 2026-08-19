@@ -1,4 +1,8 @@
 import { createAdminClient } from "@/lib/admin";
+import {
+  getDataCrazySyncErrorCode,
+  syncStudentToDataCrazy,
+} from "@/lib/integrations/datacrazy/sync-student";
 import { createClient } from "@/lib/server";
 
 import {
@@ -481,6 +485,20 @@ export async function executePlanUpgradeService(
 
       currentPeriodEnd: preview.currentPeriodEnd,
     });
+
+    if (!databaseResult.already_processed) {
+      try {
+        await syncStudentToDataCrazy(user.id, "subscription_updated");
+      } catch (error) {
+        console.error("[DATACRAZY_SYNC_ERROR]", {
+          user_id: user.id,
+          subscription_id: databaseResult.subscription_id,
+          payment_id: databaseResult.payment_id,
+          event: "subscription_updated",
+          error_code: getDataCrazySyncErrorCode(error),
+        });
+      }
+    }
 
     revalidatePath("/assinatura");
     revalidatePath("/perfil");

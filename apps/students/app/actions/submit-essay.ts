@@ -1,6 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/server";
+import {
+  getDataCrazySyncErrorCode,
+  syncStudentToDataCrazy,
+} from "@/lib/integrations/datacrazy/sync-student";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -48,6 +52,16 @@ export async function submitEssay(
   } catch (err) {
     console.error("Erro catch:", err);
     return { error: "Erro interno ao enviar redação." };
+  }
+
+  try {
+    await syncStudentToDataCrazy(user.id, "essay_status_updated");
+  } catch (error) {
+    console.error("[DATACRAZY_SYNC_ERROR]", {
+      user_id: user.id,
+      event: "essay_status_updated",
+      error_code: getDataCrazySyncErrorCode(error),
+    });
   }
 
   revalidatePath("/minhas-redacoes");
