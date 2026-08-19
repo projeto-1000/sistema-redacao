@@ -5,10 +5,6 @@ import {
   getDataCrazySyncErrorCode,
   syncStudentToDataCrazy,
 } from "@/lib/integrations/datacrazy/sync-student";
-import {
-  getDataCrazySyncErrorCode,
-  syncStudentToDataCrazy,
-} from "@/lib/integrations/datacrazy/sync-student";
 import { authUserExistsByEmail, hashSignupToken } from "@/lib/organic-signup";
 import { createClient } from "@/lib/server";
 import { createPagarmeCustomer } from "@repo/payments";
