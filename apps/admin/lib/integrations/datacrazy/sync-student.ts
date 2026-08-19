@@ -8,7 +8,7 @@ import { onlyDigits } from "@repo/utils";
 import { createClient } from "@supabase/supabase-js";
 
 const PLAN_LABELS: Record<string, string> = {
-  internal_free_trial: "Grátis",
+  internal_free_trial: "Free",
   essential: "Essencial",
   advanced: "Avançado",
 };
@@ -33,6 +33,7 @@ type DataCrazySyncErrorCode = DataCrazyDeliveryErrorCode
   | "STUDENT_STATE_FETCH_FAILED"
   | "PROFILE_NOT_FOUND"
   | "SUBSCRIPTION_NOT_FOUND"
+  | "ESSAY_NOT_FOUND"
   | "PLAN_NOT_FOUND"
   | "PLAN_NOT_MAPPED"
   | "PAYMENT_STATUS_NOT_MAPPED"
@@ -52,45 +53,17 @@ export function getDataCrazySyncErrorCode(error: unknown) {
 
 export async function syncStudentToDataCrazy(
   userId: string,
-  event?: DataCrazyEvent
+  event: DataCrazyEvent
 ): Promise<void> {
   const supabaseAdmin = createAdminClient();
 
-  const [profileResult, subscriptionResult, essayResult, allocationResult] = await Promise.all([
-    supabaseAdmin
-      .from("profiles")
-      .select("full_name, phone_country_code, phone")
-      .eq("id", userId)
-      .maybeSingle(),
-    supabaseAdmin
-      .from("subscriptions")
-      .select("plan_id, status")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabaseAdmin
-      .from("essays")
-      .select("status, total_score")
-      .eq("student_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabaseAdmin
-      .from("free_credit_allocations")
-      .select("expires_at")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  const profileResult = await supabaseAdmin
+    .from("profiles")
+    .select("full_name, phone_country_code, phone")
+    .eq("id", userId)
+    .maybeSingle();
 
-  if (
-    profileResult.error ||
-    subscriptionResult.error ||
-    essayResult.error ||
-    allocationResult.error
-  ) {
+  if (profileResult.error) {
     throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
   }
 
@@ -98,54 +71,129 @@ export async function syncStudentToDataCrazy(
     throw new DataCrazySyncError("PROFILE_NOT_FOUND");
   }
 
-  if (!subscriptionResult.data) {
-    throw new DataCrazySyncError("SUBSCRIPTION_NOT_FOUND");
-  }
-
-  const { data: plan, error: planError } = await supabaseAdmin
-    .from("plans")
-    .select("external_id")
-    .eq("id", subscriptionResult.data.plan_id)
-    .maybeSingle();
-
-  if (planError) {
-    throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
-  }
-
-  if (!plan) {
-    throw new DataCrazySyncError("PLAN_NOT_FOUND");
-  }
-
-  const planLabel = plan.external_id ? PLAN_LABELS[plan.external_id] : undefined;
-  const paymentStatus = PAYMENT_STATUS_LABELS[subscriptionResult.data.status];
-  const essayStatus = essayResult.data ? ESSAY_STATUS_LABELS[essayResult.data.status] : "Rascunho";
-
-  if (!planLabel) {
-    throw new DataCrazySyncError("PLAN_NOT_MAPPED");
-  }
-
-  if (!paymentStatus) {
-    throw new DataCrazySyncError("PAYMENT_STATUS_NOT_MAPPED");
-  }
-
-  if (!essayStatus) {
-    throw new DataCrazySyncError("ESSAY_STATUS_NOT_MAPPED");
-  }
-
-  const payload: DataCrazyStudentPayload = {
-    ...(event ? { event } : {}),
-    lead: {
-      name: profileResult.data.full_name ?? "",
-      phone: `${onlyDigits(profileResult.data.phone_country_code)}${onlyDigits(
-        profileResult.data.phone
-      )}`,
-    },
-    plan: planLabel,
-    essay_status: essayStatus,
-    payment_status: paymentStatus,
-    last_essay_score: essayResult.data?.total_score ?? null,
-    tokens_expire_at: allocationResult.data?.expires_at ?? null,
+  const lead = {
+    name: profileResult.data.full_name ?? "",
+    phone: `${onlyDigits(profileResult.data.phone_country_code)}${onlyDigits(
+      profileResult.data.phone
+    )}`,
   };
+
+  let payload: DataCrazyStudentPayload;
+
+  if (event === "user_signup" || event === "subscription_updated") {
+    const [subscriptionResult, allocationResult] = await Promise.all([
+      supabaseAdmin
+        .from("subscriptions")
+        .select("plan_id")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("free_credit_allocations")
+        .select("expires_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    if (subscriptionResult.error || allocationResult.error) {
+      throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
+    }
+
+    if (!subscriptionResult.data) {
+      throw new DataCrazySyncError("SUBSCRIPTION_NOT_FOUND");
+    }
+
+    const { data: plan, error: planError } = await supabaseAdmin
+      .from("plans")
+      .select("external_id")
+      .eq("id", subscriptionResult.data.plan_id)
+      .maybeSingle();
+
+    if (planError) {
+      throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
+    }
+
+    if (!plan) {
+      throw new DataCrazySyncError("PLAN_NOT_FOUND");
+    }
+
+    const planLabel = plan.external_id ? PLAN_LABELS[plan.external_id] : undefined;
+
+    if (!planLabel) {
+      throw new DataCrazySyncError("PLAN_NOT_MAPPED");
+    }
+
+    payload = {
+      event,
+      lead,
+      plan: planLabel,
+      ...(allocationResult.data?.expires_at
+        ? { tokens_expire_at: allocationResult.data.expires_at }
+        : {}),
+    };
+  } else if (event === "essay_status_updated") {
+    const essayResult = await supabaseAdmin
+      .from("essays")
+      .select("status, total_score")
+      .eq("student_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (essayResult.error) {
+      throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
+    }
+
+    if (!essayResult.data) {
+      throw new DataCrazySyncError("ESSAY_NOT_FOUND");
+    }
+
+    const essayStatus = ESSAY_STATUS_LABELS[essayResult.data.status];
+
+    if (!essayStatus) {
+      throw new DataCrazySyncError("ESSAY_STATUS_NOT_MAPPED");
+    }
+
+    payload = {
+      event,
+      lead,
+      essay_status: essayStatus,
+      ...(essayResult.data.total_score !== null
+        ? { last_essay_score: essayResult.data.total_score }
+        : {}),
+    };
+  } else {
+    const subscriptionResult = await supabaseAdmin
+      .from("subscriptions")
+      .select("status")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (subscriptionResult.error) {
+      throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
+    }
+
+    if (!subscriptionResult.data) {
+      throw new DataCrazySyncError("SUBSCRIPTION_NOT_FOUND");
+    }
+
+    const paymentStatus = PAYMENT_STATUS_LABELS[subscriptionResult.data.status];
+
+    if (!paymentStatus) {
+      throw new DataCrazySyncError("PAYMENT_STATUS_NOT_MAPPED");
+    }
+
+    payload = {
+      event,
+      lead,
+      payment_status: paymentStatus,
+    };
+  }
 
   const deliveryResult = await sendDataCrazyStudentPayload(payload);
 

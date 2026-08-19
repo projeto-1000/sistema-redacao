@@ -8,18 +8,28 @@ export type DataCrazyEvent =
   | "subscription_updated"
   | "payment_status_updated";
 
-export interface DataCrazyStudentPayload {
-  event?: DataCrazyEvent;
+interface DataCrazyStudentPayloadBase {
   lead: {
     name: string;
     phone: string;
   };
-  plan: string;
-  essay_status: string;
-  payment_status: string;
-  last_essay_score: number | null;
-  tokens_expire_at: string | null;
 }
+
+export type DataCrazyStudentPayload =
+  | (DataCrazyStudentPayloadBase & {
+      event: "user_signup" | "subscription_updated";
+      plan: string;
+      tokens_expire_at?: string;
+    })
+  | (DataCrazyStudentPayloadBase & {
+      event: "essay_status_updated";
+      essay_status: string;
+      last_essay_score?: number;
+    })
+  | (DataCrazyStudentPayloadBase & {
+      event: "payment_status_updated";
+      payment_status: string;
+    });
 
 export type DataCrazyDeliveryErrorCode =
   | "WEBHOOK_NOT_CONFIGURED"
