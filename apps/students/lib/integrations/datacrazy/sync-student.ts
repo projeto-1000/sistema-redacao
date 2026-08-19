@@ -31,7 +31,8 @@ const ESSAY_STATUS_LABELS: Record<string, string> = {
   returned: "Devolvida",
 };
 
-type DataCrazySyncErrorCode = DataCrazyDeliveryErrorCode
+type DataCrazySyncErrorCode =
+  | DataCrazyDeliveryErrorCode
   | "STUDENT_STATE_FETCH_FAILED"
   | "PROFILE_NOT_FOUND"
   | "SUBSCRIPTION_NOT_FOUND"
