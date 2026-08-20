@@ -1,4 +1,9 @@
 import { createAdminClient } from "@/lib/admin";
+import {
+  getDataCrazySyncErrorCode,
+  syncStudentToDataCrazy,
+  type DataCrazyEvent,
+} from "@/lib/integrations/datacrazy/sync-student";
 
 import {
   getPagarmeSubscription,
@@ -88,6 +93,70 @@ interface PagarmeSubscriptionWebhookData {
 type PagarmeWebhookData = PagarmeInvoiceWebhookData | PagarmeSubscriptionWebhookData;
 
 type AdminClient = ReturnType<typeof createAdminClient>;
+
+async function syncStudentEventsToDataCrazy({
+  supabaseAdmin,
+  subscriptionId,
+  webhookEventId,
+  events,
+}: {
+  supabaseAdmin: AdminClient;
+  subscriptionId?: string;
+  webhookEventId: string;
+  events: DataCrazyEvent[];
+}) {
+  if (!subscriptionId) {
+    for (const event of events) {
+      console.error("[DATACRAZY_SYNC_ERROR]", {
+        webhook_event_id: webhookEventId,
+        event,
+        error_code: "SUBSCRIPTION_ID_MISSING",
+      });
+    }
+
+    return;
+  }
+
+  let studentId: string;
+
+  try {
+    const { data: subscription, error: subscriptionError } = await supabaseAdmin
+      .from("subscriptions")
+      .select("user_id")
+      .eq("id", subscriptionId)
+      .maybeSingle();
+
+    if (subscriptionError || !subscription) {
+      throw new Error("STUDENT_LOOKUP_FAILED");
+    }
+
+    studentId = subscription.user_id;
+  } catch {
+    for (const event of events) {
+      console.error("[DATACRAZY_SYNC_ERROR]", {
+        webhook_event_id: webhookEventId,
+        subscription_id: subscriptionId,
+        event,
+        error_code: "STUDENT_LOOKUP_FAILED",
+      });
+    }
+
+    return;
+  }
+
+  for (const event of events) {
+    try {
+      await syncStudentToDataCrazy(studentId, event);
+    } catch (error) {
+      console.error("[DATACRAZY_SYNC_ERROR]", {
+        webhook_event_id: webhookEventId,
+        subscription_id: subscriptionId,
+        event,
+        error_code: getDataCrazySyncErrorCode(error),
+      });
+    }
+  }
+}
 
 function buildStoredInvoicePayload(webhook: PagarmeWebhook<PagarmeInvoiceWebhookData>) {
   const invoice = webhook.data;
@@ -429,6 +498,8 @@ export async function POST(request: Request) {
       ignored?: boolean;
       reason?: string;
       credits_expired?: number;
+      subscription_id?: string;
+      current_status?: string;
     } | null;
 
     if (!cancellationResult?.success) {
@@ -442,6 +513,19 @@ export async function POST(request: Request) {
         },
         { status: 500 }
       );
+    }
+
+    if (
+      !cancellationResult.duplicate &&
+      !cancellationResult.ignored &&
+      cancellationResult.current_status === "canceled"
+    ) {
+      await syncStudentEventsToDataCrazy({
+        supabaseAdmin,
+        subscriptionId: cancellationResult.subscription_id,
+        webhookEventId,
+        events: ["subscription_updated"],
+      });
     }
 
     return NextResponse.json({
@@ -612,6 +696,8 @@ export async function POST(request: Request) {
       success?: boolean;
       message?: string;
       duplicate?: boolean;
+      subscription_id?: string;
+      downgrade_applied?: boolean;
     } | null;
 
     if (!renewalResult?.success) {
@@ -621,6 +707,21 @@ export async function POST(request: Request) {
         { error: renewalResult?.message ?? "Não foi possível processar a renovação." },
         { status: 500 }
       );
+    }
+
+    if (!renewalResult.duplicate) {
+      const events: DataCrazyEvent[] = ["payment_status_updated"];
+
+      if (renewalResult.downgrade_applied) {
+        events.push("subscription_updated");
+      }
+
+      await syncStudentEventsToDataCrazy({
+        supabaseAdmin,
+        subscriptionId: renewalResult.subscription_id,
+        webhookEventId,
+        events,
+      });
     }
 
     return NextResponse.json({
@@ -700,6 +801,7 @@ export async function POST(request: Request) {
     duplicate?: boolean;
     ignored?: boolean;
     reason?: string;
+    subscription_id?: string;
   } | null;
 
   if (!failureResult?.success) {
@@ -709,6 +811,15 @@ export async function POST(request: Request) {
       { error: failureResult?.message ?? "Não foi possível processar a falha de pagamento." },
       { status: 500 }
     );
+  }
+
+  if (!failureResult.duplicate && !failureResult.ignored) {
+    await syncStudentEventsToDataCrazy({
+      supabaseAdmin,
+      subscriptionId: failureResult.subscription_id,
+      webhookEventId,
+      events: ["payment_status_updated"],
+    });
   }
 
   return NextResponse.json({

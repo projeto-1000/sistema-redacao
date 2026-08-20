@@ -1,0 +1,187 @@
+name: Credit Allocation Backfill Apply
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: credit-allocation-backfill-development
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    name: Apply DEV credit allocation backfill
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Audit, apply and validate backfill
+        env:
+          SUPABASE_DEV_DB_URL: ${{ secrets.SUPABASE_DEV_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          psql_base=(
+            psql "$SUPABASE_DEV_DB_URL"
+            --no-psqlrc
+            --set=ON_ERROR_STOP=1
+            --pset=pager=off
+            --pset=format=unaligned
+            --pset=tuples_only=on
+          )
+
+          dry_run_report="$(
+            PGOPTIONS="-c default_transaction_read_only=on" \
+              "${psql_base[@]}" \
+              --command='select backfill_credit_allocations(false);'
+          )"
+
+          echo "Dry-run report:"
+          jq . <<<"$dry_run_report"
+
+          jq -e '
+            .dry_run == true
+            and .apply_supported == true
+            and (.fallback.apply_eligible // 0) == 0
+            and (.planned.legacy_unclassified // 0) == 0
+            and all(.migration_candidates[]; .classification == "migratable")
+          ' <<<"$dry_run_report" >/dev/null
+
+          expected_allocations="$(jq -r '.planned.allocations' <<<"$dry_run_report")"
+          expected_movements="$(jq -r '.planned.movements' <<<"$dry_run_report")"
+
+          first_apply_report="$(
+            "${psql_base[@]}" \
+              --command='select backfill_credit_allocations(true);'
+          )"
+
+          echo "First apply report:"
+          jq . <<<"$first_apply_report"
+
+          jq -e \
+            --argjson expected_allocations "$expected_allocations" \
+            --argjson expected_movements "$expected_movements" '
+              .dry_run == false
+              and (.inserted.legacy_unclassified // 0) == 0
+              and .inserted.allocations >= 0
+              and .inserted.allocations <= $expected_allocations
+              and .inserted.movements >= 0
+              and .inserted.movements <= $expected_movements
+            ' <<<"$first_apply_report" >/dev/null
+
+          validation_report="$(
+            PGOPTIONS="-c default_transaction_read_only=on" \
+              "${psql_base[@]}" --command="
+                with candidates as materialized (
+                    select audit.*
+                    from public.audit_credit_allocation_backfill() as audit
+                    where audit.record_kind = 'candidate'
+                      and audit.classification in ('migratable', 'fallback')
+                      and audit.remaining_amount > 0
+                      and not audit.proposed_metadata
+                          @> '{\"apply_eligible\": false}'::jsonb
+                ), matched as (
+                    select
+                        candidate.*,
+                        allocation.id as allocation_id,
+                        allocation.origin as allocation_origin,
+                        allocation.remaining_amount as allocation_remaining_amount,
+                        allocation.idempotency_key as allocation_idempotency_key
+                    from candidates as candidate
+                    left join public.credit_allocations as allocation
+                      on allocation.idempotency_key =
+                          'credit-allocation-backfill:v1:'
+                          || (candidate.proposed_metadata ->> 'source_key')
+                )
+                select jsonb_build_object(
+                    'expected_allocations', count(*),
+                    'matched_allocations', count(allocation_id),
+                    'expected_movements', coalesce(sum(
+                        1 + case
+                            when remaining_amount < greatest(
+                                coalesce(granted_amount, remaining_amount),
+                                remaining_amount
+                            ) then 1
+                            else 0
+                        end
+                    ), 0),
+                    'matched_movements', coalesce(sum(
+                        case
+                            when allocation_id is null then 0
+                            else (
+                                select count(*)
+                                from public.credit_allocation_movements as movement
+                                where movement.allocation_id = matched.allocation_id
+                                  and movement.idempotency_key in (
+                                      matched.allocation_idempotency_key || ':opening',
+                                      matched.allocation_idempotency_key || ':reconciliation'
+                                  )
+                            )
+                        end
+                    ), 0),
+                    'expected_remaining_amount', coalesce(sum(remaining_amount), 0),
+                    'actual_remaining_amount', coalesce(
+                        sum(allocation_remaining_amount),
+                        0
+                    ),
+                    'fallback_allocations', count(*) filter (
+                        where allocation_origin = 'legacy_unclassified'
+                    ),
+                    'ambiguous_or_inconsistent_allocations', (
+                        select count(*)
+                        from public.credit_allocations as allocation
+                        where allocation.idempotency_key
+                                like 'credit-allocation-backfill:v1:%'
+                          and allocation.metadata ->> 'backfill_classification'
+                            in ('ambiguous', 'inconsistency')
+                    ),
+                    'duplicate_allocations', count(allocation_id)
+                        - count(distinct allocation_id)
+                )
+                from matched;"
+          )"
+
+          echo "Database validation report:"
+          jq . <<<"$validation_report"
+
+          jq -e '
+            .matched_allocations == .expected_allocations
+            and .matched_movements == .expected_movements
+            and .actual_remaining_amount == .expected_remaining_amount
+            and .fallback_allocations == 0
+            and .ambiguous_or_inconsistent_allocations == 0
+            and .duplicate_allocations == 0
+          ' <<<"$validation_report" >/dev/null
+
+          second_apply_report="$(
+            "${psql_base[@]}" \
+              --command='select backfill_credit_allocations(true);'
+          )"
+
+          echo "Second apply report (idempotency check):"
+          jq . <<<"$second_apply_report"
+
+          jq -e '
+            .dry_run == false
+            and .inserted.allocations == 0
+            and .inserted.movements == 0
+            and .inserted.legacy_unclassified == 0
+            and (.inserted.movement_evidence_links // 0) == 0
+          ' <<<"$second_apply_report" >/dev/null
+
+          {
+            echo "## Credit allocation backfill — Development"
+            echo
+            echo "- Allocations expected: $expected_allocations"
+            echo "- Movements expected: $expected_movements"
+            echo "- First apply allocations inserted: $(jq -r '.inserted.allocations' <<<"$first_apply_report")"
+            echo "- First apply movements inserted: $(jq -r '.inserted.movements' <<<"$first_apply_report")"
+            echo "- Remaining credits validated: $(jq -r '.actual_remaining_amount' <<<"$validation_report")"
+            echo "- Fallback allocations inserted: 0"
+            echo "- Ambiguous/inconsistent allocations inserted: 0"
+            echo "- Second apply allocations inserted: 0"
+            echo "- Second apply movements inserted: 0"
+          } >>"$GITHUB_STEP_SUMMARY"

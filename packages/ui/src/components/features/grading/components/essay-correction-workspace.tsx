@@ -82,15 +82,25 @@ function normalizeInitialFormValues(
 }
 
 function serializeHighlights(
-  highlights: Highlight[]
+  highlights: FinalCorrectionInput["highlights"]
 ): CorrectionPayload["highlights"] {
   return highlights.map((highlight) => ({
     id: highlight.id,
     text: highlight.text,
     compId: highlight.compId,
+    comment: highlight.comment ?? "",
     startIndex: highlight.startIndex,
     endIndex: highlight.endIndex,
   }));
+}
+
+function serializeCorrectionPayload(
+  payload: FinalCorrectionInput
+): CorrectionPayload {
+  return {
+    ...payload,
+    highlights: serializeHighlights(payload.highlights),
+  };
 }
 
 export function EssayCorrectionWorkspace({
@@ -134,6 +144,8 @@ export function EssayCorrectionWorkspace({
 
   const [activeHighlightComp, setActiveHighlightComp] = useState<string | null>(null);
 
+  const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
+
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const isInitialMount = useRef(true);
@@ -155,7 +167,7 @@ export function EssayCorrectionWorkspace({
     }
 
     const timer = setTimeout(() => {
-      const payload = getValues();
+      const payload = serializeCorrectionPayload(getValues());
 
       onAutoSave?.(payload);
     }, 3000);
@@ -179,11 +191,21 @@ export function EssayCorrectionWorkspace({
     setActiveHighlightComp(prev => prev === compId ? null : compId);
   };
 
+  const handleHighlightCommentChange = (id: string, comment: string) => {
+    setHighlights((currentHighlights) =>
+      currentHighlights.map((highlight) =>
+        highlight.id === id
+          ? { ...highlight, comment }
+          : highlight
+      )
+    );
+  };
+
   const handleSave = handleSubmit(
     async (payload) => {
       try {
         const result =
-          await onSaveCorrection(payload);
+          await onSaveCorrection(serializeCorrectionPayload(payload));
 
         if (result.success) {
           toast.success(
@@ -244,8 +266,11 @@ export function EssayCorrectionWorkspace({
             essay={essay}
             highlights={highlights}
             activeHighlightComp={activeHighlightComp}
+            activeHighlightId={activeHighlightId}
             onHighlightsChange={setHighlights}
             onActiveHighlightChange={setActiveHighlightComp}
+            onActiveHighlightIdChange={setActiveHighlightId}
+            onHighlightCommentChange={handleHighlightCommentChange}
           />
 
           <CorrectionSummaryFields
@@ -288,6 +313,11 @@ export function EssayCorrectionWorkspace({
                 onActivateHighlightMode={handleActivateHighlightMode}
                 score={scores[compKey]}
                 comment={comments[compKey]}
+                highlights={highlights.filter(
+                  (highlight) => highlight.compId === compKey
+                )}
+                activeHighlightId={activeHighlightId}
+                onSelectHighlight={setActiveHighlightId}
                 onScoreChange={(value) =>
                   setValue(
                     `scores.${compKey}`,

@@ -52,7 +52,6 @@ export function ConfirmChangePlan({
   currentPlanName,
   currentPlanPrice,
   currentPlanCreditsIncluded,
-  currentPeriodStart,
   currentPeriodEnd,
   initialUpgradePreview,
 }: ConfirmChangePlanProps) {
@@ -74,7 +73,7 @@ export function ConfirmChangePlan({
   const [previewError, setPreviewError] =
     useState<string | null>(null);
 
-  const [isLoadingPreview, setIsLoadingPreview] =
+  const [, setIsLoadingPreview] =
     useState(false);
 
   async function loadUpgradePreview() {
@@ -314,7 +313,35 @@ export function ConfirmChangePlan({
                       <div className="flex items-center justify-between gap-4 text-sm">
                         <span className="flex items-center gap-2 font-medium text-slate-500">
                           <DollarSign className="size-4" />
-                          Cobrança proporcional agora
+                          Valor do novo plano
+                        </span>
+
+                        <span className="font-extrabold text-slate-800">
+                          {upgradePreview
+                            ? formatCurrency(
+                              upgradePreview.originalAmount
+                            )
+                            : "Calculando..."}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-4 text-sm">
+                        <span className="flex items-center gap-2 font-medium text-slate-500">
+                          <DollarSign className="size-4" />
+                          Crédito pelo saldo atual
+                        </span>
+
+                        <span className="font-extrabold text-emerald-700">
+                          {upgradePreview
+                            ? `- ${formatCurrency(upgradePreview.financialCredit)}`
+                            : "Calculando..."}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-4 text-sm">
+                        <span className="flex items-center gap-2 font-medium text-slate-500">
+                          <DollarSign className="size-4" />
+                          Cobrança agora
                         </span>
 
                         <span className="font-extrabold text-slate-800">
@@ -382,7 +409,7 @@ export function ConfirmChangePlan({
                       "numeric"
                     )}
                   </strong>
-                  . A cobrança proporcional será realizada imediatamente, sem
+                  . O saldo restante da assinatura será abatido da cobrança, sem
                   alterar sua data de renovação.
                 </p>
               )}

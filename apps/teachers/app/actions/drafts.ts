@@ -2,6 +2,14 @@
 
 import { createClient } from "@/lib/server";
 import { CorrectionPayload } from "@repo/types";
+import { normalizeCorrectionHighlights } from "@repo/validators";
+
+function normalizeDraft(payload: CorrectionPayload): CorrectionPayload {
+  return {
+    ...payload,
+    highlights: normalizeCorrectionHighlights(payload.highlights),
+  };
+}
 
 export async function autoSaveDraft(essayId: string, payload: CorrectionPayload) {
   const supabase = await createClient();
@@ -15,7 +23,7 @@ export async function autoSaveDraft(essayId: string, payload: CorrectionPayload)
     {
       essay_id: essayId,
       teacher_id: user.id,
-      payload: payload,
+      payload: normalizeDraft(payload),
       updated_at: new Date().toISOString(),
     },
     { onConflict: "essay_id" }
@@ -40,7 +48,7 @@ export async function saveCorrectionDraft(essayId: string, payload: CorrectionPa
   await supabase.from("correction_drafts").upsert({
     essay_id: essayId,
     teacher_id: user.id,
-    payload,
+    payload: normalizeDraft(payload),
   });
 }
 
@@ -61,5 +69,5 @@ export async function getCorrectionDraft(essayId: string): Promise<CorrectionPay
 
   if (error) return null;
 
-  return data.payload as CorrectionPayload;
+  return normalizeDraft(data.payload as CorrectionPayload);
 }

@@ -1,12 +1,16 @@
 import { getEssayById } from "@/app/actions/get-essays";
 import EssayHeader from "@repo/ui/components/features/essays/components/essay-header";
-import EssayContent from "@repo/ui/components/features/essays/components/essay-content";
+import {
+  EssayGeneralComment,
+  EssayTextContent,
+} from "@repo/ui/components/features/essays/components/essay-content";
 
 import { EssayCompetencies, EssayScoreCard } from "@repo/ui/components/features/essays/components/essay-sidebar";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReturnedEssayCard from "@repo/ui/components/features/grading/components/returned-essay-card";
 import EssayImprovementPlan from "@repo/ui/components/features/essays/components/essay-improvement-plan";
+import { EssayHighlightNavigationProvider } from "@repo/ui/components/features/essays/components/essay-highlight-navigation";
 
 export const metadata: Metadata = {
   title: "Detalhes da Redação",
@@ -32,48 +36,61 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
       />
 
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-        <div className="space-y-8 lg:col-span-3">
-          <EssayContent
-            text={essay.text}
-            highlights={essay.highlights}
-            generalComment={essay.generalComment}
-            bestScores={bestScores}
-          />
-        </div>
-
-        <div className="lg:col-span-2 space-y-6">
-          {essay.status === 'corrected' ? (
-            <>
-              <EssayScoreCard
-                totalScore={essay.totalScore}
+      <EssayHighlightNavigationProvider>
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-5">
+          <div className="contents lg:col-span-3 lg:flex lg:flex-col lg:gap-8">
+            <div className="order-6 lg:order-none">
+              <EssayTextContent
+                text={essay.text}
+                highlights={essay.highlights}
+                bestScores={bestScores}
               />
+            </div>
 
-              <EssayCompetencies
-                scores={essay.scores}
-                comments={essay.comments}
-              />
-
-              <EssayImprovementPlan
-                mainBottleneck={essay.mainBottleneck}
-                nextEssayPriorities={
-                  essay.nextEssayPriorities
-                }
-                rewriteTasks={essay.rewriteTasks}
-              />
-            </>
-          ) : (
-            <ReturnedEssayCard
-              reason={essay.returnReason}
-              description={essay.returnDescription}
-            />
-          )}
-          <div>
-
+            <div className="order-2 lg:order-none">
+              <EssayGeneralComment generalComment={essay.generalComment} />
+            </div>
           </div>
-        </div>
 
-      </div>
+          <div className="contents lg:col-span-2 lg:flex lg:flex-col lg:gap-6">
+            {essay.status === 'corrected' ? (
+              <>
+                <div className="order-1 lg:order-none">
+                  <EssayScoreCard
+                    totalScore={essay.totalScore}
+                  />
+                </div>
+
+                <div className="order-3 lg:order-none">
+                  <EssayCompetencies
+                    scores={essay.scores}
+                    comments={essay.comments}
+                    highlights={essay.highlights}
+                  />
+                </div>
+
+                <div className="order-4 empty:hidden lg:order-none">
+                  <EssayImprovementPlan
+                    mainBottleneck={essay.mainBottleneck}
+                    nextEssayPriorities={
+                      essay.nextEssayPriorities
+                    }
+                    rewriteTasks={essay.rewriteTasks}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="order-1 lg:order-none">
+                <ReturnedEssayCard
+                  reason={essay.returnReason}
+                  description={essay.returnDescription}
+                />
+              </div>
+            )}
+          </div>
+
+        </div>
+      </EssayHighlightNavigationProvider>
     </div>
   );
 }

@@ -145,22 +145,32 @@ export async function getCurrentUserSubscriptionContext(): Promise<CurrentUserSu
     return null;
   }
 
-  const { data: plan, error: planError } = await supabase
-    .from("plans")
-    .select(
+  const [planResult, contractResult] = await Promise.all([
+    supabase
+      .from("plans")
+      .select(
+        `
+        id,
+        name,
+        external_id,
+        price,
+        credits_included,
+        interval,
+        interval_count,
+        is_public
       `
-      id,
-      name,
-      external_id,
-      price,
-      credits_included,
-      interval,
-      interval_count,
-      is_public
-    `
-    )
-    .eq("id", subscription.plan_id)
-    .maybeSingle();
+      )
+      .eq("id", subscription.plan_id)
+      .maybeSingle(),
+    supabase
+      .from("subscription_contracts")
+      .select("plan_name, price_cents, credits_included, interval, interval_count")
+      .eq("subscription_id", subscription.id)
+      .eq("status", "active")
+      .maybeSingle(),
+  ]);
+
+  const { data: plan, error: planError } = planResult;
 
   if (planError) {
     console.error("[GET_CURRENT_SUBSCRIPTION_PLAN_ERROR]", planError);
@@ -172,24 +182,30 @@ export async function getCurrentUserSubscriptionContext(): Promise<CurrentUserSu
     return null;
   }
 
+  if (contractResult.error) {
+    console.error("[GET_CURRENT_SUBSCRIPTION_CONTRACT_ERROR]", contractResult.error);
+  }
+
+  const activeContract = contractResult.data;
+
   return {
     subscriptionId: subscription.id,
 
     subscriptionExternalId: subscription.external_id,
 
     planId: plan.id,
-    planName: plan.name,
+    planName: activeContract?.plan_name ?? plan.name,
     planExternalId: plan.external_id,
 
     planKind: getPlanKind({
       externalId: plan.external_id,
-      price: plan.price,
+      price: activeContract?.price_cents ?? plan.price,
     }),
 
-    planPrice: plan.price,
-    planCreditsIncluded: plan.credits_included,
-    planInterval: plan.interval,
-    planIntervalCount: plan.interval_count ?? 1,
+    planPrice: activeContract?.price_cents ?? plan.price,
+    planCreditsIncluded: activeContract?.credits_included ?? plan.credits_included,
+    planInterval: activeContract?.interval ?? plan.interval,
+    planIntervalCount: activeContract?.interval_count ?? plan.interval_count ?? 1,
 
     status: subscription.status as SubscriptionStatus,
 

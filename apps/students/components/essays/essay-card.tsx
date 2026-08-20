@@ -1,7 +1,6 @@
 'use client'
 
 import { deleteDraftEssay } from "@/app/actions/essay-drafts";
-import { EssayListItem } from "@/types";
 import { ThemeBadge } from "@repo/ui/components/theme-badge";
 import { formatDate } from "@repo/utils";
 import { Calendar1Icon } from "lucide-react";
@@ -11,14 +10,19 @@ import { ESSAY_STATUS_MAP } from "@repo/constants";
 
 import { SubmittedActions } from "./submitted-actions";
 import { DraftActions } from "./draft-actions";
+import {
+  getEssayCardDate,
+  type EssayCardListItem,
+} from "@/utils/get-essay-card-date";
 interface EssayCardProps {
-  essay: EssayListItem;
+  essay: EssayCardListItem;
 }
 
 export function EssayCard({ essay }: EssayCardProps) {
   const [isPending, startTransition] = useTransition();
 
   const { label, textColor } = ESSAY_STATUS_MAP[essay.status] || ESSAY_STATUS_MAP.pending;
+  const cardDate = getEssayCardDate(essay);
 
   const onConfirmDelete = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -49,7 +53,8 @@ export function EssayCard({ essay }: EssayCardProps) {
           {essay.title}
         </h3>
         <span className="text-xs font-medium text-slate-500 tracking-wide flex gap-2">
-          <Calendar1Icon className="size-3.5" />  {formatDate(essay.submission_date, 'short')}
+          <Calendar1Icon className="size-3.5 shrink-0" />
+          {cardDate.label}: {formatDate(cardDate.date, "short")}
         </span>
       </div>
 

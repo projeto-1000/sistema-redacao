@@ -290,6 +290,7 @@ export interface PagarmeSubscription {
   canceled_at?: string;
   customer?: PagarmeCustomer;
   card?: PagarmeCard;
+  items?: PagarmeSubscriptionItem[];
   metadata?: Record<string, string>;
 }
 export interface CancelPagarmeSubscriptionParams {

@@ -34,13 +34,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: userRole } = user
-    ? await supabase.rpc("get_my_role")
-    : { data: null };
+  const { data: userRole } = user ? await supabase.rpc("get_my_role") : { data: null };
 
   const publicRoutes = [
     "/login",
     "/cadastro",
+    "/cadastro/senha",
     "/esqueci-minha-senha",
     "/",
     "/nova-senha",
@@ -48,6 +47,7 @@ export async function updateSession(request: NextRequest) {
     "/api/webhooks/hotmart",
     "/api/webhooks/pagarme",
     "/api/payments/customers",
+    "/api/signup/attempts",
   ];
 
   const isPublicRoute = publicRoutes.includes(pathname);
@@ -67,7 +67,11 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  if (user && userRole === ALLOWED_ROLE && (pathname === "/login" || pathname === "/cadastro")) {
+  if (
+    user &&
+    userRole === ALLOWED_ROLE &&
+    (pathname === "/login" || pathname === "/cadastro" || pathname === "/cadastro/senha")
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/inicio";
     return NextResponse.redirect(url);

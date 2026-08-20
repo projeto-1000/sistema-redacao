@@ -1,4 +1,8 @@
 import { createAdminClient } from "@/lib/admin";
+import {
+  getDataCrazySyncErrorCode,
+  syncStudentToDataCrazy,
+} from "@/lib/integrations/datacrazy/sync-student";
 import { createClient } from "@/lib/server";
 
 import {
@@ -86,21 +90,22 @@ export async function getPlanUpgradePreviewService(
     throw new Error("O plano selecionado já é o seu plano atual.");
   }
 
-  const [currentPlanResult, targetPlanResult] = await Promise.all([
+  const [currentContractResult, targetPlanResult, creditsResult] = await Promise.all([
     supabase
-      .from("plans")
+      .from("subscription_contracts")
       .select(
         `
           id,
-          name,
-          price,
+          plan_id,
+          plan_name,
+          price_cents,
           credits_included,
           interval,
-          interval_count,
-          is_public
+          interval_count
         `
       )
-      .eq("id", subscription.plan_id)
+      .eq("subscription_id", subscription.id)
+      .eq("status", "active")
       .maybeSingle(),
 
     supabase
@@ -113,6 +118,8 @@ export async function getPlanUpgradePreviewService(
           credits_included,
           interval,
           interval_count,
+          credits_expiration_days,
+          external_id,
           is_public,
           is_active
         `
@@ -121,12 +128,14 @@ export async function getPlanUpgradePreviewService(
       .eq("is_active", true)
       .eq("is_public", true)
       .maybeSingle(),
+
+    supabase.from("student_credits").select("plan_credits").eq("user_id", user.id).maybeSingle(),
   ]);
 
-  if (currentPlanResult.error || !currentPlanResult.data) {
-    console.error("[PLAN_UPGRADE_CURRENT_PLAN_ERROR]", currentPlanResult.error);
+  if (currentContractResult.error || !currentContractResult.data) {
+    console.error("[PLAN_UPGRADE_CURRENT_CONTRACT_ERROR]", currentContractResult.error);
 
-    throw new Error("Não foi possível carregar o plano atual.");
+    throw new Error("Não foi possível carregar o contrato atual da assinatura.");
   }
 
   if (targetPlanResult.error || !targetPlanResult.data) {
@@ -135,27 +144,39 @@ export async function getPlanUpgradePreviewService(
     throw new Error("O novo plano não está disponível.");
   }
 
-  const currentPlan = currentPlanResult.data;
+  if (creditsResult.error || !creditsResult.data) {
+    console.error("[PLAN_UPGRADE_CREDITS_ERROR]", creditsResult.error);
+
+    throw new Error("Não foi possível carregar o saldo de créditos da assinatura.");
+  }
+
+  const currentContract = currentContractResult.data;
 
   const targetPlan = targetPlanResult.data;
 
-  const currentIntervalCount = currentPlan.interval_count ?? 1;
+  if (currentContract.plan_id !== subscription.plan_id) {
+    throw new Error("O contrato ativo não corresponde ao plano atual da assinatura.");
+  }
+
+  const currentIntervalCount = currentContract.interval_count ?? 1;
 
   const targetIntervalCount = targetPlan.interval_count ?? 1;
 
   if (
-    currentPlan.interval !== targetPlan.interval ||
+    currentContract.interval !== targetPlan.interval ||
     currentIntervalCount !== targetIntervalCount
   ) {
     throw new Error("A troca entre periodicidades diferentes ainda não está disponível.");
   }
 
   const calculation = calculatePlanUpgrade({
-    currentPlanPrice: currentPlan.price,
+    currentContractPrice: currentContract.price_cents,
+
+    currentContractCredits: currentContract.credits_included,
+
+    remainingSubscriptionCredits: creditsResult.data.plan_credits,
 
     newPlanPrice: targetPlan.price,
-
-    currentPlanCredits: currentPlan.credits_included,
 
     newPlanCredits: targetPlan.credits_included,
 
@@ -171,11 +192,13 @@ export async function getPlanUpgradePreviewService(
 
     subscriptionExternalId: subscription.external_id,
 
+    currentContractId: currentContract.id,
+
     currentPlan: {
-      id: currentPlan.id,
-      name: currentPlan.name,
-      price: currentPlan.price,
-      creditsIncluded: currentPlan.credits_included,
+      id: currentContract.plan_id,
+      name: currentContract.plan_name,
+      price: currentContract.price_cents,
+      creditsIncluded: currentContract.credits_included,
     },
 
     newPlan: {
@@ -183,6 +206,13 @@ export async function getPlanUpgradePreviewService(
       name: targetPlan.name,
       price: targetPlan.price,
       creditsIncluded: targetPlan.credits_included,
+    },
+
+    newContractTerms: {
+      interval: targetPlan.interval,
+      intervalCount: targetPlan.interval_count,
+      creditsExpirationDays: targetPlan.credits_expiration_days,
+      providerPlanId: targetPlan.external_id,
     },
   };
 }
@@ -304,13 +334,21 @@ export async function executePlanUpgradeService(
 
       currentPlanId: preview.currentPlan.id,
 
+      currentContractId: preview.currentContractId,
+
       targetPlanId: preview.newPlan.id,
 
       paymentCardId: paymentContext.localPaymentCardId,
 
       proratedAmount: preview.proratedAmount,
 
+      originalAmount: preview.originalAmount,
+
+      financialCredit: preview.financialCredit,
+
       additionalCredits: preview.additionalCredits,
+
+      remainingSubscriptionCredits: preview.remainingSubscriptionCredits,
 
       currentPeriodStart: preview.currentPeriodStart,
 
@@ -339,9 +377,17 @@ export async function executePlanUpgradeService(
 
       currentPlanId: preview.currentPlan.id,
 
+      currentContractId: preview.currentContractId,
+
       targetPlanId: preview.newPlan.id,
 
       proratedAmount: reservedProratedAmount,
+
+      originalAmount: preview.originalAmount,
+
+      financialCredit: preview.financialCredit,
+
+      remainingSubscriptionCredits: preview.remainingSubscriptionCredits,
 
       currentPeriodStart: preview.currentPeriodStart,
 
@@ -371,7 +417,7 @@ export async function executePlanUpgradeService(
 
         message: isPending
           ? "O pagamento ainda está sendo processado. Aguarde alguns instantes antes de tentar novamente."
-          : "Não foi possível aprovar a cobrança proporcional no cartão da assinatura.",
+          : "Não foi possível aprovar a cobrança do upgrade no cartão da assinatura.",
       };
     }
 
@@ -397,11 +443,33 @@ export async function executePlanUpgradeService(
 
       currentPlanId: preview.currentPlan.id,
 
+      currentContractId: preview.currentContractId,
+
       targetPlanId: preview.newPlan.id,
 
       proratedAmount: reservedProratedAmount,
 
+      originalAmount: preview.originalAmount,
+
+      financialCredit: preview.financialCredit,
+
       additionalCredits: reservedAdditionalCredits,
+
+      remainingSubscriptionCredits: preview.remainingSubscriptionCredits,
+
+      targetPlanName: preview.newPlan.name,
+
+      targetPlanPrice: preview.newPlan.price,
+
+      targetPlanCredits: preview.newPlan.creditsIncluded,
+
+      targetPlanInterval: preview.newContractTerms.interval,
+
+      targetPlanIntervalCount: preview.newContractTerms.intervalCount,
+
+      targetPlanCreditsExpirationDays: preview.newContractTerms.creditsExpirationDays,
+
+      targetProviderPlanId: preview.newContractTerms.providerPlanId,
 
       orderId: order.id,
 
@@ -417,6 +485,20 @@ export async function executePlanUpgradeService(
 
       currentPeriodEnd: preview.currentPeriodEnd,
     });
+
+    if (!databaseResult.already_processed) {
+      try {
+        await syncStudentToDataCrazy(user.id, "subscription_updated");
+      } catch (error) {
+        console.error("[DATACRAZY_SYNC_ERROR]", {
+          user_id: user.id,
+          subscription_id: databaseResult.subscription_id,
+          payment_id: databaseResult.payment_id,
+          event: "subscription_updated",
+          error_code: getDataCrazySyncErrorCode(error),
+        });
+      }
+    }
 
     revalidatePath("/assinatura");
     revalidatePath("/perfil");
