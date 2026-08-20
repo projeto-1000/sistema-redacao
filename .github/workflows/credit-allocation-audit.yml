@@ -1,0 +1,23 @@
+name: Credit Allocation Audit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: Run DEV credit allocation dry-run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run credit allocation audit
+        env:
+          SUPABASE_DEV_DB_URL: ${{ secrets.SUPABASE_DEV_DB_URL }}
+          PGOPTIONS: "-c default_transaction_read_only=on"
+        run: >-
+          psql "$SUPABASE_DEV_DB_URL"
+          --no-psqlrc
+          --set=ON_ERROR_STOP=1
+          --pset=pager=off
+          --pset=format=unaligned
+          --pset=tuples_only=on
+          --command='select backfill_credit_allocations(false);'

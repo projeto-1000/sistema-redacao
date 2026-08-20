@@ -1,6 +1,7 @@
 name: Supabase DEV Migration
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - develop

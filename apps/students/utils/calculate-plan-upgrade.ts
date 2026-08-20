@@ -1,8 +1,8 @@
 interface CalculatePlanUpgradeParams {
-  currentPlanPrice: number;
+  currentContractPrice: number;
+  currentContractCredits: number;
+  remainingSubscriptionCredits: number;
   newPlanPrice: number;
-
-  currentPlanCredits: number;
   newPlanCredits: number;
 
   currentPeriodStart: string;
@@ -12,73 +12,74 @@ interface CalculatePlanUpgradeParams {
 }
 
 export interface PlanUpgradeCalculation {
-  priceDifference: number;
+  originalAmount: number;
+  financialCredit: number;
   proratedAmount: number;
   additionalCredits: number;
+  remainingSubscriptionCredits: number;
 
-  remainingRatio: number;
   currentPeriodStart: string;
   currentPeriodEnd: string;
 }
 
 export function calculatePlanUpgrade({
-  currentPlanPrice,
+  currentContractPrice,
+  currentContractCredits,
+  remainingSubscriptionCredits,
   newPlanPrice,
-  currentPlanCredits,
   newPlanCredits,
   currentPeriodStart,
   currentPeriodEnd,
   referenceAt = new Date(),
 }: CalculatePlanUpgradeParams): PlanUpgradeCalculation {
-  if (newPlanPrice <= currentPlanPrice) {
-    throw new Error("O novo plano precisa ter um valor superior ao plano atual.");
+  if (currentContractPrice <= 0 || currentContractCredits <= 0) {
+    throw new Error("O contrato atual não possui termos válidos para o upgrade.");
   }
 
-  if (newPlanCredits <= currentPlanCredits) {
-    throw new Error("O novo plano precisa oferecer mais créditos que o plano atual.");
+  if (newPlanPrice <= currentContractPrice) {
+    throw new Error("O novo plano precisa ter um valor superior ao contrato atual.");
+  }
+
+  if (newPlanCredits <= currentContractCredits) {
+    throw new Error("O novo plano precisa oferecer mais créditos que o contrato atual.");
+  }
+
+  if (
+    !Number.isInteger(remainingSubscriptionCredits) ||
+    remainingSubscriptionCredits < 0 ||
+    remainingSubscriptionCredits > currentContractCredits
+  ) {
+    throw new Error("O saldo de créditos da assinatura é inválido para o upgrade.");
   }
 
   const periodStart = new Date(currentPeriodStart);
   const periodEnd = new Date(currentPeriodEnd);
 
-  const periodStartTime = periodStart.getTime();
-  const periodEndTime = periodEnd.getTime();
-  const referenceTime = referenceAt.getTime();
-
-  if (Number.isNaN(periodStartTime) || Number.isNaN(periodEndTime)) {
+  if (Number.isNaN(periodStart.getTime()) || Number.isNaN(periodEnd.getTime())) {
     throw new Error("O período atual da assinatura é inválido.");
   }
 
-  if (periodEndTime <= periodStartTime) {
+  if (periodEnd.getTime() <= periodStart.getTime()) {
     throw new Error("A data final do ciclo precisa ser posterior à data inicial.");
   }
 
-  if (referenceTime >= periodEndTime) {
+  if (referenceAt.getTime() >= periodEnd.getTime()) {
     throw new Error("O ciclo atual da assinatura já terminou.");
   }
 
-  const totalCycleDuration = periodEndTime - periodStartTime;
+  const calculatedAmount =
+    newPlanPrice - (remainingSubscriptionCredits * currentContractPrice) / currentContractCredits;
 
-  const remainingCycleDuration = periodEndTime - Math.max(referenceTime, periodStartTime);
-
-  const remainingRatio = Math.min(Math.max(remainingCycleDuration / totalCycleDuration, 0), 1);
-
-  const priceDifference = newPlanPrice - currentPlanPrice;
-
-  const calculatedProratedAmount = Math.round(priceDifference * remainingRatio);
-
-  const proratedAmount = remainingRatio > 0 ? Math.max(calculatedProratedAmount, 1) : 0;
+  // A divisão permanece exata até aqui; o único arredondamento é o da cobrança final.
+  const proratedAmount = Math.max(Math.round(calculatedAmount), 0);
 
   return {
-    priceDifference,
+    originalAmount: newPlanPrice,
+    financialCredit: newPlanPrice - proratedAmount,
     proratedAmount,
-
-    additionalCredits: newPlanCredits - currentPlanCredits,
-
-    remainingRatio,
-
+    additionalCredits: newPlanCredits - remainingSubscriptionCredits,
+    remainingSubscriptionCredits,
     currentPeriodStart: periodStart.toISOString(),
-
     currentPeriodEnd: periodEnd.toISOString(),
   };
 }

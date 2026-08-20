@@ -2,6 +2,10 @@
 
 import { createClient } from "@/lib/server";
 import {
+  getDataCrazySyncErrorCode,
+  syncStudentToDataCrazy,
+} from "@/lib/integrations/datacrazy/sync-student";
+import {
   CorrectionPayload,
   EssayStatus,
   GradedEssayListItem,
@@ -329,36 +333,57 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
 
   const correction = validationResult.data;
 
-  const { error } = await supabase
+  const correctionValues = {
+    status: "corrected",
+    teacher_id: user.id,
+    correction_date: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+
+    score_c1: correction.scores.c1,
+    score_c2: correction.scores.c2,
+    score_c3: correction.scores.c3,
+    score_c4: correction.scores.c4,
+    score_c5: correction.scores.c5,
+
+    comment_c1: correction.comments.c1,
+    comment_c2: correction.comments.c2,
+    comment_c3: correction.comments.c3,
+    comment_c4: correction.comments.c4,
+    comment_c5: correction.comments.c5,
+
+    general_comment: correction.general_comment,
+    main_bottleneck: correction.main_bottleneck,
+    next_essay_priorities: correction.next_essay_priorities,
+    rewrite_tasks: correction.rewrite_tasks,
+
+    highlights: correction.highlights,
+  };
+
+  const { data: transitionedEssay, error: transitionError } = await supabase
     .from("essays")
-    .update({
-      status: "corrected",
-      teacher_id: user.id,
-      correction_date: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+    .update(correctionValues)
+    .eq("id", essayId)
+    .neq("status", "corrected")
+    .select("student_id, status")
+    .maybeSingle();
 
-      score_c1: correction.scores.c1,
-      score_c2: correction.scores.c2,
-      score_c3: correction.scores.c3,
-      score_c4: correction.scores.c4,
-      score_c5: correction.scores.c5,
+  if (transitionError) {
+    console.error("Erro ao salvar correção:", transitionError);
+    return { success: false, error: "Não foi possível salvar a correção final." };
+  }
 
-      comment_c1: correction.comments.c1,
-      comment_c2: correction.comments.c2,
-      comment_c3: correction.comments.c3,
-      comment_c4: correction.comments.c4,
-      comment_c5: correction.comments.c5,
+  const becameCorrected = Boolean(transitionedEssay);
 
-      general_comment: correction.general_comment,
-      main_bottleneck: correction.main_bottleneck,
-      next_essay_priorities: correction.next_essay_priorities,
-      rewrite_tasks: correction.rewrite_tasks,
+  const { data: correctedEssay, error } = transitionedEssay
+    ? { data: transitionedEssay, error: null }
+    : await supabase
+        .from("essays")
+        .update(correctionValues)
+        .eq("id", essayId)
+        .select("student_id, status")
+        .single();
 
-      highlights: correction.highlights,
-    })
-    .eq("id", essayId);
-
-  if (error) {
+  if (error || !correctedEssay || correctedEssay.status !== "corrected") {
     console.error("Erro ao salvar correção:", error);
     return { success: false, error: "Não foi possível salvar a correção final." };
   }
@@ -368,6 +393,19 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
     .delete()
     .eq("essay_id", essayId)
     .eq("teacher_id", user.id);
+
+  if (becameCorrected) {
+    try {
+      await syncStudentToDataCrazy(correctedEssay.student_id, "essay_status_updated");
+    } catch (error) {
+      console.error("[DATACRAZY_SYNC_ERROR]", {
+        essay_id: essayId,
+        student_id: correctedEssay.student_id,
+        event: "essay_status_updated",
+        error_code: getDataCrazySyncErrorCode(error),
+      });
+    }
+  }
 
   revalidatePath("/inicio");
   revalidatePath(`/corrigir-redacao/${essayId}`);

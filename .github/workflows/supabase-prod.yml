@@ -1,0 +1,27 @@
+name: Supabase PROD Migration
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/**"
+
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    name: Apply PROD migrations
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.112.0
+
+      - name: Apply migrations
+        run: supabase db push --db-url "${{ secrets.SUPABASE_PROD_DB_URL }}"

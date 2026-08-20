@@ -11,6 +11,7 @@ export interface PlanUpgradePaymentReservation {
   idempotency_key: string | null;
   amount: number;
   credits_amount: number | null;
+  metadata: Record<string, unknown> | null;
 }
 
 interface ReservePlanUpgradePaymentParams {
@@ -18,12 +19,16 @@ interface ReservePlanUpgradePaymentParams {
   subscriptionId: string;
 
   currentPlanId: string;
+  currentContractId: string;
   targetPlanId: string;
 
   paymentCardId: string | null;
 
   proratedAmount: number;
+  originalAmount: number;
+  financialCredit: number;
   additionalCredits: number;
+  remainingSubscriptionCredits: number;
 
   currentPeriodStart: string;
   currentPeriodEnd: string;
@@ -33,10 +38,14 @@ export async function reservePlanUpgradePayment({
   userId,
   subscriptionId,
   currentPlanId,
+  currentContractId,
   targetPlanId,
   paymentCardId,
   proratedAmount,
+  originalAmount,
+  financialCredit,
   additionalCredits,
+  remainingSubscriptionCredits,
   currentPeriodStart,
   currentPeriodEnd,
 }: ReservePlanUpgradePaymentParams): Promise<PlanUpgradePaymentReservation> {
@@ -67,10 +76,15 @@ export async function reservePlanUpgradePayment({
         source: "plan_upgrade",
 
         previous_plan_id: currentPlanId,
+        current_contract_id: currentContractId,
         target_plan_id: targetPlanId,
 
+        original_amount: originalAmount,
+        financial_credit: financialCredit,
+        final_amount: proratedAmount,
         prorated_amount: proratedAmount,
         additional_credits: additionalCredits,
+        remaining_subscription_credits: remainingSubscriptionCredits,
 
         current_period_start: currentPeriodStart,
 
@@ -86,7 +100,8 @@ export async function reservePlanUpgradePayment({
         external_id,
         idempotency_key,
         amount,
-        credits_amount
+        credits_amount,
+        metadata
       `
     )
     .single();
@@ -110,7 +125,8 @@ export async function reservePlanUpgradePayment({
         external_id,
         idempotency_key,
         amount,
-        credits_amount
+        credits_amount,
+        metadata
       `
     )
     .eq("user_id", userId)
@@ -133,6 +149,17 @@ export async function reservePlanUpgradePayment({
     throw new Error("Não foi possível recuperar a operação de upgrade em andamento.");
   }
 
+  if (
+    existingPayment.amount !== proratedAmount ||
+    existingPayment.credits_amount !== additionalCredits ||
+    existingPayment.metadata?.current_contract_id !== currentContractId ||
+    existingPayment.metadata?.original_amount !== originalAmount ||
+    existingPayment.metadata?.financial_credit !== financialCredit ||
+    existingPayment.metadata?.remaining_subscription_credits !== remainingSubscriptionCredits
+  ) {
+    throw new Error("A operação de upgrade existente não corresponde ao saldo atual.");
+  }
+
   return existingPayment;
 }
 
@@ -144,9 +171,13 @@ interface CreateOrRecoverPlanUpgradeOrderParams {
   pagarmeCardId: string;
 
   currentPlanId: string;
+  currentContractId: string;
   targetPlanId: string;
 
   proratedAmount: number;
+  originalAmount: number;
+  financialCredit: number;
+  remainingSubscriptionCredits: number;
 
   currentPeriodStart: string;
   currentPeriodEnd: string;
@@ -158,8 +189,12 @@ export async function createOrRecoverPlanUpgradeOrder({
   pagarmeCustomerId,
   pagarmeCardId,
   currentPlanId,
+  currentContractId,
   targetPlanId,
   proratedAmount,
+  originalAmount,
+  financialCredit,
+  remainingSubscriptionCredits,
   currentPeriodStart,
   currentPeriodEnd,
 }: CreateOrRecoverPlanUpgradeOrderParams): Promise<PagarmeOrder> {
@@ -187,7 +222,7 @@ export async function createOrRecoverPlanUpgradeOrder({
 
     itemCode: `plan-upgrade-${targetPlanId}`,
 
-    itemDescription: "Cobrança proporcional por upgrade de plano",
+    itemDescription: "Upgrade de plano com abatimento de créditos",
 
     idempotencyKey,
 
@@ -196,9 +231,14 @@ export async function createOrRecoverPlanUpgradeOrder({
       payment_id: paymentId,
 
       previous_plan_id: currentPlanId,
+      current_contract_id: currentContractId,
       target_plan_id: targetPlanId,
 
+      original_amount: String(originalAmount),
+      financial_credit: String(financialCredit),
+      final_amount: String(proratedAmount),
       prorated_amount: String(proratedAmount),
+      remaining_subscription_credits: String(remainingSubscriptionCredits),
 
       current_period_start: currentPeriodStart,
 
@@ -280,10 +320,22 @@ interface FinalizePlanUpgradeInDatabaseParams {
   paymentId: string;
 
   currentPlanId: string;
+  currentContractId: string;
   targetPlanId: string;
 
   proratedAmount: number;
+  originalAmount: number;
+  financialCredit: number;
   additionalCredits: number;
+  remainingSubscriptionCredits: number;
+
+  targetPlanName: string;
+  targetPlanPrice: number;
+  targetPlanCredits: number;
+  targetPlanInterval: string;
+  targetPlanIntervalCount: number | null;
+  targetPlanCreditsExpirationDays: number;
+  targetProviderPlanId: string | null;
 
   orderId: string;
   orderStatus: string;
@@ -314,9 +366,20 @@ export async function finalizePlanUpgradeInDatabase({
   subscriptionId,
   paymentId,
   currentPlanId,
+  currentContractId,
   targetPlanId,
   proratedAmount,
+  originalAmount,
+  financialCredit,
   additionalCredits,
+  remainingSubscriptionCredits,
+  targetPlanName,
+  targetPlanPrice,
+  targetPlanCredits,
+  targetPlanInterval,
+  targetPlanIntervalCount,
+  targetPlanCreditsExpirationDays,
+  targetProviderPlanId,
   orderId,
   orderStatus,
   chargeId,
@@ -333,11 +396,23 @@ export async function finalizePlanUpgradeInDatabase({
     p_payment_id: paymentId,
 
     p_expected_current_plan_id: currentPlanId,
+    p_expected_current_contract_id: currentContractId,
 
     p_target_plan_id: targetPlanId,
 
+    p_original_amount: originalAmount,
+    p_financial_credit: financialCredit,
     p_prorated_amount: proratedAmount,
     p_additional_credits: additionalCredits,
+    p_remaining_subscription_credits: remainingSubscriptionCredits,
+
+    p_target_plan_name: targetPlanName,
+    p_target_plan_price: targetPlanPrice,
+    p_target_plan_credits: targetPlanCredits,
+    p_target_plan_interval: targetPlanInterval,
+    p_target_plan_interval_count: targetPlanIntervalCount,
+    p_target_plan_credits_expiration_days: targetPlanCreditsExpirationDays,
+    p_target_provider_plan_id: targetProviderPlanId,
 
     p_order_external_id: orderId,
     p_order_status: orderStatus,
