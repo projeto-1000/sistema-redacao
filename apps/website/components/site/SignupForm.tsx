@@ -47,7 +47,6 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { upsertWebsiteLead } from "@/lib/leads.actions";
 import { getStudentsUrl, SUPPORT_URL } from "@/lib/site-links";
 
 const countryCodeOptions = getPhoneCountryCodeOptions();
@@ -63,17 +62,6 @@ type AttemptsResponse = {
   error?: string;
   continuationUrl?: string;
 };
-
-function captureUtms() {
-  const utm: Record<string, string> = {};
-  const params = new URLSearchParams(window.location.search);
-
-  for (const [key, value] of params.entries()) {
-    if (key.startsWith("utm_")) utm[key] = value.slice(0, 200);
-  }
-
-  return utm;
-}
 
 export function SignupForm() {
   const [duplicateCode, setDuplicateCode] = useState<DuplicateCode | null>(
@@ -99,16 +87,6 @@ export function SignupForm() {
   async function onSubmit(registration: RegistrationDetailsSchema) {
     form.clearErrors("root");
     setDuplicateCode(null);
-
-    const leadResult = await upsertWebsiteLead({
-      registration,
-      utm: captureUtms(),
-    });
-
-    if (!leadResult.ok) {
-      form.setError("root", { message: leadResult.error });
-      return;
-    }
 
     const studentsUrl = getStudentsUrl("/api/signup/attempts");
 
@@ -159,7 +137,7 @@ export function SignupForm() {
     const isDocument = duplicateCode === "DOCUMENT_ALREADY_REGISTERED";
 
     return (
-      <Card className="border-border bg-card shadow-[var(--shadow-card)]">
+      <Card className="border-border bg-card shadow-(--shadow-card)">
         <CardHeader>
           <span className="icon-bubble mb-3 h-12 w-12 bg-pastel-yellow">
             <CircleAlert className="h-6 w-6 text-foreground" />
@@ -342,9 +320,9 @@ export function SignupForm() {
                                   isBrazil
                                     ? formatPhone(event.target.value)
                                     : onlyDigits(event.target.value).slice(
-                                        0,
-                                        20,
-                                      ),
+                                      0,
+                                      20,
+                                    ),
                                 )
                               }
                             />
