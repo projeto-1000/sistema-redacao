@@ -319,6 +319,7 @@ export async function getGradedEssay(id: string) {
     title: data.title,
     totalScore: data.total_score,
     text: data.content,
+    best_essay_consent: data.best_essay_consent,
     highlights: normalizeCorrectionHighlights(data.highlights),
     scores: {
       c1: data.score_c1,

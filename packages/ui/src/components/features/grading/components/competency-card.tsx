@@ -4,6 +4,7 @@ import { Button } from "@repo/ui/components/button";
 import { Highlighter, CheckCircle2 } from "lucide-react";
 import { COMPETENCY_STYLES, SCORE_LEVELS } from "../../constants";
 import type { CorrectionHighlight } from "@repo/types";
+import { CORRECTION_COMPETENCY_COMMENT_MAX_LENGTH } from "@repo/validators";
 import { HighlightCommentsPanel } from "./highlight-comments-panel";
 
 interface CompetencyCardProps {
@@ -16,6 +17,7 @@ interface CompetencyCardProps {
   onActivateHighlightMode: (id: string) => void;
   score?: number;
   comment?: string;
+  commentError?: string;
   highlights: CorrectionHighlight[];
   activeHighlightId: string | null;
   onSelectHighlight: (id: string) => void;
@@ -29,6 +31,7 @@ export function CompetencyCard({
   onActivateHighlightMode,
   score,
   comment,
+  commentError,
   highlights,
   activeHighlightId,
   onSelectHighlight,
@@ -100,11 +103,20 @@ export function CompetencyCard({
       <textarea
         suppressHydrationWarning
         placeholder={`Justifique a pontuação da ${comp.id.toUpperCase()}...`}
-        className="bg-slate-50 border-slate-200 rounded-xl resize-none w-full p-2 h-24 focus-visible:ring-amber-400/50 placeholder:text-slate-400"
+        aria-invalid={Boolean(commentError)}
+        className={`h-24 w-full resize-none rounded-xl border bg-slate-50 p-2 placeholder:text-slate-400 focus-visible:ring-amber-400/50 ${
+          commentError ? "border-red-400" : "border-slate-200"
+        }`}
         value={comment}
         onChange={(e) => onCommentChange(e.target.value)}
-        maxLength={300}
+        maxLength={CORRECTION_COMPETENCY_COMMENT_MAX_LENGTH}
       />
+
+      {commentError && (
+        <p className="mt-1.5 text-xs font-medium text-red-600" role="alert">
+          {commentError}
+        </p>
+      )}
 
       <HighlightCommentsPanel
         highlights={highlights}

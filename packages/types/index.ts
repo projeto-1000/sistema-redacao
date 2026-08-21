@@ -51,6 +51,7 @@ export interface Essay {
   title: string;
   thematic_axis: string;
   content: string;
+  best_essay_consent: boolean;
   submission_date: string;
   status: EssayStatus;
   credit_cost: number;

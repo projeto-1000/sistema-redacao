@@ -30,6 +30,8 @@ export async function submitEssay(
   }
 
   const content = formData.get("content") as string;
+  const bestEssayConsent =
+    formData.get("best_essay_consent") === "true";
 
   //TODO: definir caracteres mínimos
   if (!content || content.length < 100) {
@@ -43,6 +45,7 @@ export async function submitEssay(
       p_title: title,
       p_thematic_axis: axis,
       p_content: content,
+      p_best_essay_consent: bestEssayConsent,
     });
 
     if (error) {

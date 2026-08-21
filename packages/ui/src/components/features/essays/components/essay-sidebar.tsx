@@ -8,6 +8,7 @@ import {
   scrollToEssayFeedbackElement,
   useEssayHighlightNavigation,
 } from "./essay-highlight-navigation";
+import { ExpandableText } from "./expandable-text";
 
 export function EssayScoreCard({ totalScore }: { totalScore: number }) {
   return (
@@ -70,19 +71,21 @@ export function EssayCompetencies({
           return (
             <div
               key={comp.id}
-              className={`group rounded-2xl transition-colors ${
-                isActiveCompetency ? "bg-indigo-50/60 p-3 -m-3" : ""
-              }`}
+              className={`group rounded-2xl transition-colors ${isActiveCompetency ? "bg-indigo-50/60 p-3 -m-3" : ""
+                }`}
             >
-              <div className="flex items-start justify-between mb-2">
-                <div>
+              <div>
+                <div className="flex items-end justify-between mb-2">
                   <h4 className="font-bold text-sm">{comp.title}</h4>
-                  <p className="text-[12px] text-slate-500 mt-0.5">{comp.desc}</p>
+                  <div className={`font-black text-sm px-2 py-1 rounded-md ${comp.bg} ${comp.text}`}>
+                    {score}<span className="opacity-50 font-bold">/200</span>
+                  </div>
                 </div>
-                <div className={`font-black text-sm px-2 py-1 rounded-md ${comp.bg} ${comp.text}`}>
-                  {score}<span className="opacity-50 font-bold">/200</span>
-                </div>
+
+                <p className="text-[12px] text-slate-500 mt-0.5">{comp.desc}</p>
+
               </div>
+
               <div className={`mt-3 border-l-3 ${comp.border} pl-4 py-1`}>
                 <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Comentário geral
@@ -103,17 +106,23 @@ export function EssayCompetencies({
                     const isActive = highlight.id === activeHighlightId;
 
                     return (
-                      <button
+                      <div
                         key={highlight.id}
                         id={`essay-highlight-comment-${highlight.id}`}
-                        type="button"
+                        role="button"
+                        tabIndex={0}
                         onClick={() => handleSpecificCommentClick(highlight)}
+                        onKeyDown={(event) => {
+                          if (event.key !== "Enter" && event.key !== " ") return;
+
+                          event.preventDefault();
+                          handleSpecificCommentClick(highlight);
+                        }}
                         aria-pressed={isActive}
-                        className={`scroll-mt-24 w-full rounded-2xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${
-                          isActive
-                            ? "border-indigo-400 bg-indigo-50/80 shadow-md ring-2 ring-indigo-200"
-                            : "border-slate-200 bg-slate-50/80 shadow-sm hover:border-indigo-200 hover:bg-white hover:shadow-md"
-                        }`}
+                        className={`scroll-mt-24 w-full cursor-pointer rounded-2xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${isActive
+                          ? "border-indigo-400 bg-indigo-50/80 shadow-md ring-2 ring-indigo-200"
+                          : "border-slate-200 bg-slate-50/80 shadow-sm hover:border-indigo-200 hover:bg-white hover:shadow-md"
+                          }`}
                       >
                         <div className={`border-l-2 ${comp.border} pl-3`}>
                           <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -129,11 +138,12 @@ export function EssayCompetencies({
                           <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500">
                             Comentário do professor
                           </p>
-                          <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-700">
-                            {highlight.comment}
-                          </p>
+                          <ExpandableText
+                            text={highlight.comment}
+                            className="mt-1 text-sm leading-relaxed text-slate-700"
+                          />
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>

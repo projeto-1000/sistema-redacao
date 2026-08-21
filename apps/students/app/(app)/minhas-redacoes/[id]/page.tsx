@@ -27,19 +27,20 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
   );
 
   return (
-    <div className="px-4 md:px-10 lg:px-12 py-4">
+    <div className="md:px-10 lg:px-12 py-4">
 
       <EssayHeader
         title={essay.title}
         date={essay.updatedAt}
         status={essay.status}
+        className="mb-2 lg:mb-10"
       />
 
 
       <EssayHighlightNavigationProvider>
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-5">
           <div className="contents lg:col-span-3 lg:flex lg:flex-col lg:gap-8">
-            <div className="order-6 lg:order-none">
+            <div className="order-2 lg:order-0">
               <EssayTextContent
                 text={essay.text}
                 highlights={essay.highlights}
@@ -47,21 +48,33 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
               />
             </div>
 
-            <div className="order-2 lg:order-none">
+            <div className="order-3 lg:order-0">
               <EssayGeneralComment generalComment={essay.generalComment} />
             </div>
+
+            {essay.status === 'corrected' && (
+              <div className="order-5 empty:hidden lg:order-0">
+                <EssayImprovementPlan
+                  mainBottleneck={essay.mainBottleneck}
+                  nextEssayPriorities={
+                    essay.nextEssayPriorities
+                  }
+                  rewriteTasks={essay.rewriteTasks}
+                />
+              </div>
+            )}
           </div>
 
           <div className="contents lg:col-span-2 lg:flex lg:flex-col lg:gap-6">
             {essay.status === 'corrected' ? (
               <>
-                <div className="order-1 lg:order-none">
+                <div className="order-1 lg:order-0">
                   <EssayScoreCard
                     totalScore={essay.totalScore}
                   />
                 </div>
 
-                <div className="order-3 lg:order-none">
+                <div className="order-4 lg:order-0">
                   <EssayCompetencies
                     scores={essay.scores}
                     comments={essay.comments}
@@ -69,18 +82,9 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
                   />
                 </div>
 
-                <div className="order-4 empty:hidden lg:order-none">
-                  <EssayImprovementPlan
-                    mainBottleneck={essay.mainBottleneck}
-                    nextEssayPriorities={
-                      essay.nextEssayPriorities
-                    }
-                    rewriteTasks={essay.rewriteTasks}
-                  />
-                </div>
               </>
             ) : (
-              <div className="order-1 lg:order-none">
+              <div className="order-1 lg:order-0">
                 <ReturnedEssayCard
                   reason={essay.returnReason}
                   description={essay.returnDescription}

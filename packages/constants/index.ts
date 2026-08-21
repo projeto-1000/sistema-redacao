@@ -205,9 +205,9 @@ export const transactionLabels: Record<string, string> = {
 };
 
 export const COMPETENCIES = [
-  { id: "C1", title: "Domínio da Norma Culta", description: "Demonstrar domínio da modalidade escrita formal da língua portuguesa." },
-  { id: "C2", title: "Compreensão do Tema", description: "Compreender a proposta e aplicar conceitos dentro da estrutura dissertativo-argumentativa." },
-  { id: "C3", title: "Organização de Ideias", description: "Selecionar e organizar informações em defesa de um ponto de vista." },
-  { id: "C4", title: "Coesão Textual", description: "Demonstrar conhecimento dos mecanismos linguísticos necessários para a argumentação." },
-  { id: "C5", title: "Proposta de Intervenção", description: "Elaborar proposta de intervenção detalhada respeitando os direitos humanos." },
-];
+  { id: "C1", title: "Linguagem", description: "Demonstrar domínio da modalidade escrita formal da língua portuguesa" },
+  { id: "C2", title: "Tema e Repertórios", description: "Compreender a proposta de redação e aplicar conceitos das várias áreas do conhecimento para desenvolver o tema dentro dos limites estruturais do texto dissertativo-argumentativo em prosa" },
+  { id: "C3", title: "Argumentação", description: "Selecionar, relacionar, organizar e interpretar informações, fatos, opiniões e argumentos em defesa de um ponto de vista" },
+  { id: "C4", title: "Coesão textual", description: "Demonstrar conhecimento dos mecanismos linguísticos necessários para a construção da argumentação" },
+  { id: "C5", title: "Proposta de intervenção", description: "Elaborar proposta de intervenção para o problema abordado, respeitando os direitos humanos" },
+] as const;

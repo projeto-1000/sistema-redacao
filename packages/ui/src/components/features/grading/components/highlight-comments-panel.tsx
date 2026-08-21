@@ -2,6 +2,7 @@
 
 import { MessageSquareText } from "lucide-react";
 import type { CorrectionHighlight } from "@repo/types";
+import { ExpandableText } from "../../essays/components/expandable-text";
 
 interface HighlightCommentsPanelProps {
   highlights: CorrectionHighlight[];
@@ -40,12 +41,19 @@ export function HighlightCommentsPanel({
           const isActive = highlight.id === activeHighlightId;
 
           return (
-            <button
+            <div
               key={highlight.id}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => onSelectHighlight(highlight.id)}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter" && event.key !== " ") return;
+
+                event.preventDefault();
+                onSelectHighlight(highlight.id);
+              }}
               aria-pressed={isActive}
-              className={`w-full rounded-2xl border p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${
+              className={`w-full cursor-pointer rounded-2xl border p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${
                 isActive
                   ? "border-indigo-300 bg-indigo-50/70 shadow-sm ring-1 ring-indigo-200"
                   : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
@@ -55,16 +63,17 @@ export function HighlightCommentsPanel({
                 “{highlight.text}”
               </p>
 
-              <p
-                className={`line-clamp-2 text-xs leading-relaxed ${
-                  highlight.comment
-                    ? "text-slate-600"
-                    : "italic text-amber-600"
-                }`}
-              >
-                {highlight.comment || "Adicionar comentário específico"}
-              </p>
-            </button>
+              {highlight.comment.trim() ? (
+                <ExpandableText
+                  text={highlight.comment}
+                  className="text-xs leading-relaxed text-slate-600"
+                />
+              ) : (
+                <p className="text-xs italic leading-relaxed text-amber-600">
+                  Adicionar comentário específico
+                </p>
+              )}
+            </div>
           );
         })}
       </div>

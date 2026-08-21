@@ -21,4 +21,4 @@ jobs:
         uses: supabase/setup-cli@v1
 
       - name: Apply migrations
-        run: supabase db push --db-url "${{ secrets.SUPABASE_DEV_DB_URL }}"
+        run: supabase db push --include-all --db-url "${{ secrets.SUPABASE_DEV_DB_URL }}"
