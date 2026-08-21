@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MessageSquareText, Trash2, X } from "lucide-react";
 import { HIGHLIGHT_STYLES } from "../../constants";
 import type { CorrectionHighlight } from "@repo/types";
-import { LineNumberedText } from "../../essays/components/line-numbered-text";
+import { Button } from "@repo/ui/components/button";
 
 const COMP_BUTTONS = [
   { id: "c1", bg: "bg-comp-1" },
@@ -21,6 +21,8 @@ interface PopoverState {
   startIndex: number;
   endIndex: number;
   text: string;
+  compId?: CorrectionHighlight["compId"];
+  comment: string;
   existingId?: string;
 }
 export type Highlight = CorrectionHighlight;
@@ -36,7 +38,6 @@ interface EssayViewerProps {
   onHighlightsChange: (newHighlights: Highlight[]) => void;
   onActiveHighlightChange: (compId: string | null) => void;
   onActiveHighlightIdChange: (id: string | null) => void;
-  onHighlightCommentChange: (id: string, comment: string) => void;
 }
 
 export function EssayViewer({
@@ -47,7 +48,6 @@ export function EssayViewer({
   onHighlightsChange,
   onActiveHighlightChange,
   onActiveHighlightIdChange,
-  onHighlightCommentChange,
 }: EssayViewerProps) {
 
   const [popover, setPopover] = useState<PopoverState | null>(null);
@@ -82,6 +82,8 @@ export function EssayViewer({
       startIndex: highlight.startIndex,
       endIndex: highlight.endIndex,
       text: highlight.text,
+      compId: highlight.compId,
+      comment: highlight.comment,
       existingId: highlight.id,
     });
   };
@@ -103,20 +105,19 @@ export function EssayViewer({
     }, 300);
 
     return () => window.clearTimeout(timer);
-    // The highlight content changes while the textarea is edited; only a new
-    // active id should trigger scrolling and repositioning.
+    // Only a new active id should trigger scrolling and repositioning.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeHighlightId]);
 
   useEffect(() => {
-    if (!popover?.existingId) return;
+    if (!popover?.compId) return;
 
     const frame = window.requestAnimationFrame(() => {
       commentInputRef.current?.focus();
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [popover?.existingId]);
+  }, [popover?.compId]);
 
   const getAbsoluteRange = (selection: Selection) => {
     if (!textRef.current || selection.rangeCount === 0) return null;
@@ -132,27 +133,58 @@ export function EssayViewer({
     return { start, end, range };
   };
 
-  const handleAddHighlight = (compId: string, startIndex: number, endIndex: number) => {
-    const cleanHighlights = highlights.filter(h => {
-      const isOverlapping = Math.max(startIndex, h.startIndex) < Math.min(endIndex, h.endIndex);
-      return !isOverlapping;
-    });
+  const handleSelectCompetency = (compId: string) => {
+    setPopover((currentPopover) =>
+      currentPopover
+        ? {
+            ...currentPopover,
+            compId: compId.toLowerCase() as CorrectionHighlight["compId"],
+            comment: "",
+          }
+        : null
+    );
+    onActiveHighlightChange(null);
+  };
 
-    const newHighlight: Highlight = {
-      id: crypto.randomUUID(),
-      text: essay.content.slice(startIndex, endIndex),
-      compId: compId.toLowerCase() as CorrectionHighlight["compId"],
-      comment: "",
-      startIndex,
-      endIndex
-    };
+  const handleSaveHighlightComment = () => {
+    if (!popover?.compId) return;
 
-    onHighlightsChange([...cleanHighlights, newHighlight]);
+    const comment = popover.comment.trim();
+    if (!comment) return;
+
+    if (popover.existingId) {
+      onHighlightsChange(
+        highlights.map((highlight) =>
+          highlight.id === popover.existingId
+            ? { ...highlight, comment }
+            : highlight
+        )
+      );
+    } else {
+      const cleanHighlights = highlights.filter((highlight) => {
+        const isOverlapping =
+          Math.max(popover.startIndex, highlight.startIndex) <
+          Math.min(popover.endIndex, highlight.endIndex);
+
+        return !isOverlapping;
+      });
+
+      const newHighlight: Highlight = {
+        id: crypto.randomUUID(),
+        text: essay.content.slice(popover.startIndex, popover.endIndex),
+        compId: popover.compId,
+        comment,
+        startIndex: popover.startIndex,
+        endIndex: popover.endIndex,
+      };
+
+      onHighlightsChange([...cleanHighlights, newHighlight]);
+    }
 
     window.getSelection()?.removeAllRanges();
     setPopover(null);
     onActiveHighlightChange(null);
-    onActiveHighlightIdChange(newHighlight.id);
+    onActiveHighlightIdChange(null);
   };
 
   const handleRemoveHighlight = (id: string) => {
@@ -180,19 +212,30 @@ export function EssayViewer({
       const absRange = getAbsoluteRange(selection);
       if (!absRange) return;
 
+      const rect = absRange.range.getBoundingClientRect();
+
       if (activeHighlightComp) {
-        handleAddHighlight(activeHighlightComp, absRange.start, absRange.end);
+        setPopover({
+          ...getPopoverPosition(rect),
+          startIndex: absRange.start,
+          endIndex: absRange.end,
+          text: essay.content.slice(absRange.start, absRange.end),
+          compId:
+            activeHighlightComp.toLowerCase() as CorrectionHighlight["compId"],
+          comment: "",
+        });
+        onActiveHighlightChange(null);
+        onActiveHighlightIdChange(null);
         return;
       }
-
-      const rect = absRange.range.getBoundingClientRect();
 
       onActiveHighlightIdChange(null);
       setPopover({
         ...getPopoverPosition(rect),
         startIndex: absRange.start,
         endIndex: absRange.end,
-        text: selectedText
+        text: essay.content.slice(absRange.start, absRange.end),
+        comment: "",
       });
     }, 100);
   };
@@ -265,7 +308,9 @@ export function EssayViewer({
   };
 
   const renderPopoverContent = () => {
-    if (activeHighlight) {
+    if (popover?.compId) {
+      const isCommentValid = popover.comment.trim().length > 0;
+
       return (
         <div className="w-[min(22rem,calc(100vw-2rem))] text-slate-900">
           <div className="mb-3 flex items-start justify-between gap-3">
@@ -273,11 +318,11 @@ export function EssayViewer({
               <div className="flex items-center gap-2">
                 <MessageSquareText className="size-4 text-indigo-500" />
                 <span className="text-xs font-black uppercase tracking-wider text-slate-700">
-                  Comentário específico · {activeHighlight.compId.toUpperCase()}
+                  Comentário específico · {popover.compId.toUpperCase()}
                 </span>
               </div>
               <p className="mt-1 truncate text-xs text-slate-500">
-                “{activeHighlight.text}”
+                “{popover.text}”
               </p>
             </div>
 
@@ -291,16 +336,24 @@ export function EssayViewer({
             </button>
           </div>
 
-          <label htmlFor={`highlight-comment-${activeHighlight.id}`} className="sr-only">
+          <label
+            htmlFor={`highlight-comment-${popover.existingId ?? "new"}`}
+            className="sr-only"
+          >
             Comentário específico do trecho
           </label>
           <textarea
             ref={commentInputRef}
-            id={`highlight-comment-${activeHighlight.id}`}
-            value={activeHighlight.comment}
-            onChange={(event) =>
-              onHighlightCommentChange(activeHighlight.id, event.target.value)
-            }
+            id={`highlight-comment-${popover.existingId ?? "new"}`}
+            value={popover.comment}
+            onChange={(event) => {
+              const comment = event.target.value;
+              setPopover((currentPopover) =>
+                currentPopover
+                  ? { ...currentPopover, comment }
+                  : currentPopover
+              );
+            }}
             maxLength={2000}
             rows={4}
             placeholder="Explique o problema ou a orientação para este trecho..."
@@ -309,16 +362,31 @@ export function EssayViewer({
 
           <div className="mt-3 flex items-center justify-between gap-3">
             <span className="text-[10px] text-slate-400">
-              {activeHighlight.comment.length}/2000
+              {popover.comment.length}/2000
             </span>
-            <button
-              type="button"
-              onClick={() => handleRemoveHighlight(activeHighlight.id)}
-              className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
-            >
-              <Trash2 className="size-3.5" />
-              Remover apontamento
-            </button>
+
+            <div className="flex items-center gap-2">
+              {activeHighlight && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveHighlight(activeHighlight.id)}
+                  className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
+                >
+                  <Trash2 className="size-3.5" />
+                  Remover apontamento
+                </button>
+              )}
+
+              <Button
+                type="button"
+                size="sm"
+                disabled={!isCommentValid}
+                onClick={handleSaveHighlightComment}
+                className="rounded-lg bg-indigo-600 px-3 text-xs font-bold text-white hover:bg-indigo-700"
+              >
+                Salvar comentário
+              </Button>
+            </div>
           </div>
         </div>
       );
@@ -334,7 +402,7 @@ export function EssayViewer({
         <button
           type="button"
           key={btn.id}
-          onClick={() => handleAddHighlight(btn.id, popover!.startIndex, popover!.endIndex)}
+          onClick={() => handleSelectCompetency(btn.id)}
           className={`size-8 md:size-7 rounded-full text-[11px] md:text-[10px] font-black hover:scale-110 transition-transform ${btn.bg} text-white opacity-90 hover:opacity-100 shadow-md`}
         >
           {btn.id.toUpperCase()}
@@ -365,26 +433,26 @@ export function EssayViewer({
           {essay.title}
         </h2>
 
-        <LineNumberedText
-          contentRef={textRef}
-          contentClassName="text-justify text-base leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word selection:bg-amber-200/50 md:text-lg"
+        <div
+          ref={textRef}
+          className="text-justify text-base leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word selection:bg-amber-200/50 md:text-lg"
         >
           {renderContent()}
-        </LineNumberedText>
+        </div>
       </div>
 
       {popover && (
         <>
-          <div className={`md:hidden ignore-selection fixed bottom-40 z-9999 shadow-2xl flex items-center justify-center left-1/2 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-6 duration-200 ${popover.existingId ? "rounded-2xl border border-slate-200 bg-white p-4" : "w-max rounded-full border border-slate-700/50 bg-slate-900 px-4 py-3 text-white"}`}>
+          <div className={`md:hidden ignore-selection fixed bottom-40 z-9999 shadow-2xl flex items-center justify-center left-1/2 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-6 duration-200 ${popover.compId ? "rounded-2xl border border-slate-200 bg-white p-4" : "w-max rounded-full border border-slate-700/50 bg-slate-900 px-4 py-3 text-white"}`}>
             {renderPopoverContent()}
           </div>
 
           <div
-            className={`hidden md:flex ignore-selection fixed z-9999 w-max rounded-2xl shadow-2xl items-center gap-2 -translate-x-1/2 animate-in fade-in zoom-in-95 duration-200 ${popover.existingId ? "border border-slate-200 bg-white p-4" : "bg-slate-900 px-3 py-2.5 text-white"} ${popover.placement === "above" ? "-translate-y-full" : ""}`}
+            className={`hidden md:flex ignore-selection fixed z-9999 w-max rounded-2xl shadow-2xl items-center gap-2 -translate-x-1/2 animate-in fade-in zoom-in-95 duration-200 ${popover.compId ? "border border-slate-200 bg-white p-4" : "bg-slate-900 px-3 py-2.5 text-white"} ${popover.placement === "above" ? "-translate-y-full" : ""}`}
             style={{ top: popover.y, left: popover.x }}
           >
             {renderPopoverContent()}
-            <div className={`absolute left-1/2 size-3 -translate-x-1/2 rotate-45 ${popover.existingId ? "border-slate-200 bg-white" : "bg-slate-900"} ${popover.placement === "above" ? "-bottom-1.5 border-b border-r" : "-top-1.5 border-l border-t"}`}></div>
+            <div className={`absolute left-1/2 size-3 -translate-x-1/2 rotate-45 ${popover.compId ? "border-slate-200 bg-white" : "bg-slate-900"} ${popover.placement === "above" ? "-bottom-1.5 border-b border-r" : "-top-1.5 border-l border-t"}`}></div>
           </div>
         </>
       )}

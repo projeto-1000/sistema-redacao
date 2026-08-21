@@ -40,7 +40,8 @@ export default async function NewEssayPage(props: Props) {
   const draftData: EssayDraft | null = latestDraft ? {
     id: officialDraft?.id,
     content: latestDraft.content,
-    updated_at: latestDraft.updated_at
+    updated_at: latestDraft.updated_at,
+    best_essay_consent: officialDraft?.best_essay_consent ?? false,
   } : null;
 
   if (!essayTopic) {

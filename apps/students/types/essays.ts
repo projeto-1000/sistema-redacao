@@ -23,4 +23,5 @@ export interface EssayDraft {
   id?: string;
   content: string;
   updated_at: string;
+  best_essay_consent: boolean;
 }

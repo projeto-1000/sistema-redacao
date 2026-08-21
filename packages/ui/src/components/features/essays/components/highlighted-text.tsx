@@ -1,9 +1,8 @@
 'use client'
 
-import React, { useRef } from "react";
+import React from "react";
 import { HIGHLIGHT_STYLES } from "../../constants";
 import type { CorrectionHighlight } from "@repo/types";
-import { LineNumberedText } from "./line-numbered-text";
 
 export type Highlight = CorrectionHighlight;
 
@@ -31,7 +30,6 @@ export function HighlightedText({
   activeHighlightId,
   onHighlightClick,
 }: HighlightedTextProps) {
-  const textRef = useRef<HTMLDivElement>(null);
   const sortedHighlights = [...highlights].sort((a, b) => a.startIndex - b.startIndex);
   const elements: React.ReactNode[] = [];
   let lastIndex = 0;
@@ -86,12 +84,8 @@ export function HighlightedText({
   }
 
   return (
-    <LineNumberedText
-      contentRef={textRef}
-      className="p-5 md:p-10"
-      contentClassName="text-justify text-lg leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word"
-    >
+    <div className="p-5 text-justify text-sm md:text-lg leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word md:p-10">
       {elements}
-    </LineNumberedText>
+    </div>
   );
 }

@@ -119,6 +119,7 @@ export function EssayCorrectionWorkspace({
     getValues,
     handleSubmit,
     formState: {
+      errors,
       isValid,
       isSubmitting,
     },
@@ -191,16 +192,6 @@ export function EssayCorrectionWorkspace({
     setActiveHighlightComp(prev => prev === compId ? null : compId);
   };
 
-  const handleHighlightCommentChange = (id: string, comment: string) => {
-    setHighlights((currentHighlights) =>
-      currentHighlights.map((highlight) =>
-        highlight.id === id
-          ? { ...highlight, comment }
-          : highlight
-      )
-    );
-  };
-
   const handleSave = handleSubmit(
     async (payload) => {
       try {
@@ -270,7 +261,6 @@ export function EssayCorrectionWorkspace({
             onHighlightsChange={setHighlights}
             onActiveHighlightChange={setActiveHighlightComp}
             onActiveHighlightIdChange={setActiveHighlightId}
-            onHighlightCommentChange={handleHighlightCommentChange}
           />
 
           <CorrectionSummaryFields
@@ -313,6 +303,7 @@ export function EssayCorrectionWorkspace({
                 onActivateHighlightMode={handleActivateHighlightMode}
                 score={scores[compKey]}
                 comment={comments[compKey]}
+                commentError={errors.comments?.[compKey]?.message}
                 highlights={highlights.filter(
                   (highlight) => highlight.compId === compKey
                 )}

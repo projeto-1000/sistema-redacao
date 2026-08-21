@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { Save, AlertCircle } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
+import { Checkbox } from "@repo/ui/components/checkbox";
 import { submitEssay } from "@/app/actions/submit-essay";
 import { SubmitEssayButton } from "./submit-essay-button";
 import { EssayTopicDetail } from "@repo/types";
@@ -19,6 +20,9 @@ interface EssayEditorFormProps {
 
 export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
   const [isSaving, setIsSaving] = useState(false)
+  const [bestEssayConsent, setBestEssayConsent] = useState(
+    backup?.best_essay_consent ?? false
+  );
   const router = useRouter()
   const { content: text, setContent: setText, clearAutoSave } = useEssayEditor(topic.id, backup);
 
@@ -44,6 +48,7 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
         text,
         topic.title,
         topic.axis,
+        bestEssayConsent,
         backup?.id
       );
 
@@ -69,6 +74,11 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
       <input type="hidden" name="topicId" value={topic.id} />
       <input type="hidden" name="title" value={topic.title} />
       <input type="hidden" name="thematicAxis" value={topic.axis} />
+      <input
+        type="hidden"
+        name="best_essay_consent"
+        value={String(bestEssayConsent)}
+      />
 
       <div className="bg-white rounded-3xl border border-slate-200 flex flex-col flex-1 shadow-sm overflow-hidden">
         <div className="flex flex-row md:items-center justify-between p-5 border-b border-slate-100 gap-4 bg-slate-50/30">
@@ -125,22 +135,38 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
           </div>
         </div>
 
-        <div className="p-5 border-t border-slate-200 flex flex-col sm:flex-row items-center gap-4 justify-between">
+        <div className="border-t border-slate-200 p-5">
+          <label className="mb-5 flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-600">
+            <Checkbox
+              checked={bestEssayConsent}
+              onCheckedChange={(checked) =>
+                setBestEssayConsent(checked === true)
+              }
+              aria-describedby="best-essay-consent-description"
+              className="mt-0.5"
+            />
+            <span id="best-essay-consent-description">
+              Autorizo a adição da minha redação ao banco de melhores redações do tema, devidamente anonimizada, caso ela seja considerada exemplar
+            </span>
+          </label>
 
-          <SubmitEssayButton disabled={isOverLimit || isTooShort} />
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
 
-          <Button
-            type="button"
-            variant="outline"
-            disabled={text === "" || isSaving === true}
-            onClick={handleSaveDraft}
-            className="w-full sm:w-auto font-bold rounded-full h-12 px-6 gap-2"
-            isLoading={isSaving}
-            loadingText="Salvando"
-          >
-            <Save className="size-4" />
-            Sair da Tela e Salvar Rascunho
-          </Button>
+            <SubmitEssayButton disabled={isOverLimit || isTooShort} />
+
+            <Button
+              type="button"
+              variant="outline"
+              disabled={text === "" || isSaving === true}
+              onClick={handleSaveDraft}
+              className="w-full sm:w-auto font-bold rounded-full h-12 px-6 gap-2"
+              isLoading={isSaving}
+              loadingText="Salvando"
+            >
+              <Save className="size-4" />
+              Sair da Tela e Salvar Rascunho
+            </Button>
+          </div>
         </div>
       </div>
     </form >
