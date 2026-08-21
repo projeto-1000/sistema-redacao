@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/server";
+import type { StudentCreditSummary } from "@/types/credits";
 import { CreditPackage } from "@repo/types";
 import { redirect } from "next/navigation";
 
@@ -21,6 +22,18 @@ const MOCK_PACKAGES: CreditPackage[] = [
 export async function getCreditPackages(): Promise<CreditPackage[]> {
   // FUTURO: const { data } = await supabase.from('packages').select('*');
   return MOCK_PACKAGES;
+}
+
+export async function getCurrentStudentCreditSummary(): Promise<StudentCreditSummary> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_current_student_credit_summary");
+
+  if (error) {
+    console.error("Erro ao buscar resumo de créditos:", error);
+    throw new Error("Não foi possível carregar os créditos disponíveis.");
+  }
+
+  return data as unknown as StudentCreditSummary;
 }
 
 /**

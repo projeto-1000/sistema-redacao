@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { Save, AlertCircle } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
+import { Alert, AlertDescription } from "@repo/ui/components/alert";
 import { submitEssay } from "@/app/actions/submit-essay";
 import { SubmitEssayButton } from "./submit-essay-button";
 import { EssayTopicDetail } from "@repo/types";
@@ -12,19 +13,29 @@ import { saveDraft } from "@/app/actions/essay-drafts";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { EssayDraft } from "@/types";
+import Link from "next/link";
 
 interface EssayEditorFormProps {
   topic: EssayTopicDetail,
   backup: EssayDraft | null;
+  hasAvailableCredits: boolean;
 }
 
-export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
+export function EssayEditorForm({
+  topic,
+  backup,
+  hasAvailableCredits,
+}: EssayEditorFormProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [bestEssayConsent, setBestEssayConsent] = useState(
     backup?.best_essay_consent ?? false
   );
   const router = useRouter()
-  const { content: text, setContent: setText, clearAutoSave } = useEssayEditor(topic.id, backup);
+  const { content: text, setContent: setText, clearAutoSave } = useEssayEditor(
+    topic.id,
+    backup,
+    !hasAvailableCredits
+  );
 
   const [state, formAction] = useActionState(
     submitEssay.bind(null, topic.id, topic.title, topic.axis),
@@ -99,6 +110,31 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
           </div>
         )}
 
+        {!hasAvailableCredits && (
+          <Alert className="mx-6 mt-6 w-auto border-amber-200 bg-amber-50 text-amber-950">
+            <AlertCircle className="text-amber-700" />
+            <AlertDescription className="text-amber-900/90">
+              <p>
+                Você não tem créditos disponíveis para enviar redações.{" "}
+                <Link
+                  href="/assinatura/comprar-creditos"
+                  className="font-bold underline underline-offset-2 hover:text-amber-950"
+                >
+                  Adquira mais créditos
+                </Link>{" "}
+                ou{" "}
+                <Link
+                  href="/assinatura/planos"
+                  className="font-bold underline underline-offset-2 hover:text-amber-950"
+                >
+                  escolha um plano com mais créditos
+                </Link>{" "}
+                para continuar.
+              </p>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex-1 relative flex flex-col p-6">
           <label htmlFor="essay-text" className="text-xs font-bold text-slate-400 uppercase tracking-widest">
             Seu texto
@@ -112,6 +148,7 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
             placeholder="Primeiro, escreva sua redação à mão, como no dia da prova. Depois, transcreva-a aqui."
             value={text}
             onChange={(e) => setText(e.target.value)}
+            disabled={!hasAvailableCredits}
             spellCheck={false}
           />
 
@@ -139,6 +176,7 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
           <label className="mb-5 flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-600">
             <Checkbox
               checked={bestEssayConsent}
+              disabled={!hasAvailableCredits}
               onCheckedChange={(checked) =>
                 setBestEssayConsent(checked === true)
               }
@@ -152,12 +190,16 @@ export function EssayEditorForm({ topic, backup }: EssayEditorFormProps) {
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
 
-            <SubmitEssayButton disabled={isOverLimit || isTooShort} />
+            <SubmitEssayButton
+              disabled={!hasAvailableCredits || isOverLimit || isTooShort}
+            />
 
             <Button
               type="button"
               variant="outline"
-              disabled={text === "" || isSaving === true}
+              disabled={
+                !hasAvailableCredits || text === "" || isSaving === true
+              }
               onClick={handleSaveDraft}
               className="w-full sm:w-auto font-bold rounded-full h-12 px-6 gap-2"
               isLoading={isSaving}
