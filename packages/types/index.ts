@@ -323,7 +323,6 @@ export interface Plans {
   id: string;
   name: string;
   description: string | null;
-  features: string[] | null;
   external_id: string | null;
   credits_included: number;
   credits_expiration_days: number;
@@ -337,7 +336,6 @@ export interface Plans {
   is_public: boolean;
   is_recommended: boolean;
   discount_percentage: number | null;
-  sort_order: number;
   created_at: string;
   updated_at: string;
 }

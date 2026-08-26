@@ -55,9 +55,7 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
       is_public: plan.is_public,
       is_recommended: plan.is_recommended,
       discount_percentage: plan.discount_percentage,
-      sort_order: plan.sort_order,
       description: plan.description || "",
-      features: plan.features ?? [],
     },
   });
 
@@ -123,32 +121,6 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="features"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={labelClass}>Funcionalidades</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      value={(field.value ?? []).join("\n")}
-                      onChange={(event) =>
-                        field.onChange(
-                          event.target.value
-                            .split("\n")
-                            .map((feature) => feature.trim())
-                            .filter(Boolean)
-                        )
-                      }
-                      placeholder="Informe uma funcionalidade por linha"
-                      className={`${inputBaseClass} min-h-32 resize-y`}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-[10px]" />
-                </FormItem>
-              )}
-            />
-
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -170,20 +142,6 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
                         placeholder="Ex: 15"
                         className={inputBaseClass}
                       />
-                    </FormControl>
-                    <FormMessage className="text-[10px]" />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="sort_order"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Ordem de exibição</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} className={inputBaseClass} {...field} />
                     </FormControl>
                     <FormMessage className="text-[10px]" />
                   </FormItem>

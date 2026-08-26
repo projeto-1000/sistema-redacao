@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Container } from "@/components/site/Container";
-import { Check, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { MentoriaCTA } from "@/components/site/MentoriaCTA";
 import { TiltCard } from "@/components/site/TiltCard";
 const icone = "/images/projeto1000-icone.png";
@@ -17,8 +17,6 @@ export type PublicPlan = {
   intervalCount: number | null;
   discountPercentage: number | null;
   isRecommended: boolean;
-  sortOrder: number;
-  features: string[];
 };
 
 const brl = (cents: number) =>
@@ -27,20 +25,13 @@ const brl = (cents: number) =>
 const freePlan: PublicPlan = {
   id: "free",
   name: "Grátis",
-  description: "Para conhecer a correção",
+  description:
+    "Para conhecer a correção\n1 crédito gratuito para uma correção completa\nCorreção individual feita por professor em 48 horas úteis\nNota geral, comentários e avaliação nas cinco competências\nPrincipal gargalo, próximos passos e tarefa de reescrita\nAcesso ao dashboard",
   priceCents: 0,
   interval: "lifetime",
   intervalCount: null,
   discountPercentage: null,
   isRecommended: false,
-  sortOrder: -1,
-  features: [
-    "1 crédito gratuito para uma correção completa",
-    "Correção individual feita por professor em 48 horas úteis",
-    "Nota geral, comentários e avaliação nas cinco competências",
-    "Principal gargalo, próximos passos e tarefa de reescrita",
-    "Acesso ao dashboard",
-  ],
 };
 
 const faq = [
@@ -175,6 +166,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
               const isFree = p.id === "free";
               const isQuarterly =
                 p.interval === "month" && p.intervalCount === 3;
+              const hasDescription = Boolean(p.description?.trim());
               const displayedPrice = isQuarterly
                 ? Math.round(p.priceCents / (p.intervalCount ?? 1))
                 : p.priceCents;
@@ -204,8 +196,8 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                   <h2 className="mt-2 font-display text-2xl font-extrabold text-card-foreground">
                     {p.name}
                   </h2>
-                  {p.description && (
-                    <p className="mt-1 text-sm text-muted-foreground">
+                  {hasDescription && (
+                    <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                       {p.description}
                     </p>
                   )}
@@ -218,25 +210,18 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                     </span>
                   </p>
                   {isQuarterly && (
-                    <p className="mt-1 text-xs font-semibold text-primary">
-                      {brl(p.priceCents)} cobrados a cada 3 meses
-                      {p.discountPercentage !== null &&
-                        `, ${p.discountPercentage}% de desconto`}
-                    </p>
-                  )}
-                  <ul className="mt-7 flex-1 space-y-3.5">
-                    {p.features.map((f) => (
-                      <li
-                        key={f}
-                        className="flex items-center gap-3 text-sm text-foreground/90"
-                      >
-                        <span className="icon-bubble h-6 w-6 shrink-0 bg-pastel-blue">
-                          <Check className="h-3.5 w-3.5 text-primary" />
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-bold text-card-foreground/80">
+                        Cobrança de {brl(p.priceCents)} a cada 3 meses
+                      </p>
+
+                      {p.discountPercentage !== null && (
+                        <span className="inline-flex shrink-0 rounded-full bg-accent px-2.5 py-1 text-xs font-extrabold uppercase tracking-wide text-accent-foreground ring-1 ring-accent-foreground/15">
+                          {p.discountPercentage}% OFF
                         </span>
-                        <span className="min-w-0">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
+                      )}
+                    </div>
+                  )}
                   <a
                     href="/cadastro"
                     data-cta={`plan-${p.name.toLowerCase()}`}

@@ -42,12 +42,10 @@ export function CreatePlanDialog() {
     defaultValues: {
       name: "",
       description: "",
-      features: [],
       is_active: true,
       is_public: true,
       is_recommended: false,
       discount_percentage: null,
-      sort_order: 0,
       price: "" as unknown as number,
       credits_included: 4,
       interval: "month",
@@ -242,32 +240,6 @@ export function CreatePlanDialog() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="features"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={labelClass}>Funcionalidades</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      value={(field.value ?? []).join("\n")}
-                      onChange={(event) =>
-                        field.onChange(
-                          event.target.value
-                            .split("\n")
-                            .map((feature) => feature.trim())
-                            .filter(Boolean)
-                        )
-                      }
-                      placeholder="Informe uma funcionalidade por linha"
-                      className={`${inputBaseClass} min-h-32 resize-y`}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-[10px]" />
-                </FormItem>
-              )}
-            />
-
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -289,20 +261,6 @@ export function CreatePlanDialog() {
                         placeholder="Ex: 15"
                         className={inputBaseClass}
                       />
-                    </FormControl>
-                    <FormMessage className="text-[10px]" />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="sort_order"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Ordem de exibição</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} className={inputBaseClass} {...field} />
                     </FormControl>
                     <FormMessage className="text-[10px]" />
                   </FormItem>

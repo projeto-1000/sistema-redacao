@@ -158,7 +158,7 @@ export async function getPlans(): Promise<{ plans: Plans[] | null; error: string
     const { data: plans, error } = await supabase
       .from("plans")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("price", { ascending: true });
 
     if (error) {
       console.error("[PLAN_LIST_DB_ERROR]", error);
@@ -193,9 +193,7 @@ export async function createPlan(data: CreatePlanFormValues) {
         is_public: parsedData.is_public,
         is_recommended: parsedData.is_recommended,
         discount_percentage: parsedData.discount_percentage,
-        sort_order: parsedData.sort_order,
         description,
-        features: parsedData.features,
       });
 
       if (error) {
@@ -255,9 +253,7 @@ export async function createPlan(data: CreatePlanFormValues) {
       is_public: parsedData.is_public,
       is_recommended: parsedData.is_recommended,
       discount_percentage: parsedData.discount_percentage,
-      sort_order: parsedData.sort_order,
       description,
-      features: parsedData.features,
     });
 
     if (error) {
@@ -304,7 +300,7 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
     const { data: currentPlan, error: fetchError } = await supabase
       .from("plans")
       .select(
-        "external_id, name, description, features, interval, interval_count, price, credits_included, credits_expiration_days, is_active"
+        "external_id, name, description, interval, interval_count, price, credits_included, credits_expiration_days, is_active"
       )
       .eq("id", id)
       .single();
@@ -335,9 +331,7 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
           is_public: parsedData.is_public,
           is_recommended: parsedData.is_recommended,
           discount_percentage: parsedData.discount_percentage,
-          sort_order: parsedData.sort_order,
           description,
-          features: parsedData.features,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
@@ -416,9 +410,7 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
         is_public: parsedData.is_public,
         is_recommended: parsedData.is_recommended,
         discount_percentage: parsedData.discount_percentage,
-        sort_order: parsedData.sort_order,
         description,
-        features: parsedData.features,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);

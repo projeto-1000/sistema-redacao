@@ -29,17 +29,11 @@ export const createPlanSchema = z.object({
     .max(100, "O desconto não pode ser maior que 100%.")
     .nullable()
     .default(null),
-  sort_order: z.coerce
-    .number()
-    .int("A ordem deve ser um número inteiro.")
-    .min(0, "A ordem não pode ser negativa.")
-    .default(0),
   description: z
     .string()
     .trim()
-    .max(256, "A descrição deve ter no máximo 256 caracteres.")
+    .max(2000, "A descrição deve ter no máximo 2000 caracteres.")
     .optional(),
-  features: z.array(z.string().trim().min(1)).default([]),
 });
 
 export type CreatePlanFormValues = z.infer<typeof createPlanSchema>;

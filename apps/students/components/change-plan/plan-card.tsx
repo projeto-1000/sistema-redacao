@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, XCircle } from "lucide-react";
 
 import type { PlanData, PlanSelectionMode } from "@/types";
 import { ConfirmChangePlan } from "../confirm-change-plan";
@@ -47,7 +46,7 @@ export function PlanCard({
 
   const displayedPrice = isQuarterly ? getMonthlyEquivalentCents(plan.price, 3) : plan.price;
 
-  const features = plan.features;
+  const hasDescription = Boolean(plan.description?.trim());
 
   function renderPlanAction() {
     if (isCurrentPaidPlan) {
@@ -164,9 +163,11 @@ export function PlanCard({
       </div>
 
       <div className="mb-8">
-        <p className="mb-6 min-h-10 text-sm leading-relaxed text-slate-500">
-          {plan.description ?? "O pacote ideal focado na evolução constante da sua nota."}
-        </p>
+        {hasDescription && (
+          <p className="mb-6 text-sm leading-relaxed whitespace-pre-line text-slate-500">
+            {plan.description}
+          </p>
+        )}
 
         <p className="flex items-baseline text-4xl font-extrabold tracking-tight text-slate-800">
           <span className="mr-1 text-2xl font-bold">R$</span>
@@ -176,42 +177,20 @@ export function PlanCard({
           <span className="ml-1 text-sm font-medium text-slate-500">/mês</span>
         </p>
 
-        <div className="mt-1 h-5">
-          {isQuarterly && (
-            <p className="text-xs font-semibold text-slate-400">
-              Cobrança total de {formatCurrency(plan.price)} a cada 3 meses
-              {plan.discount_percentage !== null && ` · ${plan.discount_percentage}% de desconto`}
+        {isQuarterly && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <p className="text-sm font-bold text-slate-700">
+              Cobrança de {formatCurrency(plan.price)} a cada 3 meses
             </p>
-          )}
-        </div>
-      </div>
 
-      <ul className="mb-10 flex grow flex-col gap-4">
-        {features.map((feature, index) => {
-          const isIncluded = typeof feature === "string" ? true : feature.included;
-
-          const text = typeof feature === "string" ? feature : feature.text;
-
-          return (
-            <li key={`${text}-${index}`} className="flex items-center gap-3">
-              {isIncluded ? (
-                <CheckCircle2 className="text-primary size-5 shrink-0" />
-              ) : (
-                <XCircle className="size-5 shrink-0 text-slate-300" />
-              )}
-
-              <span
-                className={cn(
-                  "text-sm font-semibold",
-                  isIncluded ? "text-slate-700" : "text-slate-400 line-through decoration-slate-200"
-                )}
-              >
-                {text}
+            {plan.discount_percentage !== null && (
+              <span className="bg-primary/10 text-primary ring-primary/20 inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs font-extrabold tracking-wide uppercase ring-1">
+                {plan.discount_percentage}% OFF
               </span>
-            </li>
-          );
-        })}
-      </ul>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="mt-auto">{renderPlanAction()}</div>
     </div>
