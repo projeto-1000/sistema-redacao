@@ -46,7 +46,7 @@ export function PlanCard({
 
   const displayedPrice = isQuarterly ? getMonthlyEquivalentCents(plan.price, 3) : plan.price;
 
-  const hasDescription = Boolean(plan.description?.trim());
+  const hasSubtitle = Boolean(plan.subtitle?.trim());
 
   function renderPlanAction() {
     if (isCurrentPaidPlan) {
@@ -141,33 +141,25 @@ export function PlanCard({
       )}
     >
       {isCurrentPaidPlan && (
-        <span className="bg-primary absolute -top-3 right-6 rounded-sm px-3 py-1.5 text-[10px] font-extrabold tracking-wider text-amber-950 uppercase shadow-sm">
+        <span className="bg-primary absolute -top-3 right-6 rounded-sm px-3 py-1.5 text-[10px] font-extrabold tracking-wider text-amber-800 uppercase shadow-sm">
           Seu plano atual
         </span>
       )}
 
-      {isPreviousCanceledPlan && selectionMode === "canceled_subscription" && (
-        <span className="absolute -top-3 left-6 rounded-sm bg-slate-700 px-3 py-1.5 text-[10px] font-extrabold tracking-wider text-white uppercase shadow-sm">
-          Plano anterior
+      {plan.is_recommended && (
+        <span className="absolute -top-3 right-6 rounded-sm  bg-amber-200 px-3 py-1 text-[10px] font-extrabold tracking-wider text-amber-800 uppercase shadow-sm">
+          Recomendado
         </span>
       )}
 
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-800">{plan.name}</h2>
+      <h2 className="text-2xl font-bold tracking-tight text-slate-800">{plan.name}</h2>
 
-        {plan.is_recommended && (
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-extrabold tracking-wider text-amber-800 uppercase">
-            Recomendado
-          </span>
-        )}
-      </div>
+      {hasSubtitle && <p className="mt-1 text-sm text-slate-500">{plan.subtitle}</p>}
 
-      <div className="mb-8">
-        {hasDescription && (
-          <p className="mb-6 text-sm leading-relaxed whitespace-pre-line text-slate-500">
-            {plan.description}
-          </p>
-        )}
+      <div className="mb-8 mt-8">
+        <p className="mb-6 text-sm leading-relaxed whitespace-pre-line text-slate-500">
+          {plan.description}
+        </p>
 
         <p className="flex items-baseline text-4xl font-extrabold tracking-tight text-slate-800">
           <span className="mr-1 text-2xl font-bold">R$</span>

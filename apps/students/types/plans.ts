@@ -1,6 +1,7 @@
 export interface PlanData {
   id: string;
   name: string;
+  subtitle: string | null;
   description: string | null;
   price: number;
   credits_included: number;

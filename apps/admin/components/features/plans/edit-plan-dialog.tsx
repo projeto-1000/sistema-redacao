@@ -55,6 +55,7 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
       is_public: plan.is_public,
       is_recommended: plan.is_recommended,
       discount_percentage: plan.discount_percentage,
+      subtitle: plan.subtitle || "",
       description: plan.description || "",
     },
   });
@@ -121,72 +122,53 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="discount_percentage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Desconto exibido (%)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={field.value ?? ""}
-                        onChange={(event) =>
-                          field.onChange(
-                            event.target.value === "" ? null : Number(event.target.value)
-                          )
-                        }
-                        placeholder="Ex: 15"
-                        className={inputBaseClass}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-[10px]" />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="subtitle"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={labelClass}>Subtítulo do Plano</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ex: Para manter o ritmo semanal"
+                      className={inputBaseClass}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[10px]" />
+                </FormItem>
+              )}
+            />
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="is_public"
-                render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 rounded-xl border border-slate-200 p-4">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel className={labelClass}>Exibir no catálogo</FormLabel>
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={labelClass}>Descrição do Plano</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={5}
+                      placeholder="Descreva os benefícios e detalhes deste plano..."
+                      className={`${inputBaseClass} min-h-32 resize-y`}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[10px]" />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="is_recommended"
-                render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 rounded-xl border border-slate-200 p-4">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel className={labelClass}>Destacar como recomendado</FormLabel>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 md:grid-cols-3">
               <FormField
                 control={form.control}
                 name="interval_count"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className={labelClass}>Tipo de Plano / Recorrência</FormLabel>
+                    <FormLabel className={labelClass}>Recorrência</FormLabel>
                     <Select
                       onValueChange={(val) => field.onChange(Number(val))}
-                      defaultValue={field.value?.toString()}
+                      value={field.value?.toString()}
                     >
                       <FormControl>
                         <SelectTrigger className={inputBaseClass}>
@@ -243,9 +225,35 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="discount_percentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Desconto (%)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={field.value ?? ""}
+                        onChange={(event) =>
+                          field.onChange(
+                            event.target.value === "" ? null : Number(event.target.value)
+                          )
+                        }
+                        placeholder="Ex: 15"
+                        className={inputBaseClass}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-[10px]" />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="credits_included"
@@ -297,23 +305,37 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={labelClass}>Descrição do Plano</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Descreva os benefícios e detalhes deste plano..."
-                      className={`${inputBaseClass} min-h-20 resize-none`}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-[10px]" />
-                </FormItem>
-              )}
-            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="is_public"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 py-1">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className={`${labelClass} cursor-pointer`}>
+                      Exibir no catálogo
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="is_recommended"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 py-1">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className={`${labelClass} cursor-pointer`}>
+                      Destacar como recomendado
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
               <Button

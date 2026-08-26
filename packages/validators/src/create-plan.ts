@@ -29,6 +29,11 @@ export const createPlanSchema = z.object({
     .max(100, "O desconto não pode ser maior que 100%.")
     .nullable()
     .default(null),
+  subtitle: z
+    .string()
+    .trim()
+    .max(160, "O subtítulo deve ter no máximo 160 caracteres.")
+    .optional(),
   description: z
     .string()
     .trim()

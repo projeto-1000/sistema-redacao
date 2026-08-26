@@ -106,11 +106,28 @@ function getRemoteItemPayload(item: PagarmePlanItem) {
   };
 }
 
-async function restorePagarmePlan(plan: PagarmePlan, item: PagarmePlanItem, fallbackPrice: number) {
-  const results = await Promise.allSettled([
-    updatePagarmePlan(plan.id, getRemotePlanPayload(plan, fallbackPrice)),
-    updatePagarmePlanItem(plan.id, item.id, getRemoteItemPayload(item)),
-  ]);
+interface PagarmeChanges {
+  plan: boolean;
+  item: boolean;
+}
+
+async function restorePagarmePlan(
+  plan: PagarmePlan,
+  item: PagarmePlanItem,
+  fallbackPrice: number,
+  changes: PagarmeChanges
+) {
+  const restorations: Array<Promise<unknown>> = [];
+
+  if (changes.plan) {
+    restorations.push(updatePagarmePlan(plan.id, getRemotePlanPayload(plan, fallbackPrice)));
+  }
+
+  if (changes.item) {
+    restorations.push(updatePagarmePlanItem(plan.id, item.id, getRemoteItemPayload(item)));
+  }
+
+  const results = await Promise.allSettled(restorations);
 
   const failures = results.filter((result) => result.status === "rejected");
 
@@ -178,6 +195,7 @@ export async function createPlan(data: CreatePlanFormValues) {
 
     const parsedData = createPlanSchema.parse(data);
     const priceInCents = Math.round(parsedData.price * 100);
+    const subtitle = parsedData.subtitle || null;
     const description = parsedData.description || null;
 
     if (priceInCents === 0) {
@@ -193,6 +211,7 @@ export async function createPlan(data: CreatePlanFormValues) {
         is_public: parsedData.is_public,
         is_recommended: parsedData.is_recommended,
         discount_percentage: parsedData.discount_percentage,
+        subtitle,
         description,
       });
 
@@ -253,6 +272,7 @@ export async function createPlan(data: CreatePlanFormValues) {
       is_public: parsedData.is_public,
       is_recommended: parsedData.is_recommended,
       discount_percentage: parsedData.discount_percentage,
+      subtitle,
       description,
     });
 
@@ -296,6 +316,7 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
 
     const parsedData = createPlanSchema.parse(data);
     const priceInCents = Math.round(parsedData.price * 100);
+    const subtitle = parsedData.subtitle || null;
     const description = parsedData.description || null;
     const { data: currentPlan, error: fetchError } = await supabase
       .from("plans")
@@ -331,6 +352,7 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
           is_public: parsedData.is_public,
           is_recommended: parsedData.is_recommended,
           discount_percentage: parsedData.discount_percentage,
+          subtitle,
           description,
           updated_at: new Date().toISOString(),
         })
@@ -352,48 +374,98 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
       };
     }
 
-    const pagarmePlan = await getPagarmePlan(currentPlan.external_id);
-    const pagarmeItem = getActivePlanItem(pagarmePlan);
-    const oldItemPrice = pagarmeItem.pricing_scheme.price ?? currentPlan.price;
+    const hasPagarmeRelevantChanges =
+      currentPlan.name !== parsedData.name ||
+      currentPlan.price !== priceInCents ||
+      currentPlan.interval !== parsedData.interval ||
+      (currentPlan.interval_count ?? 1) !== parsedData.interval_count ||
+      currentPlan.credits_included !== parsedData.credits_included ||
+      currentPlan.credits_expiration_days !== parsedData.credits_expiration_days ||
+      currentPlan.is_active !== parsedData.is_active;
 
-    try {
-      await updatePagarmePlanItem(pagarmePlan.id, pagarmeItem.id, {
-        name: getPlanItemName(parsedData.name, parsedData.credits_included),
-        description: getPlanItemDescription(description),
-        quantity: pagarmeItem.quantity || 1,
-        cycles: pagarmeItem.cycles,
-        status: "active",
-        pricing_scheme: {
-          scheme_type: "unit",
-          price: priceInCents,
-        },
-      });
+    let pagarmeSync:
+      | {
+          plan: PagarmePlan;
+          item: PagarmePlanItem;
+          oldItemPrice: number;
+          changes: PagarmeChanges;
+        }
+      | undefined;
 
-      await updatePagarmePlan(pagarmePlan.id, {
-        ...getRemotePlanPayload(pagarmePlan, oldItemPrice),
-        name: parsedData.name,
-        description: description || "Plano de assinaturas",
-        status: parsedData.is_active ? "active" : "inactive",
-        minimum_price: priceInCents,
-        interval: parsedData.interval,
-        interval_count: parsedData.interval_count,
-        metadata: {
-          ...withoutLegacyProductCode(pagarmePlan.metadata),
-          credits_included: parsedData.credits_included.toString(),
-          credits_expiration_days: parsedData.credits_expiration_days.toString(),
-          credit_release_interval: "month",
-          credit_release_interval_count: "1",
-        },
-      });
-    } catch (error) {
-      console.error("[PLAN_UPDATE_PAGARME_ERROR]", error);
-      const restored = await restorePagarmePlan(pagarmePlan, pagarmeItem, oldItemPrice);
+    if (hasPagarmeRelevantChanges) {
+      const pagarmePlan = await getPagarmePlan(currentPlan.external_id);
+      const pagarmeItem = getActivePlanItem(pagarmePlan);
+      const oldItemPrice = pagarmeItem.pricing_scheme.price ?? currentPlan.price;
+      const desiredItemName = getPlanItemName(parsedData.name, parsedData.credits_included);
+      const desiredPlanStatus = parsedData.is_active ? "active" : "inactive";
+      const desiredMetadata = {
+        ...withoutLegacyProductCode(pagarmePlan.metadata),
+        credits_included: parsedData.credits_included.toString(),
+        credits_expiration_days: parsedData.credits_expiration_days.toString(),
+        credit_release_interval: "month",
+        credit_release_interval_count: "1",
+      };
+      const shouldUpdateItem =
+        pagarmeItem.name !== desiredItemName || oldItemPrice !== priceInCents;
+      const shouldUpdatePlan =
+        pagarmePlan.name !== parsedData.name ||
+        pagarmePlan.status !== desiredPlanStatus ||
+        (pagarmePlan.minimum_price ?? oldItemPrice) !== priceInCents ||
+        pagarmePlan.interval !== parsedData.interval ||
+        pagarmePlan.interval_count !== parsedData.interval_count ||
+        pagarmePlan.metadata?.credits_included !== desiredMetadata.credits_included ||
+        pagarmePlan.metadata?.credits_expiration_days !== desiredMetadata.credits_expiration_days ||
+        pagarmePlan.metadata?.credit_release_interval !== desiredMetadata.credit_release_interval ||
+        pagarmePlan.metadata?.credit_release_interval_count !==
+          desiredMetadata.credit_release_interval_count;
+      const changes: PagarmeChanges = { plan: false, item: false };
 
-      return {
-        success: false,
-        error: restored
-          ? "A Pagar.me recusou a edição; nenhuma alteração foi salva."
-          : "A edição falhou e não foi possível confirmar a restauração na Pagar.me. É necessária reconciliação manual.",
+      try {
+        if (shouldUpdateItem) {
+          await updatePagarmePlanItem(pagarmePlan.id, pagarmeItem.id, {
+            name: desiredItemName,
+            description: pagarmeItem.description,
+            quantity: pagarmeItem.quantity || 1,
+            cycles: pagarmeItem.cycles,
+            status: "active",
+            pricing_scheme: {
+              scheme_type: "unit",
+              price: priceInCents,
+            },
+          });
+          changes.item = true;
+        }
+
+        if (shouldUpdatePlan) {
+          await updatePagarmePlan(pagarmePlan.id, {
+            ...getRemotePlanPayload(pagarmePlan, oldItemPrice),
+            name: parsedData.name,
+            description: pagarmePlan.description,
+            status: desiredPlanStatus,
+            minimum_price: priceInCents,
+            interval: parsedData.interval,
+            interval_count: parsedData.interval_count,
+            metadata: desiredMetadata,
+          });
+          changes.plan = true;
+        }
+      } catch (error) {
+        console.error("[PLAN_UPDATE_PAGARME_ERROR]", error);
+        const restored = await restorePagarmePlan(pagarmePlan, pagarmeItem, oldItemPrice, changes);
+
+        return {
+          success: false,
+          error: restored
+            ? "A Pagar.me recusou a edição; nenhuma alteração foi salva."
+            : "A edição falhou e não foi possível confirmar a restauração na Pagar.me. É necessária reconciliação manual.",
+        };
+      }
+
+      pagarmeSync = {
+        plan: pagarmePlan,
+        item: pagarmeItem,
+        oldItemPrice,
+        changes,
       };
     }
 
@@ -410,6 +482,7 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
         is_public: parsedData.is_public,
         is_recommended: parsedData.is_recommended,
         discount_percentage: parsedData.discount_percentage,
+        subtitle,
         description,
         updated_at: new Date().toISOString(),
       })
@@ -417,7 +490,17 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
 
     if (dbUpdateError) {
       console.error("[PLAN_UPDATE_DB_ERROR]", dbUpdateError);
-      const restored = await restorePagarmePlan(pagarmePlan, pagarmeItem, oldItemPrice);
+
+      if (!pagarmeSync || (!pagarmeSync.changes.plan && !pagarmeSync.changes.item)) {
+        return { success: false, error: "Falha ao salvar as alterações no banco." };
+      }
+
+      const restored = await restorePagarmePlan(
+        pagarmeSync.plan,
+        pagarmeSync.item,
+        pagarmeSync.oldItemPrice,
+        pagarmeSync.changes
+      );
 
       return {
         success: false,

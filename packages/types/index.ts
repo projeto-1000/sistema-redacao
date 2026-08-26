@@ -322,6 +322,7 @@ export interface TopicsFilter {
 export interface Plans {
   id: string;
   name: string;
+  subtitle: string | null;
   description: string | null;
   external_id: string | null;
   credits_included: number;

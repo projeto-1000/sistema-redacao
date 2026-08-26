@@ -11,6 +11,7 @@ const icone = "/images/projeto1000-icone.png";
 export type PublicPlan = {
   id: string;
   name: string;
+  subtitle: string | null;
   description: string | null;
   priceCents: number;
   interval: string;
@@ -25,8 +26,9 @@ const brl = (cents: number) =>
 const freePlan: PublicPlan = {
   id: "free",
   name: "Grátis",
+  subtitle: "Para conhecer a correção",
   description:
-    "Para conhecer a correção\n1 crédito gratuito para uma correção completa\nCorreção individual feita por professor em 48 horas úteis\nNota geral, comentários e avaliação nas cinco competências\nPrincipal gargalo, próximos passos e tarefa de reescrita\nAcesso ao dashboard",
+    "1 crédito gratuito para uma correção completa\nCorreção individual feita por professor em 48 horas úteis\nNota geral, comentários e avaliação nas cinco competências\nPrincipal gargalo, próximos passos e tarefa de reescrita\nAcesso ao dashboard",
   priceCents: 0,
   interval: "lifetime",
   intervalCount: null,
@@ -166,6 +168,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
               const isFree = p.id === "free";
               const isQuarterly =
                 p.interval === "month" && p.intervalCount === 3;
+              const hasSubtitle = Boolean(p.subtitle?.trim());
               const hasDescription = Boolean(p.description?.trim());
               const displayedPrice = isQuarterly
                 ? Math.round(p.priceCents / (p.intervalCount ?? 1))
@@ -196,6 +199,9 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                   <h2 className="mt-2 font-display text-2xl font-extrabold text-card-foreground">
                     {p.name}
                   </h2>
+                  {hasSubtitle && (
+                    <p className="mt-1 text-sm text-muted-foreground">{p.subtitle}</p>
+                  )}
                   {hasDescription && (
                     <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                       {p.description}

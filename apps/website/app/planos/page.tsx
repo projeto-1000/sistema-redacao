@@ -30,7 +30,7 @@ async function getPublicPlans(): Promise<PublicPlan[]> {
   const { data, error } = await supabase
     .from("plans")
     .select(
-      "id, name, description, price, interval, interval_count, discount_percentage, is_recommended",
+      "id, name, subtitle, description, price, interval, interval_count, discount_percentage, is_recommended",
     )
     .eq("is_active", true)
     .eq("is_public", true)
@@ -45,6 +45,7 @@ async function getPublicPlans(): Promise<PublicPlan[]> {
   return (data ?? []).map((plan) => ({
     id: plan.id,
     name: plan.name,
+    subtitle: plan.subtitle,
     description: plan.description,
     priceCents: plan.price,
     interval: plan.interval,

@@ -67,6 +67,7 @@ export async function getAvailablePlans(): Promise<PlanData[]> {
       `
         id,
         name,
+        subtitle,
         description,
         price,
         credits_included,
@@ -90,6 +91,7 @@ export async function getAvailablePlans(): Promise<PlanData[]> {
   return plans.map((plan) => ({
     id: plan.id,
     name: plan.name,
+    subtitle: plan.subtitle,
     description: plan.description,
     price: plan.price,
     credits_included: plan.credits_included,
