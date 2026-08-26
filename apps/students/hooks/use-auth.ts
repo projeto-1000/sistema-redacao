@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/client";
 import { ForgotPasswordSchema, LoginSchema, RegisterSchema } from "@repo/validators";
 import { useRouter } from "next/navigation";
+import { trackCompleteRegistration } from "@/lib/meta-pixel";
 
 export function useAuth() {
   const supabase = createClient();
@@ -120,6 +121,7 @@ export function useAuth() {
       }
     }
 
+    trackCompleteRegistration();
     router.refresh();
     router.replace("/inicio");
     setIsRegistering(false);
