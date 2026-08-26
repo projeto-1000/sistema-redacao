@@ -7,7 +7,7 @@ import { SignUpForm } from "@repo/ui/components/signup-form";
 import type { RegisterSchema } from "@repo/validators";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
+import { trackCompleteRegistration } from "@/lib/meta-pixel";
 interface SignupPageClientProps {
   context: SignupContext;
 }
@@ -34,6 +34,7 @@ export function SignupPageClient({ context }: SignupPageClientProps) {
       duration: 5000,
     });
 
+    trackCompleteRegistration();
     router.replace("/inicio");
     router.refresh();
   };
