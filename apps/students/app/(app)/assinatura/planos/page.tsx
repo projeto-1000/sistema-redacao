@@ -135,6 +135,12 @@ export default async function PlansPage() {
         currentPlanCreditsIncluded={
           currentContext?.planCreditsIncluded ?? null
         }
+        currentPlanInterval={
+          currentContext?.planInterval ?? null
+        }
+        currentPlanIntervalCount={
+          currentContext?.planIntervalCount ?? null
+        }
         currentPeriodStart={
           currentContext?.currentPeriodStart ?? null
         }

@@ -9,12 +9,6 @@ import {
 } from "@repo/datacrazy";
 import { onlyDigits } from "@repo/utils";
 
-const PLAN_LABELS: Record<string, string> = {
-  internal_free_trial: "Free",
-  essential: "Essencial",
-  advanced: "Avançado",
-};
-
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
   active: "Ativo",
   trial: "Ativo",
@@ -38,7 +32,6 @@ type DataCrazySyncErrorCode =
   | "SUBSCRIPTION_NOT_FOUND"
   | "ESSAY_NOT_FOUND"
   | "PLAN_NOT_FOUND"
-  | "PLAN_NOT_MAPPED"
   | "PAYMENT_STATUS_NOT_MAPPED"
   | "ESSAY_STATUS_NOT_MAPPED"
   | "UNKNOWN_ERROR";
@@ -56,10 +49,7 @@ export function getDataCrazySyncErrorCode(error: unknown) {
   return error instanceof DataCrazySyncError ? error.code : "UNKNOWN_ERROR";
 }
 
-export async function syncStudentToDataCrazy(
-  userId: string,
-  event: DataCrazyEvent
-): Promise<void> {
+export async function syncStudentToDataCrazy(userId: string, event: DataCrazyEvent): Promise<void> {
   const supabaseAdmin = createAdminClient();
 
   const profileResult = await supabaseAdmin
@@ -113,7 +103,7 @@ export async function syncStudentToDataCrazy(
 
     const { data: plan, error: planError } = await supabaseAdmin
       .from("plans")
-      .select("external_id")
+      .select("name")
       .eq("id", subscriptionResult.data.plan_id)
       .maybeSingle();
 
@@ -125,16 +115,10 @@ export async function syncStudentToDataCrazy(
       throw new DataCrazySyncError("PLAN_NOT_FOUND");
     }
 
-    const planLabel = plan.external_id ? PLAN_LABELS[plan.external_id] : undefined;
-
-    if (!planLabel) {
-      throw new DataCrazySyncError("PLAN_NOT_MAPPED");
-    }
-
     payload = {
       event,
       lead,
-      plan: planLabel,
+      plan: plan.name,
       ...(allocationResult.data?.expires_at
         ? { tokens_expire_at: allocationResult.data.expires_at }
         : {}),

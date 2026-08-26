@@ -43,8 +43,15 @@ function getPlanItemName(name: string, creditsIncluded: number) {
   return `${name} - Pacote de ${creditsIncluded} Redações`.slice(0, 64);
 }
 
-function getPlanItemDescription(description?: string) {
+function getPlanItemDescription(description?: string | null) {
   return (description || "Plano de assinaturas").slice(0, 256);
+}
+
+function withoutLegacyProductCode(metadata?: Record<string, string>) {
+  const remainingMetadata = { ...metadata };
+  delete remainingMetadata.product_code;
+
+  return remainingMetadata;
 }
 
 function getActivePlanItem(plan: PagarmePlan) {
@@ -171,6 +178,7 @@ export async function createPlan(data: CreatePlanFormValues) {
 
     const parsedData = createPlanSchema.parse(data);
     const priceInCents = Math.round(parsedData.price * 100);
+    const description = parsedData.description || null;
 
     if (priceInCents === 0) {
       const { error } = await supabase.from("plans").insert({
@@ -181,8 +189,13 @@ export async function createPlan(data: CreatePlanFormValues) {
         price: 0,
         credits_included: parsedData.credits_included,
         credits_expiration_days: parsedData.credits_expiration_days,
-        is_active: true,
-        description: parsedData.description,
+        is_active: parsedData.is_active,
+        is_public: parsedData.is_public,
+        is_recommended: parsedData.is_recommended,
+        discount_percentage: parsedData.discount_percentage,
+        sort_order: parsedData.sort_order,
+        description,
+        features: parsedData.features,
       });
 
       if (error) {
@@ -196,7 +209,8 @@ export async function createPlan(data: CreatePlanFormValues) {
 
     const pagarmePayload = {
       name: parsedData.name,
-      description: parsedData.description || "Plano de assinaturas",
+      description: description || "Plano de assinaturas",
+      status: parsedData.is_active ? ("active" as const) : ("inactive" as const),
       payment_methods: DEFAULT_PAYMENT_METHODS,
       installments: [1],
       minimum_price: priceInCents,
@@ -207,7 +221,7 @@ export async function createPlan(data: CreatePlanFormValues) {
       items: [
         {
           name: getPlanItemName(parsedData.name, parsedData.credits_included),
-          description: getPlanItemDescription(parsedData.description),
+          description: getPlanItemDescription(description),
           quantity: 1,
           pricing_scheme: {
             scheme_type: "unit" as const,
@@ -218,6 +232,8 @@ export async function createPlan(data: CreatePlanFormValues) {
       metadata: {
         credits_included: parsedData.credits_included.toString(),
         credits_expiration_days: parsedData.credits_expiration_days.toString(),
+        credit_release_interval: "month",
+        credit_release_interval_count: "1",
       },
     };
 
@@ -235,8 +251,13 @@ export async function createPlan(data: CreatePlanFormValues) {
       price: priceInCents,
       credits_included: parsedData.credits_included,
       credits_expiration_days: parsedData.credits_expiration_days,
-      is_active: true,
-      description: parsedData.description,
+      is_active: parsedData.is_active,
+      is_public: parsedData.is_public,
+      is_recommended: parsedData.is_recommended,
+      discount_percentage: parsedData.discount_percentage,
+      sort_order: parsedData.sort_order,
+      description,
+      features: parsedData.features,
     });
 
     if (error) {
@@ -278,10 +299,12 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
     await requireAdmin(supabase);
 
     const parsedData = createPlanSchema.parse(data);
+    const priceInCents = Math.round(parsedData.price * 100);
+    const description = parsedData.description || null;
     const { data: currentPlan, error: fetchError } = await supabase
       .from("plans")
       .select(
-        "external_id, name, description, interval, interval_count, price, credits_included, credits_expiration_days, is_active"
+        "external_id, name, description, features, interval, interval_count, price, credits_included, credits_expiration_days, is_active"
       )
       .eq("id", id)
       .single();
@@ -290,7 +313,6 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
       return { success: false, error: "Plano não encontrado no banco de dados." };
     }
 
-    const priceInCents = Math.round(parsedData.price * 100);
     const isPagarmePlan = currentPlan.external_id?.startsWith("plan_") ?? false;
 
     if (!isPagarmePlan) {
@@ -310,7 +332,12 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
           price: priceInCents,
           credits_included: parsedData.credits_included,
           credits_expiration_days: parsedData.credits_expiration_days,
-          description: parsedData.description,
+          is_public: parsedData.is_public,
+          is_recommended: parsedData.is_recommended,
+          discount_percentage: parsedData.discount_percentage,
+          sort_order: parsedData.sort_order,
+          description,
+          features: parsedData.features,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
@@ -338,7 +365,7 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
     try {
       await updatePagarmePlanItem(pagarmePlan.id, pagarmeItem.id, {
         name: getPlanItemName(parsedData.name, parsedData.credits_included),
-        description: getPlanItemDescription(parsedData.description),
+        description: getPlanItemDescription(description),
         quantity: pagarmeItem.quantity || 1,
         cycles: pagarmeItem.cycles,
         status: "active",
@@ -351,15 +378,17 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
       await updatePagarmePlan(pagarmePlan.id, {
         ...getRemotePlanPayload(pagarmePlan, oldItemPrice),
         name: parsedData.name,
-        description: parsedData.description || "Plano de assinaturas",
-        status: currentPlan.is_active ? "active" : "inactive",
+        description: description || "Plano de assinaturas",
+        status: parsedData.is_active ? "active" : "inactive",
         minimum_price: priceInCents,
         interval: parsedData.interval,
         interval_count: parsedData.interval_count,
         metadata: {
-          ...pagarmePlan.metadata,
+          ...withoutLegacyProductCode(pagarmePlan.metadata),
           credits_included: parsedData.credits_included.toString(),
           credits_expiration_days: parsedData.credits_expiration_days.toString(),
+          credit_release_interval: "month",
+          credit_release_interval_count: "1",
         },
       });
     } catch (error) {
@@ -383,7 +412,13 @@ export async function updatePlan(id: string, data: CreatePlanFormValues) {
         price: priceInCents,
         credits_included: parsedData.credits_included,
         credits_expiration_days: parsedData.credits_expiration_days,
-        description: parsedData.description,
+        is_active: parsedData.is_active,
+        is_public: parsedData.is_public,
+        is_recommended: parsedData.is_recommended,
+        discount_percentage: parsedData.discount_percentage,
+        sort_order: parsedData.sort_order,
+        description,
+        features: parsedData.features,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);

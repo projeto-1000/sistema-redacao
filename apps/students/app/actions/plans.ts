@@ -67,19 +67,24 @@ export async function getAvailablePlans(): Promise<PlanData[]> {
       `
         id,
         name,
+        description,
         price,
         credits_included,
         interval,
         interval_count,
-        features
+        features,
+        is_recommended,
+        discount_percentage,
+        sort_order
       `
     )
     .eq("is_active", true)
     .eq("is_public", true)
     .gt("price", 0)
-    .order("price", {
+    .order("sort_order", {
       ascending: true,
-    });
+    })
+    .order("price", { ascending: true });
 
   if (error || !plans) {
     console.error("[GET_AVAILABLE_PLANS_ERROR]", error);
@@ -90,11 +95,15 @@ export async function getAvailablePlans(): Promise<PlanData[]> {
   return plans.map((plan) => ({
     id: plan.id,
     name: plan.name,
+    description: plan.description,
     price: plan.price,
     credits_included: plan.credits_included,
     interval: plan.interval,
     interval_count: plan.interval_count,
     features: plan.features ?? [],
+    is_recommended: plan.is_recommended,
+    discount_percentage: plan.discount_percentage,
+    sort_order: plan.sort_order,
   }));
 }
 

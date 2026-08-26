@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@repo/ui/components/select";
 import { Button } from "@repo/ui/components/button";
+import { Checkbox } from "@repo/ui/components/checkbox";
 import { Pencil } from "lucide-react";
 import { Plans } from "@repo/types";
 import { toast } from "sonner";
@@ -51,7 +52,12 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
       credits_included: plan.credits_included,
       credits_expiration_days: plan.credits_expiration_days || 30,
       is_active: plan.is_active,
+      is_public: plan.is_public,
+      is_recommended: plan.is_recommended,
+      discount_percentage: plan.discount_percentage,
+      sort_order: plan.sort_order,
       description: plan.description || "",
+      features: plan.features ?? [],
     },
   });
 
@@ -92,7 +98,7 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="rounded-3xl p-6 sm:max-w-[600px]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:max-w-[600px]">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-xl font-black">Editar Plano</DialogTitle>
         </DialogHeader>
@@ -116,6 +122,102 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="features"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={labelClass}>Funcionalidades</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      value={(field.value ?? []).join("\n")}
+                      onChange={(event) =>
+                        field.onChange(
+                          event.target.value
+                            .split("\n")
+                            .map((feature) => feature.trim())
+                            .filter(Boolean)
+                        )
+                      }
+                      placeholder="Informe uma funcionalidade por linha"
+                      className={`${inputBaseClass} min-h-32 resize-y`}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[10px]" />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="discount_percentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Desconto exibido (%)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={field.value ?? ""}
+                        onChange={(event) =>
+                          field.onChange(
+                            event.target.value === "" ? null : Number(event.target.value)
+                          )
+                        }
+                        placeholder="Ex: 15"
+                        className={inputBaseClass}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-[10px]" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sort_order"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Ordem de exibição</FormLabel>
+                    <FormControl>
+                      <Input type="number" min={0} className={inputBaseClass} {...field} />
+                    </FormControl>
+                    <FormMessage className="text-[10px]" />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="is_public"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 rounded-xl border border-slate-200 p-4">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className={labelClass}>Exibir no catálogo</FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="is_recommended"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 rounded-xl border border-slate-200 p-4">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className={labelClass}>Destacar como recomendado</FormLabel>
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <FormField

@@ -154,6 +154,7 @@ export interface PendingEssayListItem {
   title: string
   created_at: string
   due_date: string
+  essay_remaining_business_seconds: number;
   submission_date: string
   student_name: string
   avatar_url: string
@@ -333,6 +334,10 @@ export interface Plans {
   payment_methods: string[];
   statement_descriptor: string | null;
   is_active: boolean;
+  is_public: boolean;
+  is_recommended: boolean;
+  discount_percentage: number | null;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }

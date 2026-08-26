@@ -6,11 +6,15 @@ export interface PlanFeature {
 export interface PlanData {
   id: string;
   name: string;
+  description: string | null;
   price: number;
   credits_included: number;
   interval: string;
   interval_count: number | null;
   features: PlanFeature[] | string[];
+  is_recommended: boolean;
+  discount_percentage: number | null;
+  sort_order: number;
 }
 
 export type PlanSelectionMode =
