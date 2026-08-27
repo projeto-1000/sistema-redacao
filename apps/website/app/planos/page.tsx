@@ -15,22 +15,24 @@ export const revalidate = 60;
 
 async function getPublicPlans(): Promise<PublicPlan[]> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabasePublishableKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabasePublishableKey) {
     console.error(
       "[PUBLIC_PLANS_CONFIG_ERROR] Supabase public configuration is missing.",
     );
     return [];
   }
 
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createClient(supabaseUrl, supabasePublishableKey, {
     auth: { persistSession: false },
   });
   const { data, error } = await supabase
     .from("plans")
     .select(
-      "id, name, subtitle, description, price, interval, interval_count, discount_percentage, is_recommended",
+      "id, name, subtitle, description, price, credits_included, interval, interval_count, discount_percentage, is_recommended",
     )
     .eq("is_active", true)
     .eq("is_public", true)
@@ -48,6 +50,7 @@ async function getPublicPlans(): Promise<PublicPlan[]> {
     subtitle: plan.subtitle,
     description: plan.description,
     priceCents: plan.price,
+    creditsIncluded: plan.credits_included,
     interval: plan.interval,
     intervalCount: plan.interval_count,
     discountPercentage: plan.discount_percentage,
