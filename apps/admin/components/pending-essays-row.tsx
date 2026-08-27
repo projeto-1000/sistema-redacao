@@ -18,7 +18,10 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
   const [startingEssayId, setStartingEssayId] = useState<string | null>(null);
   const router = useRouter();
 
-  const deadline = getDeadlineStatus(essay.due_date) as DeadlineInfo;
+  const deadline = getDeadlineStatus(
+    essay.due_date,
+    essay.essay_remaining_business_seconds
+  ) as DeadlineInfo;
 
   const renderStatusBadge = (deadline: DeadlineInfo) => {
     let classes = "border-blue-500 text-blue-700 bg-blue-100";

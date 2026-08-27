@@ -63,7 +63,7 @@ export async function getEssaysByStatus({
 
   let query = supabase.from("essays").select(
     `
-      id, title, thematic_axis, created_at, due_date, status, submission_date,
+      id, title, thematic_axis, created_at, due_date, essay_remaining_business_seconds, status, submission_date,
       student:profiles!essays_student_id_fkey(full_name, avatar_url, email),
       teacher:profiles!essays_teacher_id_fkey(full_name, avatar_url)
     `,
@@ -128,6 +128,7 @@ export async function getEssaysByStatus({
 
     return {
       ...rest,
+      essay_remaining_business_seconds: Number(rest.essay_remaining_business_seconds),
       student_name: studentData.full_name,
       avatar_url: studentData.avatar_url,
       email: studentData.email,
