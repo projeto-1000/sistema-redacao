@@ -11,10 +11,10 @@ interface DraftActionsProps {
 
 export function DraftActions({ topicId, isPending, onConfirmDelete }: DraftActionsProps) {
   return (
-    <div className="flex gap-2 w-full">
+    <div className="flex min-w-0 gap-2 w-full">
       <Button
         asChild
-        className="flex-1 bg-amber-100 text-amber-700 hover:bg-amber-200 font-bold rounded-xl h-10 gap-2"
+        className="min-w-0 flex-1 bg-amber-100 text-amber-700 hover:bg-amber-200 font-bold rounded-xl h-10 gap-2 px-3 has-[>svg]:px-3 sm:px-4 sm:has-[>svg]:px-4"
       >
         <Link href={`/minhas-redacoes/nova-redacao?id=${topicId}`}>
           Continuar Redação <ArrowRight className="size-4" />
