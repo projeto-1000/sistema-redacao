@@ -1,6 +1,6 @@
 
-export function getFirstName(fullName: string): string {
-  return fullName.split(" ")[0] || "";
+export function getFirstName(fullName: string | null | undefined): string {
+  return fullName?.trim().split(/\s+/).find(Boolean) ?? "";
 }
 
 //TODO: melhorar loc

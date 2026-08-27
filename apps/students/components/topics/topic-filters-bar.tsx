@@ -36,7 +36,7 @@ export function TopicFiltersBar() {
       <div className="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center">
         <PageHeader
           title='Lista Geral de Temas'
-          subtitle='Navegue por nossa biblioteca completa com centenas de propostas.'
+          subtitle='Navegue por nossa biblioteca completa de propostas.'
         />
 
         <div className="relative w-full lg:w-[450px]">

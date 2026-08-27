@@ -15,9 +15,15 @@ interface EssayWorkspaceProps {
   essayTopic: EssayTopicDetail;
   isSuccess: boolean;
   backup: EssayDraft | null;
+  hasAvailableCredits: boolean;
 }
 
-export function EssayWorkspace({ essayTopic, isSuccess, backup }: EssayWorkspaceProps) {
+export function EssayWorkspace({
+  essayTopic,
+  isSuccess,
+  backup,
+  hasAvailableCredits,
+}: EssayWorkspaceProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (isSuccess) {
@@ -68,7 +74,11 @@ export function EssayWorkspace({ essayTopic, isSuccess, backup }: EssayWorkspace
             topic={essayTopic}
           />
 
-          <EssayEditorForm topic={essayTopic} backup={backup} />
+          <EssayEditorForm
+            topic={essayTopic}
+            backup={backup}
+            hasAvailableCredits={hasAvailableCredits}
+          />
         </div>
       </div>
     </div>

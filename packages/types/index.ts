@@ -154,6 +154,7 @@ export interface PendingEssayListItem {
   title: string
   created_at: string
   due_date: string
+  essay_remaining_business_seconds: number;
   submission_date: string
   student_name: string
   avatar_url: string
@@ -321,8 +322,8 @@ export interface TopicsFilter {
 export interface Plans {
   id: string;
   name: string;
+  subtitle: string | null;
   description: string | null;
-  features: string[] | null;
   external_id: string | null;
   credits_included: number;
   credits_expiration_days: number;
@@ -333,6 +334,9 @@ export interface Plans {
   payment_methods: string[];
   statement_descriptor: string | null;
   is_active: boolean;
+  is_public: boolean;
+  is_recommended: boolean;
+  discount_percentage: number | null;
   created_at: string;
   updated_at: string;
 }

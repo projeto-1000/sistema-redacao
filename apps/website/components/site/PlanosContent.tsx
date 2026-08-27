@@ -3,75 +3,38 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Container } from "@/components/site/Container";
-import { Check, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { MentoriaCTA } from "@/components/site/MentoriaCTA";
 import { TiltCard } from "@/components/site/TiltCard";
 const icone = "/images/projeto1000-icone.png";
 
-type Plan = {
+export type PublicPlan = {
+  id: string;
   name: string;
-  tagline?: string;
-  price: string;
-  monthly?: number;
-  suffix?: string;
-  highlight?: boolean;
-  cta: string;
-  features: string[];
-  note?: string;
+  subtitle: string | null;
+  description: string | null;
+  priceCents: number;
+  interval: string;
+  intervalCount: number | null;
+  discountPercentage: number | null;
+  isRecommended: boolean;
 };
 
-const brl = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
+const brl = (cents: number) =>
+  `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
 
-const plans: Plan[] = [
-  {
-    name: "Grátis",
-    tagline: "Para conhecer a correção",
-    price: "R$ 0",
-    suffix: "sem cartão de crédito",
-    cta: "Começar grátis",
-    features: [
-      "1 crédito gratuito para uma correção completa",
-      "Correção individual feita por professor em 48 horas úteis",
-      "Nota geral, comentários e avaliação nas cinco competências",
-      "Principal gargalo, próximos passos e tarefa de reescrita",
-      "Acesso ao dashboard",
-    ],
-  },
-  {
-    name: "Essencial",
-    tagline: "Para manter o ritmo semanal",
-    price: "R$ 39,90",
-    monthly: 39.9,
-    suffix: "por mês",
-    highlight: true,
-    cta: "Assinar Essencial",
-    features: [
-      "4 créditos renovados a cada mês",
-      "Aproximadamente uma redação por semana",
-      "Correção individual feita por professor em 48 horas úteis",
-      "Nota geral, comentários e avaliação nas cinco competências",
-      "Principal gargalo, próximos passos e tarefa de reescrita",
-      "Dashboard com notas, médias, evolução e histórico completo",
-    ],
-    note: "Recomendado",
-  },
-  {
-    name: "Avançado",
-    price: "R$ 89,90",
-    monthly: 89.9,
-    suffix: "por mês",
-    cta: "Assinar Avançado",
-    features: [
-      "10 créditos renovados a cada mês",
-      "Ritmo de duas redações por semana, com margem para envios adicionais",
-      "Custo por correção muito menor que no Essencial",
-      "Correção individual feita por professor em 48 horas úteis",
-      "Nota geral, comentários e avaliação nas cinco competências",
-      "Principal gargalo, próximos passos e tarefa de reescrita",
-      "Dashboard com notas, médias, evolução e histórico completo",
-    ],
-  },
-];
+const freePlan: PublicPlan = {
+  id: "free",
+  name: "Grátis",
+  subtitle: "Para conhecer a correção",
+  description:
+    "1 crédito gratuito para uma correção completa\nCorreção individual feita por professor em 48 horas úteis\nNota geral, comentários e avaliação nas cinco competências\nPrincipal gargalo, próximos passos e tarefa de reescrita\nAcesso ao dashboard",
+  priceCents: 0,
+  interval: "lifetime",
+  intervalCount: null,
+  discountPercentage: null,
+  isRecommended: false,
+};
 
 const faq = [
   {
@@ -96,20 +59,42 @@ const faq = [
   },
   {
     q: "A assinatura é renovada automaticamente?",
-    a: "Sim. A assinatura é renovada a cada mês, na mesma data da contratação, até que seja cancelada.",
+    a: "Sim. A assinatura mensal é renovada a cada mês e a trimestral, a cada 3 meses, até que seja cancelada.",
   },
   {
     q: "Posso trocar de plano?",
-    a: "Sim. Você pode migrar entre o Essencial e o Avançado. O novo plano passa a valer assim que você trocar.",
+    a: "Sim. Quando a troca estiver disponível para a periodicidade atual, você poderá escolher outra oferta na plataforma.",
   },
   {
     q: "Existe fidelidade?",
-    a: "Não. Você pode cancelar sua assinatura diretamente pela plataforma. O cancelamento impede a renovação e a cobrança do ciclo seguinte, e seu acesso dura até o final do período de 30 dias.",
+    a: "Não. Você pode cancelar sua assinatura diretamente pela plataforma. O cancelamento impede a renovação e a cobrança do ciclo seguinte, e seu acesso permanece até o fim do período contratado.",
   },
 ];
 
-export function PlanosContent() {
+interface PlanosContentProps {
+  plans: PublicPlan[];
+}
+
+export function PlanosContent({ plans }: PlanosContentProps) {
   const [quarterly, setQuarterly] = useState(false);
+  const hasQuarterlyPlans = plans.some(
+    (plan) => plan.interval === "month" && plan.intervalCount === 3,
+  );
+  const quarterlyDiscounts = plans
+    .filter((plan) => plan.interval === "month" && plan.intervalCount === 3)
+    .map((plan) => plan.discountPercentage)
+    .filter((discount): discount is number => discount !== null);
+  const sharedQuarterlyDiscount =
+    quarterlyDiscounts.length > 0 &&
+    quarterlyDiscounts.every((discount) => discount === quarterlyDiscounts[0])
+      ? quarterlyDiscounts[0]
+      : null;
+  const selectedPlans = plans.filter(
+    (plan) =>
+      plan.interval === "month" && plan.intervalCount === (quarterly ? 3 : 1),
+  );
+  const visiblePlans = [freePlan, ...selectedPlans];
+
   return (
     <>
       <section className="relative overflow-hidden">
@@ -123,7 +108,7 @@ export function PlanosContent() {
           </h1>
           <p className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
             Comece com uma correção completa, sem pagar e sem informar cartão.
-            Para continuar, escolha entre 4 ou 10 créditos mensais, sem
+            Para continuar, escolha a oferta que melhor acompanha seu ritmo, sem
             fidelidade.
           </p>
         </Container>
@@ -131,121 +116,132 @@ export function PlanosContent() {
 
       <section>
         <Container className="pb-16 pt-4">
-          <div className="flex flex-col items-center gap-3">
-            <div className="inline-flex items-center gap-4 rounded-full border border-border bg-card px-5 py-3 shadow-[var(--shadow-soft)]">
-              <span
-                className={`text-sm font-bold transition-colors ${
-                  quarterly ? "text-muted-foreground" : "text-primary"
-                }`}
-              >
-                Mensal
-              </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={quarterly}
-                aria-label="Alternar entre cobrança mensal e trimestral"
-                onClick={() => setQuarterly((v) => !v)}
-                className={`relative h-7 w-14 shrink-0 rounded-full transition-colors ${
-                  quarterly ? "bg-accent" : "bg-primary"
-                }`}
-              >
+          {hasQuarterlyPlans && (
+            <div className="flex flex-col items-center gap-3">
+              <div className="inline-flex items-center gap-4 rounded-full border border-border bg-card px-5 py-3 shadow-[var(--shadow-soft)]">
                 <span
-                  className={`absolute top-1 h-5 w-5 rounded-full bg-card shadow transition-all duration-300 ${
-                    quarterly ? "left-8" : "left-1"
-                  }`}
-                />
-              </button>
-              <span
-                className={`flex items-center gap-2 text-sm font-bold transition-colors ${
-                  quarterly ? "text-foreground" : "text-muted-foreground"
-                }`}
-              >
-                Trimestral
-                <span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-accent-foreground">
-                  -15%
-                </span>
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              No plano trimestral você paga 15% menos no total, cobrado a cada 3
-              meses.
-            </p>
-          </div>
-
-          <div className="grid items-stretch gap-6 pt-10 md:grid-cols-3">
-            {plans.map((p) => (
-              <TiltCard
-                key={p.name}
-                intensity={6}
-                className={`relative flex h-full flex-col rounded-[1.75rem] bg-card p-8 ${
-                  p.highlight
-                    ? "border-2 border-primary shadow-[var(--shadow-card)]"
-                    : "border border-border shadow-[var(--shadow-soft)]"
-                }`}
-              >
-                {p.note && (
-                  <span className="absolute -top-3 left-8 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary-foreground shadow-[0_8px_20px_-8px_rgba(25,96,234,0.8)]">
-                    <Image
-                      src={icone}
-                      alt=""
-                      width={16}
-                      height={16}
-                      className="h-4 w-4 rounded-full"
-                    />
-                    {p.note}
-                  </span>
-                )}
-                <h2 className="mt-2 font-display text-2xl font-extrabold text-card-foreground">
-                  {p.name}
-                </h2>
-                {p.tagline && (
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {p.tagline}
-                  </p>
-                )}
-                <p className="mt-4 flex flex-wrap items-baseline gap-x-2">
-                  <span className="font-display text-4xl font-extrabold text-card-foreground">
-                    {p.monthly && quarterly ? brl(p.monthly * 0.85) : p.price}
-                  </span>
-                  {p.suffix && (
-                    <span className="text-sm text-muted-foreground">
-                      {p.suffix}
-                    </span>
-                  )}
-                </p>
-                {p.monthly && quarterly && (
-                  <p className="mt-1 text-xs font-semibold text-primary">
-                    {brl(p.monthly * 3 * 0.85)} cobrados a cada 3 meses,
-                    economia de {brl(p.monthly * 3 * 0.15)}
-                  </p>
-                )}
-                <ul className="mt-7 flex-1 space-y-3.5">
-                  {p.features.map((f) => (
-                    <li
-                      key={f}
-                      className="flex items-center gap-3 text-sm text-foreground/90"
-                    >
-                      <span className="icon-bubble h-6 w-6 shrink-0 bg-pastel-blue">
-                        <Check className="h-3.5 w-3.5 text-primary" />
-                      </span>
-                      <span className="min-w-0">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <a
-                  href="/cadastro"
-                  data-cta={`plan-${p.name.toLowerCase()}`}
-                  className={`press-fx mt-8 inline-flex justify-center rounded-full px-5 py-3.5 text-sm font-bold transition-all ${
-                    p.highlight
-                      ? "bg-primary text-primary-foreground"
-                      : "border border-border text-foreground hover:border-primary hover:text-primary"
+                  className={`text-sm font-bold transition-colors ${
+                    quarterly ? "text-muted-foreground" : "text-primary"
                   }`}
                 >
-                  {p.cta}
-                </a>
-              </TiltCard>
-            ))}
+                  Mensal
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={quarterly}
+                  aria-label="Alternar entre cobrança mensal e trimestral"
+                  onClick={() => setQuarterly((v) => !v)}
+                  className={`relative h-7 w-14 shrink-0 rounded-full transition-colors ${
+                    quarterly ? "bg-accent" : "bg-primary"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-1 h-5 w-5 rounded-full bg-card shadow transition-all duration-300 ${
+                      quarterly ? "left-8" : "left-1"
+                    }`}
+                  />
+                </button>
+                <span
+                  className={`flex items-center gap-2 text-sm font-bold transition-colors ${
+                    quarterly ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                >
+                  Trimestral
+                  {quarterlyDiscounts.length > 0 && (
+                    <span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-accent-foreground">
+                      {sharedQuarterlyDiscount !== null
+                        ? `-${sharedQuarterlyDiscount}%`
+                        : "Economize"}
+                    </span>
+                  )}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Nas ofertas trimestrais, o valor total é cobrado a cada 3 meses.
+              </p>
+            </div>
+          )}
+
+          <div className="grid items-stretch gap-6 pt-10 md:grid-cols-3">
+            {visiblePlans.map((p) => {
+              const isFree = p.id === "free";
+              const isQuarterly =
+                p.interval === "month" && p.intervalCount === 3;
+              const hasSubtitle = Boolean(p.subtitle?.trim());
+              const hasDescription = Boolean(p.description?.trim());
+              const displayedPrice = isQuarterly
+                ? Math.round(p.priceCents / (p.intervalCount ?? 1))
+                : p.priceCents;
+
+              return (
+                <TiltCard
+                  key={p.id}
+                  intensity={6}
+                  className={`relative flex h-full flex-col rounded-[1.75rem] bg-card p-8 ${
+                    p.isRecommended
+                      ? "border-2 border-primary shadow-[var(--shadow-card)]"
+                      : "border border-border shadow-[var(--shadow-soft)]"
+                  }`}
+                >
+                  {p.isRecommended && (
+                    <span className="absolute -top-3 left-8 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary-foreground shadow-[0_8px_20px_-8px_rgba(25,96,234,0.8)]">
+                      <Image
+                        src={icone}
+                        alt=""
+                        width={16}
+                        height={16}
+                        className="h-4 w-4 rounded-full"
+                      />
+                      Recomendado
+                    </span>
+                  )}
+                  <h2 className="mt-2 font-display text-2xl font-extrabold text-card-foreground">
+                    {p.name}
+                  </h2>
+                  {hasSubtitle && (
+                    <p className="mt-1 text-sm text-muted-foreground">{p.subtitle}</p>
+                  )}
+                  {hasDescription && (
+                    <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                      {p.description}
+                    </p>
+                  )}
+                  <p className="mt-4 flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-display text-4xl font-extrabold text-card-foreground">
+                      {brl(displayedPrice)}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {isFree ? "sem cartão de crédito" : "por mês"}
+                    </span>
+                  </p>
+                  {isQuarterly && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-bold text-card-foreground/80">
+                        Cobrança de {brl(p.priceCents)} a cada 3 meses
+                      </p>
+
+                      {p.discountPercentage !== null && (
+                        <span className="inline-flex shrink-0 rounded-full bg-accent px-2.5 py-1 text-xs font-extrabold uppercase tracking-wide text-accent-foreground ring-1 ring-accent-foreground/15">
+                          {p.discountPercentage}% OFF
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <a
+                    href="/cadastro"
+                    data-cta={`plan-${p.name.toLowerCase()}`}
+                    className={`press-fx mt-8 inline-flex justify-center rounded-full px-5 py-3.5 text-sm font-bold transition-all ${
+                      p.isRecommended
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border text-foreground hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    {isFree ? "Começar grátis" : `Assinar ${p.name}`}
+                  </a>
+                </TiltCard>
+              );
+            })}
           </div>
           <p className="mt-8 text-center text-sm text-muted-foreground">
             Créditos avulsos também podem ser comprados fora da assinatura.

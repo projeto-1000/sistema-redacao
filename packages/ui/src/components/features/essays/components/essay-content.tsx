@@ -40,14 +40,14 @@ export function EssayTextContent({
 
   return (
     <div className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between w-full">
-        <span className="uppercase tracking-widest text-[10px] font-bold text-slate-400 sm:whitespace-nowrap text-left">
-          Texto do Aluno
+      <div className="px-8 py-5 border-b border-slate-100 flex flex-col w-full gap-4">
+        <span className="uppercase tracking-widest text-[12px] font-bold flex text-slate-400 sm:whitespace-nowrap">
+          <Award className="size-4 text-amber-400 mr-1" />
+          Competências com Nota Máxima
         </span>
 
         {bestScores.length > 0 && (
-          <div className="flex flex-wrap gap-2 items-center justify-end">
-            <Award className="size-4 text-amber-400 mr-1" />
+          <div className="flex flex-wrap gap-2 items-center">
 
             {bestScores.map((scoreId) => {
               const info = COMPETENCY_INFO.find((comp) => comp.id === scoreId);
@@ -60,7 +60,7 @@ export function EssayTextContent({
                   key={info.id}
                   className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider w-fit border ${info.bg} ${info.text} ${info.border}`}
                 >
-                  {competencyName}
+                  {info.id}: {competencyName}
                 </span>
               );
             })}

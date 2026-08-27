@@ -1,17 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { Check } from "lucide-react";
 
-import type {
-  PlanData,
-  PlanSelectionMode,
-} from "@/types";
+import type { PlanData, PlanSelectionMode } from "@/types";
 import { ConfirmChangePlan } from "../confirm-change-plan";
 
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
-import { formatCurrency } from "@repo/utils";
+import { formatCurrency, getMonthlyEquivalentCents } from "@repo/utils";
 import type { PlanUpgradeCalculation } from "@/utils/calculate-plan-upgrade";
 interface PlanCardProps {
   plan: PlanData;
@@ -21,6 +18,8 @@ interface PlanCardProps {
   currentPlanName: string | null;
   currentPlanPrice?: number | null;
   currentPlanCreditsIncluded?: number | null;
+  currentPlanInterval?: string | null;
+  currentPlanIntervalCount?: number | null;
 
   currentPeriodStart?: string | null;
   currentPeriodEnd?: string | null;
@@ -37,22 +36,22 @@ export function PlanCard({
   currentPlanName,
   currentPlanPrice,
   currentPlanCreditsIncluded,
+  currentPlanInterval,
+  currentPlanIntervalCount,
   currentPeriodStart,
   currentPeriodEnd,
   upgradePreview,
   selectionMode,
 }: PlanCardProps) {
-  const isPremium = plan.name
-    .toLowerCase()
-    .includes("premium");
+  const isQuarterly = plan.interval === "month" && plan.interval_count === 3;
 
-  const isQuarterly =
-    plan.interval === "month" &&
-    plan.interval_count === 3;
+  const displayedPrice = isQuarterly ? getMonthlyEquivalentCents(plan.price, 3) : plan.price;
 
-  const displayedPrice = isQuarterly
-    ? plan.price / 3
-    : plan.price;
+  const hasSubtitle = Boolean(plan.subtitle?.trim());
+  const benefits = (plan.description ?? "")
+    .split(/\r?\n/)
+    .map((benefit) => benefit.trim())
+    .filter(Boolean);
 
   function renderPlanAction() {
     if (isCurrentPaidPlan) {
@@ -68,37 +67,32 @@ export function PlanCard({
 
     if (selectionMode === "payment_issue") {
       return (
-        <Button
-          asChild
-          variant="outline"
-          className="h-12 w-full rounded-xl font-bold"
-        >
-          <Link href="/assinatura">
-            Ver minha assinatura
-          </Link>
+        <Button asChild variant="outline" className="h-12 w-full rounded-xl font-bold">
+          <Link href="/assinatura">Ver minha assinatura</Link>
         </Button>
       );
     }
 
-    if (
-      selectionMode === "canceled_subscription" &&
-      isPreviousCanceledPlan
-    ) {
+    if (selectionMode === "canceled_subscription" && isPreviousCanceledPlan) {
       return (
-        <Button
-          asChild
-          className="h-12 w-full rounded-xl font-bold"
-        >
-          <Link
-            href={`/assinatura/checkout?planId=${plan.id}`}
-          >
-            Reativar assinatura
-          </Link>
+        <Button asChild className="h-12 w-full rounded-xl font-bold">
+          <Link href={`/assinatura/checkout?planId=${plan.id}`}>Reativar assinatura</Link>
         </Button>
       );
     }
 
     if (selectionMode === "change_plan") {
+      const involvesQuarterlyCadence =
+        isQuarterly || (currentPlanInterval === "month" && currentPlanIntervalCount === 3);
+
+      if (involvesQuarterlyCadence) {
+        return (
+          <Button disabled className="h-12 w-full rounded-xl font-bold">
+            Alteração disponível após o ciclo atual
+          </Button>
+        );
+      }
+
       const hasCurrentPlanData =
         currentPlanName !== null &&
         currentPlanPrice !== null &&
@@ -112,10 +106,7 @@ export function PlanCard({
 
       if (!hasCurrentPlanData) {
         return (
-          <Button
-            disabled
-            className="h-12 w-full rounded-xl font-bold"
-          >
+          <Button disabled className="h-12 w-full rounded-xl font-bold">
             Dados indisponíveis
           </Button>
         );
@@ -126,9 +117,7 @@ export function PlanCard({
           newPlan={plan}
           currentPlanName={currentPlanName}
           currentPlanPrice={currentPlanPrice}
-          currentPlanCreditsIncluded={
-            currentPlanCreditsIncluded
-          }
+          currentPlanCreditsIncluded={currentPlanCreditsIncluded}
           currentPeriodStart={currentPeriodStart}
           currentPeriodEnd={currentPeriodEnd}
           initialUpgradePreview={upgradePreview}
@@ -137,20 +126,14 @@ export function PlanCard({
     }
 
     const buttonLabel =
-      selectionMode === "canceled_subscription"
-        ? "Assinar novo plano"
-        : "Assinar agora";
+      selectionMode === "canceled_subscription" ? "Assinar novo plano" : "Assinar agora";
 
     return (
       <Button
         asChild
         className="h-12 w-full rounded-xl font-bold tracking-wide shadow-sm transition-all hover:scale-[1.01]"
       >
-        <Link
-          href={`/assinatura/checkout?planId=${plan.id}`}
-        >
-          {buttonLabel}
-        </Link>
+        <Link href={`/assinatura/checkout?planId=${plan.id}`}>{buttonLabel}</Link>
       </Button>
     );
   }
@@ -159,108 +142,69 @@ export function PlanCard({
     <div
       className={cn(
         "relative flex h-full flex-col rounded-3xl border-2 bg-white p-8 transition-all",
-        isPremium
-          ? "border-primary shadow-sm"
-          : "border-slate-100 hover:border-slate-200"
+        plan.is_recommended ? "border-primary shadow-sm" : "border-slate-100 hover:border-slate-200"
       )}
     >
       {isCurrentPaidPlan && (
-        <span className="absolute -top-3 right-6 rounded-sm bg-primary px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-950 shadow-sm">
+        <span className="bg-primary absolute -top-3 right-6 rounded-sm px-3 py-1.5 text-[10px] font-extrabold tracking-wider text-amber-800 uppercase shadow-sm">
           Seu plano atual
         </span>
       )}
 
-      {isPreviousCanceledPlan &&
-        selectionMode ===
-        "canceled_subscription" && (
-          <span className="absolute -top-3 left-6 rounded-sm bg-slate-700 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-sm">
-            Plano anterior
-          </span>
+      {plan.is_recommended && (
+        <span className="absolute -top-3 right-6 rounded-sm  bg-amber-200 px-3 py-1 text-[10px] font-extrabold tracking-wider text-amber-800 uppercase shadow-sm">
+          Recomendado
+        </span>
+      )}
+
+      <h2 className="text-3xl font-bold leading-tight tracking-tight text-slate-800">
+        {plan.name}
+      </h2>
+
+      {hasSubtitle && (
+        <p className="mt-1 min-h-14 text-[16px] leading-relaxed text-slate-500">{plan.subtitle}</p>
+      )}
+
+      <div className="my-4 flex flex-1 flex-col">
+        {benefits.length > 0 && (
+          <ul className="mb-6 space-y-3">
+            {benefits.map((benefit, index) => (
+              <li key={`${benefit}-${index}`} className="flex items-start gap-3">
+                <span className="bg-primary/10 mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full">
+                  <Check className="text-primary size-3" strokeWidth={3} />
+                </span>
+                <span className="text-sm leading-5 font-medium text-slate-600">{benefit}</span>
+              </li>
+            ))}
+          </ul>
         )}
 
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-800">
-          {plan.name}
-        </h2>
+        <div className="mt-auto">
+          <p className="flex items-baseline text-4xl font-extrabold tracking-tight text-slate-800">
+            <span className="mr-1 text-2xl font-bold">R$</span>
 
-        {isPremium && (
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-800">
-            Recomendado
-          </span>
-        )}
-      </div>
+            {(displayedPrice / 100).toFixed(2).replace(".", ",")}
 
-      <div className="mb-8">
-        <p className="mb-6 min-h-10 text-sm leading-relaxed text-slate-500">
-          O pacote ideal focado na evolução constante da sua nota.
-        </p>
+            <span className="ml-1 text-sm font-medium text-slate-500">/mês</span>
+          </p>
 
-        <p className="flex items-baseline text-4xl font-extrabold tracking-tight text-slate-800">
-          <span className="mr-1 text-2xl font-bold">
-            R$
-          </span>
-
-          {(displayedPrice / 100)
-            .toFixed(2)
-            .replace(".", ",")}
-
-          <span className="ml-1 text-sm font-medium text-slate-500">
-            /mês
-          </span>
-        </p>
-
-        <div className="mt-1 h-5">
           {isQuarterly && (
-            <p className="text-xs font-semibold text-slate-400">
-              Cobrança total de{" "}
-              {formatCurrency(plan.price)} a cada 3
-              meses
-            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <p className="text-sm font-bold text-slate-700">
+                Cobrança de {formatCurrency(plan.price)} a cada 3 meses
+              </p>
+
+              {plan.discount_percentage !== null && (
+                <span className="bg-primary/10 text-primary ring-primary/20 inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs font-extrabold tracking-wide uppercase ring-1">
+                  {plan.discount_percentage}% OFF
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>
 
-      <ul className="mb-10 flex grow flex-col gap-4">
-        {plan.features.map((feature, index) => {
-          const isIncluded =
-            typeof feature === "string"
-              ? true
-              : feature.included;
-
-          const text =
-            typeof feature === "string"
-              ? feature
-              : feature.text;
-
-          return (
-            <li
-              key={`${text}-${index}`}
-              className="flex items-center gap-3"
-            >
-              {isIncluded ? (
-                <CheckCircle2 className="size-5 shrink-0 text-primary" />
-              ) : (
-                <XCircle className="size-5 shrink-0 text-slate-300" />
-              )}
-
-              <span
-                className={cn(
-                  "text-sm font-semibold",
-                  isIncluded
-                    ? "text-slate-700"
-                    : "text-slate-400 line-through decoration-slate-200"
-                )}
-              >
-                {text}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-
-      <div className="mt-auto">
-        {renderPlanAction()}
-      </div>
+      <div className="mt-auto">{renderPlanAction()}</div>
     </div>
   );
 }
