@@ -17,6 +17,7 @@ import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { finalCorrectionSchema, normalizeCorrectionHighlights } from "@repo/validators";
+import { sendEssayCorrectionAvailableEmail } from "@repo/email";
 interface GetPendingEssaysParams {
   status: EssayStatus | EssayStatus[];
   filters?: PendingEssaysFilter;
@@ -178,7 +179,7 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
 
   const correction = validationResult.data;
 
-  const { data: correctedEssay, error } = await supabase
+  const { data: transitionedEssay, error: transitionError } = await supabase
     .from("essays")
     .update({
       status: "corrected",
@@ -206,12 +207,35 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
       highlights: correction.highlights,
     })
     .eq("id", essayId)
-    .select("student_id, status")
-    .single();
+    .in("status", ["pending", "correcting"])
+    .select(
+      `
+        student_id,
+        status,
+        title,
+        student:profiles!essays_student_id_fkey(full_name, email)
+      `
+    )
+    .maybeSingle();
 
-  if (error || !correctedEssay || correctedEssay.status !== "corrected") {
-    console.error("Erro ao salvar correção:", error);
+  if (transitionError) {
+    console.error("Erro ao salvar correção:", transitionError);
     return { success: false, error: "Não foi possível salvar a correção final." };
+  }
+
+  if (!transitionedEssay) {
+    const { data: currentEssay, error: currentEssayError } = await supabase
+      .from("essays")
+      .select("status")
+      .eq("id", essayId)
+      .maybeSingle();
+
+    if (currentEssayError || currentEssay?.status !== "corrected") {
+      console.error("Erro ao confirmar status da correção:", currentEssayError);
+      return { success: false, error: "Não foi possível salvar a correção final." };
+    }
+
+    return { success: true };
   }
 
   await supabase
@@ -221,13 +245,41 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
     .eq("teacher_id", user.id);
 
   try {
-    await syncStudentToDataCrazy(correctedEssay.student_id, "essay_status_updated");
+    await syncStudentToDataCrazy(transitionedEssay.student_id, "essay_status_updated");
   } catch (error) {
     console.error("[DATACRAZY_SYNC_ERROR]", {
       essay_id: essayId,
-      student_id: correctedEssay.student_id,
+      student_id: transitionedEssay.student_id,
       event: "essay_status_updated",
       error_code: getDataCrazySyncErrorCode(error),
+    });
+  }
+
+  const student = transitionedEssay.student as unknown as {
+    full_name: string | null;
+    email: string | null;
+  } | null;
+
+  if (student?.email) {
+    try {
+      await sendEssayCorrectionAvailableEmail({
+        to: student.email,
+        studentName: student.full_name,
+        essayId,
+        essayTitle: transitionedEssay.title,
+      });
+    } catch (error) {
+      console.error("[ESSAY_CORRECTION_EMAIL_ERROR]", {
+        essay_id: essayId,
+        student_id: transitionedEssay.student_id,
+        error,
+      });
+    }
+  } else {
+    console.warn("[ESSAY_CORRECTION_EMAIL_SKIPPED]", {
+      essay_id: essayId,
+      student_id: transitionedEssay.student_id,
+      reason: "missing_student_email",
     });
   }
 
