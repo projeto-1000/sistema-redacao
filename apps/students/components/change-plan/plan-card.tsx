@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Check } from "lucide-react";
 
 import type { PlanData, PlanSelectionMode } from "@/types";
 import { ConfirmChangePlan } from "../confirm-change-plan";
@@ -47,6 +48,10 @@ export function PlanCard({
   const displayedPrice = isQuarterly ? getMonthlyEquivalentCents(plan.price, 3) : plan.price;
 
   const hasSubtitle = Boolean(plan.subtitle?.trim());
+  const benefits = (plan.description ?? "")
+    .split(/\r?\n/)
+    .map((benefit) => benefit.trim())
+    .filter(Boolean);
 
   function renderPlanAction() {
     if (isCurrentPaidPlan) {
@@ -152,36 +157,51 @@ export function PlanCard({
         </span>
       )}
 
-      <h2 className="text-2xl font-bold tracking-tight text-slate-800">{plan.name}</h2>
+      <h2 className="text-3xl font-bold leading-tight tracking-tight text-slate-800">
+        {plan.name}
+      </h2>
 
-      {hasSubtitle && <p className="mt-1 text-sm text-slate-500">{plan.subtitle}</p>}
+      {hasSubtitle && (
+        <p className="mt-1 min-h-14 text-[16px] leading-relaxed text-slate-500">{plan.subtitle}</p>
+      )}
 
-      <div className="mb-8 mt-8">
-        <p className="mb-6 text-sm leading-relaxed whitespace-pre-line text-slate-500">
-          {plan.description}
-        </p>
-
-        <p className="flex items-baseline text-4xl font-extrabold tracking-tight text-slate-800">
-          <span className="mr-1 text-2xl font-bold">R$</span>
-
-          {(displayedPrice / 100).toFixed(2).replace(".", ",")}
-
-          <span className="ml-1 text-sm font-medium text-slate-500">/mês</span>
-        </p>
-
-        {isQuarterly && (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <p className="text-sm font-bold text-slate-700">
-              Cobrança de {formatCurrency(plan.price)} a cada 3 meses
-            </p>
-
-            {plan.discount_percentage !== null && (
-              <span className="bg-primary/10 text-primary ring-primary/20 inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs font-extrabold tracking-wide uppercase ring-1">
-                {plan.discount_percentage}% OFF
-              </span>
-            )}
-          </div>
+      <div className="my-4 flex flex-1 flex-col">
+        {benefits.length > 0 && (
+          <ul className="mb-6 space-y-3">
+            {benefits.map((benefit, index) => (
+              <li key={`${benefit}-${index}`} className="flex items-start gap-3">
+                <span className="bg-primary/10 mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full">
+                  <Check className="text-primary size-3" strokeWidth={3} />
+                </span>
+                <span className="text-sm leading-5 font-medium text-slate-600">{benefit}</span>
+              </li>
+            ))}
+          </ul>
         )}
+
+        <div className="mt-auto">
+          <p className="flex items-baseline text-4xl font-extrabold tracking-tight text-slate-800">
+            <span className="mr-1 text-2xl font-bold">R$</span>
+
+            {(displayedPrice / 100).toFixed(2).replace(".", ",")}
+
+            <span className="ml-1 text-sm font-medium text-slate-500">/mês</span>
+          </p>
+
+          {isQuarterly && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <p className="text-sm font-bold text-slate-700">
+                Cobrança de {formatCurrency(plan.price)} a cada 3 meses
+              </p>
+
+              {plan.discount_percentage !== null && (
+                <span className="bg-primary/10 text-primary ring-primary/20 inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs font-extrabold tracking-wide uppercase ring-1">
+                  {plan.discount_percentage}% OFF
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-auto">{renderPlanAction()}</div>
