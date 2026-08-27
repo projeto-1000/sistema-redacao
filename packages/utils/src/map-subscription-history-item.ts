@@ -100,69 +100,62 @@ function getEssayUsageDescription(
 function getExpirationDescription(
   event: SubscriptionHistoryCreditEvent
 ): string {
-  const source =
-    getMetadataString(event.metadata, "source");
-
-  const eventType =
-    getMetadataString(event.metadata, "event_type");
-
-  const grantType =
-    getMetadataString(event.metadata, "grant_type");
-
-  const expirationReason =
-    getMetadataString(
-      event.metadata,
-      "expiration_reason"
-    );
+  const source = getMetadataString(event.metadata, "source");
+  const eventType = getMetadataString(event.metadata, "event_type");
+  const grantType = getMetadataString(event.metadata, "grant_type");
+  const expirationReason = getMetadataString(
+    event.metadata,
+    "expiration_reason"
+  );
 
   const absoluteAmount = Math.abs(event.amount);
-  const subject =
-    absoluteAmount === 1
-      ? "1 crédito"
-      : `${absoluteAmount} créditos`;
+  const isSingular = absoluteAmount === 1;
+
+  const subject = isSingular
+    ? "1 crédito"
+    : `${absoluteAmount} créditos`;
+
+  const expiredVerb = isSingular ? "expirou" : "expiraram";
 
   const isCancellation =
-    source ===
-      "scheduled_subscription_cancellation" ||
+    source === "scheduled_subscription_cancellation" ||
     eventType === "subscription.canceled" ||
-    expirationReason ===
-      "subscription_cancellation" ||
+    expirationReason === "subscription_cancellation" ||
     expirationReason === "cancellation";
 
   if (isCancellation) {
-    return `${subject} do plano expirou após o encerramento da assinatura.`;
+    return `${subject} do plano ${expiredVerb} após o encerramento da assinatura.`;
   }
 
   const isCycleExpiration =
-    grantType ===
-      "subscription_cycle_expiration" ||
+    grantType === "subscription_cycle_expiration" ||
     expirationReason === "cycle_end";
 
   if (isCycleExpiration) {
-    return `${subject} não utilizado expirou ao final do ciclo anterior.`;
+    const unusedLabel = isSingular ? "não utilizado" : "não utilizados";
+
+    return `${subject} ${unusedLabel} ${expiredVerb} ao final do ciclo anterior.`;
   }
 
   if (
-    event.transaction_type ===
-      "free_credit_expiration" ||
-    expirationReason ===
-      "free_credit_expiration"
+    event.transaction_type === "free_credit_expiration" ||
+    expirationReason === "free_credit_expiration"
   ) {
-    return `${subject} gratuito expirou após o prazo de utilização.`;
+    const freeLabel = isSingular ? "gratuito" : "gratuitos";
+
+    return `${subject} ${freeLabel} ${expiredVerb} após o prazo de utilização.`;
   }
 
   if (
-    event.transaction_type ===
-      "mentorship_expiration" ||
-    expirationReason ===
-      "mentorship_expiration"
+    event.transaction_type === "mentorship_expiration" ||
+    expirationReason === "mentorship_expiration"
   ) {
-    return `${subject} da mentoria expirou após o encerramento do benefício.`;
+    return `${subject} da mentoria ${expiredVerb} após o encerramento do benefício.`;
   }
 
   return (
     event.description ||
-    `${subject} expirou após o fim do período de validade.`
+    `${subject} ${expiredVerb} após o fim do período de validade.`
   );
 }
 
