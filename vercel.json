@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/subscriptions/release-credits",
-      "schedule": "5 * * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }
