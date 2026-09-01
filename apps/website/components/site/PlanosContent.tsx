@@ -3,12 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Container } from "@/components/site/Container";
-<<<<<<< ours
 import { Check, ChevronDown } from "lucide-react";
 import { getMonthlyEquivalentCents } from "@repo/utils";
-=======
-import { ChevronDown } from "lucide-react";
->>>>>>> theirs
 import { MentoriaCTA } from "@/components/site/MentoriaCTA";
 import { TiltCard } from "@/components/site/TiltCard";
 const icone = "/images/projeto1000-icone.png";
@@ -19,10 +15,7 @@ export type PublicPlan = {
   subtitle: string | null;
   description: string | null;
   priceCents: number;
-<<<<<<< ours
   creditsIncluded: number;
-=======
->>>>>>> theirs
   interval: string;
   intervalCount: number | null;
   discountPercentage: number | null;
@@ -32,6 +25,31 @@ export type PublicPlan = {
 const brl = (cents: number) =>
   `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
 
+const getSavingsCents = (
+  totalPriceCents: number,
+  monthlyReferencePriceCents: number | null,
+  months: number,
+  discountPercentage: number | null,
+) => {
+  if (
+    discountPercentage !== null &&
+    discountPercentage > 0 &&
+    discountPercentage < 100
+  ) {
+    const fullPriceCents = Math.round(
+      totalPriceCents / (1 - discountPercentage / 100),
+    );
+
+    return fullPriceCents - totalPriceCents;
+  }
+
+  if (monthlyReferencePriceCents === null) {
+    return null;
+  }
+
+  return Math.max(monthlyReferencePriceCents * months - totalPriceCents, 0);
+};
+
 const freePlan: PublicPlan = {
   id: "free",
   name: "Grátis",
@@ -39,10 +57,7 @@ const freePlan: PublicPlan = {
   description:
     "1 crédito gratuito para uma correção completa\nCorreção individual feita por professor em 48 horas úteis\nNota geral, comentários e avaliação nas cinco competências\nPrincipal gargalo, próximos passos e tarefa de reescrita\nAcesso ao dashboard",
   priceCents: 0,
-<<<<<<< ours
   creditsIncluded: 1,
-=======
->>>>>>> theirs
   interval: "lifetime",
   intervalCount: null,
   discountPercentage: null,
@@ -138,7 +153,6 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                   }`}
                 >
                   Mensal
-<<<<<<< ours
                 </span>
                 <button
                   type="button"
@@ -170,57 +184,23 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                     </span>
                   )}
                 </span>
-=======
-                </span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={quarterly}
-                  aria-label="Alternar entre cobrança mensal e trimestral"
-                  onClick={() => setQuarterly((v) => !v)}
-                  className={`relative h-7 w-14 shrink-0 rounded-full transition-colors ${
-                    quarterly ? "bg-accent" : "bg-primary"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-1 h-5 w-5 rounded-full bg-card shadow transition-all duration-300 ${
-                      quarterly ? "left-8" : "left-1"
-                    }`}
-                  />
-                </button>
-                <span
-                  className={`flex items-center gap-2 text-sm font-bold transition-colors ${
-                    quarterly ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  Trimestral
-                  {quarterlyDiscounts.length > 0 && (
-                    <span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-accent-foreground">
-                      {sharedQuarterlyDiscount !== null
-                        ? `-${sharedQuarterlyDiscount}%`
-                        : "Economize"}
-                    </span>
-                  )}
-                </span>
->>>>>>> theirs
               </div>
               <p className="text-xs text-muted-foreground">
-                Nas ofertas trimestrais, o valor total é cobrado a cada 3 meses.
+                {sharedQuarterlyDiscount !== null
+                  ? `No plano trimestral você paga ${sharedQuarterlyDiscount}% menos no total, cobrado a cada 3 meses.`
+                  : "No plano trimestral você paga menos no total, cobrado a cada 3 meses."}
               </p>
             </div>
           )}
 
-<<<<<<< ours
-          <div className="grid items-stretch gap-6 pt-10 lg:grid-cols-3">
-=======
           <div className="grid items-stretch gap-6 pt-10 md:grid-cols-3">
->>>>>>> theirs
             {visiblePlans.map((p) => {
               const isFree = p.id === "free";
               const isQuarterly =
                 p.interval === "month" && p.intervalCount === 3;
               const hasSubtitle = Boolean(p.subtitle?.trim());
-<<<<<<< ours
+              const shouldShowSubtitle =
+                hasSubtitle && (isFree || p.isRecommended);
               const benefits =
                 p.description
                   ?.split(/\r?\n/)
@@ -231,12 +211,23 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                     p.priceCents,
                     p.intervalCount ?? 1,
                   )
-=======
-              const hasDescription = Boolean(p.description?.trim());
-              const displayedPrice = isQuarterly
-                ? Math.round(p.priceCents / (p.intervalCount ?? 1))
->>>>>>> theirs
                 : p.priceCents;
+              const monthlyReferencePriceCents = isQuarterly
+                ? (plans.find(
+                    (candidate) =>
+                      candidate.name === p.name &&
+                      candidate.interval === "month" &&
+                      candidate.intervalCount === 1,
+                  )?.priceCents ?? null)
+                : null;
+              const discountSavingsCents = isQuarterly
+                ? getSavingsCents(
+                    p.priceCents,
+                    monthlyReferencePriceCents,
+                    p.intervalCount ?? 1,
+                    p.discountPercentage,
+                  )
+                : null;
 
               return (
                 <TiltCard
@@ -263,54 +254,37 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                   <h2 className="mt-2 font-display text-2xl font-extrabold text-card-foreground">
                     {p.name}
                   </h2>
-                  {hasSubtitle && (
+                  {shouldShowSubtitle && (
                     <p className="mt-1 text-sm text-muted-foreground">{p.subtitle}</p>
                   )}
-<<<<<<< ours
-=======
-                  {hasDescription && (
-                    <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                      {p.description}
-                    </p>
-                  )}
->>>>>>> theirs
                   <p className="mt-4 flex flex-wrap items-baseline gap-x-2">
                     <span className="font-display text-4xl font-extrabold text-card-foreground">
-                      {brl(displayedPrice)}
+                      {isFree ? "R$ 0" : brl(displayedPrice)}
                     </span>
                     <span className="text-sm text-muted-foreground">
                       {isFree ? "sem cartão de crédito" : "por mês"}
                     </span>
                   </p>
                   {isQuarterly && (
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-bold text-card-foreground/80">
-                        Cobrança de {brl(p.priceCents)} a cada 3 meses
-                      </p>
-
-                      {p.discountPercentage !== null && (
-                        <span className="inline-flex shrink-0 rounded-full bg-accent px-2.5 py-1 text-xs font-extrabold uppercase tracking-wide text-accent-foreground ring-1 ring-accent-foreground/15">
-                          {p.discountPercentage}% OFF
-                        </span>
-                      )}
-                    </div>
+                    <p className="mt-1 text-xs font-semibold text-primary">
+                      {brl(p.priceCents)} cobrados a cada 3 meses
+                      {discountSavingsCents !== null &&
+                        `, economia de ${brl(discountSavingsCents)}`}
+                    </p>
                   )}
-<<<<<<< ours
                   <ul className="mt-7 flex-1 space-y-3.5">
                     {benefits.map((benefit) => (
                       <li
                         key={benefit}
-                        className="flex items-start gap-3 text-sm leading-relaxed text-foreground/90"
+                        className="flex items-center gap-3 text-sm text-foreground/90"
                       >
-                        <span className="icon-bubble mt-0.5 h-6 w-6 shrink-0 bg-pastel-blue">
+                        <span className="icon-bubble h-6 w-6 shrink-0 bg-pastel-blue">
                           <Check className="h-3.5 w-3.5 text-primary" />
                         </span>
                         <span className="min-w-0">{benefit}</span>
                       </li>
                     ))}
                   </ul>
-=======
->>>>>>> theirs
                   <a
                     href="/cadastro"
                     data-cta={`plan-${p.name.toLowerCase()}`}
