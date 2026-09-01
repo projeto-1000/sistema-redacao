@@ -312,6 +312,16 @@ async function getOrCreatePagarmeCustomerId() {
     throw new Error("Não foi possível encontrar o perfil do aluno.");
   }
 
+  const existingCustomerId = profile.pagarme_customer_id?.trim();
+
+  if (existingCustomerId) {
+    if (!existingCustomerId.startsWith("cus_")) {
+      throw new Error("O vínculo do aluno com a Pagar.me é inválido.");
+    }
+
+    return existingCustomerId;
+  }
+
   if (!profile.full_name?.trim()) {
     throw new Error("Complete seu nome antes de finalizar a assinatura.");
   }
@@ -337,22 +347,20 @@ async function getOrCreatePagarmeCustomerId() {
     phone: profile.phone,
   });
 
-  if (!customer?.id) {
+  if (!customer?.id?.startsWith("cus_")) {
     throw new Error("A Pagar.me não retornou um cliente válido.");
   }
 
-  if (profile.pagarme_customer_id !== customer.id) {
-    const supabaseAdmin = createAdminClient();
-    const { error: updateError } = await supabaseAdmin
-      .from("profiles")
-      .update({
-        pagarme_customer_id: customer.id,
-      })
-      .eq("id", user.id);
+  const supabaseAdmin = createAdminClient();
+  const { error: updateError } = await supabaseAdmin
+    .from("profiles")
+    .update({
+      pagarme_customer_id: customer.id,
+    })
+    .eq("id", user.id);
 
-    if (updateError) {
-      throw new Error("Não foi possível vincular o cliente da Pagar.me ao aluno.");
-    }
+  if (updateError) {
+    throw new Error("Não foi possível vincular o cliente da Pagar.me ao aluno.");
   }
 
   return customer.id;

@@ -46,7 +46,6 @@ export async function updateSession(request: NextRequest) {
     "/api/auth/confirm",
     "/api/webhooks/hotmart",
     "/api/webhooks/pagarme",
-    "/api/payments/customers",
     "/api/signup/attempts",
   ];
 
