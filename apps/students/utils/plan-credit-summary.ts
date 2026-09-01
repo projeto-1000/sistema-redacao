@@ -12,6 +12,16 @@ export interface PlanCreditSummary {
 }
 
 export function getPlanCreditSummary(plan: PlanCreditSummaryInput): PlanCreditSummary {
+  const hasMonthlyCreditRelease = plan.interval === "month" && (plan.intervalCount ?? 1) > 1;
+
+  if (hasMonthlyCreditRelease) {
+    return {
+      creditsLabel: `${plan.creditsIncluded} ${getCorrectionLabel(plan.creditsIncluded)} por mês`,
+      validityLabel: "Créditos renovados mensalmente",
+      bonusLabel: null,
+    };
+  }
+
   const cycleDays = getPlanCycleDays(plan.interval, plan.intervalCount);
   const bonusDays =
     cycleDays && plan.creditsExpirationDays > cycleDays

@@ -32,6 +32,9 @@ importers:
       '@repo/datacrazy':
         specifier: workspace:*
         version: link:../../packages/datacrazy
+      '@repo/email':
+        specifier: workspace:*
+        version: link:../../packages/email
       '@repo/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -241,6 +244,9 @@ importers:
       '@repo/datacrazy':
         specifier: workspace:*
         version: link:../../packages/datacrazy
+      '@repo/email':
+        specifier: workspace:*
+        version: link:../../packages/email
       '@repo/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -332,6 +338,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.75.0(react@19.2.0))
+      '@repo/constants':
+        specifier: workspace:*
+        version: link:../../packages/constants
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -409,6 +418,28 @@ importers:
 
   packages/datacrazy:
     dependencies:
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      eslint:
+        specifier: 9.39.1
+        version: 9.39.1(jiti@2.6.1)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.2
+
+  packages/email:
+    dependencies:
+      '@repo/utils':
+        specifier: workspace:*
+        version: link:../utils
       server-only:
         specifier: ^0.0.1
         version: 0.0.1

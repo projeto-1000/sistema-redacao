@@ -14,6 +14,7 @@ import {
   PendingEssaysFilter,
 } from "@repo/types";
 import { finalCorrectionSchema, normalizeCorrectionHighlights } from "@repo/validators";
+import { sendEssayCorrectionAvailableEmail } from "@repo/email";
 import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -63,7 +64,7 @@ export async function getEssaysByStatus({
 
   let query = supabase.from("essays").select(
     `
-      id, title, thematic_axis, created_at, due_date, status, submission_date,
+      id, title, thematic_axis, created_at, due_date, essay_remaining_business_seconds, status, submission_date,
       student:profiles!essays_student_id_fkey(full_name, avatar_url, email),
       teacher:profiles!essays_teacher_id_fkey(full_name, avatar_url)
     `,
@@ -128,6 +129,7 @@ export async function getEssaysByStatus({
 
     return {
       ...rest,
+      essay_remaining_business_seconds: Number(rest.essay_remaining_business_seconds),
       student_name: studentData.full_name,
       avatar_url: studentData.avatar_url,
       email: studentData.email,
@@ -363,8 +365,15 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
     .from("essays")
     .update(correctionValues)
     .eq("id", essayId)
-    .neq("status", "corrected")
-    .select("student_id, status")
+    .in("status", ["pending", "correcting"])
+    .select(
+      `
+        student_id,
+        status,
+        title,
+        student:profiles!essays_student_id_fkey(full_name, email)
+      `
+    )
     .maybeSingle();
 
   if (transitionError) {
@@ -372,20 +381,19 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
     return { success: false, error: "Não foi possível salvar a correção final." };
   }
 
-  const becameCorrected = Boolean(transitionedEssay);
+  if (!transitionedEssay) {
+    const { data: currentEssay, error: currentEssayError } = await supabase
+      .from("essays")
+      .select("status")
+      .eq("id", essayId)
+      .maybeSingle();
 
-  const { data: correctedEssay, error } = transitionedEssay
-    ? { data: transitionedEssay, error: null }
-    : await supabase
-        .from("essays")
-        .update(correctionValues)
-        .eq("id", essayId)
-        .select("student_id, status")
-        .single();
+    if (currentEssayError || currentEssay?.status !== "corrected") {
+      console.error("Erro ao confirmar status da correção:", currentEssayError);
+      return { success: false, error: "Não foi possível salvar a correção final." };
+    }
 
-  if (error || !correctedEssay || correctedEssay.status !== "corrected") {
-    console.error("Erro ao salvar correção:", error);
-    return { success: false, error: "Não foi possível salvar a correção final." };
+    return { success: true };
   }
 
   await supabase
@@ -394,17 +402,43 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
     .eq("essay_id", essayId)
     .eq("teacher_id", user.id);
 
-  if (becameCorrected) {
+  try {
+    await syncStudentToDataCrazy(transitionedEssay.student_id, "essay_status_updated");
+  } catch (error) {
+    console.error("[DATACRAZY_SYNC_ERROR]", {
+      essay_id: essayId,
+      student_id: transitionedEssay.student_id,
+      event: "essay_status_updated",
+      error_code: getDataCrazySyncErrorCode(error),
+    });
+  }
+
+  const student = transitionedEssay.student as unknown as {
+    full_name: string | null;
+    email: string | null;
+  } | null;
+
+  if (student?.email) {
     try {
-      await syncStudentToDataCrazy(correctedEssay.student_id, "essay_status_updated");
+      await sendEssayCorrectionAvailableEmail({
+        to: student.email,
+        studentName: student.full_name,
+        essayId,
+        essayTitle: transitionedEssay.title,
+      });
     } catch (error) {
-      console.error("[DATACRAZY_SYNC_ERROR]", {
+      console.error("[ESSAY_CORRECTION_EMAIL_ERROR]", {
         essay_id: essayId,
-        student_id: correctedEssay.student_id,
-        event: "essay_status_updated",
-        error_code: getDataCrazySyncErrorCode(error),
+        student_id: transitionedEssay.student_id,
+        error,
       });
     }
+  } else {
+    console.warn("[ESSAY_CORRECTION_EMAIL_SKIPPED]", {
+      essay_id: essayId,
+      student_id: transitionedEssay.student_id,
+      reason: "missing_student_email",
+    });
   }
 
   revalidatePath("/inicio");

@@ -6,6 +6,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (request.nextUrl.pathname === "/dev/email-preview") {
+    return NextResponse.next();
+  }
+
   return await updateSession(request);
 }
 

@@ -3,6 +3,7 @@ import { AlertCircle } from "lucide-react";
 import { getTopicDetails } from "@/app/actions/get-topics";
 import { EssayWorkspace } from "@/components/essay-workspace";
 import { getDraftEssay, getTemporaryBackup } from "@/app/actions/essay-drafts";
+import { getCurrentStudentCreditSummary } from "@/app/actions/credits";
 import { EssayDraft } from "@/types";
 import type { Metadata } from "next";
 
@@ -23,7 +24,10 @@ export default async function NewEssayPage(props: Props) {
   }
   const isSuccess = searchParams.success === "true";
 
-  const essayTopic = await getTopicDetails(topicId);
+  const [essayTopic, creditSummary] = await Promise.all([
+    getTopicDetails(topicId),
+    getCurrentStudentCreditSummary(),
+  ]);
 
   let tempBackup = null;
   let officialDraft = null;
@@ -40,7 +44,8 @@ export default async function NewEssayPage(props: Props) {
   const draftData: EssayDraft | null = latestDraft ? {
     id: officialDraft?.id,
     content: latestDraft.content,
-    updated_at: latestDraft.updated_at
+    updated_at: latestDraft.updated_at,
+    best_essay_consent: officialDraft?.best_essay_consent ?? false,
   } : null;
 
   if (!essayTopic) {
@@ -53,5 +58,12 @@ export default async function NewEssayPage(props: Props) {
     );
   }
 
-  return <EssayWorkspace essayTopic={essayTopic} isSuccess={isSuccess} backup={draftData} />;
+  return (
+    <EssayWorkspace
+      essayTopic={essayTopic}
+      isSuccess={isSuccess}
+      backup={draftData}
+      hasAvailableCredits={creditSummary.total > 0}
+    />
+  );
 }

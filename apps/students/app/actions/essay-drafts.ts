@@ -9,6 +9,7 @@ type EssayPayload = {
   title: string;
   thematic_axis: string;
   content: string;
+  best_essay_consent: boolean;
   status: string;
   updated_at: string;
   created_at?: string;
@@ -42,6 +43,7 @@ export async function saveDraft(
   content: string,
   title: string,
   thematicAxis: string,
+  bestEssayConsent: boolean,
   draftId?: string
 ) {
   const supabase = await createClient();
@@ -56,6 +58,7 @@ export async function saveDraft(
     title: title,
     thematic_axis: thematicAxis,
     content: content,
+    best_essay_consent: bestEssayConsent,
     status: "draft",
     updated_at: new Date().toISOString(),
   };
@@ -148,7 +151,7 @@ export async function getDraftEssay(topicId: string) {
 
   const { data } = await supabase
     .from("essays")
-    .select("id, content, updated_at")
+    .select("id, content, updated_at, best_essay_consent")
     .eq("student_id", user.id)
     .eq("topic_id", topicId)
     .eq("status", "draft")

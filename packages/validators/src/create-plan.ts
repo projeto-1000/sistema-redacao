@@ -20,10 +20,24 @@ export const createPlanSchema = z.object({
     .number()
     .min(1, "Defina os dias de validade dos créditos."),
   is_active: z.boolean().default(true),
+  is_public: z.boolean().default(true),
+  is_recommended: z.boolean().default(false),
+  discount_percentage: z.coerce
+    .number()
+    .int("O desconto deve ser um número inteiro.")
+    .min(0, "O desconto não pode ser negativo.")
+    .max(100, "O desconto não pode ser maior que 100%.")
+    .nullable()
+    .default(null),
+  subtitle: z
+    .string()
+    .trim()
+    .max(160, "O subtítulo deve ter no máximo 160 caracteres.")
+    .optional(),
   description: z
     .string()
     .trim()
-    .max(256, "A descrição deve ter no máximo 256 caracteres.")
+    .max(2000, "A descrição deve ter no máximo 2000 caracteres.")
     .optional(),
 });
 

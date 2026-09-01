@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@repo/datacrazy": "workspace:*",
+    "@repo/email": "workspace:*",
     "@repo/types": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/utils": "workspace:*",

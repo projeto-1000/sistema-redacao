@@ -1,0 +1,23 @@
+{
+  "name": "@repo/email",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint \"src/**/*.ts*\"",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "eslint": "9.39.1",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@repo/utils": "workspace:*",
+    "server-only": "^0.0.1"
+  }
+}

@@ -23,7 +23,10 @@ export async function NextEssays() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {essays.map((essay) => {
-        const deadline = getDeadlineStatus(essay.due_date);
+        const deadline = getDeadlineStatus(
+          essay.due_date,
+          essay.essay_remaining_business_seconds
+        );
         const style = DEADLINE_STATUS_STYLES[deadline.status as keyof typeof DEADLINE_STATUS_STYLES];
 
         return (

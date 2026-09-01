@@ -10,10 +10,33 @@ const correctionScoreSchema = z
     "A nota deve seguir os intervalos de 40 pontos."
   );
 
-const correctionCommentSchema = z
+export const CORRECTION_COMPETENCY_COMMENT_MAX_LENGTH = 1000;
+
+const correctionHighlightCommentSchema = z
   .string()
   .trim()
   .max(2000, "O comentário deve ter no máximo 2.000 caracteres.");
+
+const draftCorrectionCommentSchema = z
+  .string()
+  .max(
+    CORRECTION_COMPETENCY_COMMENT_MAX_LENGTH,
+    "O comentário da competência deve ter no máximo 1.000 caracteres."
+  )
+  .trim();
+
+const requiredCorrectionCommentSchema = draftCorrectionCommentSchema.min(
+  1,
+  "O comentário geral da competência é obrigatório."
+);
+
+export const draftCorrectionCommentsSchema = z.object({
+  c1: draftCorrectionCommentSchema,
+  c2: draftCorrectionCommentSchema,
+  c3: draftCorrectionCommentSchema,
+  c4: draftCorrectionCommentSchema,
+  c5: draftCorrectionCommentSchema,
+});
 
 const requiredListItemSchema = z
   .string()
@@ -33,7 +56,7 @@ export const correctionHighlightSchema = z
       message: "O destaque precisa estar associado a uma competência válida.",
     }),
 
-    comment: correctionCommentSchema.default(""),
+    comment: correctionHighlightCommentSchema.default(""),
 
     startIndex: z
       .number()
@@ -57,6 +80,20 @@ export const correctionHighlightSchema = z
 
 export const correctionHighlightsSchema = z.array(correctionHighlightSchema);
 
+const finalCorrectionHighlightsSchema = correctionHighlightsSchema.superRefine(
+  (highlights, context) => {
+    highlights.forEach((highlight, index) => {
+      if (highlight.comment.trim().length > 0) return;
+
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [index, "comment"],
+        message: "Todo apontamento no texto precisa ter um comentário.",
+      });
+    });
+  }
+);
+
 export function normalizeCorrectionHighlights(value: unknown) {
   if (!Array.isArray(value)) return [];
 
@@ -76,11 +113,11 @@ export const finalCorrectionSchema = z.object({
   }),
 
   comments: z.object({
-    c1: correctionCommentSchema,
-    c2: correctionCommentSchema,
-    c3: correctionCommentSchema,
-    c4: correctionCommentSchema,
-    c5: correctionCommentSchema,
+    c1: requiredCorrectionCommentSchema,
+    c2: requiredCorrectionCommentSchema,
+    c3: requiredCorrectionCommentSchema,
+    c4: requiredCorrectionCommentSchema,
+    c5: requiredCorrectionCommentSchema,
   }),
 
   general_comment: z
@@ -117,7 +154,7 @@ next_essay_priorities: z
       "Informe no máximo três tarefas de reescrita."
     ),
 
-  highlights: correctionHighlightsSchema,
+  highlights: finalCorrectionHighlightsSchema,
 });
 
 export type FinalCorrectionInput = z.input<

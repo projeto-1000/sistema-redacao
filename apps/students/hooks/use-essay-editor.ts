@@ -8,7 +8,11 @@ interface EssayBackup {
   updated_at: string;
 }
 
-export function useEssayEditor(themeId: string, serverBackup: EssayBackup | null) {
+export function useEssayEditor(
+  themeId: string,
+  serverBackup: EssayBackup | null,
+  isDisabled = false
+) {
   const [content, setContent] = useState<string>(serverBackup?.content || "");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -23,6 +27,7 @@ export function useEssayEditor(themeId: string, serverBackup: EssayBackup | null
   }, [themeId, serverBackup]);
 
   useEffect(() => {
+    if (isDisabled) return;
     if (content === "" || content === serverBackup?.content) return;
 
     localStorage.setItem(`@backup:${themeId}`, content);
@@ -40,7 +45,7 @@ export function useEssayEditor(themeId: string, serverBackup: EssayBackup | null
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [content, themeId, serverBackup]);
+  }, [content, themeId, serverBackup, isDisabled]);
 
   const clearAutoSave = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);

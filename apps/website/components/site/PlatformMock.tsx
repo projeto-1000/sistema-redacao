@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Check, Target, PenLine } from "lucide-react";
+import { COMPETENCIES } from "@repo/constants";
 
 /** Moldura estilo janela da plataforma, para os mockups de tela. */
 export function MockFrame({
@@ -24,13 +25,7 @@ export function MockFrame({
   );
 }
 
-const competencias = [
-  { c: "C1", nome: "Norma padrão", nota: 160 },
-  { c: "C2", nome: "Compreensão do tema", nota: 200 },
-  { c: "C3", nome: "Argumentação", nota: 120 },
-  { c: "C4", nome: "Coesão", nota: 160 },
-  { c: "C5", nome: "Proposta de intervenção", nota: 160 },
-];
+const competencyScores = [160, 200, 120, 160, 160];
 
 /** Momento 1: avaliação por competência */
 export function MockCompetencias() {
@@ -43,23 +38,23 @@ export function MockCompetencias() {
         <p className="font-display text-3xl font-black text-primary">800</p>
       </div>
       <div className="mt-5 grid gap-3">
-        {competencias.map((c) => (
-          <div key={c.c}>
+        {COMPETENCIES.map((competency, index) => (
+          <div key={competency.id}>
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-foreground">
-                {c.c}{" "}
+                {competency.id}:{" "}
                 <span className="font-medium text-muted-foreground">
-                  {c.nome}
+                  {competency.title}
                 </span>
               </span>
               <span className="font-display font-extrabold text-foreground">
-                {c.nota}
+                {competencyScores[index]}
               </span>
             </div>
             <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-secondary">
               <div
                 className="h-full rounded-full bg-primary"
-                style={{ width: `${(c.nota / 200) * 100}%` }}
+                style={{ width: `${((competencyScores[index] ?? 0) / 200) * 100}%` }}
               />
             </div>
           </div>

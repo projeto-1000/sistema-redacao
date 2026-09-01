@@ -2,13 +2,29 @@
 
 import { createClient } from "@/lib/server";
 import { CorrectionPayload } from "@repo/types";
-import { normalizeCorrectionHighlights } from "@repo/validators";
+import {
+  draftCorrectionCommentsSchema,
+  normalizeCorrectionHighlights,
+} from "@repo/validators";
 
 function normalizeDraft(payload: CorrectionPayload): CorrectionPayload {
   return {
     ...payload,
     highlights: normalizeCorrectionHighlights(payload.highlights),
   };
+}
+
+function normalizeDraftForSave(payload: CorrectionPayload) {
+  const commentsResult = draftCorrectionCommentsSchema.safeParse(
+    payload.comments
+  );
+
+  if (!commentsResult.success) return null;
+
+  return normalizeDraft({
+    ...payload,
+    comments: commentsResult.data,
+  });
 }
 
 export async function autoSaveDraft(essayId: string, payload: CorrectionPayload) {
@@ -19,11 +35,19 @@ export async function autoSaveDraft(essayId: string, payload: CorrectionPayload)
 
   if (!user) return { success: false, error: "Unauthorized" };
 
+  const draft = normalizeDraftForSave(payload);
+  if (!draft) {
+    return {
+      success: false,
+      error: "Os comentários das competências devem ter no máximo 1.000 caracteres.",
+    };
+  }
+
   const { error } = await supabase.from("correction_drafts").upsert(
     {
       essay_id: essayId,
       teacher_id: user.id,
-      payload: normalizeDraft(payload),
+      payload: draft,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "essay_id" }
@@ -45,10 +69,18 @@ export async function saveCorrectionDraft(essayId: string, payload: CorrectionPa
 
   if (!user) return;
 
+  const draft = normalizeDraftForSave(payload);
+  if (!draft) {
+    console.error(
+      "Draft inválido: os comentários das competências excedem 1.000 caracteres."
+    );
+    return;
+  }
+
   await supabase.from("correction_drafts").upsert({
     essay_id: essayId,
     teacher_id: user.id,
-    payload: normalizeDraft(payload),
+    payload: draft,
   });
 }
 

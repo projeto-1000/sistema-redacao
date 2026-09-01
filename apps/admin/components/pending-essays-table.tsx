@@ -42,11 +42,11 @@ export default async function PendingEssaysTable({ showHeader = false, filters, 
             </div>
           )}
 
-          <div className={`hidden lg:grid grid-cols-12 gap-4 px-8 pb-5 border-b border-slate-100 ${showHeader === true ? 'bg-transparent pb-5' : 'bg-slate-50/50 py-5'}`}>
-            <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aluno</div>
-            <div className="col-span-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tema da Redação</div>
-            <div className="col-span-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Prazo</div>
-            <div className="col-span-2 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ação</div>
+          <div className={`hidden xl:grid grid-cols-[minmax(0,3fr)_minmax(0,5fr)_max-content_max-content] gap-4 px-8 pb-5 border-b border-slate-100 ${showHeader === true ? 'bg-transparent pb-5' : 'bg-slate-50/50 py-5'}`}>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aluno</div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tema da Redação</div>
+            <div className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Prazo</div>
+            <div className="text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ação</div>
           </div>
 
           {essays.map((essay) => (
