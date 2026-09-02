@@ -151,12 +151,11 @@ export function PlanCard({
         </span>
       )}
 
-      {plan.is_recommended && (
-        <span className="absolute -top-3 right-6 rounded-sm  bg-amber-200 px-3 py-1 text-[10px] font-extrabold tracking-wider text-amber-800 uppercase shadow-sm">
+      {plan.is_recommended && !isCurrentPaidPlan && (
+        <span className="absolute -top-3 right-6 rounded-sm bg-amber-200 px-3 py-1 text-[10px] font-extrabold tracking-wider text-amber-800 uppercase shadow-sm">
           Recomendado
         </span>
       )}
-
       <h2 className="text-3xl font-bold leading-tight tracking-tight text-slate-800">
         {plan.name}
       </h2>
