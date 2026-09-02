@@ -96,10 +96,6 @@ export async function createAndSavePaymentCard({
     throw new Error("O cartão retornado não pertence ao aluno autenticado.");
   }
 
-  if (existingCard && !idempotencyKey) {
-    throw new Error("Não foi possível salvar o cartão do aluno.");
-  }
-
   const now = new Date().toISOString();
   const { error: resetDefaultCardError } = await supabaseAdmin
     .from("student_payment_cards")
