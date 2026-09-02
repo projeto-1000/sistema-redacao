@@ -58,7 +58,10 @@ export const checkoutPaymentSchema = z
     method: checkoutPaymentMethodSchema,
 
     installments: z.number().int().min(1).max(1).default(1),
-    
+
+    paymentSource: z.enum(["saved_card", "new_card"]),
+    paymentCardId: z.string().uuid("Cartão inválido.").nullable().optional(),
+
     cardNumber: z.string().optional(),
     holderName: z.string().optional(),
     holderDocument: z.string().optional(),
@@ -68,6 +71,26 @@ export const checkoutPaymentSchema = z
   .superRefine((value, context) => {
     if (value.method === "boleto") {
       return;
+    }
+
+    if (value.paymentSource === "saved_card") {
+      if (!value.paymentCardId) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["paymentCardId"],
+          message: "Selecione um cartão.",
+        });
+      }
+
+      return;
+    }
+
+    if (value.paymentCardId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["paymentCardId"],
+        message: "A fonte do cartão é inválida.",
+      });
     }
 
     if (!value.cardNumber) {

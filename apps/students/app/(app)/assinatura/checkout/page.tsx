@@ -57,7 +57,10 @@ export default async function CheckoutPage({
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px] gap-8">
         <main className="space-y-6">
-          <CheckoutForm planId={data.plan.id} />
+          <CheckoutForm
+            planId={data.plan.id}
+            savedCards={data.savedPaymentCards}
+          />
         </main>
 
         <aside className="xl:sticky xl:top-6 xl:self-start">

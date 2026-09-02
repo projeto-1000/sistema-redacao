@@ -16,12 +16,18 @@ import { RadioGroup, RadioGroupItem } from "@repo/ui/components/radio-group";
 import type { CheckoutFormInput } from "@repo/validators";
 import { CardFields } from "./card-fields";
 import {
+  PaymentCardSelector,
+  type PaymentCardSelection,
+} from "@/components/payments/payment-card-selector";
+import type { SavedPaymentCard } from "@/types";
+import {
   Barcode,
   CreditCard,
 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 interface CheckoutPaymentSectionProps {
+  savedCards: SavedPaymentCard[];
   onPaymentChange: () => void;
 }
 
@@ -57,6 +63,7 @@ const paymentMethods = [
 }>;
 
 export function CheckoutPaymentSection({
+  savedCards,
   onPaymentChange,
 }: CheckoutPaymentSectionProps) {
   const { control, setValue, clearErrors } =
@@ -67,8 +74,49 @@ export function CheckoutPaymentSection({
     name: "payment.method",
   });
 
+  const paymentSource = useWatch({
+    control,
+    name: "payment.paymentSource",
+  });
+
+  const paymentCardId = useWatch({
+    control,
+    name: "payment.paymentCardId",
+  });
+
   const isCardPayment =
     paymentMethod === "credit_card" || paymentMethod === "debit_card";
+
+  const paymentCardSelection: PaymentCardSelection =
+    paymentSource === "saved_card" && paymentCardId
+      ? {
+          type: "saved_card",
+          paymentCardId,
+        }
+      : {
+          type: "new_card",
+        };
+
+  function handlePaymentCardChange(selection: PaymentCardSelection) {
+    setValue("payment.paymentSource", selection.type, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: false,
+    });
+
+    setValue(
+      "payment.paymentCardId",
+      selection.type === "saved_card" ? selection.paymentCardId : null,
+      {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: false,
+      }
+    );
+
+    clearErrors("payment");
+    onPaymentChange();
+  }
 
   function handlePaymentMethodChange(value: PaymentMethod) {
     setValue("payment.method", value, {
@@ -178,15 +226,27 @@ export function CheckoutPaymentSection({
         />
 
         {isCardPayment ? (
-          <CardFields
-            control={control}
-            cardNumberName="payment.cardNumber"
-            holderNameName="payment.holderName"
-            holderDocumentName="payment.holderDocument"
-            expirationDateName="payment.expirationDate"
-            cvvName="payment.cvv"
-            onChange={onPaymentChange}
-          />
+          <div className="space-y-6">
+            {savedCards.length > 0 ? (
+              <PaymentCardSelector
+                cards={savedCards}
+                value={paymentCardSelection}
+                onChange={handlePaymentCardChange}
+              />
+            ) : null}
+
+            {paymentCardSelection.type === "new_card" ? (
+              <CardFields
+                control={control}
+                cardNumberName="payment.cardNumber"
+                holderNameName="payment.holderName"
+                holderDocumentName="payment.holderDocument"
+                expirationDateName="payment.expirationDate"
+                cvvName="payment.cvv"
+                onChange={onPaymentChange}
+              />
+            ) : null}
+          </div>
         ) : (
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
             <div className="flex gap-3">

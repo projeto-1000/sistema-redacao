@@ -14,33 +14,41 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { createCheckoutSubscription } from "@/app/actions/checkout";
+import type { SavedPaymentCard } from "@/types";
 
-const defaultValues: CheckoutFormInput = {
-  address: {
-    zipCode: "",
-    street: "",
-    number: "",
-    complement: "",
-    neighborhood: "",
-    city: "",
-    state: "",
-  },
-  payment: {
-    method: "credit_card",
-    installments: 1,
-    cardNumber: "",
-    holderName: "",
-    holderDocument: "",
-    expirationDate: "",
-    cvv: "",
-  },
-};
+function buildDefaultValues(savedCards: SavedPaymentCard[]): CheckoutFormInput {
+  const defaultCard = savedCards.find((card) => card.isDefault) ?? savedCards[0];
+
+  return {
+    address: {
+      zipCode: "",
+      street: "",
+      number: "",
+      complement: "",
+      neighborhood: "",
+      city: "",
+      state: "",
+    },
+    payment: {
+      method: "credit_card",
+      installments: 1,
+      paymentSource: defaultCard ? "saved_card" : "new_card",
+      paymentCardId: defaultCard?.id ?? null,
+      cardNumber: "",
+      holderName: "",
+      holderDocument: "",
+      expirationDate: "",
+      cvv: "",
+    },
+  };
+}
 
 interface CheckoutFormProps {
   planId: string;
+  savedCards: SavedPaymentCard[];
 }
 
-export function CheckoutForm({ planId }: CheckoutFormProps) {
+export function CheckoutForm({ planId, savedCards }: CheckoutFormProps) {
   const [checkoutStatus, setCheckoutStatus] = useState<
     "idle" | "tokenized" | "error"
   >("idle");
@@ -50,7 +58,7 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
 
   const form = useForm<CheckoutFormInput>({
     resolver: zodResolver(checkoutSchema),
-    defaultValues,
+    defaultValues: buildDefaultValues(savedCards),
     mode: "onSubmit",
     reValidateMode: "onChange",
   });
@@ -75,11 +83,13 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
 
   const hasRequiredPaymentFields =
     payment.method === "boleto" ||
-    (onlyDigits(payment.cardNumber ?? "").length === 16 &&
-      (payment.holderName ?? "").trim().length >= 3 &&
-      onlyDigits(payment.holderDocument ?? "").length === 11 &&
-      (payment.expirationDate ?? "").length === 5 &&
-      onlyDigits(payment.cvv ?? "").length >= 3);
+    (payment.paymentSource === "saved_card"
+      ? Boolean(payment.paymentCardId)
+      : onlyDigits(payment.cardNumber ?? "").length === 16 &&
+        (payment.holderName ?? "").trim().length >= 3 &&
+        onlyDigits(payment.holderDocument ?? "").length === 11 &&
+        (payment.expirationDate ?? "").length === 5 &&
+        onlyDigits(payment.cvv ?? "").length >= 3);
 
   const canContinue =
     hasRequiredAddressFields &&
@@ -96,28 +106,37 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
     setCheckoutMessage(null);
 
     try {
-      const isCardPayment =
-        values.payment.method === "credit_card" ||
-        values.payment.method === "debit_card";
+      let result;
 
-      const cardToken = isCardPayment
-        ? (
-          await tokenizePagarmeCard({
-            cardNumber: values.payment.cardNumber ?? "",
-            holderName: values.payment.holderName ?? "",
-            holderDocument: values.payment.holderDocument ?? "",
-            expirationDate: values.payment.expirationDate ?? "",
-            cvv: values.payment.cvv ?? "",
-          })
-        ).id
-        : undefined;
+      if (values.payment.method === "boleto") {
+        result = await createCheckoutSubscription({
+          planId,
+          paymentMethod: "boleto",
+          billingAddress: values.address,
+        });
+      } else if (values.payment.paymentSource === "saved_card") {
+        result = await createCheckoutSubscription({
+          planId,
+          paymentMethod: values.payment.method,
+          billingAddress: values.address,
+          paymentCardId: values.payment.paymentCardId ?? "",
+        });
+      } else {
+        const cardToken = await tokenizePagarmeCard({
+          cardNumber: values.payment.cardNumber ?? "",
+          holderName: values.payment.holderName ?? "",
+          holderDocument: values.payment.holderDocument ?? "",
+          expirationDate: values.payment.expirationDate ?? "",
+          cvv: values.payment.cvv ?? "",
+        });
 
-      const result = await createCheckoutSubscription({
-        planId,
-        paymentMethod: values.payment.method,
-        billingAddress: values.address,
-        cardToken,
-      });
+        result = await createCheckoutSubscription({
+          planId,
+          paymentMethod: values.payment.method,
+          billingAddress: values.address,
+          cardToken: cardToken.id,
+        });
+      }
 
       setCheckoutStatus("tokenized");
       setCheckoutMessage("Assinatura criada com sucesso.");
@@ -144,7 +163,10 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
         <Accordion type="single" collapsible className="space-y-6">
           <CheckoutAddressSection onAddressChange={resetCheckoutStatus} />
 
-          <CheckoutPaymentSection onPaymentChange={resetCheckoutStatus} />
+          <CheckoutPaymentSection
+            savedCards={savedCards}
+            onPaymentChange={resetCheckoutStatus}
+          />
         </Accordion>
 
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">

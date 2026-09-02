@@ -15,7 +15,11 @@ import {
   createPagarmeSubscription,
 } from "@repo/payments";
 import { getOrCreatePagarmeCustomerId } from "@/services/payments/pagarme-customer";
-import { createAndSavePaymentCard } from "@/services/payments/payment-cards";
+import {
+  createAndSavePaymentCard,
+  listSavedPaymentCardsForUser,
+  resolveSavedPaymentCard,
+} from "@/services/payments/payment-cards";
 import {
   buildPagarmeBillingAddress,
   buildSubscriptionCode,
@@ -199,7 +203,7 @@ export async function getCheckoutPageData(planId: string): Promise<CheckoutPageD
     return null;
   }
 
-  const [planResponse, profileResponse] = await Promise.all([
+  const [planResponse, profileResponse, savedPaymentCards] = await Promise.all([
     supabase
       .from("plans")
       .select(
@@ -226,6 +230,8 @@ export async function getCheckoutPageData(planId: string): Promise<CheckoutPageD
       .select("id, full_name, email, document, phone")
       .eq("id", user.id)
       .maybeSingle(),
+
+    listSavedPaymentCardsForUser({ userId: user.id }),
   ]);
 
   if (planResponse.error || profileResponse.error) {
@@ -276,6 +282,7 @@ export async function getCheckoutPageData(planId: string): Promise<CheckoutPageD
       document: profile.document,
       phone: profile.phone,
     },
+    savedPaymentCards,
   };
 }
 
@@ -355,25 +362,50 @@ export async function createCheckoutSubscription(
   const isCardPayment =
     input.paymentMethod === "credit_card" || input.paymentMethod === "debit_card";
 
-  if (isCardPayment && !input.cardToken) {
-    throw new Error("Token do cartão não informado.");
+  const cardToken = input.cardToken;
+  const paymentCardId = input.paymentCardId;
+  const hasCardToken = cardToken !== undefined;
+  const hasPaymentCardId = paymentCardId !== undefined;
+
+  if (isCardPayment && hasCardToken === hasPaymentCardId) {
+    throw new Error("Informe exatamente uma fonte de cartão para o pagamento.");
   }
 
-  if (isCardPayment && input.cardToken && !input.cardToken.startsWith("token_")) {
+  if (!isCardPayment && (hasCardToken || hasPaymentCardId)) {
+    throw new Error("Boleto não aceita dados de cartão.");
+  }
+
+  if (hasCardToken && !cardToken.startsWith("token_")) {
     throw new Error("Token do cartão inválido.");
   }
+
+  if (
+    hasPaymentCardId &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      paymentCardId ?? ""
+    )
+  ) {
+    throw new Error("Cartão selecionado inválido.");
+  }
+
+  const selectedCard = paymentCardId
+    ? await resolveSavedPaymentCard({
+        userId: user.id,
+        paymentCardId,
+      })
+    : null;
 
   const billingAddress = buildPagarmeBillingAddress(input.billingAddress);
   const pagarmeCustomerId = await getOrCreatePagarmeCustomerId();
 
-  let savedCardId: string | null = null;
-  let pagarmeCardId: string | undefined;
+  let savedCardId: string | null = selectedCard?.localCardId ?? null;
+  let pagarmeCardId: string | undefined = selectedCard?.pagarmeCardId;
 
-  if (isCardPayment && input.cardToken) {
+  if (isCardPayment && cardToken) {
     const savedCard = await createAndSavePaymentCard({
       userId: user.id,
       customerId: pagarmeCustomerId,
-      cardToken: input.cardToken,
+      cardToken,
       billingAddress,
       label: "Cartão salvo",
       metadata: {
@@ -396,7 +428,6 @@ export async function createCheckoutSubscription(
     paymentMethod: input.paymentMethod,
     billingAddress,
     cardId: pagarmeCardId,
-    cardToken: isCardPayment && !pagarmeCardId ? input.cardToken : undefined,
     boletoDueDays: 3,
     metadata: {
       user_id: user.id,

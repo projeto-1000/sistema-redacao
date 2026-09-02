@@ -15,8 +15,10 @@ import {
 import { getOrCreatePagarmeCustomerId } from "@/services/payments/pagarme-customer";
 import {
   createAndSavePaymentCard,
+  listSavedPaymentCardsForUser,
   resolveSavedPaymentCard,
 } from "@/services/payments/payment-cards";
+import type { SavedPaymentCard } from "@/types";
 import type { StudentCreditSummary } from "@/types/credits";
 import { buildPagarmeBillingAddress } from "@/utils/checkout-utils";
 import {
@@ -88,15 +90,7 @@ export async function getUserCredits() {
   return data?.extra_credits ?? 0;
 }
 
-export interface SavedPaymentCard {
-  id: string;
-  brand: string | null;
-  lastFourDigits: string;
-  holderName: string | null;
-  expMonth: number | null;
-  expYear: number | null;
-  isDefault: boolean;
-}
+export type { SavedPaymentCard } from "@/types";
 
 export async function getSavedPaymentCards(): Promise<SavedPaymentCard[]> {
   const supabase = await createClient();
@@ -109,39 +103,7 @@ export async function getSavedPaymentCards(): Promise<SavedPaymentCard[]> {
     throw new Error("Usuário não autenticado.");
   }
 
-  const { data, error } = await supabase
-    .from("student_payment_cards")
-    .select(
-      `
-        id,
-        brand,
-        last_four_digits,
-        holder_name,
-        exp_month,
-        exp_year,
-        is_default
-      `
-    )
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .is("deleted_at", null)
-    .order("is_default", { ascending: false })
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("[EXTRA_CREDITS_SAVED_CARDS_ERROR]", error);
-    throw new Error("Não foi possível carregar seus cartões.");
-  }
-
-  return (data ?? []).map((card) => ({
-    id: card.id,
-    brand: card.brand,
-    lastFourDigits: card.last_four_digits,
-    holderName: card.holder_name,
-    expMonth: card.exp_month,
-    expYear: card.exp_year,
-    isDefault: card.is_default,
-  }));
+  return listSavedPaymentCardsForUser({ userId: user.id });
 }
 
 export async function canPurchaseExtraCredits() {

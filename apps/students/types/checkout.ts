@@ -28,9 +28,20 @@ export interface CheckoutStudentData {
   phone: string | null;
 }
 
+export interface SavedPaymentCard {
+  id: string;
+  brand: string | null;
+  lastFourDigits: string;
+  holderName: string | null;
+  expMonth: number | null;
+  expYear: number | null;
+  isDefault: boolean;
+}
+
 export interface CheckoutPageData {
   plan: CheckoutPlanData;
   student: CheckoutStudentData;
+  savedPaymentCards: SavedPaymentCard[];
 }
 
 export interface CheckoutBillingAddressInput {
@@ -53,12 +64,34 @@ export interface CheckoutProfileForPagarme {
   pagarme_customer_id: string | null;
 }
 
-export interface CreateCheckoutSubscriptionInput {
+interface CreateCheckoutSubscriptionBaseInput {
   planId: string;
-  paymentMethod: PagarmePaymentMethod;
   billingAddress: CheckoutBillingAddressInput;
-  cardToken?: string;
 }
+
+type CreateCheckoutCardSubscriptionInput = CreateCheckoutSubscriptionBaseInput & {
+  paymentMethod: Extract<PagarmePaymentMethod, "credit_card" | "debit_card">;
+} &
+  (
+    | {
+        paymentCardId: string;
+        cardToken?: never;
+      }
+    | {
+        paymentCardId?: never;
+        cardToken: string;
+      }
+  );
+
+type CreateCheckoutBoletoSubscriptionInput = CreateCheckoutSubscriptionBaseInput & {
+  paymentMethod: "boleto";
+  paymentCardId?: never;
+  cardToken?: never;
+};
+
+export type CreateCheckoutSubscriptionInput =
+  | CreateCheckoutCardSubscriptionInput
+  | CreateCheckoutBoletoSubscriptionInput;
 
 export interface CreateCheckoutSubscriptionResult {
   success: true;
