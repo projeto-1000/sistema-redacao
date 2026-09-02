@@ -460,13 +460,12 @@ export interface CreditsFilters {
   from?: string;
   to?: string;
 }
-
 export interface CreditPackage {
   id: string;
   name: string;
+  description?: string;
   credits: number;
   price: number;
-  popular?: boolean;
 }
 export interface SubscriptionHistoryRpcRow {
   kind: "credit_transaction" | "payment";

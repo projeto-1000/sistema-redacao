@@ -3,25 +3,29 @@
 import { createClient } from "@/lib/server";
 import type { StudentCreditSummary } from "@/types/credits";
 import { CreditPackage } from "@repo/types";
-import { redirect } from "next/navigation";
 
-// 1. Tipagem unificada que o front-end e o banco vão respeitar
-
-// ============================================================================
-// MOCKS: Quando for integrar, basta apagar este bloco e plugar o banco real
-// ============================================================================
-const MOCK_PACKAGES: CreditPackage[] = [
-  { id: "pkg_1", name: "1 Crédito Avulso", credits: 1, price: 15 },
-  { id: "pkg_5", name: "5 Créditos Avulsos", credits: 5, price: 65, popular: true },
-  { id: "pkg_10", name: "10 Créditos Avulsos", credits: 10, price: 110 },
-];
-
-/**
- * Função para buscar os pacotes disponíveis.
- */
 export async function getCreditPackages(): Promise<CreditPackage[]> {
-  // FUTURO: const { data } = await supabase.from('packages').select('*');
-  return MOCK_PACKAGES;
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("extra_credit_packages")
+    .select("id, name, description, credits_amount, price_cents")
+    .eq("is_active", true)
+    .order("credits_amount", { ascending: true })
+    .order("price_cents", { ascending: true });
+
+  if (error) {
+    console.error("[EXTRA_CREDIT_PACKAGES_LIST_ERROR]", error);
+    throw new Error("Não foi possível carregar os pacotes de créditos extras.");
+  }
+
+  return (data ?? []).map((packageItem) => ({
+    id: packageItem.id,
+    name: packageItem.name,
+    description: packageItem.description ?? undefined,
+    credits: packageItem.credits_amount,
+    price: packageItem.price_cents / 100,
+  }));
 }
 
 export async function getCurrentStudentCreditSummary(): Promise<StudentCreditSummary> {
@@ -34,19 +38,6 @@ export async function getCurrentStudentCreditSummary(): Promise<StudentCreditSum
   }
 
   return data as unknown as StudentCreditSummary;
-}
-
-/**
- * Server Action que processa a intenção de compra.
- */
-export async function purchaseCreditsAction(packageId: string) {
-  // FUTURO: Criar sessão no Stripe e redirecionar para a URL de checkout
-  const selectedPackage = MOCK_PACKAGES.find((p) => p.id === packageId);
-
-  if (!selectedPackage) throw new Error("Pacote inválido");
-
-  // Simulando o redirecionamento de sucesso do Stripe passando o nome do produto
-  redirect(`/comprar-creditos/confirmacao?product=${encodeURIComponent(selectedPackage.name)}`);
 }
 
 export async function getUserCredits() {
@@ -69,4 +60,60 @@ export async function getUserCredits() {
   }
 
   return data?.extra_credits ?? 0;
+}
+
+export interface SavedPaymentCard {
+  id: string;
+  brand: string | null;
+  lastFourDigits: string;
+  holderName: string | null;
+  expMonth: number | null;
+  expYear: number | null;
+  isDefault: boolean;
+}
+
+export async function getSavedPaymentCards(): Promise<SavedPaymentCard[]> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Usuário não autenticado.");
+  }
+
+  const { data, error } = await supabase
+    .from("student_payment_cards")
+    .select(
+      `
+        id,
+        brand,
+        last_four_digits,
+        holder_name,
+        exp_month,
+        exp_year,
+        is_default
+      `
+    )
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .is("deleted_at", null)
+    .order("is_default", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[EXTRA_CREDITS_SAVED_CARDS_ERROR]", error);
+    throw new Error("Não foi possível carregar seus cartões.");
+  }
+
+  return (data ?? []).map((card) => ({
+    id: card.id,
+    brand: card.brand,
+    lastFourDigits: card.last_four_digits,
+    holderName: card.holder_name,
+    expMonth: card.exp_month,
+    expYear: card.exp_year,
+    isDefault: card.is_default,
+  }));
 }

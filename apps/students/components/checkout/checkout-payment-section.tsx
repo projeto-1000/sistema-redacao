@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  formatCardCvv,
-  formatCardExpiration,
-  formatCardNumber,
-  normalizeCardHolderName,
-} from "@/lib/checkout/card-formatters";
 import { cn } from "@repo/ui/lib/utils";
 import {
   AccordionContent,
@@ -13,28 +7,17 @@ import {
   AccordionTrigger,
 } from "@repo/ui/components/accordion"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/ui/components/select"
-import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@repo/ui/components/form";
-import { Input } from "@repo/ui/components/input";
 import { RadioGroup, RadioGroupItem } from "@repo/ui/components/radio-group";
 import type { CheckoutFormInput } from "@repo/validators";
-import { formatCPF } from "@repo/utils";
+import { CardFields } from "./card-fields";
 import {
   Barcode,
   CreditCard,
-  // Landmark,
-  ShieldCheck,
 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 
@@ -195,203 +178,15 @@ export function CheckoutPaymentSection({
         />
 
         {isCardPayment ? (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <div className="flex gap-3 items-center">
-                <ShieldCheck className="size-4.5 shrink-0 text-success" />
-
-                <p className="text-sm font-semibold leading-relaxed text-slate-600">
-                  Os dados do cartão serão validados com segurança antes da assinatura ser criada.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <FormField
-                control={control}
-                name="payment.cardNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número do cartão</FormLabel>
-
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        inputMode="numeric"
-                        autoComplete="cc-number"
-                        maxLength={19}
-                        placeholder="0000 0000 0000 0000"
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-semibold text-slate-700"
-                        onChange={(event) => {
-                          field.onChange(formatCardNumber(event.target.value));
-                          onPaymentChange();
-                        }}
-                      />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={control}
-                name="payment.holderName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome impresso no cartão</FormLabel>
-
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        autoComplete="cc-name"
-                        placeholder="Nome completo"
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-semibold uppercase text-slate-700"
-                        onChange={(event) => {
-                          field.onChange(
-                            normalizeCardHolderName(event.target.value)
-                          );
-                          onPaymentChange();
-                        }}
-                      />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-
-            <div
-              className={cn(
-                "grid grid-cols-1 gap-5",
-                paymentMethod === "credit_card" ? "md:grid-cols-4" : "md:grid-cols-3"
-              )}
-            >
-              <FormField
-                control={control}
-                name="payment.holderDocument"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-1">
-                    <FormLabel>CPF do titular</FormLabel>
-
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        inputMode="numeric"
-                        autoComplete="off"
-                        placeholder="000.000.000-00"
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-semibold text-slate-700"
-                        onChange={(event) => {
-                          field.onChange(formatCPF(event.target.value));
-                          onPaymentChange();
-                        }}
-                      />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={control}
-                name="payment.expirationDate"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-1">
-
-                    <FormLabel>Validade</FormLabel>
-
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        inputMode="numeric"
-                        autoComplete="cc-exp"
-                        maxLength={5}
-                        placeholder="MM/AA"
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-semibold text-slate-700"
-                        onChange={(event) => {
-                          field.onChange(
-                            formatCardExpiration(event.target.value)
-                          );
-                          onPaymentChange();
-                        }}
-                      />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={control}
-                name="payment.cvv"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-1">
-
-                    <FormLabel>CVV</FormLabel>
-
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        type="password"
-                        inputMode="numeric"
-                        autoComplete="cc-csc"
-                        maxLength={4}
-                        placeholder="123"
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-semibold text-slate-700"
-                        onChange={(event) => {
-                          field.onChange(formatCardCvv(event.target.value));
-                          onPaymentChange();
-                        }}
-                      />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {paymentMethod === "credit_card" && (
-                <FormField
-                  control={control}
-                  name="payment.installments"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-1">
-                      <FormLabel>Parcelamento</FormLabel>
-
-                      <Select
-                        value={String(field.value ?? 1)}
-                        onValueChange={(value) => {
-                          field.onChange(Number(value))
-                          onPaymentChange()
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 font-semibold text-slate-700">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                        </FormControl>
-
-                        <SelectContent>
-                          <SelectItem value="1">1x</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-            </div>
-          </div>
+          <CardFields
+            control={control}
+            cardNumberName="payment.cardNumber"
+            holderNameName="payment.holderName"
+            holderDocumentName="payment.holderDocument"
+            expirationDateName="payment.expirationDate"
+            cvvName="payment.cvv"
+            onChange={onPaymentChange}
+          />
         ) : (
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
             <div className="flex gap-3">
