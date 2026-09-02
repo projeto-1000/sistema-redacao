@@ -341,6 +341,17 @@ export interface Plans {
   updated_at: string;
 }
 
+export interface ExtraCreditPackage {
+  id: string;
+  name: string;
+  description: string | null;
+  credits_amount: number;
+  price_cents: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export type TransactionType = 
   | "plan_renewal"
   | "standalone_purchase"
