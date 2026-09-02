@@ -302,27 +302,34 @@ export function ConfirmPurchase({
             </div>
 
             <h2 className="mb-4 text-2xl font-extrabold text-slate-800">
-              Pedido recebido!
+              Compra confirmada!
             </h2>
 
-            <p className="mb-8 font-medium leading-relaxed text-slate-500">
-              Seu pagamento foi recebido para processamento.
-              Assim que a confirmação for concluída, os
-              <strong className="text-slate-700">
-                {" "}
-                {packageData.credits}{" "}
-                {packageData.credits === 1
-                  ? "crédito"
-                  : "créditos"}{" "}
-              </strong>
-              serão adicionados à sua conta.
+            <p className="mb-8 max-w-md font-medium leading-relaxed text-slate-500">
+              Seu pagamento foi aprovado e{" "}
+              {packageData.credits === 1 ? (
+                <>
+                  seu <strong className="text-slate-700">crédito extra</strong> já está a
+                  caminho da sua conta. Agora é só aproveitar para mandar mais uma redação
+                  quando quiser.
+                </>
+              ) : (
+                <>
+                  seus{" "}
+                  <strong className="text-slate-700">
+                    {packageData.credits} créditos extras
+                  </strong>{" "}
+                  já estão a caminho da sua conta. Agora é só aproveitar para mandar mais
+                  redações quando quiser.
+                </>
+              )}
             </p>
 
             <Button
               onClick={() => handleOpenChange(false)}
               className="h-12 w-full rounded-xl bg-slate-800 font-bold text-white hover:bg-slate-900"
             >
-              Entendido
+              Continuar
             </Button>
           </div>
         )}
