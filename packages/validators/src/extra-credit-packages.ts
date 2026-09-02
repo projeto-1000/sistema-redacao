@@ -13,14 +13,19 @@ const extraCreditPackageFieldsSchema = z
       .max(2000, "A descrição deve ter no máximo 2000 caracteres.")
       .nullable()
       .optional(),
-    credits_amount: z.coerce
-      .number()
-      .int("A quantidade de créditos deve ser um número inteiro.")
-      .positive("A quantidade de créditos deve ser maior que zero."),
-    price_cents: z.coerce
-      .number()
-      .int("O preço deve ser informado em centavos inteiros.")
-      .positive("O preço deve ser maior que zero."),
+    credits_amount: z.number({
+      required_error: "Informe a quantidade de créditos.",
+      invalid_type_error: "Informe a quantidade de créditos.",
+  })
+  .int("A quantidade de créditos deve ser um número inteiro.")
+  .min(1, "A quantidade de créditos deve ser maior que zero."),
+price_cents: z
+  .number({
+    required_error: "Informe o valor do pacote.",
+    invalid_type_error: "Informe o valor do pacote.",
+  })
+  .int("O valor do pacote é inválido.")
+  .min(1, "O valor do pacote deve ser maior que zero."),
     is_active: z.boolean().default(true),
   })
   .strict();
