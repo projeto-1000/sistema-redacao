@@ -352,6 +352,23 @@ export interface ExtraCreditPackage {
   updated_at: string;
 }
 
+export type ExtraCreditPurchaseStatus = "processing" | "pending" | "paid" | "failed";
+
+export type ExtraCreditPurchaseResult =
+  | {
+      success: true;
+      paymentId: string;
+      status: "pending" | "paid";
+      creditsAmount: number;
+    }
+  | {
+      success: false;
+      paymentId: string | null;
+      status: "processing" | "failed";
+      creditsAmount: number | null;
+      message: string;
+    };
+
 export type TransactionType = 
   | "plan_renewal"
   | "standalone_purchase"

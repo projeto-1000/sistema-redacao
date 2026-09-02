@@ -6,11 +6,17 @@ import {
 } from "@/lib/integrations/datacrazy/sync-student";
 
 import {
+  getPagarmeOrder,
   getPagarmeSubscription,
   getPagarmeWebhook,
   PagarmeApiError,
+  type PagarmeOrder,
   type PagarmeWebhook,
 } from "@repo/payments";
+import {
+  resolveExtraCreditPaymentForOrder,
+  validateExtraCreditOrderForPayment,
+} from "@/services/extra-credit-purchase/webhook";
 
 import { NextResponse } from "next/server";
 
@@ -90,7 +96,10 @@ interface PagarmeSubscriptionWebhookData {
   };
 }
 
-type PagarmeWebhookData = PagarmeInvoiceWebhookData | PagarmeSubscriptionWebhookData;
+type PagarmeWebhookData =
+  | PagarmeInvoiceWebhookData
+  | PagarmeSubscriptionWebhookData
+  | PagarmeOrder;
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -268,11 +277,55 @@ function buildStoredSubscriptionPayload(webhook: PagarmeWebhook<PagarmeSubscript
   };
 }
 
+function buildStoredOrderPayload(webhook: PagarmeWebhook<PagarmeOrder>) {
+  const order = webhook.data;
+
+  return {
+    id: webhook.id,
+    event: webhook.event,
+    status: webhook.status,
+    data: {
+      id: order.id ?? null,
+      code: order.code ?? null,
+      status: order.status ?? null,
+      amount: order.amount ?? null,
+      closed: order.closed ?? null,
+      created_at: order.created_at ?? null,
+      updated_at: order.updated_at ?? null,
+      metadata: {
+        source: order.metadata?.source ?? null,
+        user_id: order.metadata?.user_id ?? null,
+        extra_credit_package_id: order.metadata?.extra_credit_package_id ?? null,
+        credits_amount: order.metadata?.credits_amount ?? null,
+        local_payment_id: order.metadata?.local_payment_id ?? null,
+      },
+      charges: (order.charges ?? []).map((charge) => ({
+        id: charge.id ?? null,
+        status: charge.status ?? null,
+        amount: charge.amount ?? null,
+        paid_amount: charge.paid_amount ?? null,
+        payment_method: charge.payment_method ?? null,
+        paid_at: charge.paid_at ?? null,
+        created_at: charge.created_at ?? null,
+        last_transaction: {
+          id: charge.last_transaction?.id ?? null,
+          status: charge.last_transaction?.status ?? null,
+          success: charge.last_transaction?.success ?? null,
+        },
+      })),
+    },
+  };
+}
+
 function buildStoredWebhookPayload(webhook: PagarmeWebhook<PagarmeWebhookData>) {
   if (webhook.event === "subscription.canceled") {
     return buildStoredSubscriptionPayload(
       webhook as PagarmeWebhook<PagarmeSubscriptionWebhookData>
     );
+  }
+
+  if (webhook.event === "order.paid" || webhook.event === "order.payment_failed") {
+    return buildStoredOrderPayload(webhook as PagarmeWebhook<PagarmeOrder>);
   }
 
   return buildStoredInvoicePayload(webhook as PagarmeWebhook<PagarmeInvoiceWebhookData>);
@@ -301,6 +354,174 @@ async function markWebhookFailed(admin: AdminClient, webhookEventId: string, err
       updated_at: new Date().toISOString(),
     })
     .eq("id", webhookEventId);
+}
+
+async function handleExtraCreditOrderWebhook({
+  supabaseAdmin,
+  webhookEventId,
+  webhook,
+}: {
+  supabaseAdmin: AdminClient;
+  webhookEventId: string;
+  webhook: PagarmeWebhook<PagarmeOrder>;
+}) {
+  const eventOrderId = webhook.data.id;
+
+  if (!eventOrderId || !/^or_[A-Za-z0-9]+$/.test(eventOrderId)) {
+    const errorMessage = "O evento não possui um pedido válido.";
+    await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 422 });
+  }
+
+  let order: PagarmeOrder;
+
+  try {
+    order = await getPagarmeOrder({ orderId: eventOrderId });
+  } catch (error) {
+    console.error("[GET_PAGARME_EXTRA_CREDIT_ORDER_ERROR]", error);
+    const errorMessage = "Não foi possível consultar o pedido na Pagar.me.";
+    await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+    return NextResponse.json(
+      { error: errorMessage },
+      {
+        status: 503,
+        headers: { "Retry-After": "2" },
+      }
+    );
+  }
+
+  if (order.id !== eventOrderId) {
+    const errorMessage = "O pedido consultado não corresponde ao evento.";
+    await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 422 });
+  }
+
+  const { error: refreshWebhookPayloadError } = await supabaseAdmin
+    .from("pagarme_webhook_events")
+    .update({
+      payload: buildStoredOrderPayload({
+        ...webhook,
+        data: order,
+      }),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", webhookEventId);
+
+  if (refreshWebhookPayloadError) {
+    console.error("[REFRESH_EXTRA_CREDIT_ORDER_WEBHOOK_ERROR]", refreshWebhookPayloadError);
+    return NextResponse.json(
+      { error: "Não foi possível registrar os dados validados do pedido." },
+      { status: 500 }
+    );
+  }
+
+  let payment: Awaited<ReturnType<typeof resolveExtraCreditPaymentForOrder>>;
+  let decision: ReturnType<typeof validateExtraCreditOrderForPayment>;
+
+  try {
+    payment = await resolveExtraCreditPaymentForOrder(order);
+    decision = validateExtraCreditOrderForPayment({ order, payment });
+  } catch (error) {
+    console.error("[VALIDATE_EXTRA_CREDIT_ORDER_WEBHOOK_ERROR]", error);
+    const errorMessage = "O pedido não corresponde a uma compra válida de créditos extras.";
+    await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 422 });
+  }
+
+  if (webhook.event === "order.paid") {
+    if (decision.localStatus !== "paid" || !decision.paidAt) {
+      const errorMessage = "O pedido informado pelo evento não está pago.";
+      await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+      return NextResponse.json({ error: errorMessage }, { status: 422 });
+    }
+
+    const { data, error } = await supabaseAdmin.rpc("finalize_extra_credit_purchase", {
+      p_webhook_event_id: webhookEventId,
+      p_payment_id: payment.id,
+      p_user_id: payment.user_id,
+      p_order_external_id: order.id,
+      p_order_amount: order.amount,
+      p_order_status: order.status,
+      p_charge_external_id: decision.chargeId,
+      p_charge_status: decision.providerStatus,
+      p_paid_at: decision.paidAt,
+    });
+
+    if (error) {
+      console.error("[FINALIZE_EXTRA_CREDIT_PURCHASE_RPC_ERROR]", error);
+      return NextResponse.json(
+        { error: "Não foi possível finalizar a compra de créditos extras." },
+        { status: 500 }
+      );
+    }
+
+    const result = data as {
+      success?: boolean;
+      message?: string;
+      duplicate?: boolean;
+      grant_created?: boolean;
+      granted_credits?: number;
+    } | null;
+
+    if (!result?.success) {
+      console.error("[FINALIZE_EXTRA_CREDIT_PURCHASE_ERROR]", result);
+      return NextResponse.json(
+        { error: result?.message ?? "Não foi possível finalizar a compra de créditos extras." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      received: true,
+      processed: true,
+      duplicate: result.duplicate ?? false,
+      creditsGranted: result.granted_credits ?? 0,
+      webhookEventId,
+    });
+  }
+
+  const { data, error } = await supabaseAdmin.rpc("process_extra_credit_purchase_failure", {
+    p_webhook_event_id: webhookEventId,
+    p_payment_id: payment.id,
+    p_user_id: payment.user_id,
+    p_order_external_id: order.id,
+    p_order_amount: order.amount,
+    p_order_status: order.status,
+    p_failed_at: order.updated_at ?? order.created_at ?? new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error("[PROCESS_EXTRA_CREDIT_PURCHASE_FAILURE_RPC_ERROR]", error);
+    return NextResponse.json(
+      { error: "Não foi possível processar a falha da compra de créditos extras." },
+      { status: 500 }
+    );
+  }
+
+  const result = data as {
+    success?: boolean;
+    message?: string;
+    duplicate?: boolean;
+    ignored?: boolean;
+    reason?: string;
+  } | null;
+
+  if (!result?.success) {
+    console.error("[PROCESS_EXTRA_CREDIT_PURCHASE_FAILURE_ERROR]", result);
+    return NextResponse.json(
+      { error: result?.message ?? "Não foi possível processar a falha da compra." },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({
+    received: true,
+    processed: true,
+    duplicate: result.duplicate ?? false,
+    ignored: result.ignored ?? false,
+    reason: result.reason ?? null,
+    webhookEventId,
+  });
 }
 
 export async function POST(request: Request) {
@@ -402,7 +623,11 @@ export async function POST(request: Request) {
       );
     }
 
-    if (existingWebhookEvent.status === "ignored") {
+    const isExtraCreditOrderEvent =
+      verifiedWebhook.event === "order.paid" ||
+      verifiedWebhook.event === "order.payment_failed";
+
+    if (existingWebhookEvent.status === "ignored" && !isExtraCreditOrderEvent) {
       return NextResponse.json({
         received: true,
         duplicate: true,
@@ -410,6 +635,28 @@ export async function POST(request: Request) {
     }
 
     webhookEventId = existingWebhookEvent.id;
+
+    if (existingWebhookEvent.status === "ignored" && isExtraCreditOrderEvent) {
+      const { error: reopenEventError } = await supabaseAdmin
+        .from("pagarme_webhook_events")
+        .update({
+          status: "received",
+          payload: buildStoredWebhookPayload(verifiedWebhook),
+          processed_at: null,
+          error_message: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", webhookEventId)
+        .eq("status", "ignored");
+
+      if (reopenEventError) {
+        console.error("[REOPEN_EXTRA_CREDIT_ORDER_WEBHOOK_ERROR]", reopenEventError);
+        return NextResponse.json(
+          { error: "Não foi possível reabrir o evento de compra." },
+          { status: 500 }
+        );
+      }
+    }
   } else {
     if (insertWebhookError || !insertedWebhookEvent) {
       console.error("[STORE_PAGARME_WEBHOOK_ERROR]", insertWebhookError);
@@ -424,6 +671,8 @@ export async function POST(request: Request) {
     "invoice.paid",
     "invoice.payment_failed",
     "subscription.canceled",
+    "order.paid",
+    "order.payment_failed",
   ]);
 
   if (!supportedEvents.has(verifiedWebhook.event)) {
@@ -541,6 +790,14 @@ export async function POST(request: Request) {
       creditsExpired: cancellationResult.credits_expired ?? 0,
 
       webhookEventId,
+    });
+  }
+
+  if (verifiedWebhook.event === "order.paid" || verifiedWebhook.event === "order.payment_failed") {
+    return handleExtraCreditOrderWebhook({
+      supabaseAdmin,
+      webhookEventId,
+      webhook: verifiedWebhook as PagarmeWebhook<PagarmeOrder>,
     });
   }
 

@@ -8,15 +8,14 @@ import {
 } from "@/lib/integrations/datacrazy/sync-student";
 import type {
   CheckoutPageData,
-  CheckoutProfileForPagarme,
   CreateCheckoutSubscriptionInput,
   CreateCheckoutSubscriptionResult,
 } from "@/types";
 import {
-  createPagarmeCard,
-  createPagarmeCustomer,
   createPagarmeSubscription,
 } from "@repo/payments";
+import { getOrCreatePagarmeCustomerId } from "@/services/payments/pagarme-customer";
+import { createAndSavePaymentCard } from "@/services/payments/payment-cards";
 import {
   buildPagarmeBillingAddress,
   buildSubscriptionCode,
@@ -280,92 +279,6 @@ export async function getCheckoutPageData(planId: string): Promise<CheckoutPageD
   };
 }
 
-async function getOrCreatePagarmeCustomerId() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
-    throw new Error("Você precisa estar logado para finalizar a assinatura.");
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select(
-      `
-        id,
-        email,
-        full_name,
-        document,
-        phone_country_code,
-        phone,
-        pagarme_customer_id
-      `
-    )
-    .eq("id", user.id)
-    .single<CheckoutProfileForPagarme>();
-
-  if (profileError || !profile) {
-    throw new Error("Não foi possível encontrar o perfil do aluno.");
-  }
-
-  const existingCustomerId = profile.pagarme_customer_id?.trim();
-
-  if (existingCustomerId) {
-    if (!existingCustomerId.startsWith("cus_")) {
-      throw new Error("O vínculo do aluno com a Pagar.me é inválido.");
-    }
-
-    return existingCustomerId;
-  }
-
-  if (!profile.full_name?.trim()) {
-    throw new Error("Complete seu nome antes de finalizar a assinatura.");
-  }
-
-  if (!profile.document?.trim()) {
-    throw new Error("Complete seu CPF antes de finalizar a assinatura.");
-  }
-
-  if (!profile.phone_country_code?.trim()) {
-    throw new Error("Complete o código do país antes de finalizar a assinatura.");
-  }
-
-  if (!profile.phone?.trim()) {
-    throw new Error("Complete seu telefone antes de finalizar a assinatura.");
-  }
-
-  const customer = await createPagarmeCustomer({
-    id: profile.id,
-    name: profile.full_name,
-    email: profile.email,
-    document: profile.document,
-    phoneCountryCode: profile.phone_country_code,
-    phone: profile.phone,
-  });
-
-  if (!customer?.id?.startsWith("cus_")) {
-    throw new Error("A Pagar.me não retornou um cliente válido.");
-  }
-
-  const supabaseAdmin = createAdminClient();
-  const { error: updateError } = await supabaseAdmin
-    .from("profiles")
-    .update({
-      pagarme_customer_id: customer.id,
-    })
-    .eq("id", user.id);
-
-  if (updateError) {
-    throw new Error("Não foi possível vincular o cliente da Pagar.me ao aluno.");
-  }
-
-  return customer.id;
-}
-
 export async function createCheckoutSubscription(
   input: CreateCheckoutSubscriptionInput
 ): Promise<CreateCheckoutSubscriptionResult> {
@@ -457,7 +370,8 @@ export async function createCheckoutSubscription(
   let pagarmeCardId: string | undefined;
 
   if (isCardPayment && input.cardToken) {
-    const pagarmeCard = await createPagarmeCard({
+    const savedCard = await createAndSavePaymentCard({
+      userId: user.id,
       customerId: pagarmeCustomerId,
       cardToken: input.cardToken,
       billingAddress,
@@ -469,48 +383,8 @@ export async function createCheckoutSubscription(
       },
     });
 
-    if (!pagarmeCard.id || !pagarmeCard.last_four_digits) {
-      throw new Error("A Pagar.me não retornou um cartão válido.");
-    }
-
-    const now = new Date().toISOString();
-
-    const { error: resetDefaultCardError } = await supabaseAdmin
-      .from("student_payment_cards")
-      .update({
-        is_default: false,
-        updated_at: now,
-      })
-      .eq("user_id", user.id)
-      .eq("is_default", true)
-      .is("deleted_at", null);
-
-    if (resetDefaultCardError) {
-      throw new Error("Não foi possível atualizar o cartão padrão.");
-    }
-
-    const { data: savedCard, error: savedCardError } = await supabaseAdmin
-      .from("student_payment_cards")
-      .insert({
-        user_id: user.id,
-        pagarme_card_id: pagarmeCard.id,
-        brand: pagarmeCard.brand,
-        last_four_digits: pagarmeCard.last_four_digits,
-        holder_name: pagarmeCard.holder_name,
-        exp_month: pagarmeCard.exp_month,
-        exp_year: pagarmeCard.exp_year,
-        is_default: true,
-        is_active: true,
-      })
-      .select("id")
-      .single();
-
-    if (savedCardError || !savedCard) {
-      throw new Error("Não foi possível salvar o cartão do aluno.");
-    }
-
-    savedCardId = savedCard.id;
-    pagarmeCardId = pagarmeCard.id;
+    savedCardId = savedCard.localCardId;
+    pagarmeCardId = savedCard.pagarmeCardId;
   }
 
   const subscriptionCode = buildSubscriptionCode(user.id);

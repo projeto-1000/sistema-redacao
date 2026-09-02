@@ -208,6 +208,7 @@ export async function createPagarmeCustomer({
   label?: string;
   verifyCard?: boolean;
   metadata?: Record<string, string>;
+  idempotencyKey?: string;
 }
 
  export interface PagarmeCard {
@@ -234,7 +235,14 @@ export async function createPagarmeCard({
   label,
   verifyCard = true,
   metadata,
+  idempotencyKey,
 }: CreatePagarmeCardParams) {
+  const headers: HeadersInit = {};
+
+  if (idempotencyKey) {
+    headers["Idempotency-Key"] = idempotencyKey;
+  }
+
   const payload = {
     token: cardToken,
     label,
@@ -247,6 +255,7 @@ export async function createPagarmeCard({
 
   return fetchPagarme<PagarmeCard>(`/customers/${customerId}/cards`, {
     method: "POST",
+    headers,
     body: JSON.stringify(payload),
   });
 }
@@ -601,6 +610,16 @@ export interface PagarmeOrder {
   updated_at?: string;
   charges?: PagarmeCharge[];
   metadata?: Record<string, string>;
+}
+
+export async function getPagarmeOrder({ orderId }: { orderId: string }) {
+  if (!/^or_[A-Za-z0-9]+$/.test(orderId)) {
+    throw new Error("ID do pedido Pagar.me inválido.");
+  }
+
+  return fetchPagarme<PagarmeOrder>(`/orders/${orderId}`, {
+    method: "GET",
+  });
 }
 
 export async function createPagarmeOrder({

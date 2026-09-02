@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,24 +11,24 @@ import {
 import { Button } from "@repo/ui/components/button";
 import {
   CheckCircle2,
-  CreditCard,
-  ArrowRight,
   Info,
-  Loader2
+  Loader2,
 } from "lucide-react";
-import { CreditPackage } from "@repo/types";
-import { getUserCredits } from "@/app/actions/credits";
+import type { CreditPackage } from "@repo/types";
+import {
+  purchaseExtraCredits,
+  type SavedPaymentCard,
+} from "@/app/actions/credits";
 import {
   PaymentMethodSelector,
   type ExtraCreditsPaymentSelection,
 } from "@/components/extra-credits/payment-method-selector";
-import type { SavedPaymentCard } from "@/app/actions/credits";
-import { formatCurrency } from "@repo/utils";
 import {
   NewCardForm,
   type NewCardFormRef,
 } from "@/components/extra-credits/new-card-form";
-
+import { tokenizePagarmeCard } from "@/lib/checkout/tokenize-card";
+import { formatCurrency } from "@repo/utils";
 
 interface ConfirmPurchaseProps {
   packageData: CreditPackage;
@@ -40,11 +40,20 @@ export function ConfirmPurchase({
   savedCards,
 }: ConfirmPurchaseProps) {
   const newCardFormRef = useRef<NewCardFormRef>(null);
-  const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<"confirm" | "processing" | "success">("confirm");
 
   const defaultCard =
     savedCards.find((card) => card.isDefault) ?? savedCards[0];
+
+  const [open, setOpen] = useState(false);
+
+  const [step, setStep] = useState<
+    "confirm" | "processing" | "success"
+  >("confirm");
+
+  const [operationId, setOperationId] = useState<string | null>(null);
+
+  const [purchaseMessage, setPurchaseMessage] =
+    useState<string | null>(null);
 
   const [paymentSelection, setPaymentSelection] =
     useState<ExtraCreditsPaymentSelection>(
@@ -58,49 +67,130 @@ export function ConfirmPurchase({
         }
     );
 
-  const [currentBalance, setCurrentBalance] = useState<number>(0);
-
-  useEffect(() => {
-    if (open) {
-      getUserCredits().then(setCurrentBalance);
-    }
-  }, [open]);
-
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
-    if (!isOpen) {
-      setTimeout(() => setStep("confirm"), 300);
-    }
-  };
 
-  const handleConfirm = async () => {
-    if (!paymentSelection) {
+    if (isOpen) {
+      if (!operationId) {
+        setOperationId(crypto.randomUUID());
+      }
+
+      setPurchaseMessage(null);
       return;
     }
 
-    if (paymentSelection.type === "new_card") {
+    window.setTimeout(() => {
+      setStep("confirm");
+      setPurchaseMessage(null);
+      setOperationId(null);
+
+      setPaymentSelection(
+        defaultCard
+          ? {
+            type: "saved_card",
+            paymentCardId: defaultCard.id,
+          }
+          : {
+            type: "new_card",
+          }
+      );
+    }, 300);
+  };
+
+  const handleConfirm = async () => {
+    if (!paymentSelection || !operationId) {
+      return;
+    }
+
+    setPurchaseMessage(null);
+
+    try {
+      if (paymentSelection.type === "saved_card") {
+        setStep("processing");
+
+        const result = await purchaseExtraCredits({
+          packageId: packageData.id,
+          operationId,
+          paymentSource: "saved_card",
+          paymentCardId: paymentSelection.paymentCardId,
+        });
+
+        if (!result.success) {
+          setStep("confirm");
+          setPurchaseMessage(
+            result.message ??
+            "Não foi possível processar a compra."
+          );
+          return;
+        }
+
+        setStep("success");
+        return;
+      }
+
       const isValid = await newCardFormRef.current?.validate();
 
       if (!isValid) {
         return;
       }
-    }
 
-    console.log("[EXTRA_CREDITS_PAYMENT_SELECTION]", {
-      packageId: packageData.id,
-      paymentSelection,
-      newCard:
-        paymentSelection.type === "new_card"
-          ? newCardFormRef.current?.getValues()
-          : undefined,
-    });
+      const values = newCardFormRef.current?.getValues();
+
+      if (!values || values.paymentSource !== "new_card") {
+        return;
+      }
+
+      setStep("processing");
+
+      const tokenizedCard = await tokenizePagarmeCard({
+        cardNumber: values.cardNumber,
+        holderName: values.holderName,
+        holderDocument: values.holderDocument,
+        expirationDate: values.expirationDate,
+        cvv: values.cvv,
+      });
+
+      const result = await purchaseExtraCredits({
+        packageId: packageData.id,
+        operationId,
+        paymentSource: "new_card",
+        cardToken: tokenizedCard.id,
+        billingAddress: values.address,
+      });
+
+      if (!result.success) {
+        setStep("confirm");
+        setPurchaseMessage(
+          result.message ??
+          "Não foi possível processar a compra."
+        );
+        return;
+      }
+
+      setStep("success");
+    } catch (error) {
+      console.error("[EXTRA_CREDIT_PURCHASE_UI_ERROR]", error);
+
+      setStep("confirm");
+      setPurchaseMessage(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível processar a compra."
+      );
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+    >
       <DialogTrigger asChild>
-        <Button className="w-full h-12 rounded-xl font-bold text-base">
-          Comprar {packageData.credits === 1 ? "crédito" : "créditos"}
+        <Button className="h-12 w-full rounded-xl text-base font-bold">
+          Comprar{" "}
+          {packageData.credits === 1
+            ? "crédito"
+            : "créditos"}
         </Button>
       </DialogTrigger>
 
@@ -111,13 +201,14 @@ export function ConfirmPurchase({
               <DialogTitle className="text-2xl font-extrabold text-slate-800">
                 Confirmar Compra
               </DialogTitle>
-              <p className="text-slate-500 font-medium">
-                Confirme os detalhes da sua aquisição de créditos.
+
+              <p className="font-medium text-slate-500">
+                Confirme os detalhes da sua aquisição de
+                créditos.
               </p>
             </DialogHeader>
 
             <div className="space-y-6">
-
               <div className="space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">
                   Resumo da compra
@@ -126,7 +217,9 @@ export function ConfirmPurchase({
                 <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
                   <p className="font-bold text-slate-700">
                     {packageData.credits}{" "}
-                    {packageData.credits === 1 ? "crédito extra" : "créditos extras"}
+                    {packageData.credits === 1
+                      ? "crédito extra"
+                      : "créditos extras"}
                   </p>
 
                   <p className="shrink-0 text-lg font-extrabold text-slate-800">
@@ -138,30 +231,48 @@ export function ConfirmPurchase({
               <PaymentMethodSelector
                 cards={savedCards}
                 value={paymentSelection}
-                onChange={setPaymentSelection}
+                onChange={(selection) => {
+                  setPaymentSelection(selection);
+                  setPurchaseMessage(null);
+                }}
               />
 
-              {paymentSelection?.type === "new_card" ? (
+              {paymentSelection.type === "new_card" ? (
                 <div className="border-t border-slate-100 pt-5">
                   <NewCardForm ref={newCardFormRef} />
                 </div>
               ) : null}
 
-              <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex gap-3">
-                <Info className="size-5 text-blue-500 shrink-0" />
-                <p className="text-xs leading-relaxed font-semibold text-blue-700/80">
-                  Ao confirmar, a cobrança será realizada no seu método de pagamento selecionado. Os créditos avulsos não possuem validade.
+              {purchaseMessage ? (
+                <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+                  <p className="text-sm font-semibold text-destructive">
+                    {purchaseMessage}
+                  </p>
+                </div>
+              ) : null}
+
+              <div className="flex gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+                <Info className="size-5 shrink-0 text-blue-500" />
+
+                <p className="text-xs font-semibold leading-relaxed text-blue-700/80">
+                  Ao confirmar, a cobrança será realizada no
+                  método de pagamento selecionado. Os créditos
+                  avulsos não possuem validade.
                 </p>
               </div>
 
               <div className="flex gap-3">
-                <Button variant="ghost" onClick={() => handleOpenChange(false)} className="flex-1 font-bold text-slate-500 h-10">
+                <Button
+                  variant="ghost"
+                  onClick={() => handleOpenChange(false)}
+                  className="h-10 flex-1 font-bold text-slate-500"
+                >
                   Cancelar
                 </Button>
+
                 <Button
                   onClick={handleConfirm}
-                  disabled={!paymentSelection}
-                  className="flex-1 font-bold h-10 rounded-xl"
+                  className="h-10 flex-1 rounded-xl font-bold"
                 >
                   Confirmar Compra
                 </Button>
@@ -170,41 +281,51 @@ export function ConfirmPurchase({
           </div>
         )}
 
-        {/* PASSO EM PROCESSAMENTO */}
         {step === "processing" && (
-          <div className="p-16 flex flex-col items-center justify-center gap-4 text-center">
-            <Loader2 className="size-12 text-amber-500 animate-spin" />
-            <p className="text-slate-600 font-bold">Processando seu pagamento...</p>
+          <div className="flex flex-col items-center justify-center gap-4 p-16 text-center">
+            <Loader2 className="size-12 animate-spin text-amber-500" />
+
+            <p className="font-bold text-slate-600">
+              Processando seu pagamento...
+            </p>
+
+            <p className="text-sm font-medium text-slate-400">
+              Não feche esta janela.
+            </p>
           </div>
         )}
 
-        {/* PASSO 2: SUCESSO */}
         {step === "success" && (
-          <div className="p-10 flex flex-col items-center text-center">
-            <div className="bg-green-50 size-20 rounded-full flex items-center justify-center mb-6">
+          <div className="flex flex-col items-center p-10 text-center">
+            <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-green-50">
               <CheckCircle2 className="size-12 text-green-500" />
             </div>
 
-            <h2 className="text-2xl font-extrabold text-slate-800 mb-4">
-              Pedido Recebido!
+            <h2 className="mb-4 text-2xl font-extrabold text-slate-800">
+              Pedido recebido!
             </h2>
 
-            <p className="text-slate-500 font-medium leading-relaxed mb-8">
-              Seu pagamento está sendo processado. Assim que for confirmado pelo seu banco, os
-              <strong className="text-slate-700"> {packageData.credits} créditos </strong>
-              serão adicionados automaticamente à sua conta.
+            <p className="mb-8 font-medium leading-relaxed text-slate-500">
+              Seu pagamento foi recebido para processamento.
+              Assim que a confirmação for concluída, os
+              <strong className="text-slate-700">
+                {" "}
+                {packageData.credits}{" "}
+                {packageData.credits === 1
+                  ? "crédito"
+                  : "créditos"}{" "}
+              </strong>
+              serão adicionados à sua conta.
             </p>
 
-            <div className="w-full bg-slate-50 rounded-2xl p-4 mb-8 text-sm font-bold text-slate-400 flex items-center justify-center gap-2">
-              <Info className="size-4" /> Geralmente leva menos de 1 minuto.
-            </div>
-
-            <Button onClick={() => handleOpenChange(false)} className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold h-12 rounded-xl">
+            <Button
+              onClick={() => handleOpenChange(false)}
+              className="h-12 w-full rounded-xl bg-slate-800 font-bold text-white hover:bg-slate-900"
+            >
               Entendido
             </Button>
           </div>
         )}
-
       </DialogContent>
     </Dialog>
   );
