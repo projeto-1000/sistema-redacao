@@ -64,7 +64,6 @@ export const checkoutPaymentSchema = z
     holderDocument: z.string().optional(),
     expirationDate: z.string().optional(),
     cvv: z.string().optional(),
-    saveCard: z.boolean().default(false)
   })
   .superRefine((value, context) => {
     if (value.method === "boleto") {

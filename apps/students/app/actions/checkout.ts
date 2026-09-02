@@ -456,7 +456,7 @@ export async function createCheckoutSubscription(
   let savedCardId: string | null = null;
   let pagarmeCardId: string | undefined;
 
-  if (isCardPayment && input.saveCard && input.cardToken) {
+  if (isCardPayment && input.cardToken) {
     const pagarmeCard = await createPagarmeCard({
       customerId: pagarmeCustomerId,
       cardToken: input.cardToken,
@@ -623,7 +623,6 @@ export async function createCheckoutSubscription(
         pagarme_customer_id: pagarmeCustomerId,
         pagarme_status: pagarmeSubscription.status,
         next_billing_at: pagarmeSubscription.next_billing_at ?? null,
-        saved_card: Boolean(savedCardId),
         checkout_operation: checkoutOperation,
       },
       p_payment_status: pagarmeSubscription.status ?? localSubscriptionStatus,

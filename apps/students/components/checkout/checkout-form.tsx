@@ -33,7 +33,6 @@ const defaultValues: CheckoutFormInput = {
     holderDocument: "",
     expirationDate: "",
     cvv: "",
-    saveCard: false,
   },
 };
 
@@ -65,9 +64,6 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
     control: form.control,
     name: "payment",
   });
-
-  const isCardPayment =
-    payment.method === "credit_card" || payment.method === "debit_card";
 
   const hasRequiredAddressFields =
     onlyDigits(address.zipCode).length === 8 &&
@@ -121,7 +117,6 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
         paymentMethod: values.payment.method,
         billingAddress: values.address,
         cardToken,
-        saveCard: Boolean(values.payment.saveCard),
       });
 
       setCheckoutStatus("tokenized");

@@ -58,7 +58,6 @@ export interface CreateCheckoutSubscriptionInput {
   paymentMethod: PagarmePaymentMethod;
   billingAddress: CheckoutBillingAddressInput;
   cardToken?: string;
-  saveCard?: boolean;
 }
 
 export interface CreateCheckoutSubscriptionResult {

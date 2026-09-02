@@ -33,11 +33,10 @@ import { formatCPF } from "@repo/utils";
 import {
   Barcode,
   CreditCard,
-  Landmark,
+  // Landmark,
   ShieldCheck,
 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { Checkbox } from "@repo/ui/components/checkbox";
 
 interface CheckoutPaymentSectionProps {
   onPaymentChange: () => void;
@@ -52,12 +51,15 @@ const paymentMethods = [
     description: "Pagamento recorrente no cartão.",
     icon: CreditCard,
   },
-  {
-    value: "debit_card",
-    title: "Cartão de débito",
-    description: "Pagamento usando cartão de débito.",
-    icon: Landmark,
-  },
+  // TODO: Reativar cartão de débito quando o meio de pagamento
+  // estiver habilitado na conta Pagar.me do Projeto 1000.
+  //
+  // {
+  //   value: "debit_card",
+  //   title: "Cartão de débito",
+  //   description: "Pagamento usando cartão de débito.",
+  //   icon: Landmark,
+  // },
   {
     value: "boleto",
     title: "Boleto",
@@ -135,7 +137,7 @@ export function CheckoutPaymentSection({
                 <RadioGroup
                   value={field.value}
                   onValueChange={(value) => handlePaymentMethodChange(value as PaymentMethod)}
-                  className="grid grid-cols-1 gap-3 lg:grid-cols-3"
+                  className="grid grid-cols-1 gap-3 lg:grid-cols-2"
                 >
                   {paymentMethods.map((method) => {
                     const Icon = method.icon;
@@ -389,34 +391,6 @@ export function CheckoutPaymentSection({
               )}
 
             </div>
-
-            <FormField
-              control={control}
-              name="payment.saveCard"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                    />
-                  </FormControl>
-
-                  <div className="space-y-1 leading-none">
-                    <FormLabel className="text-sm font-bold text-slate-700">
-                      Salvar cartão para próximas assinaturas
-                    </FormLabel>
-
-                    <p className="text-xs font-medium leading-relaxed text-slate-500">
-                      Seu cartão será salvo de forma segura pela Pagar.me. O sistema armazenará apenas a bandeira, os últimos dígitos e a validade.
-                    </p>
-
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
           </div>
         ) : (
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
