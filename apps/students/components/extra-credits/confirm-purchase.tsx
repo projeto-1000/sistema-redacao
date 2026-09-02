@@ -309,9 +309,9 @@ export function ConfirmPurchase({
               Seu pagamento foi aprovado e{" "}
               {packageData.credits === 1 ? (
                 <>
-                  seu <strong className="text-slate-700">crédito extra</strong> já está a
-                  caminho da sua conta. Agora é só aproveitar para mandar mais uma redação
-                  quando quiser.
+                  seu <strong className="text-slate-700">crédito extra</strong> já está
+                  sendo adicionado à sua conta. Agora é só aproveitar para mandar mais uma
+                  redação quando quiser.
                 </>
               ) : (
                 <>
@@ -319,8 +319,8 @@ export function ConfirmPurchase({
                   <strong className="text-slate-700">
                     {packageData.credits} créditos extras
                   </strong>{" "}
-                  já estão a caminho da sua conta. Agora é só aproveitar para mandar mais
-                  redações quando quiser.
+                  já estão sendo adicionados à sua conta. Agora é só aproveitar para mandar
+                  mais redações quando quiser.
                 </>
               )}
             </p>
