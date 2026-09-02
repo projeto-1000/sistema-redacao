@@ -8,6 +8,7 @@ import {
   type DataCrazyStudentPayload,
 } from "@repo/datacrazy";
 import { onlyDigits } from "@repo/utils";
+import { runDataCrazySyncIfEnabled } from "./sync-enabled";
 
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
   active: "Ativo",
@@ -49,7 +50,10 @@ export function getDataCrazySyncErrorCode(error: unknown) {
   return error instanceof DataCrazySyncError ? error.code : "UNKNOWN_ERROR";
 }
 
-export async function syncStudentToDataCrazy(userId: string, event: DataCrazyEvent): Promise<void> {
+async function syncStudentToDataCrazyEnabled(
+  userId: string,
+  event: DataCrazyEvent
+): Promise<void> {
   const supabaseAdmin = createAdminClient();
 
   const profileResult = await supabaseAdmin
@@ -189,4 +193,11 @@ export async function syncStudentToDataCrazy(userId: string, event: DataCrazyEve
   if (!deliveryResult.ok) {
     throw new DataCrazySyncError(deliveryResult.errorCode);
   }
+}
+
+export async function syncStudentToDataCrazy(
+  userId: string,
+  event: DataCrazyEvent
+): Promise<void> {
+  await runDataCrazySyncIfEnabled(() => syncStudentToDataCrazyEnabled(userId, event));
 }
