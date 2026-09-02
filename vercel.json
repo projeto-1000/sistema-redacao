@@ -7,6 +7,10 @@
     {
       "path": "/api/subscriptions/release-credits",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/subscriptions/reconcile",
+      "schedule": "15 * * * *"
     }
   ]
 }

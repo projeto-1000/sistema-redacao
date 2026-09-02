@@ -402,7 +402,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (existingWebhookEvent.status === "processed" || existingWebhookEvent.status === "ignored") {
+    if (existingWebhookEvent.status === "ignored") {
       return NextResponse.json({
         received: true,
         duplicate: true,
