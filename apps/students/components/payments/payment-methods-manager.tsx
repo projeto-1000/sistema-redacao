@@ -28,6 +28,17 @@ import {
 } from "@repo/ui/components/alert-dialog";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@repo/ui/components/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@repo/ui/components/tooltip";
 import { cn } from "@repo/ui/lib/utils";
 
 interface PaymentMethodsManagerProps {
@@ -41,7 +52,10 @@ function formatBrand(brand: string | null) {
   return brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
 }
 
-function formatExpiration(month: number | null, year: number | null) {
+function formatExpiration(
+  month: number | null,
+  year: number | null,
+) {
   if (!month || !year) return "Validade não informada";
 
   return `${String(month).padStart(2, "0")}/${String(year).slice(-2)}`;
@@ -52,13 +66,16 @@ export function PaymentMethodsManager({
 }: PaymentMethodsManagerProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
   const [removingCard, setRemovingCard] =
     useState<ManagedPaymentCard | null>(null);
+
   const [pendingAction, setPendingAction] = useState<
     "add" | "set-default" | "remove" | null
   >(null);
 
-  const [pendingCardId, setPendingCardId] = useState<string | null>(null);
+  const [pendingCardId, setPendingCardId] =
+    useState<string | null>(null);
 
   function handleSetDefault(cardId: string) {
     setPendingAction("set-default");
@@ -83,6 +100,7 @@ export function PaymentMethodsManager({
     if (!removingCard) return;
 
     const cardId = removingCard.id;
+
     setPendingAction("remove");
     setPendingCardId(cardId);
 
@@ -131,7 +149,9 @@ export function PaymentMethodsManager({
               isPending &&
               pendingAction === "remove" &&
               pendingCardId === card.id;
-            const isHighlighted = card.isDefault || card.isUsedForSubscription;
+
+            const isHighlighted =
+              card.isDefault || card.isUsedForSubscription;
 
             return (
               <div
@@ -140,13 +160,13 @@ export function PaymentMethodsManager({
                   "overflow-hidden rounded-3xl border bg-white shadow-sm transition-all",
                   card.isDefault
                     ? "border-primary shadow-[0_0_0_1px_rgba(250,190,20,0.12),0_10px_30px_rgba(15,23,42,0.06)]"
-                    : "border-slate-200 hover:border-slate-300 hover:shadow-md"
+                    : "border-slate-200 hover:border-slate-300 hover:shadow-md",
                 )}
               >
                 <div
                   className={cn(
-                    "flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6 bg-white/10 hover:bg-white transition",
-                    isHighlighted && "bg-white"
+                    "flex h-full flex-col gap-5 bg-white/10 p-5 transition hover:bg-white sm:flex-row sm:items-center sm:justify-between sm:p-6",
+                    isHighlighted && "bg-white",
                   )}
                 >
                   <div className="flex min-w-0 items-center gap-4">
@@ -155,7 +175,7 @@ export function PaymentMethodsManager({
                         "flex size-12 shrink-0 items-center justify-center rounded-2xl",
                         isHighlighted
                           ? "bg-primary/15 text-primary"
-                          : "bg-slate-100 text-slate-500"
+                          : "bg-slate-100 text-slate-500",
                       )}
                     >
                       <CreditCard className="size-5" />
@@ -164,7 +184,8 @@ export function PaymentMethodsManager({
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-base font-extrabold text-slate-800">
-                          {formatBrand(card.brand)} •••• {card.lastFourDigits}
+                          {formatBrand(card.brand)} ••••{" "}
+                          {card.lastFourDigits}
                         </p>
 
                         {card.isDefault ? (
@@ -172,11 +193,65 @@ export function PaymentMethodsManager({
                             Padrão
                           </Badge>
                         ) : null}
+
+                        {card.isUsedForSubscription ? (
+                          <>
+                            <div className="hidden sm:block">
+                              <TooltipProvider delayDuration={150}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      className="inline-flex h-6 items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2 text-[10px] font-extrabold uppercase tracking-wide text-blue-700 transition-colors hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                    >
+                                      <ShieldCheck className="size-3" />
+                                      Em uso
+                                    </button>
+                                  </TooltipTrigger>
+
+                                  <TooltipContent
+                                    side="top"
+                                    sideOffset={6}
+                                    className="max-w-64 text-center leading-relaxed"
+                                  >
+                                    Este é o cartão usado atualmente nas renovações da sua assinatura.
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+
+                            <div className="sm:hidden">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className="inline-flex h-6 items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2 text-[10px] font-extrabold uppercase tracking-wide text-blue-700 transition-colors active:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                  >
+                                    <ShieldCheck className="size-3" />
+                                    Em uso
+                                  </button>
+                                </PopoverTrigger>
+
+                                <PopoverContent
+                                  align="start"
+                                  sideOffset={6}
+                                  className="w-64 text-sm leading-relaxed"
+                                >
+                                  Este é o cartão usado atualmente nas renovações da sua assinatura.
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          </>
+                        ) : null}
                       </div>
 
                       <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-slate-500">
                         <span>
-                          Validade {formatExpiration(card.expMonth, card.expYear)}
+                          Validade{" "}
+                          {formatExpiration(
+                            card.expMonth,
+                            card.expYear,
+                          )}
                         </span>
 
                         {card.holderName ? (
@@ -185,6 +260,7 @@ export function PaymentMethodsManager({
                               aria-hidden
                               className="hidden size-1 rounded-full bg-slate-300 sm:block"
                             />
+
                             <span className="truncate uppercase">
                               {card.holderName}
                             </span>
@@ -215,7 +291,9 @@ export function PaymentMethodsManager({
                       variant="ghost"
                       size="sm"
                       className="h-9 rounded-lg px-2.5 text-xs font-semibold text-slate-500 hover:bg-red-50 hover:text-destructive"
-                      disabled={isPending || card.isUsedForSubscription}
+                      disabled={
+                        isPending || card.isUsedForSubscription
+                      }
                       onClick={() => setRemovingCard(card)}
                       title={
                         card.isUsedForSubscription
@@ -229,16 +307,6 @@ export function PaymentMethodsManager({
                     </Button>
                   </div>
                 </div>
-
-                {card.isUsedForSubscription ? (
-                  <div className="flex items-start gap-3 border-t border-blue-100 bg-blue-50/70 px-5 py-3.5 text-sm font-semibold leading-relaxed text-blue-800">
-                    <ShieldCheck className="mt-0.5 size-4 shrink-0 text-blue-600" />
-
-                    <span>
-                      Este cartão será usado nas próximas renovações da sua assinatura.
-                    </span>
-                  </div>
-                ) : null}
               </div>
             );
           })}
@@ -256,9 +324,10 @@ export function PaymentMethodsManager({
               Seus pagamentos estão protegidos
             </p>
 
-            <p className="mt-1  text-sm font-medium leading-relaxed text-slate-500">
-              Os dados completos do seu cartão não ficam armazenados no Projeto 1000.
-              As informações de pagamento são processadas com segurança pela Pagar.me.
+            <p className="mt-1 text-sm font-medium leading-relaxed text-slate-500">
+              Os dados completos do seu cartão não ficam armazenados no Projeto
+              1000. As informações de pagamento são processadas com segurança
+              pela Pagar.me.
             </p>
           </div>
         </div>
