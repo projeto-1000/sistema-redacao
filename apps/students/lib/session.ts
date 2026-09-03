@@ -48,6 +48,7 @@ export async function updateSession(request: NextRequest) {
     "/api/webhooks/pagarme",
     "/api/payments/customers",
     "/api/signup/attempts",
+    "email-preview",
   ];
 
   const isPublicRoute = publicRoutes.includes(pathname);
