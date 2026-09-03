@@ -1,0 +1,158 @@
+import {
+  essayCorrectedEmail,
+  essayReturnedEmail,
+  essaySubmittedEmail,
+  freeCreditsExpiringEmail,
+  mentorshipAccessEmail,
+  organicWelcomeEmail,
+  passwordChangedEmail,
+  passwordRecoveryEmail,
+  paymentApprovedEmail,
+  paymentFailedEmail,
+  planCreditsExpiringEmail,
+  subscriptionCancelledEmail,
+  subscriptionCreatedEmail,
+  downgradeScheduledEmail,
+  upgradeCompletedEmail,
+  upgradeFailedEmail,
+} from "../templates";
+
+export const emailPreviewRegistry = [
+  {
+    slug: "organic-welcome",
+    name: "Boas-vindas — cadastro orgânico",
+    category: "Conta e segurança",
+    trigger: "Cadastro orgânico concluído",
+    subject: organicWelcomeEmail.subject,
+    description: "Recebe o aluno que acabou de criar a conta e apresenta o crédito gratuito.",
+  },
+  {
+    slug: "mentorship-access",
+    name: "Acesso à mentoria",
+    category: "Conta e segurança",
+    trigger: "Compra da mentoria aprovada na Hotmart",
+    subject: mentorshipAccessEmail.subject,
+    description: "E-mail atual da mentoria. A copy original deve permanecer intacta.",
+  },
+  {
+    slug: "password-recovery",
+    name: "Recuperação de senha",
+    category: "Conta e segurança",
+    trigger: "Aluno solicita redefinição de senha",
+    subject: passwordRecoveryEmail.subject,
+    description: "Envia o link seguro para criação de uma nova senha.",
+  },
+  {
+    slug: "password-changed",
+    name: "Senha alterada",
+    category: "Conta e segurança",
+    trigger: "Senha da conta alterada com sucesso",
+    subject: passwordChangedEmail.subject,
+    description: "Confirma a alteração e alerta o aluno caso não reconheça a ação.",
+  },
+
+  {
+    slug: "free-credits-expiring",
+    name: "Créditos gratuitos próximos de expirar",
+    category: "Créditos",
+    trigger: "Crédito gratuito próximo da data de expiração",
+    subject: freeCreditsExpiringEmail.subject,
+    description: "Lembra o aluno de aproveitar o crédito gratuito antes que ele expire.",
+  },
+  {
+    slug: "plan-credits-expiring",
+    name: "Créditos do plano próximos de expirar",
+    category: "Créditos",
+    trigger: "Créditos do ciclo próximos da expiração",
+    subject: planCreditsExpiringEmail.subject,
+    description: "Incentiva o aluno a usar os créditos restantes antes da virada do ciclo.",
+  },
+
+  {
+    slug: "essay-submitted",
+    name: "Redação enviada",
+    category: "Redações",
+    trigger: "Redação enviada com sucesso",
+    subject: essaySubmittedEmail.subject,
+    description: "Confirma o recebimento da redação e informa o prazo de correção.",
+  },
+  {
+    slug: "essay-corrected",
+    name: "Redação corrigida",
+    category: "Redações",
+    trigger: "Correção concluída",
+    subject: essayCorrectedEmail.subject,
+    description: "Avisa que o feedback completo já está disponível na plataforma.",
+  },
+  {
+    slug: "essay-returned",
+    name: "Redação devolvida",
+    category: "Redações",
+    trigger: "Redação devolvida antes da correção",
+    subject: essayReturnedEmail.subject,
+    description: "Explica o motivo da devolução e informa a situação do crédito.",
+  },
+
+  {
+    slug: "subscription-created",
+    name: "Assinatura realizada",
+    category: "Assinatura e pagamentos",
+    trigger: "Nova assinatura ativada",
+    subject: subscriptionCreatedEmail.subject,
+    description: "Confirma o plano contratado e apresenta os principais dados da assinatura.",
+  },
+  {
+    slug: "payment-approved",
+    name: "Pagamento aprovado / renovação",
+    category: "Assinatura e pagamentos",
+    trigger: "Pagamento recorrente aprovado",
+    subject: paymentApprovedEmail.subject,
+    description: "Confirma a renovação e informa a liberação dos novos créditos.",
+  },
+  {
+    slug: "payment-failed",
+    name: "Pagamento não aprovado",
+    category: "Assinatura e pagamentos",
+    trigger: "Falha na cobrança da assinatura",
+    subject: paymentFailedEmail.subject,
+    description: "Orienta o aluno a conferir a forma de pagamento.",
+  },
+  {
+    slug: "upgrade-completed",
+    name: "Upgrade realizado",
+    category: "Assinatura e pagamentos",
+    trigger: "Upgrade concluído com sucesso",
+    subject: upgradeCompletedEmail.subject,
+    description: "Confirma a ativação imediata do novo plano.",
+  },
+  {
+    slug: "upgrade-failed",
+    name: "Upgrade não concluído",
+    category: "Assinatura e pagamentos",
+    trigger: "Pagamento do upgrade não aprovado",
+    subject: upgradeFailedEmail.subject,
+    description: "Informa que o plano atual permanece ativo e que nada foi alterado.",
+  },
+  {
+    slug: "downgrade-scheduled",
+    name: "Downgrade agendado",
+    category: "Assinatura e pagamentos",
+    trigger: "Mudança para plano inferior agendada",
+    subject: downgradeScheduledEmail.subject,
+    description: "Explica que o plano atual continua ativo até o próximo ciclo.",
+  },
+  {
+    slug: "subscription-cancelled",
+    name: "Cancelamento da assinatura",
+    category: "Assinatura e pagamentos",
+    trigger: "Cancelamento confirmado",
+    subject: subscriptionCancelledEmail.subject,
+    description: "Confirma o cancelamento e informa até quando o plano continua disponível.",
+  },
+] as const;
+
+export type EmailPreviewSlug = (typeof emailPreviewRegistry)[number]["slug"];
+
+export function getEmailPreviewBySlug(slug: string) {
+  return emailPreviewRegistry.find((email) => email.slug === slug);
+}
