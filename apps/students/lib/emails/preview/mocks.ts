@@ -119,4 +119,91 @@ export const emailPreviewMocks = {
     accessUntil: "3 de outubro de 2026",
     subscriptionUrl: "https://projeto1000.com.br/assinatura",
   },
+
+  securityActivityAlert: {
+    occurredAt: "3 de setembro de 2026, às 14h32",
+    device: "Safari no macOS",
+    location: "São Paulo, SP",
+    securityUrl: "https://projeto1000.com.br/redefinir-senha",
+  },
+
+  freeCreditsExpireToday: {
+    firstName: "Fernanda",
+    credits: 1,
+    essaysUrl: "https://projeto1000.com.br/redacoes",
+  },
+
+  freeCreditsExpired: {
+    firstName: "Fernanda",
+    plansUrl: "https://projeto1000.com.br/planos",
+  },
+
+  planCreditsExpired: {
+    firstName: "Fernanda",
+    expiredCredits: 2,
+    planName: "Avançado",
+    nextCycleAt: "3 de outubro de 2026",
+    dashboardUrl: "https://projeto1000.com.br",
+  },
+
+  creditsDepleted: {
+    firstName: "Fernanda",
+    plansUrl: "https://projeto1000.com.br/assinatura",
+    hasActiveSubscription: true,
+    nextCreditsAt: "3 de outubro de 2026",
+  },
+
+  correctionDelayed: {
+    firstName: "Fernanda",
+    essayTitle:
+      "Desafios para a (re)inserção socioeconômica da população em situação de rua no Brasil",
+    essayUrl: "https://projeto1000.com.br/redacoes/preview",
+  },
+
+  downgradeCompleted: {
+    firstName: "Fernanda",
+    previousPlanName: "Avançado",
+    newPlanName: "Essencial",
+    amount: "R$ 49,90",
+    credits: 4,
+    subscriptionUrl: "https://projeto1000.com.br/assinatura",
+  },
+
+  subscriptionEnded: {
+    firstName: "Fernanda",
+    planName: "Avançado",
+    plansUrl: "https://projeto1000.com.br/planos",
+  },
+
+  subscriptionReactivated: {
+    firstName: "Fernanda",
+    planName: "Avançado",
+    nextBillingAt: "3 de outubro de 2026",
+    subscriptionUrl: "https://projeto1000.com.br/assinatura",
+  },
+
+  paymentMethodUpdated: {
+    cardBrand: "Visa",
+    lastFourDigits: "4242",
+    updatedAt: "3 de setembro de 2026, às 14h40",
+    paymentMethodsUrl: "https://projeto1000.com.br/assinatura/metodos-de-pagamento",
+  },
+
+  cardExpiring: {
+    firstName: "Fernanda",
+    cardBrand: "Visa",
+    lastFourDigits: "4242",
+    expiration: "09/26",
+    paymentMethodsUrl: "https://projeto1000.com.br/assinatura/metodos-de-pagamento",
+  },
+
+  accountDeletionRequested: {
+    requestedAt: "3 de setembro de 2026, às 14h45",
+    supportUrl: "https://projeto1000.com.br/contato",
+  },
+
+  accountDeleted: {
+    deletedAt: "3 de setembro de 2026",
+    projectUrl: "https://projeto1000.com.br",
+  },
 } as const;

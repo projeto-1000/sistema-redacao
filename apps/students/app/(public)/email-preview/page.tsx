@@ -17,6 +17,19 @@ import {
   buildUpgradeCompletedEmailHtml,
   buildUpgradeFailedEmailHtml,
   buildMentorshipAccessEmailHtml,
+  buildAccountDeletedEmailHtml,
+  buildAccountDeletionRequestedEmailHtml,
+  buildCardExpiringEmailHtml,
+  buildCorrectionDelayedEmailHtml,
+  buildCreditsDepletedEmailHtml,
+  buildDowngradeCompletedEmailHtml,
+  buildFreeCreditsExpiredEmailHtml,
+  buildFreeCreditsExpireTodayEmailHtml,
+  buildPaymentMethodUpdatedEmailHtml,
+  buildPlanCreditsExpiredEmailHtml,
+  buildSecurityActivityAlertEmailHtml,
+  buildSubscriptionEndedEmailHtml,
+  buildSubscriptionReactivatedEmailHtml,
 } from "@/lib/emails/templates";
 import { emailPreviewMocks } from "@/lib/emails/preview/mocks";
 import {
@@ -36,6 +49,7 @@ const categoryOrder = [
   "Créditos",
   "Redações",
   "Assinatura e pagamentos",
+  "Conta e privacidade",
 ] as const;
 
 function buildPreviewHtml(slug: EmailPreviewSlug) {
@@ -102,6 +116,71 @@ function buildPreviewHtml(slug: EmailPreviewSlug) {
         signupUrl:
           "https://projeto1000.com.br/cadastro?token=preview-mentoria",
       });
+
+    case "security-activity-alert":
+      return buildSecurityActivityAlertEmailHtml(
+        emailPreviewMocks.securityActivityAlert,
+      );
+
+    case "free-credits-expire-today":
+      return buildFreeCreditsExpireTodayEmailHtml(
+        emailPreviewMocks.freeCreditsExpireToday,
+      );
+
+    case "free-credits-expired":
+      return buildFreeCreditsExpiredEmailHtml(
+        emailPreviewMocks.freeCreditsExpired,
+      );
+
+    case "plan-credits-expired":
+      return buildPlanCreditsExpiredEmailHtml(
+        emailPreviewMocks.planCreditsExpired,
+      );
+
+    case "credits-depleted":
+      return buildCreditsDepletedEmailHtml(
+        emailPreviewMocks.creditsDepleted,
+      );
+
+    case "correction-delayed":
+      return buildCorrectionDelayedEmailHtml(
+        emailPreviewMocks.correctionDelayed,
+      );
+
+    case "downgrade-completed":
+      return buildDowngradeCompletedEmailHtml(
+        emailPreviewMocks.downgradeCompleted,
+      );
+
+    case "subscription-ended":
+      return buildSubscriptionEndedEmailHtml(
+        emailPreviewMocks.subscriptionEnded,
+      );
+
+    case "subscription-reactivated":
+      return buildSubscriptionReactivatedEmailHtml(
+        emailPreviewMocks.subscriptionReactivated,
+      );
+
+    case "payment-method-updated":
+      return buildPaymentMethodUpdatedEmailHtml(
+        emailPreviewMocks.paymentMethodUpdated,
+      );
+
+    case "card-expiring":
+      return buildCardExpiringEmailHtml(
+        emailPreviewMocks.cardExpiring,
+      );
+
+    case "account-deletion-requested":
+      return buildAccountDeletionRequestedEmailHtml(
+        emailPreviewMocks.accountDeletionRequested,
+      );
+
+    case "account-deleted":
+      return buildAccountDeletedEmailHtml(
+        emailPreviewMocks.accountDeleted,
+      );
   }
 }
 
