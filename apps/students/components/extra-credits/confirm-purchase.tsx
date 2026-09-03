@@ -55,6 +55,10 @@ export function ConfirmPurchase({
   const [purchaseMessage, setPurchaseMessage] =
     useState<string | null>(null);
 
+  const [purchaseStatus, setPurchaseStatus] = useState<
+    "paid" | "pending" | null
+  >(null);
+
   const [paymentSelection, setPaymentSelection] =
     useState<ExtraCreditsPaymentSelection>(
       defaultCard
@@ -75,6 +79,7 @@ export function ConfirmPurchase({
         setOperationId(crypto.randomUUID());
       }
 
+      setPurchaseStatus(null);
       setPurchaseMessage(null);
       return;
     }
@@ -124,6 +129,7 @@ export function ConfirmPurchase({
           return;
         }
 
+        setPurchaseStatus(result.status);
         setStep("success");
         return;
       }
@@ -297,30 +303,55 @@ export function ConfirmPurchase({
 
         {step === "success" && (
           <div className="flex flex-col items-center p-10 text-center">
-            <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-green-50">
-              <CheckCircle2 className="size-12 text-green-500" />
+            <div
+              className={`mb-6 flex size-20 items-center justify-center rounded-full ${purchaseStatus === "paid" ? "bg-green-50" : "bg-blue-50"
+                }`}
+            >
+              <CheckCircle2
+                className={`size-12 ${purchaseStatus === "paid"
+                    ? "text-green-500"
+                    : "text-blue-500"
+                  }`}
+              />
             </div>
 
             <h2 className="mb-4 text-2xl font-extrabold text-slate-800">
-              Compra confirmada!
+              {purchaseStatus === "paid"
+                ? "Compra confirmada!"
+                : "Pedido recebido!"}
             </h2>
 
             <p className="mb-8 max-w-md font-medium leading-relaxed text-slate-500">
-              Seu pagamento foi aprovado e{" "}
-              {packageData.credits === 1 ? (
+              {purchaseStatus === "paid" ? (
                 <>
-                  seu <strong className="text-slate-700">crédito extra</strong> já está
-                  sendo adicionado à sua conta. Agora é só aproveitar para mandar mais uma
-                  redação quando quiser.
+                  Seu pagamento foi aprovado e{" "}
+                  {packageData.credits === 1 ? (
+                    <>
+                      seu{" "}
+                      <strong className="text-slate-700">
+                        crédito extra
+                      </strong>{" "}
+                      já está sendo adicionado à sua conta. Agora é só aproveitar para
+                      mandar mais uma redação quando quiser.
+                    </>
+                  ) : (
+                    <>
+                      seus{" "}
+                      <strong className="text-slate-700">
+                        {packageData.credits} créditos extras
+                      </strong>{" "}
+                      já estão sendo adicionados à sua conta. Agora é só aproveitar para
+                      mandar mais redações quando quiser.
+                    </>
+                  )}
                 </>
               ) : (
                 <>
-                  seus{" "}
-                  <strong className="text-slate-700">
-                    {packageData.credits} créditos extras
-                  </strong>{" "}
-                  já estão sendo adicionados à sua conta. Agora é só aproveitar para mandar
-                  mais redações quando quiser.
+                  Seu pagamento está sendo processado. Assim que ele for aprovado,{" "}
+                  {packageData.credits === 1
+                    ? "seu crédito extra será adicionado"
+                    : `seus ${packageData.credits} créditos extras serão adicionados`}{" "}
+                  à sua conta.
                 </>
               )}
             </p>
