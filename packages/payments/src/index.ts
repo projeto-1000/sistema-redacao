@@ -490,6 +490,34 @@ export async function getPagarmeSubscription({
   );
 }
 
+export interface UpdatePagarmeSubscriptionCardParams {
+  subscriptionId: string;
+  cardId: string;
+}
+
+export async function updatePagarmeSubscriptionCard({
+  subscriptionId,
+  cardId,
+}: UpdatePagarmeSubscriptionCardParams) {
+  if (!subscriptionId.startsWith("sub_")) {
+    throw new Error("ID da assinatura Pagar.me inválido.");
+  }
+
+  if (!cardId.startsWith("card_")) {
+    throw new Error("ID do cartão Pagar.me inválido.");
+  }
+
+  return fetchPagarme<PagarmeSubscription>(
+    `/subscriptions/${subscriptionId}/card`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        card_id: cardId,
+      }),
+    }
+  );
+}
+
 export async function listPagarmeInvoices({
   subscriptionId,
   page = 1,

@@ -87,6 +87,7 @@ interface CreateAndSavePaymentCardParams {
   label: string;
   metadata: Record<string, string>;
   idempotencyKey?: string;
+  makeDefault?: boolean;
 }
 
 function assertValidPagarmeCard(card: PagarmeCard) {
@@ -110,6 +111,7 @@ export async function createAndSavePaymentCard({
   label,
   metadata,
   idempotencyKey,
+  makeDefault = true,
 }: CreateAndSavePaymentCardParams) {
   const pagarmeCard = await createPagarmeCard({
     customerId,
@@ -125,7 +127,7 @@ export async function createAndSavePaymentCard({
   const supabaseAdmin = createAdminClient();
   const { data: existingCard, error: existingCardError } = await supabaseAdmin
     .from("student_payment_cards")
-    .select("id, user_id")
+    .select("id, user_id, is_default")
     .eq("pagarme_card_id", pagarmeCard.id)
     .maybeSingle();
 
@@ -139,18 +141,20 @@ export async function createAndSavePaymentCard({
   }
 
   const now = new Date().toISOString();
-  const { error: resetDefaultCardError } = await supabaseAdmin
-    .from("student_payment_cards")
-    .update({
-      is_default: false,
-      updated_at: now,
-    })
-    .eq("user_id", userId)
-    .eq("is_default", true)
-    .is("deleted_at", null);
+  if (makeDefault) {
+    const { error: resetDefaultCardError } = await supabaseAdmin
+      .from("student_payment_cards")
+      .update({
+        is_default: false,
+        updated_at: now,
+      })
+      .eq("user_id", userId)
+      .eq("is_default", true)
+      .is("deleted_at", null);
 
-  if (resetDefaultCardError) {
-    throw new Error("Não foi possível atualizar o cartão padrão.");
+    if (resetDefaultCardError) {
+      throw new Error("Não foi possível atualizar o cartão padrão.");
+    }
   }
 
   const safeCardFields = {
@@ -159,7 +163,6 @@ export async function createAndSavePaymentCard({
     holder_name: pagarmeCard.holder_name,
     exp_month: pagarmeCard.exp_month,
     exp_year: pagarmeCard.exp_year,
-    is_default: true,
     is_active: true,
     deleted_at: null,
     updated_at: now,
@@ -168,7 +171,10 @@ export async function createAndSavePaymentCard({
   if (existingCard) {
     const { error: updateCardError } = await supabaseAdmin
       .from("student_payment_cards")
-      .update(safeCardFields)
+      .update({
+        ...safeCardFields,
+        ...(makeDefault ? { is_default: true } : {}),
+      })
       .eq("id", existingCard.id)
       .eq("user_id", userId);
 
@@ -187,6 +193,7 @@ export async function createAndSavePaymentCard({
     .insert({
       user_id: userId,
       pagarme_card_id: pagarmeCard.id,
+      is_default: makeDefault,
       ...safeCardFields,
     })
     .select("id")
@@ -209,7 +216,7 @@ export async function createAndSavePaymentCard({
   };
 }
 
-async function resolveSavedPaymentCardByPagarmeId({
+export async function resolveSavedPaymentCardByPagarmeId({
   userId,
   pagarmeCardId,
 }: {
@@ -221,6 +228,8 @@ async function resolveSavedPaymentCardByPagarmeId({
     .from("student_payment_cards")
     .select("id, user_id")
     .eq("pagarme_card_id", pagarmeCardId)
+    .eq("is_active", true)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (error || !card || card.user_id !== userId) {

@@ -109,6 +109,16 @@ export function PlanDetailsCard({
           </div>
 
           <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
+            <Button
+              asChild
+              variant="outline"
+              className="h-11 w-full rounded-xl font-medium md:w-auto"
+            >
+              <Link href="/assinatura/metodos-de-pagamento">
+                Métodos de pagamento
+              </Link>
+            </Button>
+
             {viewModel.canCancelSubscription &&
               subscription.current_period_end && (
                 <CancelSubscriptionDialog
