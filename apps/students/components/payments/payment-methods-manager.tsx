@@ -1,18 +1,21 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, CreditCard, Loader2, Plus, Trash2 } from "lucide-react";
+import {
+  CreditCard,
+  Loader2,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  addPaymentCard,
   removePaymentCard,
   setDefaultPaymentCard,
 } from "@/app/actions/payment-methods";
-import { NewCardForm, type NewCardFormRef } from "@/components/extra-credits/new-card-form";
-import { tokenizePagarmeCard } from "@/lib/checkout/tokenize-card";
 import type { ManagedPaymentCard } from "@/types";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,15 +28,7 @@ import {
 } from "@repo/ui/components/alert-dialog";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@repo/ui/components/dialog";
+import { cn } from "@repo/ui/lib/utils";
 
 interface PaymentMethodsManagerProps {
   cards: ManagedPaymentCard[];
@@ -54,56 +49,21 @@ function formatExpiration(month: number | null, year: number | null) {
 
 export function PaymentMethodsManager({
   cards,
-  hasActiveCardSubscription,
 }: PaymentMethodsManagerProps) {
   const router = useRouter();
-  const newCardFormRef = useRef<NewCardFormRef>(null);
   const [isPending, startTransition] = useTransition();
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [removingCard, setRemovingCard] = useState<ManagedPaymentCard | null>(null);
+  const [removingCard, setRemovingCard] =
+    useState<ManagedPaymentCard | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    "add" | "set-default" | "remove" | null
+  >(null);
+
   const [pendingCardId, setPendingCardId] = useState<string | null>(null);
 
-  async function handleAddCard() {
-    const isValid = await newCardFormRef.current?.validate();
-
-    if (!isValid) return;
-
-    const values = newCardFormRef.current?.getValues();
-
-    if (!values || values.paymentSource !== "new_card") return;
-
-    setPendingCardId("new-card");
-
-    try {
-      const tokenizedCard = await tokenizePagarmeCard({
-        cardNumber: values.cardNumber,
-        holderName: values.holderName,
-        holderDocument: values.holderDocument,
-        expirationDate: values.expirationDate,
-        cvv: values.cvv,
-      });
-      const result = await addPaymentCard({
-        cardToken: tokenizedCard.id,
-        billingAddress: values.address,
-      });
-
-      if (!result.success) {
-        toast.error(result.message);
-        return;
-      }
-
-      toast.success(result.message);
-      setAddDialogOpen(false);
-      startTransition(() => router.refresh());
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Não foi possível adicionar o cartão.");
-    } finally {
-      setPendingCardId(null);
-    }
-  }
-
   function handleSetDefault(cardId: string) {
+    setPendingAction("set-default");
     setPendingCardId(cardId);
+
     startTransition(async () => {
       const result = await setDefaultPaymentCard(cardId);
 
@@ -114,6 +74,7 @@ export function PaymentMethodsManager({
         toast.error(result.message);
       }
 
+      setPendingAction(null);
       setPendingCardId(null);
     });
   }
@@ -122,7 +83,9 @@ export function PaymentMethodsManager({
     if (!removingCard) return;
 
     const cardId = removingCard.id;
+    setPendingAction("remove");
     setPendingCardId(cardId);
+
     startTransition(async () => {
       const result = await removePaymentCard(cardId);
 
@@ -134,132 +97,172 @@ export function PaymentMethodsManager({
         toast.error(result.message);
       }
 
+      setPendingAction(null);
       setPendingCardId(null);
     });
   }
 
   return (
     <>
-      <div className="flex justify-end">
-        <Button className="h-11 rounded-xl font-semibold" onClick={() => setAddDialogOpen(true)}>
-          <Plus className="mr-2 size-4" />
-          Adicionar novo cartão
-        </Button>
-      </div>
-
       {cards.length === 0 ? (
-        <div className="flex min-h-64 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/70 p-10 text-center">
-          <div className="mb-4 rounded-2xl bg-white p-4 text-slate-400 shadow-sm">
-            <CreditCard className="size-7" />
+        <div className="flex min-h-64 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-white p-10 text-center shadow-sm">
+          <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+            <CreditCard className="size-6" />
           </div>
-          <h2 className="text-xl font-bold text-slate-800">Nenhum cartão salvo</h2>
-          <p className="mt-2 max-w-md text-sm text-slate-500">
-            Adicione um cartão para usá-lo em compras e, quando escolher, nas próximas renovações da
-            assinatura.
+
+          <h2 className="text-xl font-extrabold text-slate-800">
+            Nenhum cartão salvo
+          </h2>
+
+          <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-slate-500">
+            Adicione um cartão para usá-lo nas suas compras e, quando escolher,
+            nas próximas renovações da assinatura.
           </p>
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {cards.map((card) => {
-            const cardPending = isPending && pendingCardId === card.id;
+            const isSettingDefault =
+              isPending &&
+              pendingAction === "set-default" &&
+              pendingCardId === card.id;
+
+            const isRemoving =
+              isPending &&
+              pendingAction === "remove" &&
+              pendingCardId === card.id;
+            const isHighlighted = card.isDefault || card.isUsedForSubscription;
 
             return (
               <div
                 key={card.id}
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                className={cn(
+                  "overflow-hidden rounded-3xl border bg-white shadow-sm transition-all",
+                  card.isDefault
+                    ? "border-primary shadow-[0_0_0_1px_rgba(250,190,20,0.12),0_10px_30px_rgba(15,23,42,0.06)]"
+                    : "border-slate-200 hover:border-slate-300 hover:shadow-md"
+                )}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex min-w-0 gap-4">
-                    <div className="rounded-2xl bg-slate-100 p-3 text-slate-600">
-                      <CreditCard className="size-6" />
+                <div
+                  className={cn(
+                    "flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6 bg-white/10 hover:bg-white transition",
+                    isHighlighted && "bg-white"
+                  )}
+                >
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div
+                      className={cn(
+                        "flex size-12 shrink-0 items-center justify-center rounded-2xl",
+                        isHighlighted
+                          ? "bg-primary/15 text-primary"
+                          : "bg-slate-100 text-slate-500"
+                      )}
+                    >
+                      <CreditCard className="size-5" />
                     </div>
+
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-extrabold text-slate-800">
+                        <p className="text-base font-extrabold text-slate-800">
                           {formatBrand(card.brand)} •••• {card.lastFourDigits}
                         </p>
-                        {card.isDefault ? <Badge>Padrão</Badge> : null}
+
+                        {card.isDefault ? (
+                          <Badge className="rounded-lg px-2 py-1 text-[10px] font-extrabold uppercase tracking-wide">
+                            Padrão
+                          </Badge>
+                        ) : null}
                       </div>
-                      <p className="mt-1 text-sm font-medium text-slate-500">
-                        Validade {formatExpiration(card.expMonth, card.expYear)}
-                      </p>
-                      {card.holderName ? (
-                        <p className="mt-1 truncate text-xs text-slate-400 uppercase">
-                          {card.holderName}
-                        </p>
-                      ) : null}
+
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-slate-500">
+                        <span>
+                          Validade {formatExpiration(card.expMonth, card.expYear)}
+                        </span>
+
+                        {card.holderName ? (
+                          <>
+                            <span
+                              aria-hidden
+                              className="hidden size-1 rounded-full bg-slate-300 sm:block"
+                            />
+                            <span className="truncate uppercase">
+                              {card.holderName}
+                            </span>
+                          </>
+                        ) : null}
+                      </div>
                     </div>
+                  </div>
+
+                  <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+                    {!card.isDefault ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 w-[122px] rounded-lg px-3 text-xs font-bold"
+                        disabled={isPending}
+                        onClick={() => handleSetDefault(card.id)}
+                      >
+                        {isSettingDefault ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          "Tornar padrão"
+                        )}
+                      </Button>
+                    ) : null}
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 rounded-lg px-2.5 text-xs font-semibold text-slate-500 hover:bg-red-50 hover:text-destructive"
+                      disabled={isPending || card.isUsedForSubscription}
+                      onClick={() => setRemovingCard(card)}
+                      title={
+                        card.isUsedForSubscription
+                          ? "Torne outro cartão padrão antes de remover este cartão."
+                          : undefined
+                      }
+                      isLoading={isRemoving}
+                    >
+                      <Trash2 className="mr-1.5 size-3.5" />
+                      Remover
+                    </Button>
                   </div>
                 </div>
 
                 {card.isUsedForSubscription ? (
-                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
-                    <Check className="size-4" />
-                    Usado na renovação da sua assinatura
+                  <div className="flex items-start gap-3 border-t border-blue-100 bg-blue-50/70 px-5 py-3.5 text-sm font-semibold leading-relaxed text-blue-800">
+                    <ShieldCheck className="mt-0.5 size-4 shrink-0 text-blue-600" />
+
+                    <span>
+                      Este cartão será usado nas próximas renovações da sua assinatura.
+                    </span>
                   </div>
                 ) : null}
-
-                <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-                  {!card.isDefault ? (
-                    <Button
-                      variant="outline"
-                      className="rounded-xl"
-                      disabled={isPending}
-                      onClick={() => handleSetDefault(card.id)}
-                    >
-                      {cardPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-                      Tornar padrão
-                    </Button>
-                  ) : null}
-                  <Button
-                    variant="ghost"
-                    className="text-destructive hover:text-destructive rounded-xl"
-                    disabled={isPending || card.isUsedForSubscription}
-                    onClick={() => setRemovingCard(card)}
-                    title={
-                      card.isUsedForSubscription
-                        ? "Torne outro cartão padrão antes de remover este cartão."
-                        : undefined
-                    }
-                  >
-                    <Trash2 className="mr-2 size-4" />
-                    Remover
-                  </Button>
-                </div>
               </div>
             );
           })}
         </div>
       )}
 
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[680px]">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-extrabold">Adicionar novo cartão</DialogTitle>
-            <DialogDescription>
-              {hasActiveCardSubscription
-                ? "O novo cartão só será usado na renovação quando você o tornar padrão."
-                : "O novo cartão será salvo como seu método de pagamento padrão."}
-            </DialogDescription>
-          </DialogHeader>
+      <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-100 px-6 py-5">
+        <div className="flex items-start gap-4">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white text-slate-700 shadow-sm ring-1 ring-slate-200">
+            <ShieldCheck className="size-5 stroke-success" />
+          </div>
 
-          {addDialogOpen ? <NewCardForm ref={newCardFormRef} /> : null}
+          <div>
+            <p className="font-extrabold text-slate-800">
+              Seus pagamentos estão protegidos
+            </p>
 
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline" disabled={pendingCardId === "new-card"}>
-                Cancelar
-              </Button>
-            </DialogClose>
-            <Button onClick={handleAddCard} disabled={pendingCardId === "new-card"}>
-              {pendingCardId === "new-card" ? (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              ) : null}
-              Adicionar cartão
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <p className="mt-1  text-sm font-medium leading-relaxed text-slate-500">
+              Os dados completos do seu cartão não ficam armazenados no Projeto 1000.
+              As informações de pagamento são processadas com segurança pela Pagar.me.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <AlertDialog
         open={Boolean(removingCard)}
@@ -268,15 +271,27 @@ export function PaymentMethodsManager({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remover cartão?</AlertDialogTitle>
+
             <AlertDialogDescription>
-              O cartão deixará de aparecer entre seus métodos de pagamento. Seu histórico financeiro
-              será preservado.
+              O cartão deixará de aparecer entre seus métodos de pagamento. Seu
+              histórico financeiro será preservado.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" disabled={isPending} onClick={handleRemove}>
-              {isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+            <AlertDialogCancel disabled={isPending}>
+              Cancelar
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isPending}
+              onClick={handleRemove}
+            >
+              {isPending ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : null}
+
               Remover
             </AlertDialogAction>
           </AlertDialogFooter>

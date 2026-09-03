@@ -6,6 +6,7 @@ import { getPaymentMethodsPageData } from "@/app/actions/payment-methods";
 import { PaymentMethodsManager } from "@/components/payments/payment-methods-manager";
 import { Button } from "@repo/ui/components/button";
 import { PageHeader } from "@repo/ui/components/page-header";
+import { AddPaymentCardDialog } from "@/components/payments/add-payment-card-dialog";
 
 export const metadata: Metadata = {
   title: "Métodos de pagamento",
@@ -30,7 +31,11 @@ export default async function PaymentMethodsPage() {
       <PageHeader
         title="Métodos de pagamento"
         subtitle="Gerencie os cartões usados nas suas compras e assinatura."
-      />
+      >
+        <AddPaymentCardDialog
+          hasActiveCardSubscription={hasActiveCardSubscription}
+        />
+      </PageHeader>
 
       <PaymentMethodsManager cards={cards} hasActiveCardSubscription={hasActiveCardSubscription} />
     </div>
