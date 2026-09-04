@@ -1,1 +1,1 @@
-export * from "./essay-correction-email";
+export * from "./essays";
