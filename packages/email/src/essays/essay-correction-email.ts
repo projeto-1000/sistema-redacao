@@ -159,11 +159,11 @@ function buildEssayCorrectionAvailableEmailHtml({
           "
         >
           <tr>
-            <td align="center" style="padding: 24px 0 12px 0;">
+          <td align="center" style="padding: 24px 0 12px 0;">
               <img
                 src="${PROJECT_1000_LOGO_URL}"
                 alt="Projeto 1000"
-                width="180"
+                width="160"
                 style="
                   display: block;
                   border: 0;
