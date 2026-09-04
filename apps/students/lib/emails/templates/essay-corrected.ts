@@ -30,17 +30,15 @@ export function buildEssayCorrectedEmailHtml({
 
     contentHtml: `
       <p style="margin: 0 0 16px 0;">
-        Sua redação sobre <strong>${safeEssayTitle}</strong> já foi corrigida
-        e o feedback completo está te esperando.
+        Sua redação sobre <strong>${safeEssayTitle}</strong> já foi corrigida, e a análise completa está te esperando.
       </p>
 
       <p style="margin: 0 0 16px 0;">
-        Agora é a hora de olhar com calma para o que funcionou, entender onde
-        você perdeu pontos e transformar essa correção em estratégia para a próxima redação.
+        Tenha especial atenção ao principal gargalo identificado e aos próximos passos previstos. Além disso, a correção traz tarefas de reescrita, caso você queira praticar imediatamente.
       </p>
 
       <p style="margin: 0;">
-        A nota é importante, claro — mas o mais valioso está no caminho que ela mostra.
+        Lembre-se: a nota é importante, mas o mais valioso é o caminho para melhorar cada vez mais.
       </p>
     `,
 
@@ -80,12 +78,12 @@ export function buildEssayCorrectedEmailHtml({
             <p
               style="
                 margin: 0 0 8px 0;
-                color: #111827;
-                font-size: 26px;
+
+                font-size: 22px;
                 font-weight: 800;
               "
             >
-              ${score} pontos
+              Quer ver seu resultado?
             </p>
 
             <p
@@ -96,8 +94,7 @@ export function buildEssayCorrectedEmailHtml({
                 line-height: 1.6;
               "
             >
-              Na plataforma, você encontra a análise completa das competências,
-              os comentários da correção e os próximos passos para evoluir.
+             Na plataforma, você encontra a análise completa das competências, o seu principal gargalo, os próximos passos e suas tarefas de reescrita.
             </p>
           </td>
         </tr>
