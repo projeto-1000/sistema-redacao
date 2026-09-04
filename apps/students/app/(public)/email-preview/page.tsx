@@ -37,6 +37,7 @@ import {
   getEmailPreviewBySlug,
   type EmailPreviewSlug,
 } from "@/lib/emails/preview/registry";
+import { notFound } from "next/navigation";
 
 interface EmailPreviewPageProps {
   searchParams: Promise<{
@@ -187,6 +188,14 @@ function buildPreviewHtml(slug: EmailPreviewSlug) {
 export default async function EmailPreviewPage({
   searchParams,
 }: EmailPreviewPageProps) {
+  const isEmailPreviewEnabled =
+    process.env.NODE_ENV === "development" ||
+    process.env.VERCEL_ENV === "preview";
+
+  if (!isEmailPreviewEnabled) {
+    notFound();
+  }
+
   const { email: requestedEmail } = await searchParams;
 
   const selectedEmail =
