@@ -34,23 +34,27 @@ export function AddPaymentCardDialog({
 }: AddPaymentCardDialogProps) {
   const router = useRouter();
   const newCardFormRef = useRef<NewCardFormRef>(null);
+  const submissionLockRef = useRef(false);
 
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isAdding, setIsAdding] = useState(false);
 
   async function handleAddCard() {
-    const isValid = await newCardFormRef.current?.validate();
+    if (submissionLockRef.current) return;
 
-    if (!isValid) return;
-
-    const values = newCardFormRef.current?.getValues();
-
-    if (!values || values.paymentSource !== "new_card") return;
-
+    submissionLockRef.current = true;
     setIsAdding(true);
 
     try {
+      const isValid = await newCardFormRef.current?.validate();
+
+      if (!isValid) return;
+
+      const values = newCardFormRef.current?.getValues();
+
+      if (!values || values.paymentSource !== "new_card") return;
+
       const tokenizedCard = await tokenizePagarmeCard({
         cardNumber: values.cardNumber,
         holderName: values.holderName,
@@ -82,6 +86,7 @@ export function AddPaymentCardDialog({
           : "Não foi possível adicionar o cartão."
       );
     } finally {
+      submissionLockRef.current = false;
       setIsAdding(false);
     }
   }

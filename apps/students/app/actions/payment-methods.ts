@@ -11,6 +11,7 @@ import {
   resolveSavedPaymentCard,
   resolveSavedPaymentCardByPagarmeId,
 } from "@/services/payments/payment-cards";
+import { convergeSubscriptionPaymentCard } from "@/services/payments/payment-card-convergence";
 import type { PaymentMethodsPageData } from "@/types";
 import { buildPagarmeBillingAddress } from "@/utils/checkout-utils";
 import { getPagarmeSubscription, updatePagarmeSubscriptionCard } from "@repo/payments";
@@ -174,83 +175,56 @@ export async function setDefaultPaymentCard(
         };
       }
 
-      const remoteSubscription = await getPagarmeSubscription({
-        subscriptionId: subscription.external_id,
-      });
-
-      if (
-        remoteSubscription.id !== subscription.external_id ||
-        !["active", "trial"].includes(remoteSubscription.status)
-      ) {
-        return {
-          success: false,
-          message: "A assinatura não está ativa na Pagar.me.",
-        };
-      }
-
-      await updatePagarmeSubscriptionCard({
-        subscriptionId: subscription.external_id,
-        cardId: card.pagarmeCardId,
-      });
-
-      const confirmedSubscription = await getPagarmeSubscription({
-        subscriptionId: subscription.external_id,
-      });
-
-      if (confirmedSubscription.card?.id !== card.pagarmeCardId) {
-        throw new Error("A Pagar.me não confirmou o novo cartão da assinatura. Tente novamente.");
-      }
-    }
-
-    const supabaseAdmin = createAdminClient();
-    const { error: localUpdateError } = await supabaseAdmin.rpc(
-      "set_student_default_payment_card",
-      {
-        p_user_id: user.id,
-        p_payment_card_id: card.localCardId,
-        p_expected_subscription_id: subscription?.id ?? null,
-      }
-    );
-
-    if (localUpdateError) {
-      console.error("[PAYMENT_METHOD_DEFAULT_LOCAL_ERROR]", localUpdateError);
-      throw new Error(
-        subscription
-          ? "O cartão foi atualizado na Pagar.me, mas o vínculo local não foi confirmado. Tente novamente para concluir."
-          : "Não foi possível definir o cartão padrão. Tente novamente."
-      );
-    }
-
-    if (subscription) {
-      const latestRemoteSubscription = await getPagarmeSubscription({
-        subscriptionId: subscription.external_id!,
-      });
-      const latestRemoteCardId = latestRemoteSubscription.card?.id;
-
-      if (!latestRemoteCardId?.startsWith("card_")) {
-        throw new Error("Não foi possível confirmar o cartão atual da assinatura.");
-      }
-
-      if (latestRemoteCardId !== card.pagarmeCardId) {
-        const latestLocalCard = await resolveSavedPaymentCardByPagarmeId({
-          userId: user.id,
-          pagarmeCardId: latestRemoteCardId,
+      const supabaseAdmin = createAdminClient();
+      const applyLocalCard = async (localCardId: string) => {
+        const { error } = await supabaseAdmin.rpc("set_student_default_payment_card", {
+          p_user_id: user.id,
+          p_payment_card_id: localCardId,
+          p_expected_subscription_id: subscription.id,
         });
-        const { error: convergenceError } = await supabaseAdmin.rpc(
-          "set_student_default_payment_card",
-          {
-            p_user_id: user.id,
-            p_payment_card_id: latestLocalCard.localCardId,
-            p_expected_subscription_id: subscription.id,
-          }
-        );
 
-        if (convergenceError) {
-          console.error("[PAYMENT_METHOD_DEFAULT_CONVERGENCE_ERROR]", convergenceError);
-          throw new Error(
-            "Houve outra troca de cartão simultânea. Recarregue a página para confirmar o cartão atual."
-          );
+        if (error) {
+          console.error("[PAYMENT_METHOD_DEFAULT_LOCAL_ERROR]", error);
+          throw error;
         }
+      };
+
+      await convergeSubscriptionPaymentCard({
+        subscriptionId: subscription.external_id,
+        requestedPagarmeCardId: card.pagarmeCardId,
+        requestedLocalCardId: card.localCardId,
+        readRemoteSubscription: () =>
+          getPagarmeSubscription({ subscriptionId: subscription.external_id! }),
+        updateRemoteCard: async () => {
+          await updatePagarmeSubscriptionCard({
+            subscriptionId: subscription.external_id!,
+            cardId: card.pagarmeCardId,
+          });
+        },
+        applyLocalCard,
+        resolveLocalCardIdByPagarmeCardId: async (pagarmeCardId) => {
+          const resolvedCard = await resolveSavedPaymentCardByPagarmeId({
+            userId: user.id,
+            pagarmeCardId,
+          });
+
+          return resolvedCard.localCardId;
+        },
+      });
+    } else {
+      const supabaseAdmin = createAdminClient();
+      const { error: localUpdateError } = await supabaseAdmin.rpc(
+        "set_student_default_payment_card",
+        {
+          p_user_id: user.id,
+          p_payment_card_id: card.localCardId,
+          p_expected_subscription_id: null,
+        }
+      );
+
+      if (localUpdateError) {
+        console.error("[PAYMENT_METHOD_DEFAULT_LOCAL_ERROR]", localUpdateError);
+        throw new Error("Não foi possível definir o cartão padrão. Tente novamente.");
       }
     }
 
