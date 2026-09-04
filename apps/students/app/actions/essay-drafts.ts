@@ -2,6 +2,10 @@
 
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
+import {
+  getDataCrazySyncErrorCode,
+  syncStudentToDataCrazy,
+} from "@/lib/integrations/datacrazy/sync-student";
 
 type EssayPayload = {
   student_id: string;
@@ -64,6 +68,7 @@ export async function saveDraft(
   };
 
   let dbError = null;
+  let createdNewDraft = false;
 
   if (draftId) {
     const { error } = await supabase
@@ -75,9 +80,14 @@ export async function saveDraft(
     dbError = error;
   } else {
     essayData.created_at = new Date().toISOString();
+
     const { error } = await supabase.from("essays").insert(essayData);
 
     dbError = error;
+
+    if (!error) {
+      createdNewDraft = true;
+    }
   }
 
   await supabase.from("essay_backups").delete().eq("user_id", user.id).eq("theme_id", topicId);
@@ -85,6 +95,18 @@ export async function saveDraft(
   if (dbError) {
     console.error("Erro no banco:", dbError);
     throw dbError;
+  }
+
+  if (createdNewDraft) {
+    try {
+      await syncStudentToDataCrazy(user.id, "essay_status_updated");
+    } catch (error) {
+      console.error("[DATACRAZY_SYNC_ERROR]", {
+        user_id: user.id,
+        event: "essay_status_updated",
+        error_code: getDataCrazySyncErrorCode(error),
+      });
+    }
   }
 
   revalidatePath("/minhas-redacoes", "layout");
