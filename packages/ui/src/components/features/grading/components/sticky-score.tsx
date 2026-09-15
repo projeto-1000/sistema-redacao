@@ -6,13 +6,15 @@ interface StickyScoreProps {
   canSave: boolean;
   isSaving: boolean;
   onSave: () => void;
+  readOnly?: boolean;
 }
 
 export function StickyScore({
   totalScore,
   canSave,
   isSaving,
-  onSave
+  onSave,
+  readOnly = false,
 }: StickyScoreProps) {
 
   return (
@@ -27,15 +29,17 @@ export function StickyScore({
         </div>
       </div>
 
-      <Button
-        onClick={onSave}
-        disabled={!canSave || isSaving}
-        className="font-bold rounded-2xl px-6 h-12 transition-all shadow-lg"
-        isLoading={isSaving}
-        loadingText="Salvando..."
-      >
-        Enviar Correção
-      </Button>
+      {!readOnly && (
+        <Button
+          onClick={onSave}
+          disabled={!canSave || isSaving}
+          className="font-bold rounded-2xl px-6 h-12 transition-all shadow-lg"
+          isLoading={isSaving}
+          loadingText="Salvando..."
+        >
+          Enviar Correção
+        </Button>
+      )}
     </div>
   );
 }

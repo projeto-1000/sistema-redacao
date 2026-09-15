@@ -9,6 +9,7 @@ interface CorrectionSummaryFieldsProps {
 
   rewriteTasks: string[];
   onRewriteTasksChange: (value: string[]) => void;
+  readOnly?: boolean;
 }
 
 const textareaClassName =
@@ -24,6 +25,7 @@ export function CorrectionSummaryFields({
   onNextEssayPrioritiesChange,
   rewriteTasks,
   onRewriteTasksChange,
+  readOnly = false,
 }: CorrectionSummaryFieldsProps) {
   const updatePriority = (
     index: number,
@@ -114,6 +116,7 @@ export function CorrectionSummaryFields({
 
         <textarea
           value={mainBottleneck}
+          readOnly={readOnly}
           onChange={(event) =>
             onMainBottleneckChange(
               event.target.value
@@ -153,6 +156,7 @@ export function CorrectionSummaryFields({
                 <input
                   type="text"
                   value={priority}
+                  readOnly={readOnly}
                   onChange={(event) =>
                     updatePriority(
                       index,
@@ -164,7 +168,7 @@ export function CorrectionSummaryFields({
                   maxLength={250}
                 />
 
-                {nextEssayPriorities.length >
+                {!readOnly && nextEssayPriorities.length >
                   1 && (
                     <button
                       type="button"
@@ -182,7 +186,7 @@ export function CorrectionSummaryFields({
           )}
         </div>
 
-        {nextEssayPriorities.length < 3 && (
+        {!readOnly && nextEssayPriorities.length < 3 && (
           <button
             type="button"
             onClick={addPriority}
@@ -216,6 +220,7 @@ export function CorrectionSummaryFields({
               <input
                 type="text"
                 value={task}
+                readOnly={readOnly}
                 onChange={(event) =>
                   updateRewriteTask(
                     index,
@@ -227,7 +232,7 @@ export function CorrectionSummaryFields({
                 maxLength={250}
               />
 
-              {rewriteTasks.length > 1 && (
+              {!readOnly && rewriteTasks.length > 1 && (
                 <button
                   type="button"
                   onClick={() =>
@@ -243,7 +248,7 @@ export function CorrectionSummaryFields({
           ))}
         </div>
 
-        {rewriteTasks.length < 3 && (
+        {!readOnly && rewriteTasks.length < 3 && (
           <button
             type="button"
             onClick={addRewriteTask}

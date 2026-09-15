@@ -35,9 +35,10 @@ interface EssayCorrectionWorkspaceProps {
   };
   initialDraft?: CorrectionPayload | null;
   onAutoSave?: (payload: CorrectionPayload) => void;
-  onSaveCorrection: (payload: CorrectionPayload) => Promise<{ success: boolean; error?: string }>;
+  onSaveCorrection?: (payload: CorrectionPayload) => Promise<{ success: boolean; error?: string }>;
   redirectPath: string;
-  onReturnEssay: (params: ReturnEssayParams) => Promise<{ success: boolean; error?: string }>;
+  onReturnEssay?: (params: ReturnEssayParams) => Promise<{ success: boolean; error?: string }>;
+  readOnly?: boolean;
 }
 
 function normalizeInitialFormValues(
@@ -112,7 +113,8 @@ export function EssayCorrectionWorkspace({
   onAutoSave,
   onSaveCorrection,
   redirectPath,
-  onReturnEssay
+  onReturnEssay,
+  readOnly = false,
 }: EssayCorrectionWorkspaceProps) {
   const router = useRouter();
 
@@ -165,6 +167,8 @@ export function EssayCorrectionWorkspace({
   }, [highlights, setValue]);
 
   useEffect(() => {
+    if (readOnly) return;
+
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
@@ -187,16 +191,21 @@ export function EssayCorrectionWorkspace({
     highlights,
     getValues,
     onAutoSave,
+    readOnly,
   ]);
 
   const totalScore = Object.values(scores).reduce((acc, curr) => acc + curr, 0);
 
   const handleActivateHighlightMode = (compId: string) => {
+    if (readOnly) return;
+
     setActiveHighlightComp(prev => prev === compId ? null : compId);
   };
 
   const handleSave = handleSubmit(
     async (payload) => {
+      if (readOnly || !onSaveCorrection) return;
+
       try {
         const result =
           await onSaveCorrection(serializeCorrectionPayload(payload));
@@ -248,10 +257,12 @@ export function EssayCorrectionWorkspace({
         status={essay.status}
         className="mb-4 md:mb-6"
       >
-        <ReturnEssayDialog
-          essayId={essay.id}
-          onReturnEssay={onReturnEssay}
-        />
+        {!readOnly && onReturnEssay && (
+          <ReturnEssayDialog
+            essayId={essay.id}
+            onReturnEssay={onReturnEssay}
+          />
+        )}
       </EssayHeader>
 
       <div className="grid grid-cols-1 items-start gap-8 pb-20 lg:grid-cols-12">
@@ -264,6 +275,7 @@ export function EssayCorrectionWorkspace({
             onHighlightsChange={setHighlights}
             onActiveHighlightChange={setActiveHighlightComp}
             onActiveHighlightIdChange={setActiveHighlightId}
+            readOnly={readOnly}
           />
 
           <CorrectionSummaryFields
@@ -291,6 +303,7 @@ export function EssayCorrectionWorkspace({
                 { shouldDirty: true, shouldValidate: true }
               )
             }
+            readOnly={readOnly}
           />
         </div>
 
@@ -326,6 +339,7 @@ export function EssayCorrectionWorkspace({
                     { shouldDirty: true, shouldValidate: true }
                   )
                 }
+                readOnly={readOnly}
               />
             );
           })}
@@ -338,6 +352,7 @@ export function EssayCorrectionWorkspace({
               placeholder="Dê um feedback para o aluno..."
               className="h-32 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-amber-400/50"
               value={generalComment}
+              readOnly={readOnly}
               onChange={(event) =>
                 setValue(
                   "general_comment",
@@ -353,6 +368,7 @@ export function EssayCorrectionWorkspace({
             canSave={isValid}
             isSaving={isSubmitting || isRedirecting}
             onSave={handleSave}
+            readOnly={readOnly}
           />
         </div>
       </div>

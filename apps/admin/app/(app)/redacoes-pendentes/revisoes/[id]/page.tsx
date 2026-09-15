@@ -60,6 +60,8 @@ export default async function PendingCorrectionReviewPage({
           content: review.essay.content,
           created_at: review.essay.createdAt,
           status: review.essay.status,
+          motivational_texts: review.essay.motivationalTexts,
+          motivational_texts_load_error: review.essay.motivationalTextsLoadError,
         }}
         initialDraft={review.payload}
         redirectPath="/redacoes-pendentes?tab=revisoes"

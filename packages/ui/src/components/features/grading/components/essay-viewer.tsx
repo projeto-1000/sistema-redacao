@@ -46,6 +46,7 @@ interface EssayViewerProps {
   onHighlightsChange: (newHighlights: Highlight[]) => void;
   onActiveHighlightChange: (compId: string | null) => void;
   onActiveHighlightIdChange: (id: string | null) => void;
+  readOnly?: boolean;
 }
 
 export function EssayViewer({
@@ -56,6 +57,7 @@ export function EssayViewer({
   onHighlightsChange,
   onActiveHighlightChange,
   onActiveHighlightIdChange,
+  readOnly = false,
 }: EssayViewerProps) {
 
   const [popover, setPopover] = useState<PopoverState | null>(null);
@@ -118,14 +120,14 @@ export function EssayViewer({
   }, [activeHighlightId]);
 
   useEffect(() => {
-    if (!popover?.compId) return;
+    if (readOnly || !popover?.compId) return;
 
     const frame = window.requestAnimationFrame(() => {
       commentInputRef.current?.focus();
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [popover?.compId]);
+  }, [popover?.compId, readOnly]);
 
   const getAbsoluteRange = (selection: Selection) => {
     if (!textRef.current || selection.rangeCount === 0) return null;
@@ -142,6 +144,8 @@ export function EssayViewer({
   };
 
   const handleSelectCompetency = (compId: string) => {
+    if (readOnly) return;
+
     setPopover((currentPopover) =>
       currentPopover
         ? {
@@ -155,7 +159,7 @@ export function EssayViewer({
   };
 
   const handleSaveHighlightComment = () => {
-    if (!popover?.compId) return;
+    if (readOnly || !popover?.compId) return;
 
     const comment = popover.comment.trim();
     if (!comment) return;
@@ -196,6 +200,8 @@ export function EssayViewer({
   };
 
   const handleRemoveHighlight = (id: string) => {
+    if (readOnly) return;
+
     onHighlightsChange(highlights.filter(h => h.id !== id));
     window.getSelection()?.removeAllRanges();
     setPopover(null);
@@ -203,6 +209,8 @@ export function EssayViewer({
   };
 
   const handleSelectionEnd = (e: React.MouseEvent | React.TouchEvent) => {
+    if (readOnly) return;
+
     if ((e.target as HTMLElement).closest('.ignore-selection')) return;
 
     setTimeout(() => {
@@ -362,6 +370,7 @@ export function EssayViewer({
             ref={commentInputRef}
             id={`highlight-comment-${popover.existingId ?? "new"}`}
             value={popover.comment}
+            readOnly={readOnly}
             onChange={(event) => {
               const comment = event.target.value;
               setPopover((currentPopover) =>
@@ -381,28 +390,30 @@ export function EssayViewer({
               {popover.comment.length}/2000
             </span>
 
-            <div className="flex items-center gap-2">
-              {activeHighlight && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveHighlight(activeHighlight.id)}
-                  className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
-                >
-                  <Trash2 className="size-3.5" />
-                  Remover apontamento
-                </button>
-              )}
+            {!readOnly && (
+              <div className="flex items-center gap-2">
+                {activeHighlight && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveHighlight(activeHighlight.id)}
+                    className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
+                  >
+                    <Trash2 className="size-3.5" />
+                    Remover apontamento
+                  </button>
+                )}
 
-              <Button
-                type="button"
-                size="sm"
-                disabled={!isCommentValid}
-                onClick={handleSaveHighlightComment}
-                className="rounded-lg bg-indigo-600 px-3 text-xs font-bold text-white hover:bg-indigo-700"
-              >
-                Salvar comentário
-              </Button>
-            </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={!isCommentValid}
+                  onClick={handleSaveHighlightComment}
+                  className="rounded-lg bg-indigo-600 px-3 text-xs font-bold text-white hover:bg-indigo-700"
+                >
+                  Salvar comentário
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       );

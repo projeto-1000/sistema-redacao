@@ -6,7 +6,7 @@ import {
   syncStudentToDataCrazy,
 } from "@/lib/integrations/datacrazy/sync-student";
 import { sendEssayCorrectionAvailableEmail } from "@repo/email";
-import type { CorrectionPayload, EssayStatus } from "@repo/types";
+import type { CorrectionPayload, EssayStatus, MotivationalText } from "@repo/types";
 import { finalCorrectionSchema } from "@repo/validators";
 import { revalidatePath } from "next/cache";
 
@@ -18,6 +18,7 @@ interface ReviewEssayRelation {
   content: string;
   created_at: string;
   status: EssayStatus;
+  topic_id: string;
   student: { full_name: string } | null;
 }
 
@@ -55,6 +56,8 @@ export interface PendingCorrectionReviewDetails {
     createdAt: string;
     status: EssayStatus;
     studentName: string;
+    motivationalTexts: MotivationalText[];
+    motivationalTextsLoadError: boolean;
   };
   payload: CorrectionPayload;
 }
@@ -244,6 +247,7 @@ export async function getPendingCorrectionReview(
           content,
           created_at,
           status,
+          topic_id,
           student:profiles!essays_student_id_fkey(full_name)
         ),
         teacher:profiles!correction_review_submissions_teacher_id_fkey(
@@ -278,6 +282,33 @@ export async function getPendingCorrectionReview(
   const essay = submission.essay as unknown as ReviewEssayRelation;
   const teacher = submission.teacher as unknown as ReviewTeacherRelation;
 
+  const { data: motivationalTexts, error: motivationalTextsError } = await supabase
+    .from("motivational_texts")
+    .select("id, topic_id, text_number, body_text, image_url, source_reference")
+    .eq("topic_id", essay.topic_id)
+    .order("text_number", { ascending: true });
+
+  if (motivationalTextsError) {
+    console.error(
+      `Erro ao buscar textos motivadores da redação (${essay.id}):`,
+      motivationalTextsError
+    );
+  }
+
+  const normalizedMotivationalTexts = (motivationalTexts ?? []).map((text: MotivationalText) => {
+    if (
+      !text.image_url ||
+      text.image_url.startsWith("http://") ||
+      text.image_url.startsWith("https://")
+    ) {
+      return text;
+    }
+
+    const { data: publicUrlData } = supabase.storage.from("themes").getPublicUrl(text.image_url);
+
+    return { ...text, image_url: publicUrlData.publicUrl };
+  });
+
   return {
     id: submission.id,
     roundNumber: submission.round_number,
@@ -293,6 +324,8 @@ export async function getPendingCorrectionReview(
       createdAt: essay.created_at,
       status: essay.status,
       studentName: essay.student?.full_name ?? "Aluno não identificado",
+      motivationalTexts: normalizedMotivationalTexts,
+      motivationalTextsLoadError: Boolean(motivationalTextsError),
     },
     payload: payloadResult.data,
   };
