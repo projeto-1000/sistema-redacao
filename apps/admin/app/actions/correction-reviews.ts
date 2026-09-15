@@ -1,0 +1,299 @@
+"use server";
+
+import { createClient } from "@/lib/server";
+import {
+  getDataCrazySyncErrorCode,
+  syncStudentToDataCrazy,
+} from "@/lib/integrations/datacrazy/sync-student";
+import { sendEssayCorrectionAvailableEmail } from "@repo/email";
+import type { CorrectionPayload, EssayStatus } from "@repo/types";
+import { finalCorrectionSchema } from "@repo/validators";
+import { revalidatePath } from "next/cache";
+
+// type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+interface ReviewEssayRelation {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  status: EssayStatus;
+  student: { full_name: string } | null;
+}
+
+interface ReviewListEssayRelation {
+  title: string;
+  student: { full_name: string } | null;
+}
+
+interface ReviewTeacherRelation {
+  id: string;
+  full_name: string;
+}
+
+export interface PendingCorrectionReviewListItem {
+  id: string;
+  essayTitle: string;
+  studentName: string;
+  teacherName: string;
+  roundNumber: number;
+  submittedAt: string;
+}
+
+export interface PendingCorrectionReviewDetails {
+  id: string;
+  roundNumber: number;
+  submittedAt: string;
+  teacher: {
+    id: string;
+    name: string;
+  };
+  essay: {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: string;
+    status: EssayStatus;
+    studentName: string;
+  };
+  payload: CorrectionPayload;
+}
+
+export async function getPendingCorrectionReviews({
+  page = 1,
+  limit = 10,
+}: {
+  page?: number;
+  limit?: number;
+} = {}): Promise<{
+  reviews: PendingCorrectionReviewListItem[];
+  totalCount: number;
+  totalPages: number;
+  error: string | null;
+}> {
+  const supabase = await createClient();
+
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
+
+  const { data, count, error } = await supabase
+    .from("correction_review_submissions")
+    .select(
+      `
+        id,
+        round_number,
+        submitted_at,
+        essay:essays!correction_review_submissions_essay_id_fkey(
+          title,
+          student:profiles!essays_student_id_fkey(full_name)
+        ),
+        teacher:profiles!correction_review_submissions_teacher_id_fkey(
+          full_name
+        )
+      `,
+      { count: "exact" }
+    )
+    .eq("status", "pending_review")
+    .order("submitted_at", { ascending: true })
+    .range(rangeStart, rangeEnd);
+
+  if (error) {
+    console.error("Erro ao carregar fila de revisão de correções:", error);
+    return {
+      reviews: [],
+      totalCount: 0,
+      totalPages: 0,
+      error: "Não foi possível carregar a fila de revisões.",
+    };
+  }
+
+  const reviews = data.map((submission) => {
+    const essay = submission.essay as unknown as ReviewListEssayRelation;
+    const teacher = submission.teacher as unknown as Pick<ReviewTeacherRelation, "full_name">;
+
+    return {
+      id: submission.id,
+      essayTitle: essay.title,
+      studentName: essay.student?.full_name ?? "Aluno não identificado",
+      teacherName: teacher.full_name,
+      roundNumber: submission.round_number,
+      submittedAt: submission.submitted_at,
+    };
+  });
+
+  return {
+    reviews,
+    totalCount: count ?? 0,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+    error: null,
+  };
+}
+
+export async function approveSupervisedCorrection(submissionId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const supabase = await createClient();
+
+  const { data: approvalRows, error: approvalError } = await supabase.rpc(
+    "approve_supervised_correction",
+    { p_submission_id: submissionId }
+  );
+
+  const approval = (
+    approvalRows as
+      | {
+          essay_id: string;
+          submission_id: string;
+          status: "approved";
+        }[]
+      | null
+  )?.[0];
+
+  if (approvalError || !approval) {
+    console.error("Erro ao aprovar correção supervisionada:", approvalError);
+    return {
+      success: false,
+      error: "Não foi possível aprovar a correção. Atualize a página e tente novamente.",
+    };
+  }
+
+  const { data: essay, error: essayError } = await supabase
+    .from("essays")
+    .select(
+      `
+        student_id,
+        title,
+        student:profiles!essays_student_id_fkey(full_name, email)
+      `
+    )
+    .eq("id", approval.essay_id)
+    .maybeSingle();
+
+  if (essayError || !essay) {
+    console.error("[CORRECTION_REVIEW_EFFECTS_DATA_ERROR]", {
+      essay_id: approval.essay_id,
+      submission_id: approval.submission_id,
+      error: essayError,
+    });
+  } else {
+    try {
+      await syncStudentToDataCrazy(essay.student_id, "essay_status_updated");
+    } catch (error) {
+      console.error("[DATACRAZY_SYNC_ERROR]", {
+        essay_id: approval.essay_id,
+        student_id: essay.student_id,
+        event: "essay_status_updated",
+        error_code: getDataCrazySyncErrorCode(error),
+      });
+    }
+
+    const student = essay.student as unknown as {
+      full_name: string | null;
+      email: string | null;
+    } | null;
+
+    if (student?.email) {
+      try {
+        await sendEssayCorrectionAvailableEmail({
+          to: student.email,
+          studentName: student.full_name,
+          essayId: approval.essay_id,
+          essayTitle: essay.title,
+        });
+      } catch (error) {
+        console.error("[ESSAY_CORRECTION_EMAIL_ERROR]", {
+          essay_id: approval.essay_id,
+          student_id: essay.student_id,
+          error,
+        });
+      }
+    } else {
+      console.warn("[ESSAY_CORRECTION_EMAIL_SKIPPED]", {
+        essay_id: approval.essay_id,
+        student_id: essay.student_id,
+        reason: "missing_student_email",
+      });
+    }
+  }
+
+  revalidatePath("/inicio");
+  revalidatePath("/redacoes-pendentes");
+  revalidatePath("/redacoes-corrigidas");
+  revalidatePath(`/redacoes-pendentes/revisoes/${submissionId}`);
+
+  return { success: true };
+}
+
+export async function getPendingCorrectionReview(
+  submissionId: string
+): Promise<PendingCorrectionReviewDetails | null> {
+  const supabase = await createClient();
+
+  const { data: submission, error } = await supabase
+    .from("correction_review_submissions")
+    .select(
+      `
+        id,
+        round_number,
+        submitted_at,
+        payload,
+        essay:essays!correction_review_submissions_essay_id_fkey(
+          id,
+          title,
+          content,
+          created_at,
+          status,
+          student:profiles!essays_student_id_fkey(full_name)
+        ),
+        teacher:profiles!correction_review_submissions_teacher_id_fkey(
+          id,
+          full_name
+        )
+      `
+    )
+    .eq("id", submissionId)
+    .eq("status", "pending_review")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Erro ao carregar correção para revisão:", error);
+    throw new Error("Não foi possível carregar a correção para revisão.");
+  }
+
+  if (!submission) {
+    return null;
+  }
+
+  const payloadResult = finalCorrectionSchema.safeParse(submission.payload);
+
+  if (!payloadResult.success) {
+    console.error("Payload inválido na correção aguardando revisão:", {
+      submissionId: submission.id,
+      issues: payloadResult.error.flatten(),
+    });
+    throw new Error("A correção enviada pelo professor possui dados inválidos.");
+  }
+
+  const essay = submission.essay as unknown as ReviewEssayRelation;
+  const teacher = submission.teacher as unknown as ReviewTeacherRelation;
+
+  return {
+    id: submission.id,
+    roundNumber: submission.round_number,
+    submittedAt: submission.submitted_at,
+    teacher: {
+      id: teacher.id,
+      name: teacher.full_name,
+    },
+    essay: {
+      id: essay.id,
+      title: essay.title,
+      content: essay.content,
+      createdAt: essay.created_at,
+      status: essay.status,
+      studentName: essay.student?.full_name ?? "Aluno não identificado",
+    },
+    payload: payloadResult.data,
+  };
+}
