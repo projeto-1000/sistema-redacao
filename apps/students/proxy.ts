@@ -6,6 +6,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (request.nextUrl.pathname.startsWith("/api/ocr")) {
+    return NextResponse.next();
+  }
+
   if (
     request.nextUrl.pathname.startsWith("/api/auth/confirm") ||
     request.nextUrl.pathname.startsWith("/api/auth/callback")
