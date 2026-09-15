@@ -48,7 +48,7 @@ function CorrectionReviewRow({ review }: { review: PendingCorrectionReviewListIt
         <p className="truncate text-sm font-medium text-slate-700">{review.teacherName}</p>
       </div>
 
-      <div className="min-w-[12rem]">
+      <div className="min-w-48">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">
           <Hourglass className="size-3" />
           Aguardando revisão
