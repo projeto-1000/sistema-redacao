@@ -120,6 +120,33 @@ export interface CorrectionPayload {
   highlights: CorrectionHighlight[];
 }
 
+export type CorrectionReviewSubmissionStatus =
+  | "pending_review"
+  | "returned_to_teacher"
+  | "approved"
+  | "approved_with_changes";
+
+export type CorrectionReviewActionType =
+  | "approved"
+  | "approved_with_changes"
+  | "returned_to_teacher";
+
+export interface CorrectionReviewHistoryAction {
+  action: CorrectionReviewActionType;
+  feedback: string | null;
+  createdAt: string;
+  adminName: string;
+}
+
+export interface CorrectionReviewHistoryRound {
+  id: string;
+  roundNumber: number;
+  submittedAt: string;
+  status: CorrectionReviewSubmissionStatus;
+  payload: CorrectionPayload;
+  action: CorrectionReviewHistoryAction | null;
+}
+
 export type EssayType = {
   id: string;
   student: string;

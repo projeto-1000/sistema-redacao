@@ -7,6 +7,7 @@ import {
 } from "@/lib/integrations/datacrazy/sync-student";
 import {
   CorrectionPayload,
+  CorrectionReviewHistoryRound,
   EssayStatus,
   GradedEssayListItem,
   MotivationalText,
@@ -37,6 +38,104 @@ interface ReturnEssayParams {
   essayId: string;
   reason: string;
   description: string;
+}
+
+interface ReviewHistorySubmissionRow {
+  id: string;
+  round_number: number;
+  submitted_at: string;
+  status: CorrectionReviewHistoryRound["status"];
+  payload: unknown;
+}
+
+interface ReviewHistoryActionRow {
+  submission_id: string;
+  action: NonNullable<CorrectionReviewHistoryRound["action"]>["action"];
+  feedback: string | null;
+  created_at: string;
+  admin: { full_name: string } | null;
+}
+
+async function getCorrectionReviewHistory(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  essayId: string
+): Promise<CorrectionReviewHistoryRound[]> {
+  const { data: submissions, error: submissionsError } = await supabase
+    .from("correction_review_submissions")
+    .select("id, round_number, submitted_at, status, payload")
+    .eq("essay_id", essayId)
+    .order("round_number", { ascending: true });
+
+  if (submissionsError) {
+    console.error("Erro ao carregar histórico de revisão da redação:", submissionsError);
+    return [];
+  }
+
+  const submissionRows = (submissions ?? []) as ReviewHistorySubmissionRow[];
+
+  if (submissionRows.length === 0) {
+    return [];
+  }
+
+  const { data: actions, error: actionsError } = await supabase
+    .from("correction_review_actions")
+    .select(
+      `
+        submission_id,
+        action,
+        feedback,
+        created_at,
+        admin:profiles!correction_review_actions_admin_id_fkey(full_name)
+      `
+    )
+    .in(
+      "submission_id",
+      submissionRows.map((submission) => submission.id)
+    );
+
+  if (actionsError) {
+    console.error("Erro ao carregar ações do histórico de revisão:", actionsError);
+    return [];
+  }
+
+  const actionBySubmission = new Map(
+    ((actions ?? []) as unknown as ReviewHistoryActionRow[]).map((action) => [
+      action.submission_id,
+      action,
+    ])
+  );
+
+  return submissionRows.flatMap((submission) => {
+    const payloadResult = finalCorrectionSchema.safeParse(submission.payload);
+
+    if (!payloadResult.success) {
+      console.error("Payload inválido no histórico de revisão:", {
+        submissionId: submission.id,
+        issues: payloadResult.error.flatten(),
+      });
+      return [];
+    }
+
+    const action = actionBySubmission.get(submission.id);
+
+    return [
+      {
+        id: submission.id,
+        roundNumber: submission.round_number,
+        submittedAt: submission.submitted_at,
+        status: submission.status,
+        payload: payloadResult.data,
+        action: action
+          ? {
+              action: action.action,
+              feedback: action.feedback,
+              createdAt: action.created_at,
+              adminName: action.admin?.full_name ?? "Administrador",
+            }
+          : null,
+      },
+    ];
+  });
 }
 
 export async function getEssaysByStatus({
@@ -247,6 +346,13 @@ export async function getGradedEssays({
 export async function getGradedEssay(id: string) {
   const supabase = await createClient();
 
+  const { data: role, error: roleError } = await supabase.rpc("get_my_role");
+
+  if (roleError || role !== "ADMIN") {
+    console.error("Acesso não autorizado ao detalhe da redação corrigida:", roleError);
+    return null;
+  }
+
   const { data: essay, error: essayError } = await supabase
     .from("essays")
     .select(
@@ -265,9 +371,11 @@ export async function getGradedEssay(id: string) {
   }
 
   const { student, teacher, ...essayData } = essay;
+  const reviewHistory = await getCorrectionReviewHistory(supabase, essayData.id);
 
   return {
     ...essayData,
+    reviewHistory,
     highlights: normalizeCorrectionHighlights(essayData.highlights),
     student_name: student.full_name,
     teacher_name: teacher?.full_name ?? "Corretor não informado",

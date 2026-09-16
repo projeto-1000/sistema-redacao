@@ -40,11 +40,10 @@ export default async function PendingEssaysPage({
           href="/redacoes-pendentes"
           role="tab"
           aria-selected={activeTab === "pendentes"}
-          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
-            activeTab === "pendentes"
+          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${activeTab === "pendentes"
               ? "bg-white text-slate-900 shadow-sm"
               : "text-slate-500 hover:text-slate-700"
-          }`}
+            }`}
         >
           Redações pendentes
         </Link>
@@ -52,11 +51,10 @@ export default async function PendingEssaysPage({
           href="/redacoes-pendentes?tab=revisoes"
           role="tab"
           aria-selected={activeTab === "revisoes"}
-          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
-            activeTab === "revisoes"
-              ? "bg-white text-slate-900 shadow-sm"
+          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${activeTab === "revisoes"
+              ? "bg-white shadow-sm"
               : "text-slate-500 hover:text-slate-700"
-          }`}
+            }`}
         >
           Aguardando revisão ({reviewQueueResult.totalCount})
         </Link>

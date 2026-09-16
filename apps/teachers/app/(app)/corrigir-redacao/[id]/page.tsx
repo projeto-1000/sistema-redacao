@@ -39,12 +39,12 @@ export default async function EssayCorrectionPage(props: Props) {
   return (
     <div className="space-y-4">
       {reviewState?.status === "returned_to_teacher" && (
-        <div className="mx-2 flex gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4 text-amber-950 md:mx-10 lg:mx-12">
+        <div className="mb-2 flex gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4 text-amber-950 md:mb-8">
           <MessageSquareWarning className="mt-0.5 size-5 shrink-0 text-amber-700" />
           <div>
             <p className="font-bold">Correção devolvida para ajustes</p>
             <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">
-              {reviewState.feedback ?? "Revise a correção conforme orientação da administração."}
+              {reviewState.feedback}
             </p>
           </div>
         </div>

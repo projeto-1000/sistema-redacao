@@ -199,6 +199,20 @@ export function EssayViewer({
     onActiveHighlightIdChange(null);
   };
 
+  const handleHighlightCommentKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    const isSaveShortcut =
+      event.key === "Enter" && (event.metaKey || event.ctrlKey);
+
+    if (readOnly || event.nativeEvent.isComposing || !isSaveShortcut) {
+      return;
+    }
+
+    event.preventDefault();
+    handleSaveHighlightComment();
+  };
+
   const handleRemoveHighlight = (id: string) => {
     if (readOnly) return;
 
@@ -371,6 +385,7 @@ export function EssayViewer({
             id={`highlight-comment-${popover.existingId ?? "new"}`}
             value={popover.comment}
             readOnly={readOnly}
+            aria-keyshortcuts={readOnly ? undefined : "Meta+Enter Control+Enter"}
             onChange={(event) => {
               const comment = event.target.value;
               setPopover((currentPopover) =>
@@ -379,19 +394,24 @@ export function EssayViewer({
                   : currentPopover
               );
             }}
+            onKeyDown={handleHighlightCommentKeyDown}
             maxLength={2000}
             rows={4}
             placeholder="Explique o problema ou a orientação para este trecho..."
             className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700 outline-none placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200"
           />
 
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <span className="text-[10px] text-slate-400">
+          <div className="mt-1.5 flex items-center justify-between gap-3 text-[10px] text-slate-400">
+            <span>
               {popover.comment.length}/2000
             </span>
-
             {!readOnly && (
-              <div className="flex items-center gap-2">
+              <span className="hidden sm:inline">⌘/Ctrl + Enter para salvar</span>
+            )}
+          </div>
+
+          {!readOnly && (
+            <div className="mt-3 flex items-center justify-end gap-2">
                 {activeHighlight && (
                   <button
                     type="button"
@@ -412,9 +432,8 @@ export function EssayViewer({
                 >
                   Salvar comentário
                 </Button>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       );
     }
