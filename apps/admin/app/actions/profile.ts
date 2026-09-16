@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/server";
+import { getPublicStorageObjectPath } from "@repo/utils";
 import { revalidatePath } from "next/cache";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -111,6 +112,23 @@ export async function uploadAvatar(formData: FormData) {
     return { success: false, error: "Nenhum arquivo enviado." };
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("avatar_url")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError) {
+    console.error("[ADMIN_AVATAR_PROFILE_READ_ERROR]", profileError);
+    return { success: false, error: "Falha ao localizar a foto atual." };
+  }
+
+  const previousAvatarPath = getPublicStorageObjectPath(
+    profile.avatar_url,
+    "avatars",
+    user.id,
+  );
+
   const fileExt = file.name.split(".").pop() || "jpg";
   const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
@@ -134,8 +152,24 @@ export async function uploadAvatar(formData: FormData) {
     .eq("id", user.id);
 
   if (updateError) {
+    const { error: rollbackError } = await supabase.storage.from("avatars").remove([fileName]);
+
+    if (rollbackError) {
+      console.error("[ADMIN_AVATAR_UPLOAD_ROLLBACK_ERROR]", rollbackError);
+    }
+
     console.error("[ADMIN_AVATAR_PROFILE_UPDATE_ERROR]", updateError);
     return { success: false, error: "Falha ao atualizar a foto no perfil." };
+  }
+
+  if (previousAvatarPath && previousAvatarPath !== fileName) {
+    const { error: deleteError } = await supabase.storage
+      .from("avatars")
+      .remove([previousAvatarPath]);
+
+    if (deleteError) {
+      console.error("[ADMIN_PREVIOUS_AVATAR_DELETE_ERROR]", deleteError);
+    }
   }
 
   revalidatePath("/perfil");
