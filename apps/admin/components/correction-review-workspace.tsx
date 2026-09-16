@@ -5,6 +5,7 @@ import {
   type PendingCorrectionReviewDetails,
 } from "@/app/actions/correction-reviews";
 import { ApproveCorrectionReviewDialog } from "@/components/approve-correction-review-dialog";
+import { ReturnCorrectionReviewDialog } from "@/components/return-correction-review-dialog";
 import { Button } from "@repo/ui/components/button";
 import { EssayCorrectionWorkspace } from "@repo/ui/components/features/grading/components/essay-correction-workspace";
 import type { CorrectionPayload } from "@repo/types";
@@ -31,33 +32,53 @@ export function CorrectionReviewWorkspace({ review }: CorrectionReviewWorkspaceP
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-violet-200 bg-violet-50 px-5 py-4 text-sm text-violet-900">
-        <span className="inline-flex items-center gap-1.5 font-bold">
-          <UserPen className="size-4" />
-          Professor: {review.teacher.name}
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <Clock className="size-4" />
-          Enviada em {formatSubmittedAt(review.submittedAt)}
-        </span>
-        <span className="rounded-full border border-violet-300 bg-white px-3 py-1 text-xs font-bold uppercase tracking-wide text-violet-700">
-          {isEditing ? "Editando correção" : "Aguardando revisão"}
-        </span>
-
-        {!isEditing && (
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 rounded-xl border-violet-300 font-bold text-violet-700 hover:bg-violet-100"
-              onClick={() => setIsEditing(true)}
-            >
-              <Pencil className="size-4" />
-              Editar correção
-            </Button>
-            <ApproveCorrectionReviewDialog submissionId={review.id} />
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700">
+              <UserPen className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-bold">Revisão da correção</p>
+              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+                <span className="font-medium text-slate-700">{review.teacher.name}</span>
+                <span aria-hidden="true">·</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock className="size-3.5" />
+                  Enviada em {formatSubmittedAt(review.submittedAt)}
+                </span>
+              </p>
+            </div>
           </div>
-        )}
+
+          <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-violet-700">
+            {isEditing ? "Editando correção" : "Aguardando revisão"}
+          </span>
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5">
+          <p className="text-sm text-slate-500">
+            {isEditing
+              ? "Faça os ajustes necessários e aprove a correção ao finalizar."
+              : "Confira a correção enviada pelo professor e escolha o próximo passo."}
+          </p>
+
+          {!isEditing && (
+            <div className="flex flex-wrap items-center gap-2">
+              <ReturnCorrectionReviewDialog submissionId={review.id} />
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 rounded-xl font-bold"
+                onClick={() => setIsEditing(true)}
+              >
+                <Pencil className="size-4" />
+                Editar
+              </Button>
+              <ApproveCorrectionReviewDialog submissionId={review.id} />
+            </div>
+          )}
+        </div>
       </div>
 
       <EssayCorrectionWorkspace

@@ -108,6 +108,37 @@ export async function getEssaysByStatus({
     return { essays: [], totalPages: 0, error };
   }
 
+  const latestReviewByEssay = new Map<
+    string,
+    "pending_review" | "returned_to_teacher"
+  >();
+
+  if (data.length > 0) {
+    const { data: reviewSubmissions, error: reviewSubmissionsError } = await supabase
+      .from("correction_review_submissions")
+      .select("essay_id, round_number, status")
+      .in(
+        "essay_id",
+        data.map((essay) => essay.id)
+      )
+      .in("status", ["pending_review", "returned_to_teacher"])
+      .order("round_number", { ascending: false });
+
+    if (reviewSubmissionsError) {
+      console.error("Erro ao buscar estados de revisão das redações:", reviewSubmissionsError);
+      return { essays: [], totalPages: 0, error: reviewSubmissionsError };
+    }
+
+    for (const submission of reviewSubmissions) {
+      if (!latestReviewByEssay.has(submission.essay_id)) {
+        latestReviewByEssay.set(
+          submission.essay_id,
+          submission.status as "pending_review" | "returned_to_teacher"
+        );
+      }
+    }
+  }
+
   const essays = data.map((essay) => {
     const { student, ...rest } = essay;
     const studentData = student as unknown as {
@@ -122,6 +153,7 @@ export async function getEssaysByStatus({
       student_name: studentData.full_name,
       avatar_url: studentData.avatar_url,
       email: studentData.email,
+      correction_review_status: latestReviewByEssay.get(rest.id) ?? null,
     };
   });
 
@@ -188,7 +220,7 @@ export async function getEssayById(id: string) {
   };
 }
 
-export async function getLatestPendingReviewSubmission(essayId: string) {
+export async function getLatestCorrectionReviewState(essayId: string) {
   const supabase = await createClient();
 
   const {
@@ -213,7 +245,10 @@ export async function getLatestPendingReviewSubmission(essayId: string) {
     throw new Error("Não foi possível carregar a correção enviada para revisão.");
   }
 
-  if (!submission || submission.status !== "pending_review") {
+  if (
+    !submission ||
+    !["pending_review", "returned_to_teacher"].includes(submission.status)
+  ) {
     return null;
   }
 
@@ -227,11 +262,30 @@ export async function getLatestPendingReviewSubmission(essayId: string) {
     throw new Error("A correção enviada para revisão possui dados inválidos.");
   }
 
+  let feedback: string | null = null;
+
+  if (submission.status === "returned_to_teacher") {
+    const { data: action, error: actionError } = await supabase
+      .from("correction_review_actions")
+      .select("feedback")
+      .eq("submission_id", submission.id)
+      .eq("action", "returned_to_teacher")
+      .maybeSingle();
+
+    if (actionError) {
+      console.error("Erro ao buscar orientações da devolução:", actionError);
+      throw new Error("Não foi possível carregar as orientações da revisão.");
+    }
+
+    feedback = action?.feedback ?? null;
+  }
+
   return {
     id: submission.id,
     roundNumber: submission.round_number,
-    status: "pending_review" as const,
+    status: submission.status as "pending_review" | "returned_to_teacher",
     payload: validationResult.data,
+    feedback,
   };
 }
 

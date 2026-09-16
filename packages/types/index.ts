@@ -163,6 +163,7 @@ export interface PendingEssayListItem {
   status?: string
   teacher_name?: string
   teacher_avatar?: string
+  correction_review_status?: "pending_review" | "returned_to_teacher" | null
 }
 
 export interface GradedEssayListItem {

@@ -40,6 +40,12 @@ interface CorrectionApprovalResult {
   status: "approved" | "approved_with_changes";
 }
 
+interface CorrectionReturnResult {
+  essay_id: string;
+  submission_id: string;
+  status: "returned_to_teacher";
+}
+
 export interface PendingCorrectionReviewListItem {
   id: string;
   essayTitle: string;
@@ -135,7 +141,7 @@ async function runCorrectionApprovalEffects(
   }
 }
 
-function revalidateCorrectionApprovalPaths(submissionId: string) {
+function revalidateCorrectionReviewPaths(submissionId: string) {
   revalidatePath("/inicio");
   revalidatePath("/redacoes-pendentes");
   revalidatePath("/redacoes-corrigidas");
@@ -234,7 +240,7 @@ export async function approveSupervisedCorrection(submissionId: string): Promise
   }
 
   await runCorrectionApprovalEffects(supabase, approval);
-  revalidateCorrectionApprovalPaths(submissionId);
+  revalidateCorrectionReviewPaths(submissionId);
 
   return { success: true };
 }
@@ -288,7 +294,47 @@ export async function approveSupervisedCorrectionWithChanges(
   }
 
   await runCorrectionApprovalEffects(supabase, approval);
-  revalidateCorrectionApprovalPaths(submissionId);
+  revalidateCorrectionReviewPaths(submissionId);
+
+  return { success: true };
+}
+
+export async function returnSupervisedCorrectionToTeacher(
+  submissionId: string,
+  feedback: string
+): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const normalizedFeedback = feedback.trim();
+
+  if (!normalizedFeedback) {
+    return {
+      success: false,
+      error: "Informe ao professor o que precisa ser ajustado.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: returnRows, error: returnError } = await supabase.rpc(
+    "return_supervised_correction_to_teacher",
+    {
+      p_submission_id: submissionId,
+      p_feedback: normalizedFeedback,
+    }
+  );
+
+  const returnedSubmission = (returnRows as CorrectionReturnResult[] | null)?.[0];
+
+  if (returnError || !returnedSubmission) {
+    console.error("Erro ao devolver correção supervisionada ao professor:", returnError);
+    return {
+      success: false,
+      error: "Não foi possível devolver a correção ao professor.",
+    };
+  }
+
+  revalidateCorrectionReviewPaths(submissionId);
 
   return { success: true };
 }

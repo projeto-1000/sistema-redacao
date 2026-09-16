@@ -73,6 +73,7 @@ export async function NextEssays() {
             <StartEssayCorrectionButton
               essayId={essay.id}
               isPending={essay.status === "pending"}
+              reviewStatus={essay.correction_review_status}
             />
           </div>
         );

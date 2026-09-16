@@ -5,7 +5,7 @@ import { DeadlineInfo, PendingEssayListItem } from "@repo/types";
 import { Avatar } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button"
 import { formatDate, getDeadlineStatus } from "@repo/utils";
-import { ArrowRight, Clock, Hourglass } from "lucide-react"
+import { ArrowRight, Clock, Eye, Hourglass, RotateCcw } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -46,6 +46,11 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
     if (startingEssayId) return;
     setStartingEssayId(essayId);
 
+    if (essay.correction_review_status) {
+      router.push(`/corrigir-redacao/${essayId}`);
+      return;
+    }
+
     try {
       const result = await startEssayCorrection(essayId);
 
@@ -55,7 +60,7 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
         toast.error(result.error || "A redação já foi assumida por outro corretor.");
         setStartingEssayId(null);
       }
-    } catch (error) {
+    } catch {
       toast.error("Ocorreu um erro ao tentar iniciar a correção.");
       setStartingEssayId(null);
     }
@@ -98,11 +103,25 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
             onClick={() => handleStartCorrection(essay.id)}
             disabled={startingEssayId === essay.id}
             className="rounded-2xl font-bold shadow-sm h-10 whitespace-nowrap md:whitespace-normal leading-normal transition-transform"
-            variant={essay.status === 'pending' ? 'default' : 'secondary'}
+            variant={
+              essay.correction_review_status === "returned_to_teacher"
+                ? "outline"
+                : essay.status === "pending"
+                  ? "default"
+                  : "secondary"
+            }
             isLoading={startingEssayId === essay.id}
             loadingText="Iniciando..."
           >
-            {essay.status === 'pending' ? (
+            {essay.correction_review_status === "pending_review" ? (
+              <>
+                Visualizar correção <Eye className="size-4" />
+              </>
+            ) : essay.correction_review_status === "returned_to_teacher" ? (
+              <>
+                Ajustar correção <RotateCcw className="size-4" />
+              </>
+            ) : essay.status === 'pending' ? (
               <>
                 Iniciar correção <ArrowRight className="size-4 ml-1" />
               </>

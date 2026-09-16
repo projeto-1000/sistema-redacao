@@ -2,7 +2,7 @@
 
 import { startEssayCorrection } from "@/app/actions/essays";
 import { Button } from "@repo/ui/components/button";
-import { ArrowRight, Hourglass } from "lucide-react";
+import { ArrowRight, Eye, Hourglass, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,11 +10,13 @@ import { toast } from "sonner";
 interface StartEssayCorrectionButtonProps {
   essayId: string;
   isPending: boolean;
+  reviewStatus?: "pending_review" | "returned_to_teacher" | null;
 }
 
 export function StartEssayCorrectionButton({
   essayId,
   isPending,
+  reviewStatus,
 }: StartEssayCorrectionButtonProps) {
   const router = useRouter();
   const [isStarting, setIsStarting] = useState(false);
@@ -23,6 +25,11 @@ export function StartEssayCorrectionButton({
     if (isStarting) return;
 
     setIsStarting(true);
+
+    if (reviewStatus) {
+      router.push(`/corrigir-redacao/${essayId}`);
+      return;
+    }
 
     try {
       const result = await startEssayCorrection(essayId);
@@ -44,14 +51,28 @@ export function StartEssayCorrectionButton({
   return (
     <Button
       type="button"
-      variant={isPending ? "dark" : "secondary"}
+      variant={
+        reviewStatus === "returned_to_teacher"
+          ? "outline"
+          : isPending
+            ? "dark"
+            : "secondary"
+      }
       className="h-10 rounded-full text-sm font-bold"
       onClick={handleStartCorrection}
       disabled={isStarting}
       isLoading={isStarting}
       loadingText="Iniciando..."
     >
-      {isPending ? (
+      {reviewStatus === "pending_review" ? (
+        <>
+          Visualizar correção <Eye className="size-4" />
+        </>
+      ) : reviewStatus === "returned_to_teacher" ? (
+        <>
+          Ajustar correção <RotateCcw className="size-4" />
+        </>
+      ) : isPending ? (
         <>
           Corrigir Agora <ArrowRight className="size-4" />
         </>
