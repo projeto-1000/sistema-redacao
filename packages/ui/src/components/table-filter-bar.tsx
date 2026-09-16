@@ -1,6 +1,6 @@
 import { Search, ChevronDown, CalendarDays, X } from "lucide-react";
 import { LucideIcon } from "lucide-react";
-import { format, subDays, subMonths, subYears, isSameDay } from "date-fns";
+import { format, subDays, subMonths, subYears, isSameDay, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
@@ -173,12 +173,12 @@ export function TableFilterBar(props: TableFilterBarProps) {
               <p className="ml-3 mt-3 text-[13px] text-slate-600">Filtrar por período:</p>
               <div className="grid grid-cols-3 p-3 gap-2 justify-between border-b rounded-t-xl border-slate-100 bg-slate-50/50">
                 {[
-                  { label: "7 dias", getFrom: (today: Date) => subDays(today, 7) },
-                  { label: "14 dias", getFrom: (today: Date) => subDays(today, 14) },
-                  { label: "1 mês", getFrom: (today: Date) => subMonths(today, 1) },
-                  { label: "3 meses", getFrom: (today: Date) => subMonths(today, 3) },
-                  { label: "6 meses", getFrom: (today: Date) => subMonths(today, 6) },
-                  { label: "1 ano", getFrom: (today: Date) => subYears(today, 1) },
+                  { label: "7 dias", getFrom: (today: Date) => subDays(today, 6) },
+                  { label: "14 dias", getFrom: (today: Date) => subDays(today, 13) },
+                  { label: "1 mês", getFrom: (today: Date) => addDays(subMonths(today, 1), 1) },
+                  { label: "3 meses", getFrom: (today: Date) => addDays(subMonths(today, 3), 1) },
+                  { label: "6 meses", getFrom: (today: Date) => addDays(subMonths(today, 6), 1) },
+                  { label: "1 ano", getFrom: (today: Date) => addDays(subYears(today, 1), 1) },
                 ].map((preset) => (
                   <Button
                     key={preset.label}
