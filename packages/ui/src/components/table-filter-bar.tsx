@@ -170,14 +170,15 @@ export function TableFilterBar(props: TableFilterBarProps) {
             </PopoverTrigger>
 
             <PopoverContent className="w-auto p-0 shadow-lg rounded-xl border-slate-200" align="end">
-
-              <div className="grid grid-cols-2 p-3 gap-2 justify-between border-b rounded-t-xl border-slate-100 bg-slate-50/50">
+              <p className="ml-3 mt-3 text-[13px] text-slate-600">Filtrar por período:</p>
+              <div className="grid grid-cols-3 p-3 gap-2 justify-between border-b rounded-t-xl border-slate-100 bg-slate-50/50">
                 {[
-                  { label: "7 dias", getFrom: (hoje: Date) => subDays(hoje, 7) },
-                  { label: "Mês passado", getFrom: (hoje: Date) => subMonths(hoje, 1) },
-                  { label: "3 meses", getFrom: (hoje: Date) => subMonths(hoje, 3) },
-                  { label: "6 meses", getFrom: (hoje: Date) => subMonths(hoje, 6) },
-                  { label: "1 ano", getFrom: (hoje: Date) => subYears(hoje, 1) },
+                  { label: "7 dias", getFrom: (today: Date) => subDays(today, 7) },
+                  { label: "14 dias", getFrom: (today: Date) => subDays(today, 14) },
+                  { label: "1 mês", getFrom: (today: Date) => subMonths(today, 1) },
+                  { label: "3 meses", getFrom: (today: Date) => subMonths(today, 3) },
+                  { label: "6 meses", getFrom: (today: Date) => subMonths(today, 6) },
+                  { label: "1 ano", getFrom: (today: Date) => subYears(today, 1) },
                 ].map((preset) => (
                   <Button
                     key={preset.label}

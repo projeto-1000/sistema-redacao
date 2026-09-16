@@ -35,9 +35,12 @@ export async function getStudentEssays({
 
   let query = supabase
     .from("essays")
-    .select("id, title, created_at, submission_date, correction_date, updated_at, status, total_score, thematic_axis, topic_id, due_date", {
-      count: "exact",
-    })
+    .select(
+      "id, title, created_at, submission_date, correction_date, updated_at, status, total_score, thematic_axis, topic_id, due_date",
+      {
+        count: "exact",
+      }
+    )
     .eq("student_id", user.id);
 
   if (filters?.search) {
