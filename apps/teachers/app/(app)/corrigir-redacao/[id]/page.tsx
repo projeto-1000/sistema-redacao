@@ -1,5 +1,10 @@
 import { getCorrectionDraft, saveCorrectionDraft } from "@/app/actions/drafts";
-import { getEssayById, saveEssayCorrection, returnEssay } from "@/app/actions/essays";
+import {
+  getEssayById,
+  getLatestPendingReviewSubmission,
+  saveEssayCorrection,
+  returnEssay,
+} from "@/app/actions/essays";
 import { EssayCorrectionWorkspace } from "@repo/ui/components/features/grading/components/essay-correction-workspace";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -15,14 +20,16 @@ type Props = {
 export default async function EssayCorrectionPage(props: Props) {
   const { id } = await props.params;
 
-  const [essay, draft] = await Promise.all([
+  const [essay, pendingReviewSubmission] = await Promise.all([
     getEssayById(id),
-    getCorrectionDraft(id)
+    getLatestPendingReviewSubmission(id),
   ]);
 
   if (!essay) {
     notFound();
   }
+
+  const draft = pendingReviewSubmission ? null : await getCorrectionDraft(id);
 
   const boundAutoSave = saveCorrectionDraft.bind(null, id);
   const boundFinalSave = saveEssayCorrection.bind(null, id);
@@ -30,11 +37,12 @@ export default async function EssayCorrectionPage(props: Props) {
   return (
     <EssayCorrectionWorkspace
       essay={essay}
-      initialDraft={draft}
-      onAutoSave={boundAutoSave}
+      initialDraft={pendingReviewSubmission?.payload ?? draft}
+      onAutoSave={pendingReviewSubmission ? undefined : boundAutoSave}
       onSaveCorrection={boundFinalSave}
       onReturnEssay={returnEssay}
       redirectPath="/redacoes-corrigidas"
+      readOnly={Boolean(pendingReviewSubmission)}
     />
   )
 }

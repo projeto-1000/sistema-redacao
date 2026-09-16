@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ArrowRight, Hourglass, Clock } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { useState } from "react"
+import { PENDING_ESSAYS_TABLE_GRID } from "./pending-essays-table-layout";
 
 interface PendingEssaysRowProps {
   essay: PendingEssayListItem;
@@ -67,7 +68,7 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
     <div className="divide-y divide-slate-100">
       <div
         key={essay.id}
-        className="grid grid-cols-1 xl:grid-cols-[minmax(0,3fr)_minmax(0,5fr)_max-content_max-content] gap-2 xl:gap-4 px-8 py-5 items-center hover:bg-slate-50 transition-colors group"
+        className={`grid ${PENDING_ESSAYS_TABLE_GRID} px-8 py-5 items-center hover:bg-slate-50 transition-colors group`}
       >
         <div className="min-w-0 flex items-center gap-4">
           <Avatar src={essay.avatar_url} name={essay.student_name} className="size-9 rounded-full shrink-0 border border-slate-200" />

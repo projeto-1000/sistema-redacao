@@ -7,6 +7,8 @@ interface StickyScoreProps {
   isSaving: boolean;
   onSave: () => void;
   readOnly?: boolean;
+  saveButtonLabel?: string;
+  savingLabel?: string;
 }
 
 export function StickyScore({
@@ -15,6 +17,8 @@ export function StickyScore({
   isSaving,
   onSave,
   readOnly = false,
+  saveButtonLabel = "Enviar Correção",
+  savingLabel = "Salvando...",
 }: StickyScoreProps) {
 
   return (
@@ -35,9 +39,9 @@ export function StickyScore({
           disabled={!canSave || isSaving}
           className="font-bold rounded-2xl px-6 h-12 transition-all shadow-lg"
           isLoading={isSaving}
-          loadingText="Salvando..."
+          loadingText={savingLabel}
         >
-          Enviar Correção
+          {saveButtonLabel}
         </Button>
       )}
     </div>

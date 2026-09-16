@@ -12,6 +12,7 @@ import {
   AlertDialogTrigger,
 } from "@repo/ui/components/alert-dialog";
 import { Button } from "@repo/ui/components/button";
+import { queuePostRedirectSuccessToast } from "@repo/ui/components/post-redirect-toast";
 import { CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -32,6 +33,8 @@ export function ApproveCorrectionReviewDialog({
   const handleApprove = async () => {
     if (submittingRef.current) return;
 
+    let redirectStarted = false;
+
     submittingRef.current = true;
     setIsSubmitting(true);
 
@@ -43,21 +46,22 @@ export function ApproveCorrectionReviewDialog({
         return;
       }
 
-      // toast.success("Correção aprovada e enviada ao aluno.");
-      // setIsOpen(false);
-      // router.push("/redacoes-pendentes?tab=revisoes");
-      // router.refresh();
-      setIsOpen(false);
-      router.push("/redacoes-pendentes?tab=revisoes");
-      setTimeout(() => {
-        toast.success("Correção aprovada e enviada ao aluno.");
-      }, 300);
+      const destinationPath = "/redacoes-pendentes?tab=revisoes";
+
+      queuePostRedirectSuccessToast(
+        "Correção aprovada e enviada ao aluno.",
+        destinationPath
+      );
+      redirectStarted = true;
+      router.push(destinationPath);
     } catch (error) {
       console.error("Erro ao aprovar correção supervisionada:", error);
       toast.error("Não foi possível aprovar a correção. Tente novamente.");
     } finally {
-      submittingRef.current = false;
-      setIsSubmitting(false);
+      if (!redirectStarted) {
+        submittingRef.current = false;
+        setIsSubmitting(false);
+      }
     }
   };
 

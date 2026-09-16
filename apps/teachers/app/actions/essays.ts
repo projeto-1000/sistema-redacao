@@ -188,6 +188,53 @@ export async function getEssayById(id: string) {
   };
 }
 
+export async function getLatestPendingReviewSubmission(essayId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: submission, error } = await supabase
+    .from("correction_review_submissions")
+    .select("id, payload, round_number, status")
+    .eq("essay_id", essayId)
+    .eq("teacher_id", user.id)
+    .order("round_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Erro ao buscar submissão de revisão:", error);
+    throw new Error("Não foi possível carregar a correção enviada para revisão.");
+  }
+
+  if (!submission || submission.status !== "pending_review") {
+    return null;
+  }
+
+  const validationResult = finalCorrectionSchema.safeParse(submission.payload);
+
+  if (!validationResult.success) {
+    console.error("Payload inválido na submissão de revisão:", {
+      submission_id: submission.id,
+      issues: validationResult.error.flatten(),
+    });
+    throw new Error("A correção enviada para revisão possui dados inválidos.");
+  }
+
+  return {
+    id: submission.id,
+    roundNumber: submission.round_number,
+    status: "pending_review" as const,
+    payload: validationResult.data,
+  };
+}
+
 export async function saveEssayCorrection(essayId: string, payload: CorrectionPayload) {
   const supabase = await createClient();
 
@@ -208,6 +255,53 @@ export async function saveEssayCorrection(essayId: string, payload: CorrectionPa
   }
 
   const correction = validationResult.data;
+
+  const { data: teacherProfile, error: teacherProfileError } = await supabase
+    .from("profiles")
+    .select("correction_review_required")
+    .eq("id", user.id)
+    .single();
+
+  if (teacherProfileError || !teacherProfile) {
+    console.error("Erro ao verificar supervisão do professor:", teacherProfileError);
+    return { success: false, error: "Não foi possível verificar o fluxo de correção." };
+  }
+
+  if (teacherProfile.correction_review_required) {
+    const { data: submissionRows, error: submissionError } = await supabase.rpc(
+      "submit_supervised_correction",
+      {
+        p_essay_id: essayId,
+        p_payload: correction,
+      }
+    );
+
+    const submission = (
+      submissionRows as
+        | {
+            submission_id: string;
+            round_number: number;
+            status: "pending_review";
+          }[]
+        | null
+    )?.[0];
+
+    if (submissionError || !submission) {
+      console.error("Erro ao enviar correção para revisão:", submissionError);
+      return { success: false, error: "Não foi possível enviar a correção para revisão." };
+    }
+
+    revalidatePath("/inicio");
+    revalidatePath("/redacoes-pendentes");
+    revalidatePath(`/corrigir-redacao/${essayId}`);
+
+    return {
+      success: true,
+      reviewRequired: true,
+      message: "Correção enviada para revisão.",
+      submission,
+    };
+  }
 
   const { data: transitionedEssay, error: transitionError } = await supabase
     .from("essays")
@@ -439,7 +533,7 @@ export async function startEssayCorrection(essayId: string) {
       return { success: false, error: "Usuário não autenticado." };
     }
 
-    const { error: updateError } = await supabase
+    const { data: claimedEssay, error: updateError } = await supabase
       .from("essays")
       .update({
         teacher_id: user.id,
@@ -447,11 +541,32 @@ export async function startEssayCorrection(essayId: string) {
         status: "correcting",
       })
       .eq("id", essayId)
-      .is("teacher_id", null);
+      .eq("status", "pending")
+      .or(`teacher_id.is.null,teacher_id.eq.${user.id}`)
+      .select("id")
+      .maybeSingle();
 
     if (updateError) {
       console.error("🚨 Erro ao vincular professor:", updateError);
       return { success: false, error: "Erro ao iniciar correção." };
+    }
+
+    if (!claimedEssay) {
+      const { data: currentEssay, error: currentEssayError } = await supabase
+        .from("essays")
+        .select("teacher_id, status")
+        .eq("id", essayId)
+        .maybeSingle();
+
+      if (
+        currentEssayError ||
+        !currentEssay ||
+        currentEssay.teacher_id !== user.id ||
+        currentEssay.status !== "correcting"
+      ) {
+        console.error("🚨 Redação não atribuída ao professor atual:", currentEssayError);
+        return { success: false, error: "A redação já foi assumida por outro corretor." };
+      }
     }
 
     revalidatePath("/redacoes-pendentes");

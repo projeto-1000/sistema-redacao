@@ -32,6 +32,14 @@ interface ReviewTeacherRelation {
   full_name: string;
 }
 
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+interface CorrectionApprovalResult {
+  essay_id: string;
+  submission_id: string;
+  status: "approved" | "approved_with_changes";
+}
+
 export interface PendingCorrectionReviewListItem {
   id: string;
   essayTitle: string;
@@ -60,6 +68,78 @@ export interface PendingCorrectionReviewDetails {
     motivationalTextsLoadError: boolean;
   };
   payload: CorrectionPayload;
+}
+
+async function runCorrectionApprovalEffects(
+  supabase: SupabaseClient,
+  approval: CorrectionApprovalResult
+) {
+  const { data: essay, error: essayError } = await supabase
+    .from("essays")
+    .select(
+      `
+        student_id,
+        title,
+        student:profiles!essays_student_id_fkey(full_name, email)
+      `
+    )
+    .eq("id", approval.essay_id)
+    .maybeSingle();
+
+  if (essayError || !essay) {
+    console.error("[CORRECTION_REVIEW_EFFECTS_DATA_ERROR]", {
+      essay_id: approval.essay_id,
+      submission_id: approval.submission_id,
+      error: essayError,
+    });
+    return;
+  }
+
+  try {
+    await syncStudentToDataCrazy(essay.student_id, "essay_status_updated");
+  } catch (error) {
+    console.error("[DATACRAZY_SYNC_ERROR]", {
+      essay_id: approval.essay_id,
+      student_id: essay.student_id,
+      event: "essay_status_updated",
+      error_code: getDataCrazySyncErrorCode(error),
+    });
+  }
+
+  const student = essay.student as unknown as {
+    full_name: string | null;
+    email: string | null;
+  } | null;
+
+  if (student?.email) {
+    try {
+      await sendEssayCorrectionAvailableEmail({
+        to: student.email,
+        studentName: student.full_name,
+        essayId: approval.essay_id,
+        essayTitle: essay.title,
+      });
+    } catch (error) {
+      console.error("[ESSAY_CORRECTION_EMAIL_ERROR]", {
+        essay_id: approval.essay_id,
+        student_id: essay.student_id,
+        error,
+      });
+    }
+  } else {
+    console.warn("[ESSAY_CORRECTION_EMAIL_SKIPPED]", {
+      essay_id: approval.essay_id,
+      student_id: essay.student_id,
+      reason: "missing_student_email",
+    });
+  }
+}
+
+function revalidateCorrectionApprovalPaths(submissionId: string) {
+  revalidatePath("/inicio");
+  revalidatePath("/redacoes-pendentes");
+  revalidatePath("/redacoes-corrigidas");
+  revalidatePath(`/redacoes-pendentes/revisoes/${submissionId}`);
 }
 
 export async function getPendingCorrectionReviews({
@@ -143,15 +223,7 @@ export async function approveSupervisedCorrection(submissionId: string): Promise
     { p_submission_id: submissionId }
   );
 
-  const approval = (
-    approvalRows as
-      | {
-          essay_id: string;
-          submission_id: string;
-          status: "approved";
-        }[]
-      | null
-  )?.[0];
+  const approval = (approvalRows as CorrectionApprovalResult[] | null)?.[0];
 
   if (approvalError || !approval) {
     console.error("Erro ao aprovar correção supervisionada:", approvalError);
@@ -161,69 +233,62 @@ export async function approveSupervisedCorrection(submissionId: string): Promise
     };
   }
 
-  const { data: essay, error: essayError } = await supabase
-    .from("essays")
-    .select(
-      `
-        student_id,
-        title,
-        student:profiles!essays_student_id_fkey(full_name, email)
-      `
-    )
-    .eq("id", approval.essay_id)
-    .maybeSingle();
+  await runCorrectionApprovalEffects(supabase, approval);
+  revalidateCorrectionApprovalPaths(submissionId);
 
-  if (essayError || !essay) {
-    console.error("[CORRECTION_REVIEW_EFFECTS_DATA_ERROR]", {
-      essay_id: approval.essay_id,
-      submission_id: approval.submission_id,
-      error: essayError,
-    });
-  } else {
-    try {
-      await syncStudentToDataCrazy(essay.student_id, "essay_status_updated");
-    } catch (error) {
-      console.error("[DATACRAZY_SYNC_ERROR]", {
-        essay_id: approval.essay_id,
-        student_id: essay.student_id,
-        event: "essay_status_updated",
-        error_code: getDataCrazySyncErrorCode(error),
-      });
-    }
+  return { success: true };
+}
 
-    const student = essay.student as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null;
+export async function approveSupervisedCorrectionWithChanges(
+  submissionId: string,
+  payload: CorrectionPayload
+): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const validationResult = finalCorrectionSchema.safeParse(payload);
 
-    if (student?.email) {
-      try {
-        await sendEssayCorrectionAvailableEmail({
-          to: student.email,
-          studentName: student.full_name,
-          essayId: approval.essay_id,
-          essayTitle: essay.title,
-        });
-      } catch (error) {
-        console.error("[ESSAY_CORRECTION_EMAIL_ERROR]", {
-          essay_id: approval.essay_id,
-          student_id: essay.student_id,
-          error,
-        });
-      }
-    } else {
-      console.warn("[ESSAY_CORRECTION_EMAIL_SKIPPED]", {
-        essay_id: approval.essay_id,
-        student_id: essay.student_id,
-        reason: "missing_student_email",
-      });
-    }
+  if (!validationResult.success) {
+    console.error(
+      "Dados inválidos ao aprovar correção supervisionada com alterações:",
+      validationResult.error.flatten()
+    );
+
+    return {
+      success: false,
+      error: "Preencha corretamente todos os campos obrigatórios antes de aprovar.",
+    };
   }
 
-  revalidatePath("/inicio");
-  revalidatePath("/redacoes-pendentes");
-  revalidatePath("/redacoes-corrigidas");
-  revalidatePath(`/redacoes-pendentes/revisoes/${submissionId}`);
+  const supabase = await createClient();
+  const { data: approvalRows, error: approvalError } = await supabase.rpc(
+    "approve_supervised_correction_with_changes",
+    {
+      p_submission_id: submissionId,
+      p_payload: validationResult.data,
+    }
+  );
+
+  const approval = (approvalRows as CorrectionApprovalResult[] | null)?.[0];
+
+  if (approvalError || !approval) {
+    console.error("Erro ao aprovar correção supervisionada com alterações:", approvalError);
+
+    if (approvalError?.message.includes("does not contain any review changes")) {
+      return {
+        success: false,
+        error: "Nenhuma alteração foi feita na correção.",
+      };
+    }
+
+    return {
+      success: false,
+      error: "Não foi possível aprovar a correção com alterações.",
+    };
+  }
+
+  await runCorrectionApprovalEffects(supabase, approval);
+  revalidateCorrectionApprovalPaths(submissionId);
 
   return { success: true };
 }

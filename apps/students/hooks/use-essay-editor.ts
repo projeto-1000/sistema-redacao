@@ -15,6 +15,7 @@ export function useEssayEditor(
 ) {
   const [content, setContent] = useState<string>(serverBackup?.content || "");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingBackupRef = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     const localContent = localStorage.getItem(`@backup:${themeId}`);
@@ -35,11 +36,12 @@ export function useEssayEditor(
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     timeoutRef.current = setTimeout(async () => {
-      try {
-        await saveTemporaryBackup(themeId, content);
-      } catch (e) {
-        console.error("Erro no auto-save:", e);
-      }
+      timeoutRef.current = null;
+      pendingBackupRef.current = pendingBackupRef.current
+        .then(() => saveTemporaryBackup(themeId, content))
+        .catch((error) => {
+          console.error("Erro no auto-save:", error);
+        });
     }, 1500);
 
     return () => {
@@ -47,10 +49,23 @@ export function useEssayEditor(
     };
   }, [content, themeId, serverBackup, isDisabled]);
 
+  const waitForAutoSave = async () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    await pendingBackupRef.current;
+  };
+
   const clearAutoSave = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
     localStorage.removeItem(`@backup:${themeId}`);
   };
 
-  return { content, setContent, clearAutoSave };
+  return { content, setContent, clearAutoSave, waitForAutoSave };
 }

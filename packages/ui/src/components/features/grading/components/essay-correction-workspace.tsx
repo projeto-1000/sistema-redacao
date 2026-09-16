@@ -16,6 +16,7 @@ import { COMPETENCIES } from "@repo/constants";
 import EssayHeader from "../../essays/components/essay-header";
 import { ReturnEssayDialog, ReturnEssayParams } from "./return-essay-dialog";
 import { CorrectionSummaryFields } from "./correction-summary-fields";
+import { queuePostRedirectSuccessToast } from "../../../post-redirect-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   finalCorrectionSchema,
@@ -34,11 +35,19 @@ interface EssayCorrectionWorkspaceProps {
     motivational_texts_load_error: boolean;
   };
   initialDraft?: CorrectionPayload | null;
-  onAutoSave?: (payload: CorrectionPayload) => void;
-  onSaveCorrection?: (payload: CorrectionPayload) => Promise<{ success: boolean; error?: string }>;
+  onAutoSave?: (payload: CorrectionPayload) => void | Promise<unknown>;
+  onSaveCorrection?: (payload: CorrectionPayload) => Promise<{
+    success: boolean;
+    error?: string;
+    message?: string;
+    reviewRequired?: boolean;
+  }>;
   redirectPath: string;
   onReturnEssay?: (params: ReturnEssayParams) => Promise<{ success: boolean; error?: string }>;
   readOnly?: boolean;
+  saveButtonLabel?: string;
+  savingLabel?: string;
+  successMessage?: string;
 }
 
 function normalizeInitialFormValues(
@@ -115,6 +124,9 @@ export function EssayCorrectionWorkspace({
   redirectPath,
   onReturnEssay,
   readOnly = false,
+  saveButtonLabel = "Enviar Correção",
+  savingLabel = "Salvando...",
+  successMessage = "Redação corrigida com sucesso!",
 }: EssayCorrectionWorkspaceProps) {
   const router = useRouter();
 
@@ -155,6 +167,9 @@ export function EssayCorrectionWorkspace({
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const isInitialMount = useRef(true);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingAutoSaveRef = useRef<Promise<void>>(Promise.resolve());
+  const finalizationStartedRef = useRef(false);
 
   useEffect(() => {
     setValue(
@@ -167,20 +182,38 @@ export function EssayCorrectionWorkspace({
   }, [highlights, setValue]);
 
   useEffect(() => {
-    if (readOnly) return;
-
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
 
-    const timer = setTimeout(() => {
+    if (readOnly || !onAutoSave || finalizationStartedRef.current) {
+      return;
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveTimerRef.current = null;
+
+      if (finalizationStartedRef.current) {
+        return;
+      }
+
       const payload = serializeCorrectionPayload(getValues());
 
-      onAutoSave?.(payload);
+      pendingAutoSaveRef.current = pendingAutoSaveRef.current
+        .then(() => onAutoSave(payload))
+        .then(() => undefined)
+        .catch((error) => {
+          console.error("Erro ao salvar rascunho:", error);
+        });
     }, 3000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = null;
+      }
+    };
   }, [
     scores,
     comments,
@@ -202,29 +235,43 @@ export function EssayCorrectionWorkspace({
     setActiveHighlightComp(prev => prev === compId ? null : compId);
   };
 
-  const handleSave = handleSubmit(
+  const submitCorrection = handleSubmit(
     async (payload) => {
-      if (readOnly || !onSaveCorrection) return;
-
       try {
+        if (!onSaveCorrection) {
+          finalizationStartedRef.current = false;
+          toast.error("A finalização não está disponível neste modo.");
+          return;
+        }
+
+        await pendingAutoSaveRef.current;
+
         const result =
           await onSaveCorrection(serializeCorrectionPayload(payload));
 
         if (result.success) {
-          toast.success(
-            "Redação corrigida com sucesso!"
-          );
+          const destinationPath = result.reviewRequired
+            ? "/redacoes-pendentes"
+            : redirectPath;
+          const confirmationMessage = result.reviewRequired
+            ? result.message ?? "Correção enviada para revisão."
+            : successMessage;
 
+          queuePostRedirectSuccessToast(confirmationMessage, destinationPath);
           setIsRedirecting(true);
-          router.push(redirectPath);
+          router.push(destinationPath);
           return;
         }
+
+        finalizationStartedRef.current = false;
 
         toast.error(
           result.error ??
           "Não foi possível salvar a correção."
         );
       } catch (error) {
+        finalizationStartedRef.current = false;
+
         console.error(
           "Erro ao salvar correção:",
           error
@@ -236,6 +283,8 @@ export function EssayCorrectionWorkspace({
       }
     },
     (errors) => {
+      finalizationStartedRef.current = false;
+
       console.error(
         "Correção inválida:",
         errors
@@ -246,6 +295,21 @@ export function EssayCorrectionWorkspace({
       );
     }
   );
+
+  const handleSave = () => {
+    if (readOnly || finalizationStartedRef.current) {
+      return;
+    }
+
+    finalizationStartedRef.current = true;
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
+
+    void submitCorrection();
+  };
 
 
   return (
@@ -369,6 +433,8 @@ export function EssayCorrectionWorkspace({
             isSaving={isSubmitting || isRedirecting}
             onSave={handleSave}
             readOnly={readOnly}
+            saveButtonLabel={saveButtonLabel}
+            savingLabel={savingLabel}
           />
         </div>
       </div>
