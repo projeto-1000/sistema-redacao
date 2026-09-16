@@ -11,6 +11,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@repo/ui/components/tabs";
+import { EssayTextStatistics } from "../../essays/components/essay-text-statistics";
 
 const COMP_BUTTONS = [
   { id: "c1", bg: "bg-comp-1" },
@@ -490,21 +491,25 @@ export function EssayViewer({
         </TabsList>
 
         <TabsContent value="student-text">
-          <div
-            className="p-4 md:p-10 overflow-y-auto min-h-[50vh]"
-            onMouseUp={handleSelectionEnd}
-            onTouchEnd={handleSelectionEnd}
-          >
-            <h2 className="text-lg md:text-2xl font-black mb-8 leading-tight text-center">
-              {essay.title}
-            </h2>
-
+          <div className="min-h-[50vh]">
             <div
-              ref={textRef}
-              className="text-justify text-base leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word selection:bg-amber-200/50 md:text-lg"
+              className="overflow-y-auto p-4 md:p-10"
+              onMouseUp={handleSelectionEnd}
+              onTouchEnd={handleSelectionEnd}
             >
-              {renderContent()}
+              <h2 className="text-lg md:text-2xl font-black mb-8 leading-tight text-center">
+                {essay.title}
+              </h2>
+
+              <div
+                ref={textRef}
+                className="text-justify text-base leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word selection:bg-amber-200/50 md:text-lg"
+              >
+                {renderContent()}
+              </div>
             </div>
+
+            <EssayTextStatistics text={essay.content} />
           </div>
         </TabsContent>
 

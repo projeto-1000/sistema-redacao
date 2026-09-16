@@ -45,6 +45,7 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
                 text={essay.text}
                 highlights={essay.highlights}
                 bestScores={bestScores}
+                showEmptyBestScores
               />
             </div>
 

@@ -74,6 +74,7 @@ function CorrectionPayloadView({
             highlights={payload.highlights}
             generalComment={payload.general_comment}
             bestScores={getBestScores(payload)}
+            showTextStatistics
           />
         </div>
 
