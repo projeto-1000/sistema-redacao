@@ -1,4 +1,5 @@
 import { getCorrectionDraft, saveCorrectionDraft } from "@/app/actions/drafts";
+import { getProfileData } from "@/app/actions/profile";
 import {
   getEssayById,
   getLatestCorrectionReviewState,
@@ -21,9 +22,10 @@ type Props = {
 export default async function EssayCorrectionPage(props: Props) {
   const { id } = await props.params;
 
-  const [essay, reviewState] = await Promise.all([
+  const [essay, reviewState, profileData] = await Promise.all([
     getEssayById(id),
     getLatestCorrectionReviewState(id),
+    getProfileData(),
   ]);
 
   if (!essay) {
@@ -31,6 +33,8 @@ export default async function EssayCorrectionPage(props: Props) {
   }
 
   const isPendingReview = reviewState?.status === "pending_review";
+  const correctionReviewRequired =
+    profileData?.user.correction_review_required === true;
   const draft = isPendingReview ? null : await getCorrectionDraft(id);
 
   const boundAutoSave = saveCorrectionDraft.bind(null, id);
@@ -62,6 +66,12 @@ export default async function EssayCorrectionPage(props: Props) {
         onReturnEssay={reviewState ? undefined : returnEssay}
         redirectPath="/redacoes-corrigidas"
         readOnly={isPendingReview}
+        saveButtonLabel={
+          correctionReviewRequired ? "Enviar para revisão" : undefined
+        }
+        savingLabel={
+          correctionReviewRequired ? "Enviando para revisão..." : undefined
+        }
       />
     </div>
   )
