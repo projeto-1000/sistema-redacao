@@ -75,11 +75,10 @@ export function EditProfileView({ initialData, onSaveProfile, onUploadAvatar, on
               }`}>
             Perfil
           </TabsTrigger>
-          <TabsTrigger value="password"
-            className={`text-[16px] md:text-[18px] font-medium ${initialData.role !== 'TEACHER' ?
-              'text-slate-400 hover:text-slate-600 data-[state=active]:text-primary after:bg-primary' :
-              ' hover:bg-secondary/70 after:bg-secondary'
-              }`}>
+          <TabsTrigger
+            value="password"
+            className="text-[16px] font-medium text-slate-400 transition-colors hover:text-primary data-[state=active]:text-primary after:bg-primary md:text-[18px]"
+          >
             Senha
           </TabsTrigger>
         </TabsList>
