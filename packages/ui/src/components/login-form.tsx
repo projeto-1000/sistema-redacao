@@ -60,9 +60,7 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
     await onSubmit(values);
   };
 
-  const inputFocusClass = appType === 'admin'
-    ? 'focus-visible:ring-secondary focus-visible:border-secondary focus-visible:ring-1'
-    : 'focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1';
+  const inputFocusClass = 'focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1';
 
   return (
     <div className="w-full max-w-[500px] flex flex-col items-center">
@@ -146,7 +144,6 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
 
               <Button
                 type="submit"
-                variant={appType !== 'admin' ? 'default' : 'secondary'}
                 className="w-full font-bold h-12 rounded-xl text-[16px]"
                 disabled={isSubmitting || !isValid}
                 isLoading={isSubmitting}
