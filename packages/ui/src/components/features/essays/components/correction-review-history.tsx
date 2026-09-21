@@ -550,7 +550,7 @@ export function CorrectionReviewHistory({
               : "text-slate-500 hover:text-slate-700"
               }`}
           >
-            Versão do aluno
+            Versão revisada
           </button>
           <button
             type="button"
