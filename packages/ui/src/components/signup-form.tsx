@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { registerSchema, type RegisterSchema } from "@repo/validators";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "./form";
@@ -105,16 +105,6 @@ export function SignUpForm({
     },
   });
 
-
-  const hasInitialValues = Boolean(initialValues);
-
-  useEffect(() => {
-    if (!hasInitialValues) {
-      return;
-    }
-
-    void form.trigger();
-  }, [form, hasInitialValues]);
 
   const { isValid, isSubmitting } = form.formState;
 
