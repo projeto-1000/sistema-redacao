@@ -206,6 +206,22 @@ function VersionValue({
   );
 }
 
+function VersionList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-2">
+      {items.map((item, index) => (
+        <li
+          key={`${item}-${index}`}
+          className="flex min-w-0 items-start gap-3"
+        >
+          <span className="mt-2 size-1.5 shrink-0 rounded-full bg-indigo-600" />
+          <span className="min-w-0 break-words">{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function ChangeCard({
   title,
   before,
@@ -377,8 +393,8 @@ function CorrectionChanges({
           JSON.stringify(published.next_essay_priorities) && (
             <ChangeCard
               title="Prioridades para a próxima redação"
-              before={original.next_essay_priorities.join("\n")}
-              after={published.next_essay_priorities.join("\n")}
+              before={<VersionList items={original.next_essay_priorities} />}
+              after={<VersionList items={published.next_essay_priorities} />}
             />
           )}
 
@@ -386,8 +402,8 @@ function CorrectionChanges({
           JSON.stringify(published.rewrite_tasks) && (
             <ChangeCard
               title="Tarefas de reescrita"
-              before={original.rewrite_tasks.join("\n")}
-              after={published.rewrite_tasks.join("\n")}
+              before={<VersionList items={original.rewrite_tasks} />}
+              after={<VersionList items={published.rewrite_tasks} />}
             />
           )}
 
