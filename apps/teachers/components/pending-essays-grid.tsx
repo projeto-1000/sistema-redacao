@@ -3,6 +3,7 @@ import PendingEssaysRow from "./pending-essays-row";
 import { CircleAlert, FileText, Search } from "lucide-react";
 import { TablePagination } from "./table-pagination";
 import { PendingEssaysFilter } from "@repo/types";
+import { PENDING_ESSAYS_TABLE_GRID } from "./pending-essays-table-layout";
 
 interface PendingEssaysProps {
   filters?: PendingEssaysFilter;
@@ -32,17 +33,17 @@ export default async function PendingEssaysGrid({ filters, page }: PendingEssays
     essays.length > 0 ? (
       <>
         <div className="rounded-4xl border border-slate-200 overflow-hidden shadow-sm mt-8 bg-white">
-          <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-5 border-b border-slate-100 bg-slate-50/50">
-            <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className={`hidden gap-4 border-b border-slate-100 bg-slate-50/50 px-8 py-5 lg:grid ${PENDING_ESSAYS_TABLE_GRID}`}>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               Aluno
             </div>
-            <div className="col-span-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               Tema da Redação
             </div>
-            <div className="col-span-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               Prazo
             </div>
-            <div className="col-span-2 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               Ação
             </div>
           </div>
