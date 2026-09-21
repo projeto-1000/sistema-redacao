@@ -209,10 +209,7 @@ export async function getEssaysByStatus({
     return { essays: [], totalPages: 0, error };
   }
 
-  const latestReviewByEssay = new Map<
-    string,
-    "pending_review" | "returned_to_teacher"
-  >();
+  const latestReviewByEssay = new Map<string, "pending_review" | "returned_to_teacher">();
 
   if (data.length > 0) {
     const { data: reviewSubmissions, error: reviewSubmissionsError } = await supabase
@@ -346,10 +343,7 @@ export async function getLatestCorrectionReviewState(essayId: string) {
     throw new Error("Não foi possível carregar a correção enviada para revisão.");
   }
 
-  if (
-    !submission ||
-    !["pending_review", "returned_to_teacher"].includes(submission.status)
-  ) {
+  if (!submission || !["pending_review", "returned_to_teacher"].includes(submission.status)) {
     return null;
   }
 
@@ -616,7 +610,7 @@ export async function getGradedEssays({
 
   const { data, count, error } = await query
     .range(rangeStart, rangeEnd)
-    .order("correction_date", { ascending: true });
+    .order("correction_date", { ascending: false });
 
   if (error) {
     console.error("Erro ao buscar redações:", error);
