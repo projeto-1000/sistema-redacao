@@ -24,6 +24,8 @@ interface ReviewEssayRelation {
 
 interface ReviewListEssayRelation {
   title: string;
+  due_date: string;
+  essay_remaining_business_seconds: number | string;
   student: { full_name: string } | null;
 }
 
@@ -53,6 +55,8 @@ export interface PendingCorrectionReviewListItem {
   teacherName: string;
   roundNumber: number;
   submittedAt: string;
+  dueDate: string;
+  remainingBusinessSeconds: number;
 }
 
 export interface PendingCorrectionReviewDetails {
@@ -174,6 +178,8 @@ export async function getPendingCorrectionReviews({
         submitted_at,
         essay:essays!correction_review_submissions_essay_id_fkey(
           title,
+          due_date,
+          essay_remaining_business_seconds,
           student:profiles!essays_student_id_fkey(full_name)
         ),
         teacher:profiles!correction_review_submissions_teacher_id_fkey(
@@ -207,6 +213,8 @@ export async function getPendingCorrectionReviews({
       teacherName: teacher.full_name,
       roundNumber: submission.round_number,
       submittedAt: submission.submitted_at,
+      dueDate: essay.due_date,
+      remainingBusinessSeconds: Number(essay.essay_remaining_business_seconds),
     };
   });
 

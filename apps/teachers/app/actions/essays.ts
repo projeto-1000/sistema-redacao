@@ -53,6 +53,28 @@ interface ReviewHistoryActionRow {
   admin: { full_name: string } | null;
 }
 
+interface TeacherReviewListEssayRelation {
+  id: string;
+  title: string;
+  due_date: string;
+  essay_remaining_business_seconds: number | string;
+  student: {
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
+}
+
+export interface PendingTeacherCorrectionReviewListItem {
+  id: string;
+  essayId: string;
+  essayTitle: string;
+  studentName: string;
+  studentAvatarUrl: string | null;
+  dueDate: string;
+  remainingBusinessSeconds: number;
+  submittedAt: string;
+}
+
 async function getCorrectionReviewHistory(
   supabase: Awaited<ReturnType<typeof createClient>>,
   essayId: string,
@@ -157,6 +179,29 @@ export async function getEssaysByStatus({
     redirect("/login");
   }
 
+  const { data: pendingReviewSubmissions, error: pendingReviewSubmissionsError } =
+    await supabase
+      .from("correction_review_submissions")
+      .select("essay_id")
+      .eq("teacher_id", user.id)
+      .eq("status", "pending_review");
+
+  if (pendingReviewSubmissionsError) {
+    console.error(
+      "Erro ao excluir correções aguardando revisão da fila principal:",
+      pendingReviewSubmissionsError
+    );
+    return {
+      essays: [],
+      totalPages: 0,
+      error: pendingReviewSubmissionsError,
+    };
+  }
+
+  const pendingReviewEssayIds = [
+    ...new Set(pendingReviewSubmissions.map((submission) => submission.essay_id)),
+  ];
+
   const rangeStart = (page - 1) * limit;
   const rangeEnd = rangeStart + limit - 1;
 
@@ -183,6 +228,10 @@ export async function getEssaysByStatus({
     query = query.in("status", status);
   } else {
     query = query.eq("status", status);
+  }
+
+  if (pendingReviewEssayIds.length > 0) {
+    query = query.not("id", "in", `(${pendingReviewEssayIds.join(",")})`);
   }
 
   if (filters?.search) {
@@ -259,6 +308,85 @@ export async function getEssaysByStatus({
     essays: essays,
     totalPages: count ? Math.ceil(count / limit) : 0,
     error: error || null,
+  };
+}
+
+export async function getPendingTeacherCorrectionReviews({
+  page = 1,
+  limit = 10,
+}: {
+  page?: number;
+  limit?: number;
+} = {}): Promise<{
+  reviews: PendingTeacherCorrectionReviewListItem[];
+  totalCount: number;
+  totalPages: number;
+  error: string | null;
+}> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
+
+  const { data, count, error } = await supabase
+    .from("correction_review_submissions")
+    .select(
+      `
+        id,
+        submitted_at,
+        essay:essays!correction_review_submissions_essay_id_fkey(
+          id,
+          title,
+          due_date,
+          essay_remaining_business_seconds,
+          student:profiles!essays_student_id_fkey(full_name, avatar_url)
+        )
+      `,
+      { count: "exact" }
+    )
+    .eq("teacher_id", user.id)
+    .eq("status", "pending_review")
+    .order("submitted_at", { ascending: true })
+    .range(rangeStart, rangeEnd);
+
+  if (error) {
+    console.error("Erro ao carregar correções do professor aguardando revisão:", error);
+    return {
+      reviews: [],
+      totalCount: 0,
+      totalPages: 0,
+      error: "Não foi possível carregar as correções aguardando revisão.",
+    };
+  }
+
+  const reviews = data.map((submission) => {
+    const essay = submission.essay as unknown as TeacherReviewListEssayRelation;
+
+    return {
+      id: submission.id,
+      essayId: essay.id,
+      essayTitle: essay.title,
+      studentName: essay.student?.full_name ?? "Aluno não identificado",
+      studentAvatarUrl: essay.student?.avatar_url ?? null,
+      dueDate: essay.due_date,
+      remainingBusinessSeconds: Number(essay.essay_remaining_business_seconds),
+      submittedAt: submission.submitted_at,
+    };
+  });
+
+  return {
+    reviews,
+    totalCount: count ?? 0,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+    error: null,
   };
 }
 
