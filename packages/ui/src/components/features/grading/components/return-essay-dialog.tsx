@@ -110,7 +110,7 @@ export function ReturnEssayDialog({ essayId, onReturnEssay }: ReturnEssayDialogP
     }}>
       <AlertDialogTrigger asChild>
         <Button variant="outline" className="h-12 rounded-xl text-red-600 hover:border-red-200! hover:bg-red-50! hover:text-red-700 bg-slate-300 font-medium">
-          <Undo /> Devolver Redação
+          <Undo /> Devolver sem correção
         </Button>
       </AlertDialogTrigger>
 
