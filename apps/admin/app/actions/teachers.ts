@@ -31,6 +31,16 @@ interface GetTeacherEssaysParams {
   limit?: number;
 }
 
+const FULL_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SHORT_UUID_PATTERN = /^[0-9a-f]{8}$/i;
+
+function getUuidPrefixRange(prefix: string) {
+  return {
+    start: `${prefix}-0000-0000-0000-000000000000`,
+    end: `${prefix}-ffff-ffff-ffff-ffffffffffff`,
+  };
+}
+
 export async function getTeachers({
   filters,
   page = 1,
@@ -50,7 +60,16 @@ export async function getTeachers({
     .select(`id, full_name, email, status, avatar_url, total, currentMonth`, { count: "exact" });
 
   if (filters?.search) {
-    query = query.or(`full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
+    const search = filters.search.trim();
+
+    if (FULL_UUID_PATTERN.test(search)) {
+      query = query.eq("id", search);
+    } else if (SHORT_UUID_PATTERN.test(search)) {
+      const { start, end } = getUuidPrefixRange(search.toLowerCase());
+      query = query.gte("id", start).lte("id", end);
+    } else {
+      query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
+    }
   }
 
   if (filters?.status && filters.status !== "all") {

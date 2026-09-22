@@ -8,7 +8,7 @@ export default function TeachersFilterBar() {
 
   return (
     <TableFilterBar
-      searchPlaceholder="Buscar por nome, e-mail ou CPF..."
+      searchPlaceholder="Buscar por nome, e-mail ou ID..."
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
       filters={filterOptions}
