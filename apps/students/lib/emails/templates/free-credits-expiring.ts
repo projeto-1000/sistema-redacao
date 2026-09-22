@@ -11,7 +11,7 @@ interface BuildFreeCreditsExpiringEmailParams {
 export const freeCreditsExpiringEmail = {
   subject: "Seu crédito gratuito está quase expirando 👀",
   preheader:
-    "Você ainda tem crédito disponível para enviar sua redação. Aproveite antes que ele expire.",
+    "Você ainda tem crédito disponível para enviar uma redação. Use antes da data de expiração.",
 };
 
 export function buildFreeCreditsExpiringEmailHtml({

@@ -17,7 +17,6 @@ export const essayCorrectedEmail = {
 export function buildEssayCorrectedEmailHtml({
   firstName,
   essayTitle,
-  score,
   correctionUrl,
 }: BuildEssayCorrectedEmailParams) {
   const safeFirstName = escapeHtml(firstName);
@@ -48,58 +47,60 @@ export function buildEssayCorrectedEmailHtml({
     },
 
     extraContentHtml: `
-      <table
-        role="presentation"
-        border="0"
-        cellpadding="0"
-        cellspacing="0"
-        width="100%"
-        style="
-          background-color: #eff6ff;
-          border-radius: 12px;
-          border: 1px solid #bfdbfe;
-        "
-      >
-        <tr>
-          <td style="padding: 22px 24px;">
-            <p
-              style="
-                margin: 0 0 6px 0;
-                color: #1d4ed8;
-                font-size: 11px;
-                font-weight: 700;
-                letter-spacing: 0.8px;
-                text-transform: uppercase;
-              "
-            >
-              Seu resultado
-            </p>
+  <table
+    role="presentation"
+    border="0"
+    cellpadding="0"
+    cellspacing="0"
+    width="100%"
+    style="
+      background-color: #eff6ff;
+      border-radius: 12px;
+      border: 1px solid #bfdbfe;
+    "
+  >
+    <tr>
+      <td style="padding: 22px 24px;">
+        <p
+          style="
+            margin: 0 0 6px 0;
+            color: #1d4ed8;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+          "
+        >
+          Sua correção completa
+        </p>
 
-            <p
-              style="
-                margin: 0 0 8px 0;
+        <p
+          style="
+            margin: 0 0 10px 0;
+            color: #111827;
+            font-size: 18px;
+            font-weight: 800;
+          "
+        >
+          Veja onde você acertou e onde pode evoluir
+        </p>
 
-                font-size: 22px;
-                font-weight: 800;
-              "
-            >
-              Quer ver seu resultado?
-            </p>
-
-            <p
-              style="
-                margin: 0;
-                color: #4b5563;
-                font-size: 13px;
-                line-height: 1.6;
-              "
-            >
-             Na plataforma, você encontra a análise completa das competências, o seu principal gargalo, os próximos passos e suas tarefas de reescrita.
-            </p>
-          </td>
-        </tr>
-      </table>
-    `,
+        <p
+          style="
+            margin: 0;
+            color: #4b5563;
+            font-size: 13px;
+            line-height: 1.7;
+          "
+        >
+          Na plataforma, você encontra a análise das cinco competências,
+          os comentários da correção, seus apontamentos no texto,
+          o principal gargalo, os próximos passos e as tarefas de reescrita.
+        </p>
+      </td>
+    </tr>
+  </table>
+`,
 
     footerText:
       "Você recebeu este e-mail porque uma redação enviada por você foi corrigida no Projeto 1000.",

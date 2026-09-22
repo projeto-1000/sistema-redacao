@@ -40,9 +40,76 @@ export function buildFreeCreditsExpiredEmailHtml({
     `,
 
     action: {
-      label: "Conhecer os planos",
+      label: "Continuar minha evolução",
       url: plansUrl,
     },
+
+    extraContentHtml: `
+  <table
+    role="presentation"
+    width="100%"
+    cellpadding="0"
+    cellspacing="0"
+    style="
+      background-color: #eff6ff;
+      border-radius: 12px;
+      border: 1px solid #bfdbfe;
+    "
+  >
+    <tr>
+      <td style="padding: 22px 24px;">
+        <p
+          style="
+            margin: 0 0 6px 0;
+            color: #1d4ed8;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+          "
+        >
+          Continue de onde parou
+        </p>
+
+        <p
+          style="
+            margin: 0 0 10px 0;
+            color: #111827;
+            font-size: 18px;
+            font-weight: 800;
+          "
+        >
+          Sua evolução não precisa parar aqui
+        </p>
+
+        <p
+          style="
+            margin: 0 0 8px 0;
+            color: #4b5563;
+            font-size: 13px;
+            line-height: 1.6;
+          "
+        >
+          Com um plano do Projeto 1000, você continua tendo acesso a:
+        </p>
+
+        <p
+          style="
+            margin: 0;
+            color: #4b5563;
+            font-size: 13px;
+            line-height: 1.8;
+          "
+        >
+          • correções completas por competência<br>
+          • comentários e apontamentos no texto<br>
+          • principal gargalo e próximos passos<br>
+          • tarefas de reescrita para praticar
+        </p>
+      </td>
+    </tr>
+  </table>
+`,
 
     footerText:
       "Você recebeu este e-mail porque os créditos gratuitos da sua conta no Projeto 1000 expiraram.",

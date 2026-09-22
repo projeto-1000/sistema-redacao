@@ -39,22 +39,25 @@ export function buildSubscriptionCreatedEmailHtml({
     preheader: subscriptionCreatedEmail.preheader,
 
     contentHtml: `
-      <p style="margin: 0 0 16px 0;">
-        Deu tudo certo com sua assinatura do plano <strong>${safePlanName}</strong>.
-      </p>
+  <p style="margin: 0 0 16px 0;">
+    Deu tudo certo com sua assinatura do plano <strong>${safePlanName}</strong> — seja muito bem-vindo(a)!
+  </p>
 
-      <p style="margin: 0 0 16px 0;">
-        Seus <strong>${credits} ${creditLabel}</strong> já estão disponíveis para você
-        continuar treinando, enviando redações e acompanhando sua evolução.
-      </p>
+  <p style="margin: 0 0 16px 0;">
+    A partir de agora, você tem <strong>${credits} ${creditLabel}</strong> disponíveis para continuar praticando, enviar novas redações e acompanhar sua evolução com mais consistência.
+  </p>
 
-      <p style="margin: 0;">
-        Agora é só escolher o próximo tema e colocar a escrita em prática.
-      </p>
-    `,
+  <p style="margin: 0 0 16px 0;">
+    Cada correção é uma nova oportunidade de entender melhor seus pontos fortes, identificar o que ainda precisa de atenção e chegar mais preparado(a) ao próximo texto.
+  </p>
+
+  <p style="margin: 0;">
+    Seu plano já está ativo e seus créditos já podem ser usados. 💙
+  </p>
+`,
 
     action: {
-      label: "Acessar minha conta",
+      label: "Começar a usar meu plano",
       url: dashboardUrl,
     },
 
@@ -126,18 +129,23 @@ export function buildSubscriptionCreatedEmailText({
 }: BuildSubscriptionCreatedEmailParams) {
   return `Olá, ${firstName}!
 
-Seu plano ${planName} já está ativo!
+Seu plano ${planName} já está ativo! 🎉
 
-Deu tudo certo com sua assinatura e seus ${credits} créditos já estão disponíveis para uso.
+Deu tudo certo com sua assinatura — seja muito bem-vindo(a)!
+
+A partir de agora, você tem ${credits} ${credits === 1 ? "crédito disponível" : "créditos disponíveis"} para continuar praticando, enviar novas redações e acompanhar sua evolução com mais consistência.
+
+Cada correção é uma nova oportunidade de entender melhor seus pontos fortes, identificar o que ainda precisa de atenção e chegar mais preparado(a) ao próximo texto.
 
 Resumo da assinatura:
+
 Plano: ${planName}
 Cobrança: ${billingLabel}
 Valor: ${amount}
 Créditos liberados: ${credits}
 Próxima cobrança: ${nextBillingAt}
 
-Acessar minha conta:
+Começar a usar meu plano:
 ${dashboardUrl}
 
 Equipe Projeto 1000`;

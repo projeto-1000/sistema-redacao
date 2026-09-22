@@ -28,20 +28,20 @@ export function buildEssayReturnedEmailHtml({
 
   return buildEmailLayout({
     eyebrow: "AÇÃO NECESSÁRIA",
-    title: `${safeFirstName}, sua redação voltou para você`,
+    title: `${safeFirstName}, precisamos de um ajuste na sua redação`,
     preheader: essayReturnedEmail.preheader,
 
     contentHtml: `
-      <p style="margin: 0 0 16px 0;">
-        A gente recebeu sua redação sobre <strong>${safeEssayTitle}</strong>,
-        mas não conseguiu seguir com a correção dessa vez.
-      </p>
+  <p style="margin: 0 0 16px 0;">
+    Sua redação sobre <strong>${safeEssayTitle}</strong> chegou para a nossa equipe,
+    mas antes de seguir para a correção precisamos que você faça um pequeno ajuste.
+  </p>
 
-      <p style="margin: 0;">
-        Fica tranquilo: abaixo mostramos o motivo para você ajustar o que for necessário
-        e enviar novamente.
-      </p>
-    `,
+  <p style="margin: 0;">
+    Abaixo explicamos o motivo da devolução para você revisar o que for necessário
+    e enviar novamente.
+  </p>
+`,
 
     action: {
       label: "Ver minha redação",
@@ -151,9 +151,9 @@ export function buildEssayReturnedEmailText({
 }: BuildEssayReturnedEmailParams) {
   return `Olá, ${firstName}!
 
-Sua redação sobre "${essayTitle}" voltou para você.
+Precisamos de um ajuste na sua redação sobre "${essayTitle}".
 
-Não conseguimos seguir com a correção dessa vez.
+Ela chegou para a nossa equipe, mas antes de seguir para a correção é necessário revisar um ponto do envio.
 
 Motivo:
 ${reason}
@@ -164,7 +164,7 @@ ${
     : "O crédito usado nesse envio não foi devolvido. Consulte os detalhes na plataforma."
 }
 
-Veja os detalhes e faça os ajustes necessários:
+Veja os detalhes, faça o ajuste necessário e envie novamente:
 ${essayUrl}
 
 Equipe Projeto 1000`;
