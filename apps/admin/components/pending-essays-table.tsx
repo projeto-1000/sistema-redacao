@@ -3,6 +3,7 @@ import PendingEssaysRow from "./pending-essays-row";
 import { PendingEssaysFilter } from "@repo/types";
 import { CircleAlert, FileText, Search } from "lucide-react";
 import { TablePagination } from "@repo/ui/components/table-pagination";
+import Link from "next/link";
 interface PendingEssaysTableProps {
   showHeader?: boolean
   filters?: PendingEssaysFilter;
@@ -36,9 +37,9 @@ export default async function PendingEssaysTable({ showHeader = false, filters, 
           {showHeader && (
             <div className="flex justify-between items-center p-8">
               <h3 className="text-lg font-bold">Fila de Correção</h3>
-              <button className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+              <Link href="/redacoes-pendentes" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
                 Ver fila completa
-              </button>
+              </Link>
             </div>
           )}
 
