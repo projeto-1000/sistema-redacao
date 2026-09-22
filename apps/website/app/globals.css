@@ -307,29 +307,6 @@
   }
 }
 
-.story-link {
-  position: relative;
-  display: inline-block;
-}
-.story-link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -8px;
-  height: 3px;
-  border-radius: 999px;
-  width: 100%;
-  background-color: var(--primary);
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.story-link:hover::after,
-.story-link[data-active="true"]::after {
-  transform: scaleX(1);
-  transform-origin: left;
-}
-
 /* Accordion (+ que vira ×) */
 .faq-plus {
   position: relative;

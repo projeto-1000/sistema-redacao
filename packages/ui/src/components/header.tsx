@@ -54,11 +54,12 @@ export function Header({
               <a
                 key={item.href}
                 href={item.href}
+                data-active={isActive}
                 className={`
-                  border-b-2 py-1 transition-colors duration-300
+                  story-link py-1 transition-colors duration-300
                   ${isActive
-                    ? "border-primary font-bold"
-                    : "border-transparent text-gray-600 hover:text-primary"
+                    ? "font-bold"
+                    : "text-gray-600 hover:text-primary"
                   }
                 `}
               >
