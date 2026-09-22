@@ -259,19 +259,19 @@ export default function HomePage() {
           <Reveal>
             <div className="mx-auto md:mx-0">
               <div className="relative">
-                <div className="absolute -inset-3 -z-10 rounded-[2rem] bg-pastel-yellow" />
+                <div className="absolute -inset-3 -z-10 rounded-4xl bg-pastel-yellow" />
                 <Image
                   src={fernando}
                   alt="Fernando Entratice, professor de redação e criador do Projeto 1000"
                   width={240}
                   height={288}
-                  className="h-72 w-60 rounded-[1.75rem] object-cover shadow-[var(--shadow-card)]"
+                  className="h-72 w-60 rounded-[1.75rem] object-cover shadow-(--shadow-card)"
                 />
               </div>
               <p className="mt-6 font-display text-lg font-extrabold uppercase tracking-wide text-foreground">
                 Fernando Entratice
               </p>
-              <p className="mt-1 max-w-[15rem] text-sm text-muted-foreground">
+              <p className="mt-1 max-w-60 text-sm text-muted-foreground">
                 Professor de redação e criador do Projeto 1000
               </p>
             </div>
@@ -320,7 +320,7 @@ export default function HomePage() {
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {depoimentos.map((t, i) => (
               <Reveal key={t.nome} delay={i * 100}>
-                <figure className="press-fx h-full rounded-2xl border border-border bg-card p-8 shadow-[var(--shadow-soft)]">
+                <figure className="press-fx h-full rounded-2xl border border-border bg-card p-8 shadow-(--shadow-soft)">
                   <span
                     aria-hidden
                     className="block font-display text-5xl leading-none text-accent"
@@ -347,7 +347,7 @@ export default function HomePage() {
       <section>
         <Container className="py-20">
           <Reveal>
-            <div className="on-navy relative overflow-hidden rounded-[2rem] p-10 text-center shadow-[var(--shadow-card)] md:p-14">
+            <div className="on-navy relative overflow-hidden rounded-4xl p-10 text-center shadow-(--shadow-card) md:p-14">
               <div className="float-blob pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
               <h2 className="relative font-display text-3xl font-extrabold sm:text-4xl">
                 Comece pela primeira correção gratuita. Descubra seu caminho
