@@ -1,6 +1,7 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { getTopicDetails } from "@/app/actions/get-topics";
+import { getReturnedEssayReuseSource } from "@/app/actions/get-essays";
 import { EssayWorkspace } from "@/components/essay-workspace";
 import { getDraftEssay, getTemporaryBackup } from "@/app/actions/essay-drafts";
 import { getCurrentStudentCreditSummary } from "@/app/actions/credits";
@@ -12,21 +13,34 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-  searchParams: Promise<{ id: string, success: string }>;
+  searchParams: Promise<{
+    id: string;
+    success?: string;
+    mode?: string;
+    source?: string;
+  }>;
 };
 
 export default async function NewEssayPage(props: Props) {
   const searchParams = await props.searchParams;
   const topicId = searchParams.id;
+  const mode =
+    searchParams.mode === "reuse" || searchParams.mode === "blank"
+      ? searchParams.mode
+      : undefined;
+  const sourceEssayId = searchParams.source;
 
   if (!topicId) {
     redirect("/temas");
   }
   const isSuccess = searchParams.success === "true";
 
-  const [essayTopic, creditSummary] = await Promise.all([
+  const [essayTopic, creditSummary, returnedEssaySource] = await Promise.all([
     getTopicDetails(topicId),
     getCurrentStudentCreditSummary(),
+    mode === "reuse" && sourceEssayId
+      ? getReturnedEssayReuseSource(sourceEssayId, topicId)
+      : Promise.resolve(null),
   ]);
 
   let tempBackup = null;
@@ -34,19 +48,40 @@ export default async function NewEssayPage(props: Props) {
 
   if (essayTopic && !isSuccess) {
     officialDraft = await getDraftEssay(topicId);
-    tempBackup = await getTemporaryBackup(topicId);
+
+    if (!mode) {
+      tempBackup = await getTemporaryBackup(topicId);
+    }
+  }
+
+  if (mode === "reuse" && !returnedEssaySource) {
+    notFound();
   }
 
   const latestDraft = [tempBackup, officialDraft]
     .filter(Boolean)
     .sort((a, b) => new Date(b?.updated_at).getTime() - new Date(a?.updated_at).getTime())[0];
 
-  const draftData: EssayDraft | null = latestDraft ? {
-    id: officialDraft?.id,
-    content: latestDraft.content,
-    updated_at: latestDraft.updated_at,
-    best_essay_consent: officialDraft?.best_essay_consent ?? false,
-  } : null;
+  const explicitDraft = mode
+    ? {
+        id: officialDraft?.id,
+        content: mode === "reuse" ? returnedEssaySource?.content ?? "" : "",
+        updated_at:
+          mode === "reuse"
+            ? returnedEssaySource?.updated_at ?? new Date().toISOString()
+            : new Date().toISOString(),
+        best_essay_consent: false,
+      }
+    : null;
+
+  const draftData: EssayDraft | null = explicitDraft ?? (latestDraft
+    ? {
+        id: officialDraft?.id,
+        content: latestDraft.content,
+        updated_at: latestDraft.updated_at,
+        best_essay_consent: officialDraft?.best_essay_consent ?? false,
+      }
+    : null);
 
   if (!essayTopic) {
     return (
@@ -63,6 +98,7 @@ export default async function NewEssayPage(props: Props) {
       essayTopic={essayTopic}
       isSuccess={isSuccess}
       backup={draftData}
+      preferInitialBackup={Boolean(mode)}
       hasAvailableCredits={creditSummary.total > 0}
     />
   );

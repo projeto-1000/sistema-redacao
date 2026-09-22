@@ -86,6 +86,8 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
             ) : (
               <div className="order-1 lg:order-0">
                 <ReturnedEssayCard
+                  essayId={essay.id}
+                  topicId={essay.topicId}
                   reason={essay.returnReason}
                   description={essay.returnDescription}
                 />
