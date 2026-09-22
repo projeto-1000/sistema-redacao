@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { parseTeachersFilters } from "@/utils/parse-filters";
 import TeachersFilterBar from "@/components/teachers-filter-bar";
+import { TeacherManagementTabs } from "@/components/teacher-management-tabs";
 
 export default async function TeachersManagementPage({
   searchParams,
@@ -32,6 +33,8 @@ export default async function TeachersManagementPage({
           </Link>
         </Button>
       </PageHeader>
+
+      <TeacherManagementTabs active="teachers" />
 
       <TeachersFilterBar />
 
