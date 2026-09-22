@@ -15,6 +15,7 @@ interface EssayWorkspaceProps {
   essayTopic: EssayTopicDetail;
   isSuccess: boolean;
   backup: EssayDraft | null;
+  preferInitialBackup?: boolean;
   hasAvailableCredits: boolean;
 }
 
@@ -22,6 +23,7 @@ export function EssayWorkspace({
   essayTopic,
   isSuccess,
   backup,
+  preferInitialBackup = false,
   hasAvailableCredits,
 }: EssayWorkspaceProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -77,6 +79,7 @@ export function EssayWorkspace({
           <EssayEditorForm
             topic={essayTopic}
             backup={backup}
+            preferInitialBackup={preferInitialBackup}
             hasAvailableCredits={hasAvailableCredits}
           />
         </div>

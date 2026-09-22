@@ -110,6 +110,8 @@ export async function getEssayById(essayId: string) {
   }
 
   return {
+    id: essay.id,
+    topicId: essay.topic_id,
     correctedAt: essay.correction_date,
     updatedAt: essay.updated_at,
     title: essay.title,
@@ -138,4 +140,32 @@ export async function getEssayById(essayId: string) {
     returnDescription: essay.return_description,
     status: essay.status,
   };
+}
+
+export async function getReturnedEssayReuseSource(
+  essayId: string,
+  topicId: string
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("essays")
+    .select("content, updated_at")
+    .eq("id", essayId)
+    .eq("topic_id", topicId)
+    .eq("student_id", user.id)
+    .eq("status", "returned")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Erro ao carregar redação devolvida para reenvio:", error);
+    return null;
+  }
+
+  return data;
 }
