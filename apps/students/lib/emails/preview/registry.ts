@@ -28,6 +28,8 @@ import {
   securityActivityAlertEmail,
   subscriptionEndedEmail,
   subscriptionReactivatedEmail,
+  teacherInvitationEmail,
+  studentInvitationEmail,
 } from "../templates";
 
 export const emailPreviewRegistry = [
@@ -105,7 +107,6 @@ export const emailPreviewRegistry = [
     subject: essayReturnedEmail.subject,
     description: "Explica o motivo da devolução e informa a situação do crédito.",
   },
-
   {
     slug: "subscription-created",
     name: "Assinatura realizada",
@@ -169,6 +170,15 @@ export const emailPreviewRegistry = [
     trigger: "Novo acesso ou atividade de segurança relevante",
     subject: securityActivityAlertEmail.subject,
     description: "Avisa sobre um novo acesso e orienta o aluno caso não reconheça a atividade.",
+  },
+  {
+    slug: "student-invitation",
+    name: "Convite para aluno",
+    category: "Conta e segurança",
+    description:
+      "Enviado ao aluno quando um administrador cria seu cadastro e ele precisa definir uma senha.",
+    subject: studentInvitationEmail.subject,
+    trigger: "Admin cadastra um novo aluno na plataforma",
   },
   {
     slug: "free-credits-expire-today",
@@ -265,6 +275,14 @@ export const emailPreviewRegistry = [
     trigger: "Processo de exclusão concluído",
     subject: accountDeletedEmail.subject,
     description: "Confirma a conclusão do processo de exclusão da conta.",
+  },
+  {
+    slug: "teacher-invitation",
+    name: "Convite para professor",
+    category: "Professores",
+    description: "Enviado ao professor para que finalize seu cadastro criando uma senha.",
+    subject: teacherInvitationEmail.subject,
+    trigger: "Admin cadastra um novo professor na plataforma",
   },
 ] as const;
 

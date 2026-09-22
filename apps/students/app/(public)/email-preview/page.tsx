@@ -30,6 +30,8 @@ import {
   buildSecurityActivityAlertEmailHtml,
   buildSubscriptionEndedEmailHtml,
   buildSubscriptionReactivatedEmailHtml,
+  buildTeacherInvitationEmailHtml,
+  buildStudentInvitationEmailHtml,
 } from "@/lib/emails/templates";
 import { emailPreviewMocks } from "@/lib/emails/preview/mocks";
 import {
@@ -51,6 +53,7 @@ const categoryOrder = [
   "Redações",
   "Assinatura e pagamentos",
   "Conta e privacidade",
+  "Professores",
 ] as const;
 
 function buildPreviewHtml(slug: EmailPreviewSlug) {
@@ -63,7 +66,10 @@ function buildPreviewHtml(slug: EmailPreviewSlug) {
 
     case "password-changed":
       return buildPasswordChangedEmailHtml(emailPreviewMocks.passwordChanged);
-
+    case "student-invitation":
+      return buildStudentInvitationEmailHtml(
+        emailPreviewMocks.studentInvitation,
+      );
     case "free-credits-expiring":
       return buildFreeCreditsExpiringEmailHtml(
         emailPreviewMocks.freeCreditsExpiring,
@@ -122,7 +128,10 @@ function buildPreviewHtml(slug: EmailPreviewSlug) {
       return buildSecurityActivityAlertEmailHtml(
         emailPreviewMocks.securityActivityAlert,
       );
-
+    case "teacher-invitation":
+      return buildTeacherInvitationEmailHtml(
+        emailPreviewMocks.teacherInvitation,
+      );
     case "free-credits-expire-today":
       return buildFreeCreditsExpireTodayEmailHtml(
         emailPreviewMocks.freeCreditsExpireToday,

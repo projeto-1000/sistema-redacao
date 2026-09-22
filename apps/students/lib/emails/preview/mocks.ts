@@ -206,4 +206,13 @@ export const emailPreviewMocks = {
     deletedAt: "3 de setembro de 2026",
     projectUrl: "https://projeto1000.com.br",
   },
+
+  teacherInvitation: {
+    teacherName: "Fernando",
+    signupUrl: "https://professores.projeto1000.com.br/finalizar-cadastro?token=preview-professor",
+  },
+  studentInvitation: {
+    studentName: "Fernanda",
+    signupUrl: "https://app.projeto1000.com.br/finalizar-cadastro?token=preview-aluno",
+  },
 } as const;

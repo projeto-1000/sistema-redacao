@@ -27,3 +27,5 @@ export * from "./payment-method-updated";
 export * from "./card-expiring";
 export * from "./account-deletion-requested";
 export * from "./account-deleted";
+export * from "./teacher-invitation";
+export * from "./student-invitation";
