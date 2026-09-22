@@ -348,7 +348,10 @@ export interface TeacherProfile {
   status: string;
   created_at: string;
   email: string;
-  avatar_url: string;
+  avatar_url: string | null;
+  document: string | null;
+  phone: string | null;
+  correction_review_required: boolean;
 }
 
 export interface TopicsFilter {
