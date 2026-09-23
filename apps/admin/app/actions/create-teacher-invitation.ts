@@ -53,7 +53,7 @@ export async function createTeacherInvitation(input: TeacherInviteInput): Promis
   let teacherId = emailOwner?.id;
   let invitationName = fullName;
   if (emailOwner) {
-    if ((emailOwner.role !== "TEACHER" && emailOwner.role !== "STUDENT") || emailOwner.document !== document) {
+    if ((emailOwner.role !== "TEACHER" && emailOwner.role !== "STUDENT" && emailOwner.role !== null) || emailOwner.document !== document) {
       return { success: false, error: "Este e-mail já está cadastrado." };
     }
     const { data: existing, error: existingError } = await admin.auth.admin.getUserById(emailOwner.id);
@@ -86,7 +86,7 @@ export async function createTeacherInvitation(input: TeacherInviteInput): Promis
     const { error: finalizeError } = await admin.rpc("finalize_teacher_invitation_profile", { p_user_id: teacherId });
     if (finalizeError) {
       // Leave the pending account intact for a safe retry. The SQL function is
-      // transactional and refuses to touch accounts with student activity.
+      // transactional and rejects unexpected student activity in either path.
       revalidatePath("/professores");
       return { success: false, error: "O cadastro ficou pendente e nenhum convite foi enviado. Corrija a configuração e tente novamente com os mesmos dados." };
     }
