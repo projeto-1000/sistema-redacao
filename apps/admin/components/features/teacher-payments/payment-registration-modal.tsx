@@ -3,14 +3,26 @@
 import { useState, useRef, useTransition, useEffect } from "react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@repo/ui/components/dialog";
 import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@repo/ui/components/dropdown-menu";
-import { Banknote, Copy, UploadCloud, CheckCircle2, User, Receipt, FileText, X, KeyRound, Landmark, AlertCircle, ArrowRightLeft } from "lucide-react";
+import { Banknote, CalendarDays, Copy, UploadCloud, CheckCircle2, User, Receipt, FileText, X, KeyRound, Landmark, AlertCircle, ArrowRightLeft } from "lucide-react";
 import { createTeacherPayment } from "@/app/actions/teacher-payments";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { AccountData, type PaymentMetrics } from "@/types";
 import { maskPixKey } from "@repo/utils";
+
+const MAX_RECEIPT_SIZE_BYTES = 10 * 1024 * 1024;
+
+function getTodayInSaoPaulo() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
 
 interface PaymentRegistrationModalProps {
   teacherId: string;
@@ -24,6 +36,8 @@ export function PaymentRegistrationModal({
 }: PaymentRegistrationModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [paymentDate, setPaymentDate] = useState(getTodayInSaoPaulo);
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,6 +50,7 @@ export function PaymentRegistrationModal({
   useEffect(() => {
     if (isOpen) {
       setSelectedAccount(accounts.find(a => a.is_default) || accounts[0] || null);
+      setPaymentDate(getTodayInSaoPaulo());
     }
   }, [isOpen, accounts]);
 
@@ -52,10 +67,35 @@ export function PaymentRegistrationModal({
     toast.success("Dados bancários copiados!");
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+  const selectReceipt = (selectedFile?: File) => {
+    if (!selectedFile) return;
+
+    if (selectedFile.type !== "application/pdf") {
+      toast.error("Selecione um arquivo PDF.");
+      return;
     }
+
+    if (selectedFile.size > MAX_RECEIPT_SIZE_BYTES) {
+      toast.error("O comprovante deve ter no máximo 10 MB.");
+      return;
+    }
+
+    setFile(selectedFile);
+  };
+
+  const clearReceipt = () => {
+    setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    selectReceipt(event.target.files?.[0]);
+  };
+
+  const handleFileDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDraggingFile(false);
+    selectReceipt(event.dataTransfer.files?.[0]);
   };
 
   const handleSubmit = () => {
@@ -68,21 +108,32 @@ export function PaymentRegistrationModal({
     formData.append("receipt", file);
     formData.append("teacherId", teacherId);
     formData.append("month", month);
+    formData.append("paymentDate", paymentDate);
 
     startTransition(async () => {
-      const result = await createTeacherPayment(formData);
-      if (result.success) {
-        toast.success("Pagamento registrado com sucesso!");
-        setIsOpen(false);
-        setFile(null);
-      } else {
-        toast.error(result.error || "Erro ao registrar pagamento.");
+      try {
+        const result = await createTeacherPayment(formData);
+        if (result.success) {
+          toast.success("Pagamento registrado com sucesso!");
+          setIsOpen(false);
+          clearReceipt();
+        } else {
+          toast.error(result.error || "Erro ao registrar pagamento.");
+        }
+      } catch {
+        toast.error("Erro ao registrar pagamento.");
       }
     });
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      setIsOpen(open);
+      if (!open) {
+        clearReceipt();
+        setIsDraggingFile(false);
+      }
+    }}>
       <DialogTrigger asChild>
         <Button className="w-full h-14 rounded-2xl font-black text-sm shadow-sm">
           <Banknote className="size-5 mr-2" /> Registrar Pagamento Manual
@@ -140,6 +191,20 @@ export function PaymentRegistrationModal({
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Valor Total</p>
               <p className="text-lg font-black text-primary">R$ {metrics.totalAmount.toFixed(2).replace(".", ",")}</p>
             </div>
+
+            <label className="mt-4 block border-t border-slate-200 pt-4">
+              <span className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <CalendarDays className="size-3.5 text-primary" /> Data do pagamento
+              </span>
+              <Input
+                type="date"
+                value={paymentDate}
+                max={getTodayInSaoPaulo()}
+                onChange={(event) => setPaymentDate(event.target.value)}
+                className="h-11 rounded-xl border-slate-200 bg-white"
+                required
+              />
+            </label>
           </div>
 
           <div>
@@ -246,7 +311,21 @@ export function PaymentRegistrationModal({
             {!file ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 hover:border-primary transition-colors"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    fileInputRef.current?.click();
+                  }
+                }}
+                onDragEnter={(event) => { event.preventDefault(); setIsDraggingFile(true); }}
+                onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; }}
+                onDragLeave={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsDraggingFile(false);
+                }}
+                onDrop={handleFileDrop}
+                role="button"
+                tabIndex={0}
+                className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${isDraggingFile ? "border-primary bg-blue-50" : "border-slate-200 hover:bg-slate-50 hover:border-primary"}`}
               >
                 <div className="size-10 rounded-full bg-blue-50 flex items-center justify-center mb-3">
                   <UploadCloud className="size-5 text-primary" />
@@ -271,7 +350,7 @@ export function PaymentRegistrationModal({
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setFile(null)}
+                  onClick={clearReceipt}
                   className="text-emerald-600 hover:bg-emerald-100 rounded-full h-8 w-8 shrink-0"
                 >
                   <X className="size-4" />
@@ -293,7 +372,7 @@ export function PaymentRegistrationModal({
           </DialogClose>
           <Button
             onClick={handleSubmit}
-            disabled={!file || !selectedAccount || isPending}
+            disabled={!file || !selectedAccount || !paymentDate || isPending}
             className="flex-1 font-black rounded-xl h-11 shadow-sm"
             isLoading={isPending}
             loadingText="Enviando..."

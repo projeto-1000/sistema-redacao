@@ -18,6 +18,34 @@ interface GetEssaysByPeriodParams {
 const RECEIPT_URL_TTL_SECONDS = 60 * 60;
 const MAX_RECEIPT_SIZE_BYTES = 10 * 1024 * 1024;
 
+function getTodayInSaoPaulo() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function parsePaymentDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+
+  const [yearPart, monthPart, dayPart] = value.split("-");
+  if (!yearPart || !monthPart || !dayPart) return null;
+
+  const year = Number(yearPart);
+  const month = Number(monthPart);
+  const day = Number(dayPart);
+  const calendarDate = new Date(Date.UTC(year, month - 1, day));
+  const isValidDate = calendarDate.getUTCFullYear() === year
+    && calendarDate.getUTCMonth() === month - 1
+    && calendarDate.getUTCDate() === day;
+
+  if (!isValidDate || value > getTodayInSaoPaulo()) return null;
+
+  return new Date(`${value}T12:00:00-03:00`).toISOString();
+}
+
 async function getReceiptAccessUrl(
   supabase: Awaited<ReturnType<typeof createClient>>,
   receiptPath: string | null | undefined
@@ -188,6 +216,7 @@ export async function createTeacherPayment(formData: FormData) {
 
   const teacherId = formData.get("teacherId") as string;
   const monthStr = formData.get("month") as string;
+  const paymentDateStr = formData.get("paymentDate");
   const file = formData.get("receipt") as File;
 
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(teacherId)) {
@@ -198,16 +227,21 @@ export async function createTeacherPayment(formData: FormData) {
     return { success: false, error: "Competência inválida." };
   }
 
+  const processedAt = parsePaymentDate(typeof paymentDateStr === "string" ? paymentDateStr : "");
+  if (!processedAt) {
+    return { success: false, error: "Informe uma data de pagamento válida, sem usar uma data futura." };
+  }
+
   if (!file || file.size === 0) {
-    throw new Error("O comprovante em PDF é obrigatório.");
+    return { success: false, error: "O comprovante em PDF é obrigatório." };
   }
 
   if (file.type !== "application/pdf") {
-    throw new Error("O comprovante deve ser um arquivo PDF.");
+    return { success: false, error: "O comprovante deve ser um arquivo PDF." };
   }
 
   if (file.size > MAX_RECEIPT_SIZE_BYTES) {
-    throw new Error("O comprovante deve ter no máximo 10 MB.");
+    return { success: false, error: "O comprovante deve ter no máximo 10 MB." };
   }
 
   try {
@@ -258,7 +292,7 @@ export async function createTeacherPayment(formData: FormData) {
         unit_value: unitValue,
         receipt_url: uploadData.path,
         status: "paid",
-        processed_at: new Date().toISOString(),
+        processed_at: processedAt,
       })
       .select()
       .single();
@@ -377,6 +411,11 @@ export async function exportTeacherPaymentsCsv(payload: { teacherId: string }) {
     {
       header: "Qtd. Redações",
       key: (row: TeacherPaymentHistoryItem) => row.essays_count?.toString() || "0",
+    },
+    {
+      header: "Valor por Redação",
+      key: (row: TeacherPaymentHistoryItem) =>
+        `R$ ${Number(row.unit_value).toFixed(2).replace(".", ",")}`,
     },
     {
       header: "Valor Total",

@@ -1,23 +1,11 @@
 import { z } from "zod";
+import { isValidCNPJ, isValidCPF } from "@repo/utils";
+
+const cleanDigits = (value: string) => value.replace(/\D/g, "");
 
 export const commonSchema = z.object({
-  ownerName: z.string().min(3, "O nome do titular é obrigatório."),
-  ownerDocument: z.string().superRefine((val, ctx) => {
-  const numbers = val.replace(/\D/g, "");
-
-  if (!numbers) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "O CPF ou CNPJ é obrigatório." });
-    return;
-  }
-
-  const isCpf = numbers.length <= 11;
-  const regex = isCpf ? /^\d{3}\.\d{3}\.\d{3}-\d{2}$/ : /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
-  const errorMessage = isCpf ? "Digite um CPF válido completo." : "Digite um CNPJ válido completo.";
-
-  if (!regex.test(val)) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: errorMessage });
-  }
-}),
+  ownerName: z.string().trim().min(3, "O nome do titular deve ter pelo menos 3 caracteres.").max(120, "O nome do titular deve ter até 120 caracteres."),
+  ownerDocument: z.string().trim().min(1, "O CPF ou CNPJ é obrigatório.").max(18, "O CPF ou CNPJ é muito longo."),
   isDefault: z.boolean().default(false),
 });
 
@@ -25,32 +13,40 @@ export const accountFormSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("pix"),
     pixType: z.enum(["cpf", "cnpj", "phone", "email", "random"]),
-    pixKey: z.string().min(1, "A chave PIX é obrigatória."),
+    pixKey: z.string().trim().min(1, "A chave PIX é obrigatória.").max(254, "A chave PIX é muito longa."),
   }),
   
   z.object({
     type: z.literal("bank_account"),
-    bankName: z.string().min(2, "O nome do banco é obrigatório."),
+    bankName: z.string().trim().min(2, "O nome do banco é obrigatório.").max(120, "O nome do banco deve ter até 120 caracteres."),
     accountVariant: z.enum(["corrente", "poupanca"]),
-    agency: z.string().min(1, "A agência é obrigatória."),
-    accountNumber: z.string().min(1, "O número da conta é obrigatório."),
+    agency: z.string().trim().min(1, "A agência é obrigatória.").max(4, "A agência deve ter até 4 dígitos.").regex(/^\d+$/, "Use apenas números na agência."),
+    accountNumber: z.string().trim().min(1, "O número da conta é obrigatório.").max(20, "A conta deve ter até 20 dígitos.").regex(/^\d+$/, "Use apenas números na conta."),
   }),
 ])
 .and(commonSchema)
 .superRefine((data, ctx) => {
-  if (data.type === "pix" && data.pixKey) {
-    if (data.pixType === "cpf" && !/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(data.pixKey)) {
-      ctx.addIssue({ path: ["pixKey"], code: z.ZodIssueCode.custom, message: "Digite um CPF válido e completo." });
-    } 
-    else if (data.pixType === "cnpj" && !/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(data.pixKey)) {
-      ctx.addIssue({ path: ["pixKey"], code: z.ZodIssueCode.custom, message: "Digite um CNPJ válido e completo." });
-    } 
-    else if (data.pixType === "phone" && !/^\(\d{2}\) \d{5}-\d{4}$/.test(data.pixKey)) {
-      ctx.addIssue({ path: ["pixKey"], code: z.ZodIssueCode.custom, message: "Digite um telefone válido com DDD." });
-    } 
-    else if (data.pixType === "email" && !z.string().email().safeParse(data.pixKey).success) {
-      ctx.addIssue({ path: ["pixKey"], code: z.ZodIssueCode.custom, message: "Digite um e-mail válido." });
-    }
+  const document = cleanDigits(data.ownerDocument);
+  const isValidDocument = document.length === 11
+    ? isValidCPF(document)
+    : document.length === 14 && isValidCNPJ(document);
+
+  if (!isValidDocument) {
+    ctx.addIssue({ path: ["ownerDocument"], code: z.ZodIssueCode.custom, message: "Informe um CPF ou CNPJ válido." });
+  }
+
+  if (data.type !== "pix") return;
+
+  const validPixKey = {
+    cpf: () => isValidCPF(data.pixKey),
+    cnpj: () => isValidCNPJ(data.pixKey),
+    phone: () => /^\(\d{2}\) \d{5}-\d{4}$/.test(data.pixKey),
+    email: () => z.string().email().max(254).safeParse(data.pixKey).success,
+    random: () => z.string().uuid().safeParse(data.pixKey).success,
+  }[data.pixType]();
+
+  if (!validPixKey) {
+    ctx.addIssue({ path: ["pixKey"], code: z.ZodIssueCode.custom, message: "Informe uma chave PIX válida para o tipo selecionado." });
   }
 });
 

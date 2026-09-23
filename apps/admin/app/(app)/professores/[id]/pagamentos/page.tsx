@@ -5,13 +5,12 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@repo/ui/components/page-header";
 import { PaymentDashboardNav, type TeacherPaymentsTab } from "@repo/ui/components/features/teacher-payments/payment-dashboard-nav";
 import { PaymentOverview } from "@repo/ui/components/features/teacher-payments/payment-overview";
-import { PaymentAccountsList } from "@repo/ui/components/features/teacher-payments/payment-accounts-list";
+import { PaymentMonthFilter } from "@repo/ui/components/features/teacher-payments/payment-month-filter";
 import { PaymentHistory } from "@repo/ui/components/features/teacher-payments/payment-history";
 import { getTeacherById } from "@/app/actions/teachers";
 import { getPaymentAccounts } from "@/app/actions/payment-accounts";
 import { getEssaysByPeriod, getPaymentMetrics, getTeacherPaymentHistory, exportTeacherPaymentsCsv } from "@/app/actions/teacher-payments";
-import { ManageAccountsModal } from "@/components/features/teacher-payments/manage-accounts-modal";
-import { PaymentFilters } from "@/components/features/teacher-payments/payment-filters";
+import { AdminPaymentAccountsManager } from "@/components/features/teacher-payments/admin-payment-accounts-manager";
 import { PaymentActions } from "@/components/features/teacher-payments/payment-actions";
 import { EssaysPeriodModal } from "@/components/features/teacher-payments/essays-period-modal";
 import { ExportCsvButton } from "@/components/export-csv-button";
@@ -60,7 +59,7 @@ export default async function TeacherPaymentsPage({ params, searchParams }: Teac
       />
 
       <PaymentDashboardNav activeTab={activeTab} baseHref={baseHref} />
-      {activeTab === "overview" && <PaymentFilters />}
+      {activeTab === "overview" && <PaymentMonthFilter />}
 
       {activeTab === "overview" && (
         <AdminOverview
@@ -75,9 +74,9 @@ export default async function TeacherPaymentsPage({ params, searchParams }: Teac
       )}
 
       {activeTab === "accounts" && (
-        <PaymentAccountsList
+        <AdminPaymentAccountsManager
+          teacherId={teacherId}
           accounts={accounts}
-          createAction={<ManageAccountsModal teacherId={teacherId} accounts={accounts} />}
         />
       )}
 
@@ -113,6 +112,7 @@ async function AdminOverview({
       metrics={metrics}
       monthLabel={monthLabel}
       account={accounts.find((account) => account.is_default) ?? accounts[0] ?? null}
+      allowCopyAccount
       accountsHref={`${baseHref}&tab=accounts`}
       historyHref={`${baseHref}&tab=history`}
       essaysAction={<EssaysPeriodModal teacherId={teacherId} essays={essayResult.essays} totalPages={essayResult.totalPages} />}

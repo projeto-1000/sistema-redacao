@@ -22,7 +22,7 @@ export function EssaysPeriodModal({ essays, totalPages }: EssaysPeriodModalProps
   const searchParams = useSearchParams();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const createQueryString = useCallback(
     (name: string, value: string) => {
@@ -43,8 +43,8 @@ export function EssaysPeriodModal({ essays, totalPages }: EssaysPeriodModalProps
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full h-12 rounded-xl text-blue-600 hover:bg-blue-50! font-bold transition-colors" disabled={essays.length === 0}>
-          <Eye className="size-4 mr-2" /> Ver redações do período
+        <Button variant="ghost" className="h-10 w-full rounded-xl px-3 font-bold text-slate-600 transition-colors hover:bg-primary/10 hover:text-slate-900 sm:w-auto" disabled={essays.length === 0}>
+          <Eye className="size-4" /> Ver redações do período
         </Button>
       </DialogTrigger>
 

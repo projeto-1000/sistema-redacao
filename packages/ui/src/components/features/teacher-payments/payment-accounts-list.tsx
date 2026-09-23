@@ -16,7 +16,7 @@ export function PaymentAccountsList({ accounts, createAction, renderActions }: P
         <div>
           <h2 className="text-xl font-black text-slate-900">Contas de recebimento</h2>
           <p className="mt-1 text-sm font-medium text-slate-500">
-            Cadastre os dados que serão usados nos próximos repasses.
+            Cadastre os dados que serão usados nos próximos pagamentos.
           </p>
         </div>
         {createAction}

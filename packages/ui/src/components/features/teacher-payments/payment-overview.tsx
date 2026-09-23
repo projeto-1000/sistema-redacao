@@ -10,6 +10,7 @@ import type { TeacherPaymentAccount, TeacherPaymentMetrics } from "@repo/types";
 import { formatDecimalCurrency, maskPaymentAccountNumber, maskPaymentPixKey } from "@repo/utils";
 import { Button } from "@repo/ui/components/button";
 import Link from "next/link";
+import { CopyPaymentAccountButton } from "./copy-payment-account-button";
 
 interface PaymentOverviewProps {
   metrics: TeacherPaymentMetrics;
@@ -19,6 +20,7 @@ interface PaymentOverviewProps {
   historyHref: string;
   adminAction?: React.ReactNode;
   essaysAction?: React.ReactNode;
+  allowCopyAccount?: boolean;
 }
 
 export function PaymentOverview({
@@ -29,8 +31,11 @@ export function PaymentOverview({
   historyHref,
   adminAction,
   essaysAction,
+  allowCopyAccount = false,
 }: PaymentOverviewProps) {
   const isPaid = metrics.status === "paid";
+  const deliveryTotal = metrics.onTime + metrics.delayed;
+  const onTimePercentage = deliveryTotal > 0 ? Math.round((metrics.onTime / deliveryTotal) * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -63,8 +68,8 @@ export function PaymentOverview({
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
-        <section className="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+      <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
+        <section className="flex h-full flex-col rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="text-xl font-black text-slate-900">Resumo do período</h2>
@@ -86,21 +91,35 @@ export function PaymentOverview({
             </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-medium text-blue-900">
-            Os pagamentos são realizados fora da plataforma e aparecem aqui após o registro pela equipe.
+          <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-slate-700">Pontualidade das correções</p>
+                <p className="mt-0.5 text-xs font-medium text-slate-500">
+                  Distribuição das entregas finalizadas no período
+                </p>
+              </div>
+              <span className="shrink-0 text-lg font-black text-slate-900">{onTimePercentage}% no prazo</span>
+            </div>
+            <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-red-100">
+              <span
+                className="h-full rounded-full bg-emerald-400 transition-[width]"
+                style={{ width: `${onTimePercentage}%` }}
+              />
+            </div>
           </div>
 
-          {adminAction && <div className="mt-6">{adminAction}</div>}
+          {adminAction && <div className="mt-auto pt-6">{adminAction}</div>}
         </section>
 
-        <section className="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+        <section className="flex h-full flex-col rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <div className="mb-6 flex items-center gap-3">
             <span className="flex size-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
               <Landmark className="size-5" />
             </span>
             <div>
               <h2 className="text-xl font-black text-slate-900">Conta principal</h2>
-              <p className="text-sm font-medium text-slate-500">Usada para os próximos repasses</p>
+              <p className="text-sm font-medium text-slate-500">Usada para os próximos pagamentos</p>
             </div>
           </div>
 
@@ -117,9 +136,7 @@ export function PaymentOverview({
                       : `Agência ${account.agency} • Conta ${maskPaymentAccountNumber(account.account_number)}`}
                   </p>
                 </div>
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-700">
-                  Principal
-                </span>
+                {allowCopyAccount && <CopyPaymentAccountButton account={account} />}
               </div>
             </div>
           ) : (
@@ -129,12 +146,14 @@ export function PaymentOverview({
             </div>
           )}
 
-          <Button asChild variant="outline" className="mt-6 h-12 w-full rounded-xl font-bold text-blue-600">
-            <Link href={accountsHref}>Gerenciar contas</Link>
-          </Button>
-          <Button asChild variant="ghost" className="mt-2 h-11 w-full rounded-xl font-bold text-slate-600">
-            <Link href={historyHref}>Ver histórico completo</Link>
-          </Button>
+          <div className="mt-auto flex flex-col gap-2 pt-6">
+            <Button asChild variant="outline" className="h-12 w-full rounded-xl font-bold text-blue-600">
+              <Link href={accountsHref}>Gerenciar contas</Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-11 w-full rounded-xl font-bold text-slate-600">
+              <Link href={historyHref}>Ver histórico completo</Link>
+            </Button>
+          </div>
         </section>
       </div>
     </div>
