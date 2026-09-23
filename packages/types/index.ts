@@ -354,6 +354,67 @@ export interface TeacherProfile {
   correction_review_required: boolean;
 }
 
+export type TeacherPaymentStatus =
+  | "paid"
+  | "pending"
+  | "processing"
+  | "cancelled"
+  | "refunded";
+
+export interface TeacherPaymentMetrics {
+  totalEssays: number;
+  onTime: number;
+  delayed: number;
+  valuePerCorrection: number;
+  dailyAverage: number;
+  totalAmount: number;
+  status: TeacherPaymentStatus | null;
+  receiptUrl?: string;
+}
+
+export type TeacherPaymentAccountType = "pix" | "bank_account";
+export type TeacherPaymentPixType = "cpf" | "cnpj" | "phone" | "email" | "random";
+export type TeacherBankAccountVariant = "corrente" | "poupanca";
+
+export interface TeacherPaymentAccount {
+  id: string;
+  teacher_id: string;
+  type: TeacherPaymentAccountType;
+  owner_name: string;
+  owner_document: string;
+  is_default: boolean;
+  pix_type: TeacherPaymentPixType | null;
+  pix_key: string | null;
+  bank_name: string | null;
+  agency: string | null;
+  account_number: string | null;
+  account_variant: TeacherBankAccountVariant | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TeacherPaymentHistoryItem {
+  id: string;
+  processed_at: string | null;
+  billing_month: string;
+  essays_count: number;
+  unit_value: number;
+  total_amount: number;
+  status: TeacherPaymentStatus;
+  receipt_url?: string | null;
+}
+
+export interface TeacherCorrectionRate {
+  id: string;
+  teacher_id: string | null;
+  amount: number;
+  effective_from: string;
+  effective_to: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TopicsFilter {
   search?: string;
   axis?: ThematicAxis | "Todos";

@@ -2,7 +2,7 @@ import { AlertTriangle, FileText } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { format, endOfMonth, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";;
-import { formatCurrency, formatDate } from "@repo/utils";
+import { formatDecimalCurrency, formatDate } from "@repo/utils";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import { exportTeacherPaymentsCsv, getTeacherPaymentHistory } from "@/app/actions/teacher-payments";
 import { TablePagination } from "@repo/ui/components/table-pagination";
@@ -98,7 +98,7 @@ export async function PaymentHistoryTable({ teacherId, page }: PaymentHistoryTab
 
                   <div className="col-span-1 lg:col-span-2 flex justify-between lg:justify-end items-center">
                     <span className="lg:hidden text-[10px] font-black text-slate-400 uppercase tracking-widest">Valor Total</span>
-                    <span className="text-sm font-black">{formatCurrency(row.total_amount)}</span>
+                    <span className="text-sm font-black">{formatDecimalCurrency(row.total_amount)}</span>
                   </div>
 
                   <div className="col-span-1 lg:col-span-1 flex justify-between lg:justify-center items-center">

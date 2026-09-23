@@ -11,13 +11,19 @@ interface EssayBackup {
 export function useEssayEditor(
   themeId: string,
   serverBackup: EssayBackup | null,
-  isDisabled = false
+  isDisabled = false,
+  preferServerBackup = false
 ) {
   const [content, setContent] = useState<string>(serverBackup?.content || "");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingBackupRef = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
+    if (preferServerBackup) {
+      setContent(serverBackup?.content || "");
+      return;
+    }
+
     const localContent = localStorage.getItem(`@backup:${themeId}`);
 
     if (localContent) {
@@ -25,7 +31,7 @@ export function useEssayEditor(
     } else if (serverBackup?.content) {
       setContent(serverBackup.content);
     }
-  }, [themeId, serverBackup]);
+  }, [themeId, serverBackup, preferServerBackup]);
 
   useEffect(() => {
     if (isDisabled) return;

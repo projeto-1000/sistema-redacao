@@ -68,9 +68,6 @@ export function PaymentRegistrationModal({
     formData.append("receipt", file);
     formData.append("teacherId", teacherId);
     formData.append("month", month);
-    formData.append("essaysCount", metrics.totalEssays.toString());
-    formData.append("unitValue", metrics.valuePerCorrection.toString());
-    formData.append("totalAmount", metrics.totalAmount.toString());
 
     startTransition(async () => {
       const result = await createTeacherPayment(formData);
@@ -242,7 +239,7 @@ export function PaymentRegistrationModal({
               type="file"
               ref={fileInputRef}
               className="hidden"
-              accept=".pdf, image/jpeg, image/png"
+              accept="application/pdf,.pdf"
               onChange={handleFileChange}
             />
 
@@ -258,7 +255,7 @@ export function PaymentRegistrationModal({
                   Arraste e solte o comprovante aqui
                 </p>
                 <p className="text-xs font-medium text-slate-400">
-                  ou clique para selecionar um arquivo (PDF, JPG, PNG)
+                  ou clique para selecionar um arquivo PDF de até 10 MB
                 </p>
               </div>
             ) : (

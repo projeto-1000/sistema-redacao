@@ -24,7 +24,7 @@ export default async function ProfileProfilePage() {
         user={data.user}
         secondaryAction={{
           label: "Gerenciar pagamentos",
-          href: "/checkout/upgrade"
+          href: "/pagamentos"
         }} />
     </div>
   );

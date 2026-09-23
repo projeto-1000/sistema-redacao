@@ -18,12 +18,14 @@ import Link from "next/link";
 interface EssayEditorFormProps {
   topic: EssayTopicDetail,
   backup: EssayDraft | null;
+  preferInitialBackup?: boolean;
   hasAvailableCredits: boolean;
 }
 
 export function EssayEditorForm({
   topic,
   backup,
+  preferInitialBackup = false,
   hasAvailableCredits,
 }: EssayEditorFormProps) {
   const [isSaving, setIsSaving] = useState(false)
@@ -36,7 +38,7 @@ export function EssayEditorForm({
     setContent: setText,
     clearAutoSave,
     waitForAutoSave,
-  } = useEssayEditor(topic.id, backup, !hasAvailableCredits);
+  } = useEssayEditor(topic.id, backup, !hasAvailableCredits, preferInitialBackup);
 
   const [state, formAction] = useActionState(
     async (prevState: ActionState, formData: FormData) => {

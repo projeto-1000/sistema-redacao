@@ -890,8 +890,8 @@ export async function returnEssay({ essayId, reason, description }: ReturnEssayP
       return { success: false, error: error.message };
     }
 
-    revalidatePath("/dashboard");
-    redirect("/redacoes-pendentes");
+    revalidatePath("/inicio");
+    revalidatePath("/redacoes-pendentes");
 
     return { success: true };
   } catch (err) {

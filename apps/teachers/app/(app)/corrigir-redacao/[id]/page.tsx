@@ -64,7 +64,7 @@ export default async function EssayCorrectionPage(props: Props) {
         onAutoSave={isPendingReview ? undefined : boundAutoSave}
         onSaveCorrection={boundFinalSave}
         onReturnEssay={reviewState ? undefined : returnEssay}
-        redirectPath="/redacoes-corrigidas"
+        redirectPath="/redacoes-pendentes"
         readOnly={isPendingReview}
         saveButtonLabel={
           correctionReviewRequired ? "Enviar para revisão" : undefined

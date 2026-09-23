@@ -29,7 +29,7 @@ export default async function EssayCorrectionPage(props: Props) {
       onAutoSave={boundAutoSave}
       onSaveCorrection={boundFinalSave}
       onReturnEssay={returnEssay}
-      redirectPath="/redacoes-corrigidas"
+      redirectPath="/redacoes-pendentes"
     />
   )
 

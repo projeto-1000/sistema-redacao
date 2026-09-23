@@ -1,12 +1,12 @@
-import { Plus } from "lucide-react";
-import { Button } from "@repo/ui/components/button";
-import Link from "next/link";
 import { TeachersTable } from "@/components/teachers-table";
+import { CreateTeacherDialog } from "@/components/create-teacher-dialog";
 import { PageHeader } from "@repo/ui/components/page-header";
 import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { parseTeachersFilters } from "@/utils/parse-filters";
 import TeachersFilterBar from "@/components/teachers-filter-bar";
+import { TeacherManagementTabs } from "@/components/teacher-management-tabs";
+import { createTeacherInvitation } from "@/app/actions/create-teacher-invitation";
 
 export default async function TeachersManagementPage({
   searchParams,
@@ -25,13 +25,10 @@ export default async function TeachersManagementPage({
         title="Gestão de Professores"
         subtitle="Gerencie o acesso e desempenho da sua equipe docente."
       >
-        <Button asChild className="font-bold rounded-xl h-10 shadow-sm w-full sm:w-auto">
-          <Link href='/'>
-            <Plus className="size-4 mr-2" />
-            Adicionar Novo Professor
-          </Link>
-        </Button>
+        <CreateTeacherDialog onCreate={createTeacherInvitation} />
       </PageHeader>
+
+      <TeacherManagementTabs active="teachers" />
 
       <TeachersFilterBar />
 

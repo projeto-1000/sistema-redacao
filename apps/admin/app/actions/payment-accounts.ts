@@ -25,19 +25,11 @@ export async function createPaymentAccount(teacherId: string, data: AccountFormV
   const supabase = await createClient();
 
   try {
-    if (data.isDefault) {
-      await supabase
-        .from("teacher_payment_accounts")
-        .update({ is_default: false })
-        .eq("teacher_id", teacherId);
-    }
-
     const payload = {
       teacher_id: teacherId,
       type: data.type,
       owner_name: data.ownerName,
       owner_document: data.ownerDocument,
-      is_default: data.isDefault,
       pix_type: data.type === "pix" ? data.pixType : null,
       pix_key: data.type === "pix" ? data.pixKey : null,
       bank_name: data.type === "bank_account" ? data.bankName : null,
@@ -46,12 +38,25 @@ export async function createPaymentAccount(teacherId: string, data: AccountFormV
       account_number: data.type === "bank_account" ? data.accountNumber : null,
     };
 
-    const { error } = await supabase.from("teacher_payment_accounts").insert(payload);
+    const { data: account, error } = await supabase
+      .from("teacher_payment_accounts")
+      .insert(payload)
+      .select("id")
+      .single();
     if (error) throw error;
+
+    if (data.isDefault) {
+      const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: account.id });
+      if (defaultError) {
+        await supabase.from("teacher_payment_accounts").delete().eq("id", account.id);
+        throw defaultError;
+      }
+    }
 
     revalidatePath(`/professores/${teacherId}/pagamentos`);
     return { success: true };
   } catch (error) {
+    console.error("Erro ao criar conta de pagamento:", error);
     return { success: false, error: "Falha ao salvar a conta." };
   }
 }
@@ -64,18 +69,10 @@ export async function updatePaymentAccount(
   const supabase = await createClient();
 
   try {
-    if (data.isDefault) {
-      await supabase
-        .from("teacher_payment_accounts")
-        .update({ is_default: false })
-        .eq("teacher_id", teacherId);
-    }
-
     const payload = {
       type: data.type,
       owner_name: data.ownerName,
       owner_document: data.ownerDocument,
-      is_default: data.isDefault,
       pix_type: data.type === "pix" ? data.pixType : null,
       pix_key: data.type === "pix" ? data.pixKey : null,
       bank_name: data.type === "bank_account" ? data.bankName : null,
@@ -88,8 +85,14 @@ export async function updatePaymentAccount(
     const { error } = await supabase
       .from("teacher_payment_accounts")
       .update(payload)
-      .eq("id", accountId);
+      .eq("id", accountId)
+      .eq("teacher_id", teacherId);
     if (error) throw error;
+
+    if (data.isDefault) {
+      const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: accountId });
+      if (defaultError) throw defaultError;
+    }
 
     revalidatePath(`/professores/${teacherId}/pagamentos`);
     return { success: true };
@@ -102,7 +105,7 @@ export async function updatePaymentAccount(
 export async function deletePaymentAccount(accountId: string, teacherId: string) {
   const supabase = await createClient();
   try {
-    const { error } = await supabase.from("teacher_payment_accounts").delete().eq("id", accountId);
+    const { error } = await supabase.rpc("delete_teacher_payment_account", { p_account_id: accountId });
     if (error) throw error;
 
     revalidatePath(`/professores/${teacherId}/pagamentos`);
