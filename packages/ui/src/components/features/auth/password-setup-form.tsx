@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from "@repo/ui/components/form";
 import { Input } from "@repo/ui/components/input";
+import { PasswordRequirements } from "@repo/ui/components/password-requirements";
 import {
   passwordSetupSchema,
   type PasswordSetupSchema,
@@ -40,6 +41,7 @@ export function PasswordSetupForm({
     mode: "onChange",
     defaultValues: { password: "", confirmPassword: "" },
   });
+  const password = form.watch("password");
 
   const handleSubmit = async (values: PasswordSetupSchema) => {
     form.clearErrors("root");
@@ -103,6 +105,8 @@ export function PasswordSetupForm({
               </FormItem>
             )}
           />
+
+          <PasswordRequirements password={password} />
 
           <FormField
             control={form.control}

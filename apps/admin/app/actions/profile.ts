@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/server";
 import { getPublicStorageObjectPath } from "@repo/utils";
+import { passwordSchema } from "@repo/validators";
 import { revalidatePath } from "next/cache";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -84,7 +85,18 @@ export async function updatePassword(password: string) {
     return { success: false, error: "Sessão administrativa inválida." };
   }
 
-  const { error } = await supabase.auth.updateUser({ password });
+  const parsedPassword = passwordSchema.safeParse(password);
+
+  if (!parsedPassword.success) {
+    return {
+      success: false,
+      error: parsedPassword.error.issues[0]?.message ?? "Senha inválida.",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: parsedPassword.data,
+  });
 
   if (error) {
     console.error("[ADMIN_PASSWORD_UPDATE_ERROR]", error);
@@ -123,11 +135,7 @@ export async function uploadAvatar(formData: FormData) {
     return { success: false, error: "Falha ao localizar a foto atual." };
   }
 
-  const previousAvatarPath = getPublicStorageObjectPath(
-    profile.avatar_url,
-    "avatars",
-    user.id,
-  );
+  const previousAvatarPath = getPublicStorageObjectPath(profile.avatar_url, "avatars", user.id);
 
   const fileExt = file.name.split(".").pop() || "jpg";
   const fileName = `${user.id}/${Date.now()}.${fileExt}`;

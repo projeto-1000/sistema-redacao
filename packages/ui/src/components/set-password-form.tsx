@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from "@repo/ui/components/form";
 import { Input } from "@repo/ui/components/input";
+import { PasswordRequirements } from "@repo/ui/components/password-requirements";
 import { type SetPasswordSchema, setPasswordSchema } from "@repo/validators";
 import { EyeOff, Eye, LockKeyhole } from "lucide-react";
 import { useState } from "react";
@@ -47,6 +48,7 @@ export function SetPasswordForm({
   });
 
   const { isValid, isSubmitting } = form.formState;
+  const password = form.watch("password");
 
   const handleSubmit = async (values: SetPasswordSchema) => {
     await onSubmitAction(values);
@@ -96,6 +98,8 @@ export function SetPasswordForm({
               </FormItem>
             )}
           />
+
+          <PasswordRequirements password={password} />
 
           <FormField
             control={form.control}
