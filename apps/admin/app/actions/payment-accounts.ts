@@ -2,8 +2,32 @@
 
 import { createClient } from "@/lib/server";
 import { PaymentAccount } from "@/types";
-import { AccountFormValues } from "@repo/validators";
+import { accountFormSchema, type AccountFormValues } from "@repo/validators";
+import { normalizeCNPJ, normalizeDocument } from "@repo/utils";
 import { revalidatePath } from "next/cache";
+
+function sanitizeAccount(values: AccountFormValues) {
+  const data = accountFormSchema.parse(values);
+  const payload = {
+    type: data.type,
+    owner_name: data.ownerName,
+    owner_document: normalizeDocument(data.ownerDocument),
+    pix_type: data.type === "pix" ? data.pixType : null,
+    pix_key: data.type === "pix"
+      ? (data.pixType === "cnpj"
+          ? normalizeCNPJ(data.pixKey)
+          : ["cpf", "phone"].includes(data.pixType)
+            ? data.pixKey.replace(/\D/g, "")
+            : data.pixKey)
+      : null,
+    bank_name: data.type === "bank_account" ? data.bankName : null,
+    account_variant: data.type === "bank_account" ? data.accountVariant : null,
+    agency: data.type === "bank_account" ? data.agency : null,
+    account_number: data.type === "bank_account" ? data.accountNumber : null,
+  };
+
+  return { data, payload };
+}
 
 export async function getPaymentAccounts(teacherId: string): Promise<PaymentAccount[]> {
   const supabase = await createClient();
@@ -25,27 +49,20 @@ export async function createPaymentAccount(teacherId: string, data: AccountFormV
   const supabase = await createClient();
 
   try {
-    const payload = {
-      teacher_id: teacherId,
-      type: data.type,
-      owner_name: data.ownerName,
-      owner_document: data.ownerDocument,
-      pix_type: data.type === "pix" ? data.pixType : null,
-      pix_key: data.type === "pix" ? data.pixKey : null,
-      bank_name: data.type === "bank_account" ? data.bankName : null,
-      account_variant: data.type === "bank_account" ? data.accountVariant : null,
-      agency: data.type === "bank_account" ? data.agency : null,
-      account_number: data.type === "bank_account" ? data.accountNumber : null,
-    };
+    const { data: parsed, payload } = sanitizeAccount(data);
+    const { count } = await supabase
+      .from("teacher_payment_accounts")
+      .select("id", { count: "exact", head: true })
+      .eq("teacher_id", teacherId);
 
     const { data: account, error } = await supabase
       .from("teacher_payment_accounts")
-      .insert(payload)
+      .insert({ ...payload, teacher_id: teacherId, is_default: false })
       .select("id")
       .single();
     if (error) throw error;
 
-    if (data.isDefault) {
+    if (parsed.isDefault || count === 0) {
       const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: account.id });
       if (defaultError) {
         await supabase.from("teacher_payment_accounts").delete().eq("id", account.id);
@@ -69,27 +86,16 @@ export async function updatePaymentAccount(
   const supabase = await createClient();
 
   try {
-    const payload = {
-      type: data.type,
-      owner_name: data.ownerName,
-      owner_document: data.ownerDocument,
-      pix_type: data.type === "pix" ? data.pixType : null,
-      pix_key: data.type === "pix" ? data.pixKey : null,
-      bank_name: data.type === "bank_account" ? data.bankName : null,
-      account_variant: data.type === "bank_account" ? data.accountVariant : null,
-      agency: data.type === "bank_account" ? data.agency : null,
-      account_number: data.type === "bank_account" ? data.accountNumber : null,
-      updated_at: new Date().toISOString(),
-    };
+    const { data: parsed, payload } = sanitizeAccount(data);
 
     const { error } = await supabase
       .from("teacher_payment_accounts")
-      .update(payload)
+      .update({ ...payload, updated_at: new Date().toISOString() })
       .eq("id", accountId)
       .eq("teacher_id", teacherId);
     if (error) throw error;
 
-    if (data.isDefault) {
+    if (parsed.isDefault) {
       const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: accountId });
       if (defaultError) throw defaultError;
     }
@@ -113,5 +119,20 @@ export async function deletePaymentAccount(accountId: string, teacherId: string)
   } catch (error) {
     console.error(error);
     return { success: false, error: "Falha ao excluir a conta." };
+  }
+}
+
+export async function setDefaultPaymentAccount(accountId: string, teacherId: string) {
+  const supabase = await createClient();
+
+  try {
+    const { error } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: accountId });
+    if (error) throw error;
+
+    revalidatePath(`/professores/${teacherId}/pagamentos`);
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao definir conta principal:", error);
+    return { success: false, error: "Não foi possível definir a conta principal." };
   }
 }

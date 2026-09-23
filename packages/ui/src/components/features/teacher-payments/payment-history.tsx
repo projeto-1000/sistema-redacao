@@ -30,10 +30,11 @@ export function PaymentHistory({ payments, headerAction }: PaymentHistoryProps) 
       </div>
 
       <div className="hidden grid-cols-12 gap-4 border-b border-slate-100 px-4 py-4 lg:grid">
-        <HeaderCell className="col-span-2">Data</HeaderCell>
-        <HeaderCell className="col-span-3">Período</HeaderCell>
-        <HeaderCell className="col-span-2 text-center">Redações</HeaderCell>
-        <HeaderCell className="col-span-2 text-right">Valor</HeaderCell>
+        <HeaderCell className="col-span-2">Data do pagamento</HeaderCell>
+        <HeaderCell className="col-span-2">Período</HeaderCell>
+        <HeaderCell className="col-span-1 text-center">Redações</HeaderCell>
+        <HeaderCell className="col-span-2 text-right">Valor por redação</HeaderCell>
+        <HeaderCell className="col-span-2 text-right">Valor total</HeaderCell>
         <HeaderCell className="col-span-1 text-center">Status</HeaderCell>
         <HeaderCell className="col-span-2 text-right">Comprovante</HeaderCell>
       </div>
@@ -54,16 +55,19 @@ export function PaymentHistory({ payments, headerAction }: PaymentHistoryProps) 
 
             return (
               <div key={payment.id} className="grid grid-cols-1 gap-4 py-5 lg:grid-cols-12 lg:px-4">
-                <DataCell label="Data" className="lg:col-span-2">
+                <DataCell label="Data do pagamento" className="lg:col-span-2">
                   {payment.processed_at ? formatDate(payment.processed_at, "numeric") : "—"}
                 </DataCell>
-                <DataCell label="Período" className="capitalize lg:col-span-3">
+                <DataCell label="Período" className="capitalize lg:col-span-2">
                   {period}
                 </DataCell>
-                <DataCell label="Redações" className="lg:col-span-2 lg:text-center">
+                <DataCell label="Redações" className="lg:col-span-1 lg:text-center">
                   {payment.essays_count}
                 </DataCell>
-                <DataCell label="Valor" className="font-black lg:col-span-2 lg:text-right">
+                <DataCell label="Valor por redação" className="lg:col-span-2 lg:text-right">
+                  {formatDecimalCurrency(payment.unit_value)}
+                </DataCell>
+                <DataCell label="Valor total" className="font-black lg:col-span-2 lg:text-right">
                   {formatDecimalCurrency(payment.total_amount)}
                 </DataCell>
                 <div className="flex items-center justify-between lg:col-span-1 lg:justify-center">

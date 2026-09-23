@@ -29,7 +29,7 @@ export function PaymentDashboardNav({ activeTab, baseHref }: PaymentDashboardNav
           className={cn(
             "flex-1 rounded-xl px-4 py-3 text-center text-sm font-bold transition-colors",
             activeTab === tab.value
-              ? "bg-blue-600 text-white shadow-sm"
+              ? "bg-primary text-white shadow-sm"
               : "text-slate-600 hover:bg-white hover:text-slate-900",
           )}
         >

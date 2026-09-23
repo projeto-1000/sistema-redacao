@@ -23,10 +23,11 @@ export function maskPaymentPixKey(value: string | null | undefined, type: string
   }
 
   if (type === "cnpj") {
-    const digits = value.replace(/\D/g, "");
-    return `••.${digits.slice(2, 5)}.${digits.slice(5, 8)}/••••-••`;
+    const cnpj = normalizeCNPJ(value);
+    return `••.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/••••-••`;
   }
 
   if (value.length <= 8) return "••••••";
   return `${value.slice(0, 4)}••••${value.slice(-4)}`;
 }
+import { normalizeCNPJ } from "./format-document";

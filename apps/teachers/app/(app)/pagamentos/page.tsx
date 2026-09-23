@@ -3,10 +3,11 @@ import { PageHeader } from "@repo/ui/components/page-header";
 import { PaymentDashboardNav, type TeacherPaymentsTab } from "@repo/ui/components/features/teacher-payments/payment-dashboard-nav";
 import { PaymentOverview } from "@repo/ui/components/features/teacher-payments/payment-overview";
 import { PaymentHistory } from "@repo/ui/components/features/teacher-payments/payment-history";
+import { PaymentMonthFilter } from "@repo/ui/components/features/teacher-payments/payment-month-filter";
 import { TablePagination } from "@repo/ui/components/table-pagination";
 import { getTeacherPaymentDashboard } from "@/app/actions/payments";
-import { PaymentMonthFilter } from "@/components/payment-month-filter";
 import { TeacherPaymentAccountsManager } from "@/components/teacher-payment-accounts-manager";
+import { PaymentPeriodEssaysDialog } from "@/components/payment-period-essays-dialog";
 
 export const metadata: Metadata = { title: "Gerenciar pagamentos" };
 
@@ -40,7 +41,7 @@ export default async function TeacherPaymentsPage({
 
   return (
     <div className="min-h-dvh space-y-6 px-4 py-4 md:px-10 lg:px-12">
-      <PageHeader title="Gerenciar pagamentos" subtitle="Acompanhe seus ganhos, repasses e dados de recebimento." />
+      <PageHeader title="Gerenciar pagamentos" subtitle="Acompanhe seus ganhos, pagamentos e dados bancários." />
       <PaymentDashboardNav activeTab={activeTab} baseHref={baseHref} />
       {activeTab === "overview" && <PaymentMonthFilter />}
 
@@ -51,6 +52,7 @@ export default async function TeacherPaymentsPage({
           account={data.accounts.find((account) => account.is_default) ?? data.accounts[0] ?? null}
           accountsHref={`${baseHref}&tab=accounts`}
           historyHref={`${baseHref}&tab=history`}
+          essaysAction={<PaymentPeriodEssaysDialog essays={data.essays} />}
         />
       )}
 

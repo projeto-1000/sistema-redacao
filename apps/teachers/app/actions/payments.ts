@@ -1,8 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import type { TeacherPaymentAccount, TeacherPaymentHistoryItem, TeacherPaymentMetrics } from "@repo/types";
+import type { GradedEssayListItem, TeacherPaymentAccount, TeacherPaymentHistoryItem, TeacherPaymentMetrics } from "@repo/types";
 import { accountFormSchema, type AccountFormValues } from "@repo/validators";
+import { normalizeCNPJ, normalizeDocument } from "@repo/utils";
 import { revalidatePath } from "next/cache";
 
 const RECEIPT_URL_TTL_SECONDS = 60 * 60;
@@ -32,6 +33,7 @@ export async function getTeacherPaymentDashboard(month: string, page = 1, limit 
   teacherId: string;
   metrics: TeacherPaymentMetrics;
   accounts: TeacherPaymentAccount[];
+  essays: GradedEssayListItem[];
   payments: TeacherPaymentHistoryItem[];
   totalPages: number;
 }> {
@@ -48,7 +50,7 @@ export async function getTeacherPaymentDashboard(month: string, page = 1, limit 
   const [essaysResult, paymentResult, rateResult, accountsResult, historyResult] = await Promise.all([
     supabase
       .from("essays_with_delivery")
-      .select("is_on_late")
+      .select("id, title, correction_date, total_score, student_name, student_avatar, is_on_late")
       .eq("teacher_id", teacherId)
       .eq("status", "corrected")
       .gte("correction_date", start)
@@ -114,6 +116,14 @@ export async function getTeacherPaymentDashboard(month: string, page = 1, limit 
       receiptUrl: await getReceiptAccessUrl(supabase, payment?.receipt_url ?? null) ?? undefined,
     },
     accounts: accountsResult.data as TeacherPaymentAccount[],
+    essays: essaysResult.data.map((essay) => ({
+      id: essay.id,
+      title: essay.title,
+      correction_date: essay.correction_date,
+      total_score: essay.total_score,
+      student_name: essay.student_name ?? "Aluno",
+      avatar_url: essay.student_avatar ?? "",
+    })),
     payments: payments as TeacherPaymentHistoryItem[],
     totalPages: historyResult.count ? Math.ceil(historyResult.count / limit) : 0,
   };
@@ -124,9 +134,15 @@ function sanitizeAccount(values: AccountFormValues) {
   const common = {
     type: data.type,
     owner_name: data.ownerName,
-    owner_document: data.ownerDocument.replace(/\D/g, ""),
+    owner_document: normalizeDocument(data.ownerDocument),
     pix_type: data.type === "pix" ? data.pixType : null,
-    pix_key: data.type === "pix" ? (["cpf", "cnpj", "phone"].includes(data.pixType) ? data.pixKey.replace(/\D/g, "") : data.pixKey) : null,
+    pix_key: data.type === "pix"
+      ? data.pixType === "cnpj"
+        ? normalizeCNPJ(data.pixKey)
+        : ["cpf", "phone"].includes(data.pixType)
+          ? data.pixKey.replace(/\D/g, "")
+          : data.pixKey
+      : null,
     bank_name: data.type === "bank_account" ? data.bankName : null,
     account_variant: data.type === "bank_account" ? data.accountVariant : null,
     agency: data.type === "bank_account" ? data.agency.replace(/[^a-zA-Z0-9]/g, "") : null,
