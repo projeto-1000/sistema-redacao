@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/server";
 import { getPublicStorageObjectPath } from "@repo/utils";
+import { passwordSchema } from "@repo/validators";
 import { revalidatePath } from "next/cache";
 
 export async function getProfileData() {
@@ -15,9 +16,7 @@ export async function getProfileData() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select(
-      "id, full_name, avatar_url, role, onboarding_completed, correction_review_required"
-    )
+    .select("id, full_name, avatar_url, role, onboarding_completed, correction_review_required")
     .eq("id", user.id)
     .single();
 
@@ -56,9 +55,20 @@ export async function updateProfile({ name }: { name: string }) {
 }
 
 export async function updatePassword(password: string) {
+  const parsedPassword = passwordSchema.safeParse(password);
+
+  if (!parsedPassword.success) {
+    return {
+      success: false,
+      error: parsedPassword.error.issues[0]?.message ?? "Senha inválida.",
+    };
+  }
+
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.updateUser({ password });
+  const { error } = await supabase.auth.updateUser({
+    password: parsedPassword.data,
+  });
 
   if (error) {
     console.error("Erro ao atualizar senha:", error);
@@ -97,11 +107,7 @@ export async function uploadAvatar(formData: FormData) {
     throw new Error("Falha ao localizar a foto atual");
   }
 
-  const previousAvatarPath = getPublicStorageObjectPath(
-    profile.avatar_url,
-    "avatars",
-    user.id,
-  );
+  const previousAvatarPath = getPublicStorageObjectPath(profile.avatar_url, "avatars", user.id);
 
   const fileExt = file.name.split(".").pop();
   const fileName = `${user.id}/${Date.now()}.${fileExt}`;

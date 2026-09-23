@@ -1,12 +1,25 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { registerSchema, type RegisterSchema } from "@repo/validators";
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./card";
 import { Button } from "./button";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "./form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "./form";
 import { Input } from "./input";
 import { Logo } from "./logo";
 import Link from "next/link";
@@ -27,21 +40,23 @@ import {
   SelectValue,
 } from "./select";
 import { toast } from "sonner";
+import { PasswordRequirements } from "./password-requirements";
 
 type AppType = "admin" | "teacher" | "student";
 
-const APP_CONFIG: Record<AppType, { title: string; description: string; }> = {
+const APP_CONFIG: Record<AppType, { title: string; description: string }> = {
   student: {
     title: "Crie sua conta",
-    description: 'Junte-se aos nossos estudantes e melhore suas redações hoje mesmo.',
+    description:
+      "Junte-se aos nossos estudantes e melhore suas redações hoje mesmo.",
   },
   teacher: {
     title: "Cadastro de Professor",
-    description: 'Junte-se ao time de corretores.',
+    description: "Junte-se ao time de corretores.",
   },
   admin: {
     title: "Novo Administrador",
-    description: 'Cadastro de gestão do sistema.',
+    description: "Cadastro de gestão do sistema.",
   },
 };
 
@@ -105,13 +120,12 @@ export function SignUpForm({
     },
   });
 
-
   const { isValid, isSubmitting } = form.formState;
 
   const isLoading = isSubmitting || isPending;
 
-
   const selectedPhoneCountryCode = form.watch("phoneCountryCode");
+  const password = form.watch("password");
   const isBrazilianPhone =
     selectedPhoneCountryCode === DEFAULT_PHONE_COUNTRY_CODE;
 
@@ -124,17 +138,16 @@ export function SignUpForm({
 
       toast.error(title, {
         description: description,
-        duration: 5000
+        duration: 5000,
       });
-
     }
   };
 
-  const inputFocusClass = 'focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1';
+  const inputFocusClass =
+    "focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1";
 
   return (
     <div className="w-full max-w-[500px] flex flex-col items-center">
-
       <Logo className="h-20 md:h-22 mb-8" />
 
       <Card className="w-full bg-white rounded-xl shadow-xl border border-slate-100 px-5 py-6 md:py-8 md:px-6">
@@ -149,8 +162,10 @@ export function SignUpForm({
 
         <CardContent className="p-0">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
-
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-5"
+            >
               <FormField
                 control={form.control}
                 name="name"
@@ -164,7 +179,8 @@ export function SignUpForm({
                       <Input
                         className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                         placeholder="Digite seu nome completo"
-                        {...field} />
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -176,14 +192,17 @@ export function SignUpForm({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">E-mail</FormLabel>
+                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                      E-mail
+                    </FormLabel>
                     <FormControl>
                       <Input
                         className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                         placeholder="seu@email.com"
                         readOnly={lockedFields?.email}
                         aria-readonly={lockedFields?.email}
-                        {...field} />
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -273,7 +292,9 @@ export function SignUpForm({
                         <Input
                           className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                           placeholder={
-                            isBrazilianPhone ? "(00) 00000-0000" : "Digite somente números"
+                            isBrazilianPhone
+                              ? "(00) 00000-0000"
+                              : "Digite somente números"
                           }
                           maxLength={isBrazilianPhone ? 15 : 20}
                           inputMode="numeric"
@@ -299,7 +320,9 @@ export function SignUpForm({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">Senha</FormLabel>
+                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                      Senha
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -328,13 +351,16 @@ export function SignUpForm({
                 )}
               />
 
+              <PasswordRequirements password={password} />
 
               <FormField
                 control={form.control}
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">Confirmar Senha</FormLabel>
+                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                      Confirmar Senha
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -348,7 +374,9 @@ export function SignUpForm({
                           variant="ghost"
                           size="icon"
                           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                         >
                           {showConfirmPassword ? (
                             <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -377,7 +405,8 @@ export function SignUpForm({
                     </FormControl>
                     <div className="space-y-2 leading-none">
                       <FormLabel className="text-slate-600 font-medium leading-relaxed">
-                        Eu concordo com os Termos de Uso e Políticas de Privacidade da plataforma.
+                        Eu concordo com os Termos de Uso e Políticas de
+                        Privacidade da plataforma.
                       </FormLabel>
                       <FormMessage />
                     </div>
@@ -398,22 +427,20 @@ export function SignUpForm({
           </Form>
         </CardContent>
 
-
-
         <CardFooter className="flex flex-col justify-center p-0">
           <div className="w-full pt-4 border-t border-[#e8e4ce] text-center text-sm">
             <p>
               Já tem uma conta?
               <Link
                 href="/login"
-                className='text-primary font-medium hover:underline ml-1'
+                className="text-primary font-medium hover:underline ml-1"
               >
                 Faça login
               </Link>
             </p>
           </div>
         </CardFooter>
-      </Card >
-    </div >
+      </Card>
+    </div>
   );
 }

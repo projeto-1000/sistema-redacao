@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Poppins } from "next/font/google";
 import { Footer } from "@/components/site/Footer";
 import { Navbar } from "@/components/site/Navbar";
+import { STUDENTS_LOGIN_URL } from "@/lib/students-app.server";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -55,7 +56,7 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
-        <Navbar />
+        <Navbar loginUrl={STUDENTS_LOGIN_URL} />
         <main>{children}</main>
         <Footer />
       </body>
