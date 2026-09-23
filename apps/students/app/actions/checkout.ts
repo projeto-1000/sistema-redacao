@@ -8,15 +8,23 @@ import {
 } from "@/lib/integrations/datacrazy/sync-student";
 import type {
   CheckoutPageData,
-  CheckoutProfileForPagarme,
   CreateCheckoutSubscriptionInput,
   CreateCheckoutSubscriptionResult,
 } from "@/types";
+import { createPagarmeSubscription, getPagarmeSubscription, PagarmeApiError } from "@repo/payments";
+import { getOrCreatePagarmeCustomerId } from "@/services/payments/pagarme-customer";
 import {
-  createPagarmeCard,
-  createPagarmeCustomer,
-  createPagarmeSubscription,
-} from "@repo/payments";
+  createAndSavePaymentCard,
+  deactivatePaymentCardCreatedForOperation,
+  listSavedPaymentCardsForUser,
+  resolveSavedPaymentCard,
+  setPaymentCardAsDefaultAtomically,
+} from "@/services/payments/payment-cards";
+import {
+  isCheckoutPaymentCardConfirmed,
+  isDefinitiveCardPaymentFailureStatus,
+  isDefinitivePagarmeHttpFailure,
+} from "@/services/payments/payment-card-policy";
 import {
   buildPagarmeBillingAddress,
   buildSubscriptionCode,
@@ -49,6 +57,7 @@ type CheckoutAccess =
       operation: CheckoutOperation;
       currentSubscriptionId: string | null;
       previousSubscriptionExternalId: string | null;
+      previousPlanExternalId: string | null;
     }
   | {
       allowed: false;
@@ -92,6 +101,7 @@ async function resolveCheckoutAccess({
       operation: "new_subscription",
       currentSubscriptionId: null,
       previousSubscriptionExternalId: null,
+      previousPlanExternalId: null,
     };
   }
 
@@ -129,6 +139,7 @@ async function resolveCheckoutAccess({
       operation: "new_subscription",
       currentSubscriptionId: currentSubscription.id,
       previousSubscriptionExternalId: currentSubscription.external_id,
+      previousPlanExternalId: currentPlan.external_id,
     };
   }
 
@@ -158,6 +169,7 @@ async function resolveCheckoutAccess({
           : "new_subscription",
       currentSubscriptionId: currentSubscription.id,
       previousSubscriptionExternalId: currentSubscription.external_id,
+      previousPlanExternalId: currentPlan.external_id,
     };
   }
 
@@ -167,6 +179,7 @@ async function resolveCheckoutAccess({
       operation: "new_subscription",
       currentSubscriptionId: currentSubscription.id,
       previousSubscriptionExternalId: currentSubscription.external_id,
+      previousPlanExternalId: currentPlan.external_id,
     };
   }
 
@@ -200,7 +213,7 @@ export async function getCheckoutPageData(planId: string): Promise<CheckoutPageD
     return null;
   }
 
-  const [planResponse, profileResponse] = await Promise.all([
+  const [planResponse, profileResponse, savedPaymentCards] = await Promise.all([
     supabase
       .from("plans")
       .select(
@@ -227,6 +240,8 @@ export async function getCheckoutPageData(planId: string): Promise<CheckoutPageD
       .select("id, full_name, email, document, phone")
       .eq("id", user.id)
       .maybeSingle(),
+
+    listSavedPaymentCardsForUser({ userId: user.id }),
   ]);
 
   if (planResponse.error || profileResponse.error) {
@@ -277,85 +292,8 @@ export async function getCheckoutPageData(planId: string): Promise<CheckoutPageD
       document: profile.document,
       phone: profile.phone,
     },
+    savedPaymentCards,
   };
-}
-
-async function getOrCreatePagarmeCustomerId() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
-    throw new Error("Você precisa estar logado para finalizar a assinatura.");
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select(
-      `
-        id,
-        email,
-        full_name,
-        document,
-        phone_country_code,
-        phone,
-        pagarme_customer_id
-      `
-    )
-    .eq("id", user.id)
-    .single<CheckoutProfileForPagarme>();
-
-  if (profileError || !profile) {
-    throw new Error("Não foi possível encontrar o perfil do aluno.");
-  }
-
-  if (!profile.full_name?.trim()) {
-    throw new Error("Complete seu nome antes de finalizar a assinatura.");
-  }
-
-  if (!profile.document?.trim()) {
-    throw new Error("Complete seu CPF antes de finalizar a assinatura.");
-  }
-
-  if (!profile.phone_country_code?.trim()) {
-    throw new Error("Complete o código do país antes de finalizar a assinatura.");
-  }
-
-  if (!profile.phone?.trim()) {
-    throw new Error("Complete seu telefone antes de finalizar a assinatura.");
-  }
-
-  const customer = await createPagarmeCustomer({
-    id: profile.id,
-    name: profile.full_name,
-    email: profile.email,
-    document: profile.document,
-    phoneCountryCode: profile.phone_country_code,
-    phone: profile.phone,
-  });
-
-  if (!customer?.id) {
-    throw new Error("A Pagar.me não retornou um cliente válido.");
-  }
-
-  if (profile.pagarme_customer_id !== customer.id) {
-    const supabaseAdmin = createAdminClient();
-    const { error: updateError } = await supabaseAdmin
-      .from("profiles")
-      .update({
-        pagarme_customer_id: customer.id,
-      })
-      .eq("id", user.id);
-
-    if (updateError) {
-      throw new Error("Não foi possível vincular o cliente da Pagar.me ao aluno.");
-    }
-  }
-
-  return customer.id;
 }
 
 export async function createCheckoutSubscription(
@@ -434,24 +372,51 @@ export async function createCheckoutSubscription(
   const isCardPayment =
     input.paymentMethod === "credit_card" || input.paymentMethod === "debit_card";
 
-  if (isCardPayment && !input.cardToken) {
-    throw new Error("Token do cartão não informado.");
+  const cardToken = input.cardToken;
+  const paymentCardId = input.paymentCardId;
+  const hasCardToken = cardToken !== undefined;
+  const hasPaymentCardId = paymentCardId !== undefined;
+
+  if (isCardPayment && hasCardToken === hasPaymentCardId) {
+    throw new Error("Informe exatamente uma fonte de cartão para o pagamento.");
   }
 
-  if (isCardPayment && input.cardToken && !input.cardToken.startsWith("token_")) {
+  if (!isCardPayment && (hasCardToken || hasPaymentCardId)) {
+    throw new Error("Boleto não aceita dados de cartão.");
+  }
+
+  if (hasCardToken && !cardToken.startsWith("token_")) {
     throw new Error("Token do cartão inválido.");
   }
+
+  if (
+    hasPaymentCardId &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      paymentCardId ?? ""
+    )
+  ) {
+    throw new Error("Cartão selecionado inválido.");
+  }
+
+  const selectedCard = paymentCardId
+    ? await resolveSavedPaymentCard({
+        userId: user.id,
+        paymentCardId,
+      })
+    : null;
 
   const billingAddress = buildPagarmeBillingAddress(input.billingAddress);
   const pagarmeCustomerId = await getOrCreatePagarmeCustomerId();
 
-  let savedCardId: string | null = null;
-  let pagarmeCardId: string | undefined;
+  let savedCardId: string | null = selectedCard?.localCardId ?? null;
+  let pagarmeCardId: string | undefined = selectedCard?.pagarmeCardId;
+  let paymentCardCreatedForOperation = false;
 
-  if (isCardPayment && input.saveCard && input.cardToken) {
-    const pagarmeCard = await createPagarmeCard({
+  if (isCardPayment && cardToken) {
+    const savedCard = await createAndSavePaymentCard({
+      userId: user.id,
       customerId: pagarmeCustomerId,
-      cardToken: input.cardToken,
+      cardToken,
       billingAddress,
       label: "Cartão salvo",
       metadata: {
@@ -459,77 +424,57 @@ export async function createCheckoutSubscription(
         plan_id: plan.id,
         source: "students_checkout",
       },
+      makeDefault: false,
+      preserveExistingCardState: true,
     });
 
-    if (!pagarmeCard.id || !pagarmeCard.last_four_digits) {
-      throw new Error("A Pagar.me não retornou um cartão válido.");
-    }
-
-    const now = new Date().toISOString();
-
-    const { error: resetDefaultCardError } = await supabaseAdmin
-      .from("student_payment_cards")
-      .update({
-        is_default: false,
-        updated_at: now,
-      })
-      .eq("user_id", user.id)
-      .eq("is_default", true)
-      .is("deleted_at", null);
-
-    if (resetDefaultCardError) {
-      throw new Error("Não foi possível atualizar o cartão padrão.");
-    }
-
-    const { data: savedCard, error: savedCardError } = await supabaseAdmin
-      .from("student_payment_cards")
-      .insert({
-        user_id: user.id,
-        pagarme_card_id: pagarmeCard.id,
-        brand: pagarmeCard.brand,
-        last_four_digits: pagarmeCard.last_four_digits,
-        holder_name: pagarmeCard.holder_name,
-        exp_month: pagarmeCard.exp_month,
-        exp_year: pagarmeCard.exp_year,
-        is_default: true,
-        is_active: true,
-      })
-      .select("id")
-      .single();
-
-    if (savedCardError || !savedCard) {
-      throw new Error("Não foi possível salvar o cartão do aluno.");
-    }
-
-    savedCardId = savedCard.id;
-    pagarmeCardId = pagarmeCard.id;
+    savedCardId = savedCard.localCardId;
+    pagarmeCardId = savedCard.pagarmeCardId;
+    paymentCardCreatedForOperation = savedCard.createdLocally;
   }
 
   const subscriptionCode = buildSubscriptionCode(user.id);
 
-  const pagarmeSubscription = await createPagarmeSubscription({
-    code: subscriptionCode,
-    planId: pagarmePlanId,
-    customerId: pagarmeCustomerId,
-    paymentMethod: input.paymentMethod,
-    billingAddress,
-    cardId: pagarmeCardId,
-    cardToken: isCardPayment && !pagarmeCardId ? input.cardToken : undefined,
-    boletoDueDays: 3,
-    metadata: {
-      user_id: user.id,
-      plan_id: plan.id,
-      local_subscription_code: subscriptionCode,
-      source: "students_checkout",
-      checkout_operation: checkoutOperation,
+  let pagarmeSubscription: Awaited<ReturnType<typeof createPagarmeSubscription>>;
 
-      ...(checkoutAccess.previousSubscriptionExternalId
-        ? {
-            previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
-          }
-        : {}),
-    },
-  });
+  try {
+    pagarmeSubscription = await createPagarmeSubscription({
+      code: subscriptionCode,
+      planId: pagarmePlanId,
+      customerId: pagarmeCustomerId,
+      paymentMethod: input.paymentMethod,
+      billingAddress,
+      cardId: pagarmeCardId,
+      boletoDueDays: 3,
+      metadata: {
+        user_id: user.id,
+        plan_id: plan.id,
+        local_subscription_code: subscriptionCode,
+        source: "students_checkout",
+        checkout_operation: checkoutOperation,
+
+        ...(checkoutAccess.previousSubscriptionExternalId
+          ? {
+              previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
+            }
+          : {}),
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof PagarmeApiError &&
+      isDefinitivePagarmeHttpFailure(error.status) &&
+      savedCardId &&
+      paymentCardCreatedForOperation
+    ) {
+      await deactivatePaymentCardCreatedForOperation({
+        userId: user.id,
+        paymentCardId: savedCardId,
+      });
+    }
+
+    throw error;
+  }
 
   if (!pagarmeSubscription.id) {
     throw new Error("A Pagar.me não retornou uma assinatura válida.");
@@ -562,6 +507,10 @@ export async function createCheckoutSubscription(
         pagarme_status: pagarmeSubscription.status,
         local_subscription_code: subscriptionCode,
         failure_reason: "card_payment_failed",
+        payment_card_created_for_operation: paymentCardCreatedForOperation,
+        payment_card_promotion_pending: !isDefinitiveCardPaymentFailureStatus(
+          pagarmeSubscription.status
+        ),
         checkout_operation: checkoutOperation,
         previous_subscription_external_id: checkoutAccess.previousSubscriptionExternalId,
       },
@@ -571,21 +520,41 @@ export async function createCheckoutSubscription(
       throw new Error("Não foi possível registrar a tentativa de pagamento.");
     }
 
+    if (
+      savedCardId &&
+      paymentCardCreatedForOperation &&
+      isDefinitiveCardPaymentFailureStatus(pagarmeSubscription.status)
+    ) {
+      await deactivatePaymentCardCreatedForOperation({
+        userId: user.id,
+        paymentCardId: savedCardId,
+      });
+    }
+
+    try {
+      await syncStudentToDataCrazy(user.id, "payment_status_updated", {
+        paymentAttempt: "initial_refused",
+      });
+    } catch (error) {
+      console.error("[DATACRAZY_SYNC_ERROR]", {
+        user_id: user.id,
+        event: "payment_status_updated",
+        error_code: getDataCrazySyncErrorCode(error),
+      });
+    }
+
     throw new Error("Pagamento não autorizado. Confira os dados do cartão ou tente outro cartão.");
   }
 
   const providerSubscriptionItemId =
-    pagarmeSubscription.items?.find(
-      (item) => item.status === "active" && item.id.startsWith("si_")
-    )?.id ??
+    pagarmeSubscription.items?.find((item) => item.status === "active" && item.id.startsWith("si_"))
+      ?.id ??
     pagarmeSubscription.items?.find((item) => item.id.startsWith("si_"))?.id ??
     null;
 
   const finalizedAt = new Date().toISOString();
   const contractEffectiveAt =
-    pagarmeSubscription.current_cycle?.start_at ??
-    pagarmeSubscription.created_at ??
-    finalizedAt;
+    pagarmeSubscription.current_cycle?.start_at ?? pagarmeSubscription.created_at ?? finalizedAt;
 
   const { data: finalizationData, error: finalizationError } = await supabaseAdmin.rpc(
     "finalize_checkout_subscription",
@@ -615,7 +584,6 @@ export async function createCheckoutSubscription(
         pagarme_customer_id: pagarmeCustomerId,
         pagarme_status: pagarmeSubscription.status,
         next_billing_at: pagarmeSubscription.next_billing_at ?? null,
-        saved_card: Boolean(savedCardId),
         checkout_operation: checkoutOperation,
       },
       p_payment_status: pagarmeSubscription.status ?? localSubscriptionStatus,
@@ -634,9 +602,35 @@ export async function createCheckoutSubscription(
     throw new Error("Não foi possível concluir a assinatura no sistema.");
   }
 
+  if (isCardPayment && cardToken && savedCardId && pagarmeCardId) {
+    const confirmedSubscription = await getPagarmeSubscription({
+      subscriptionId: pagarmeSubscription.id,
+    });
+
+    if (
+      !isCheckoutPaymentCardConfirmed({
+        expectedSubscriptionId: pagarmeSubscription.id,
+        actualSubscriptionId: confirmedSubscription.id,
+        subscriptionStatus: confirmedSubscription.status,
+        expectedCardId: pagarmeCardId,
+        actualCardId: confirmedSubscription.card?.id,
+      })
+    ) {
+      throw new Error("A Pagar.me não confirmou o cartão aprovado da assinatura.");
+    }
+
+    await setPaymentCardAsDefaultAtomically({
+      userId: user.id,
+      paymentCardId: savedCardId,
+      expectedSubscriptionId: finalization.subscription_id,
+    });
+  }
+
   if (!finalization.duplicate) {
     try {
-      await syncStudentToDataCrazy(user.id, "subscription_updated");
+      await syncStudentToDataCrazy(user.id, "subscription_updated", {
+        previousPlanExternalId: checkoutAccess.previousPlanExternalId,
+      });
     } catch (error) {
       console.error("[DATACRAZY_SYNC_ERROR]", {
         user_id: user.id,

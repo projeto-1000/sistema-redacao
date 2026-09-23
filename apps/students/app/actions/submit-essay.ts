@@ -8,7 +8,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-type ActionState = {
+export type ActionState = {
   error?: string;
 } | null;
 
@@ -52,18 +52,58 @@ export async function submitEssay(
       console.error("Erro RPC:", error);
       return { error: error.message };
     }
+
+    console.info("[DATACRAZY_DEBUG]", {
+      stage: "submit_essay_rpc_completed",
+      user_id: user.id,
+      event: "essay_status_updated",
+      success: true,
+    });
+
+    const { error: backupDeleteError } = await supabase
+      .from("essay_backups")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("theme_id", topic_id);
+
+    if (backupDeleteError) {
+      console.error("Erro ao remover backup após envio da redação:", backupDeleteError);
+    }
   } catch (err) {
     console.error("Erro catch:", err);
     return { error: "Erro interno ao enviar redação." };
   }
 
+  console.info("[DATACRAZY_DEBUG]", {
+    stage: "essay_sync_start",
+    user_id: user.id,
+    event: "essay_status_updated",
+  });
+
   try {
     await syncStudentToDataCrazy(user.id, "essay_status_updated");
+
+    console.info("[DATACRAZY_DEBUG]", {
+      stage: "essay_sync_completed",
+      user_id: user.id,
+      event: "essay_status_updated",
+      success: true,
+    });
   } catch (error) {
+    const errorCode = getDataCrazySyncErrorCode(error);
+
+    console.info("[DATACRAZY_DEBUG]", {
+      stage: "essay_sync_completed",
+      user_id: user.id,
+      event: "essay_status_updated",
+      success: false,
+      error_code: errorCode,
+    });
+
     console.error("[DATACRAZY_SYNC_ERROR]", {
       user_id: user.id,
       event: "essay_status_updated",
-      error_code: getDataCrazySyncErrorCode(error),
+      error_code: errorCode,
     });
   }
 

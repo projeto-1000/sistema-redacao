@@ -5,10 +5,11 @@ import { DeadlineInfo, PendingEssayListItem } from "@repo/types";
 import { Avatar } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button"
 import { formatDate, getDeadlineStatus } from "@repo/utils";
-import { ArrowRight, Clock, Hourglass } from "lucide-react"
+import { ArrowRight, Clock, Hourglass, RotateCcw } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PENDING_ESSAYS_TABLE_GRID } from "./pending-essays-table-layout";
 interface PendingEssaysRowProps {
   essay: PendingEssayListItem;
 }
@@ -46,6 +47,16 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
     if (startingEssayId) return;
     setStartingEssayId(essayId);
 
+    if (essay.correction_review_status === "pending_review") {
+      setStartingEssayId(null);
+      return;
+    }
+
+    if (essay.correction_review_status === "returned_to_teacher") {
+      router.push(`/corrigir-redacao/${essayId}`);
+      return;
+    }
+
     try {
       const result = await startEssayCorrection(essayId);
 
@@ -55,7 +66,7 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
         toast.error(result.error || "A redação já foi assumida por outro corretor.");
         setStartingEssayId(null);
       }
-    } catch (error) {
+    } catch {
       toast.error("Ocorreu um erro ao tentar iniciar a correção.");
       setStartingEssayId(null);
     }
@@ -66,12 +77,12 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
     <div className="divide-y divide-slate-100">
       <div
         key={essay.id}
-        className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 px-8 py-5 items-center hover:bg-slate-50 transition-colors group"
+        className={`group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-8 py-5 transition-colors hover:bg-slate-50 lg:gap-4 ${PENDING_ESSAYS_TABLE_GRID}`}
       >
-        <div className="lg:col-span-3 flex items-center gap-4">
+        <div className="flex min-w-0 items-center gap-4">
           <Avatar src={essay.avatar_url} name={essay.student_name} className="size-9 rounded-full shrink-0 border border-slate-200" />
-          <div>
-            <h4 className="font-bold text-sm leading-snug group-hover:text-[#1E3A8A] transition-colors">
+          <div className="min-w-0">
+            <h4 className="truncate font-bold text-sm leading-snug group-hover:text-[#1E3A8A] transition-colors">
               {essay.student_name}
             </h4>
             <span className="text-xs text-slate-500">
@@ -80,7 +91,7 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
           </div>
         </div>
 
-        <div className="lg:col-span-5 mt-2 lg:mt-0">
+        <div className="col-span-2 mt-2 lg:col-span-1 lg:mt-0">
           <span className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
             Tema
           </span>
@@ -89,30 +100,46 @@ export default function PendingEssaysRow({ essay }: PendingEssaysRowProps) {
           </p>
         </div>
 
-        <div className="lg:col-span-2 flex lg:justify-center">
+        <div className="col-start-2 row-start-1 flex justify-end lg:col-start-auto lg:row-start-auto lg:justify-center">
           {renderStatusBadge(deadline)}
         </div>
 
-        <div className="lg:col-span-2 flex justify-end">
-          <Button
-            onClick={() => handleStartCorrection(essay.id)}
-            disabled={startingEssayId === essay.id}
-            className="rounded-2xl font-bold shadow-sm h-10 whitespace-nowrap md:whitespace-normal leading-normal transition-transform"
-            variant={essay.status === 'pending' ? 'default' : 'secondary'}
-            isLoading={startingEssayId === essay.id}
-            loadingText="Iniciando..."
-          >
-            {essay.status === 'pending' ? (
-              <>
-                Iniciar correção <ArrowRight className="size-4 ml-1" />
-              </>
-            ) : (
-              <>
-                Terminar correção <Hourglass className="size-4" />
-              </>
-
-            )}
-          </Button>
+        <div className="col-span-2 flex justify-end lg:col-span-1">
+          {essay.correction_review_status === "pending_review" ? (
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">
+              <Hourglass className="size-3" />
+              Aguardando revisão
+            </div>
+          ) : (
+            <Button
+              onClick={() => handleStartCorrection(essay.id)}
+              disabled={startingEssayId === essay.id}
+              className="rounded-2xl font-bold shadow-sm h-10 whitespace-nowrap md:whitespace-normal leading-normal transition-transform"
+              variant={
+                essay.correction_review_status === "returned_to_teacher"
+                  ? "outline"
+                  : essay.status === "pending"
+                    ? "default"
+                    : "secondary"
+              }
+              isLoading={startingEssayId === essay.id}
+              loadingText="Iniciando..."
+            >
+              {essay.correction_review_status === "returned_to_teacher" ? (
+                <>
+                  Ajustar correção <RotateCcw className="size-4" />
+                </>
+              ) : essay.status === 'pending' ? (
+                <>
+                  Iniciar correção <ArrowRight className="size-4 ml-1" />
+                </>
+              ) : (
+                <>
+                  Terminar correção <Hourglass className="size-4" />
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </div>

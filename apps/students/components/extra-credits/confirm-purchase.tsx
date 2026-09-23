@@ -1,0 +1,393 @@
+"use client";
+
+import { useRef, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@repo/ui/components/dialog";
+import { Button } from "@repo/ui/components/button";
+import { ArrowLeft, CheckCircle2, Info, Loader2 } from "lucide-react";
+import type { CreditPackage } from "@repo/types";
+import { purchaseExtraCredits, type SavedPaymentCard } from "@/app/actions/credits";
+import {
+  PaymentMethodSelector,
+  type ExtraCreditsPaymentSelection,
+} from "@/components/extra-credits/payment-method-selector";
+import { NewCardForm, type NewCardFormRef } from "@/components/extra-credits/new-card-form";
+import { PagarmeTokenizationError, tokenizePagarmeCard } from "@/lib/checkout/tokenize-card";
+import { formatCurrency } from "@repo/utils";
+import { shouldRotateExtraCreditOperationId } from "@/services/extra-credit-purchase/policy";
+import {
+  getExtraCreditFailureUi,
+  getExtraCreditPaymentView,
+} from "@/services/extra-credit-purchase/ui-policy";
+
+interface ConfirmPurchaseProps {
+  packageData: CreditPackage;
+  savedCards: SavedPaymentCard[];
+}
+
+export function ConfirmPurchase({ packageData, savedCards }: ConfirmPurchaseProps) {
+  const newCardFormRef = useRef<NewCardFormRef>(null);
+
+  const defaultCard = savedCards.find((card) => card.isDefault) ?? savedCards[0];
+
+  const [open, setOpen] = useState(false);
+
+  const [step, setStep] = useState<"confirm" | "processing" | "success">("confirm");
+
+  const [operationId, setOperationId] = useState<string | null>(null);
+
+  const [purchaseMessage, setPurchaseMessage] = useState<string | null>(null);
+  const [cardError, setCardError] = useState<string | null>(null);
+
+  const [purchaseStatus, setPurchaseStatus] = useState<"paid" | "pending" | null>(null);
+
+  const [paymentSelection, setPaymentSelection] = useState<ExtraCreditsPaymentSelection>(
+    defaultCard
+      ? {
+          type: "saved_card",
+          paymentCardId: defaultCard.id,
+        }
+      : {
+          type: "new_card",
+        }
+  );
+  const [lastSavedCardId, setLastSavedCardId] = useState<string | null>(defaultCard?.id ?? null);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+
+    if (isOpen) {
+      if (!operationId) {
+        setOperationId(crypto.randomUUID());
+      }
+
+      setPurchaseStatus(null);
+      setPurchaseMessage(null);
+      setCardError(null);
+      return;
+    }
+
+    window.setTimeout(() => {
+      setStep("confirm");
+      setPurchaseMessage(null);
+      setCardError(null);
+      setOperationId(null);
+      setLastSavedCardId(defaultCard?.id ?? null);
+
+      setPaymentSelection(
+        defaultCard
+          ? {
+              type: "saved_card",
+              paymentCardId: defaultCard.id,
+            }
+          : {
+              type: "new_card",
+            }
+      );
+    }, 300);
+  };
+
+  const handleConfirm = async () => {
+    if (!paymentSelection || !operationId) {
+      return;
+    }
+
+    setPurchaseMessage(null);
+
+    try {
+      if (paymentSelection.type === "saved_card") {
+        setStep("processing");
+
+        const result = await purchaseExtraCredits({
+          packageId: packageData.id,
+          operationId,
+          paymentSource: "saved_card",
+          paymentCardId: paymentSelection.paymentCardId,
+        });
+
+        if (!result.success) {
+          if (shouldRotateExtraCreditOperationId(result)) {
+            setOperationId(crypto.randomUUID());
+          }
+
+          setStep("confirm");
+          setPurchaseMessage(result.message ?? "Não foi possível processar a compra.");
+          return;
+        }
+
+        setPurchaseStatus(result.status);
+        setStep("success");
+        return;
+      }
+
+      const isValid = await newCardFormRef.current?.validate();
+
+      if (!isValid) {
+        return;
+      }
+
+      const values = newCardFormRef.current?.getValues();
+
+      if (!values || values.paymentSource !== "new_card") {
+        return;
+      }
+
+      setStep("processing");
+
+      const tokenizedCard = await tokenizePagarmeCard({
+        cardNumber: values.cardNumber,
+        holderName: values.holderName,
+        holderDocument: values.holderDocument,
+        expirationDate: values.expirationDate,
+        cvv: values.cvv,
+      });
+
+      const result = await purchaseExtraCredits({
+        packageId: packageData.id,
+        operationId,
+        paymentSource: "new_card",
+        cardToken: tokenizedCard.id,
+        billingAddress: values.address,
+      });
+
+      if (!result.success) {
+        const failureUi = getExtraCreditFailureUi({
+          paymentSource: "new_card",
+          result,
+        });
+
+        if (failureUi.rotateOperationId) {
+          setOperationId(crypto.randomUUID());
+        }
+
+        if (failureUi.clearCvv) {
+          newCardFormRef.current?.clearCvv();
+        }
+
+        setStep("confirm");
+        const message = result.message ?? "Não foi possível processar a compra.";
+
+        if (failureUi.errorPlacement === "payment") {
+          setCardError(message);
+          setPurchaseMessage(null);
+        } else {
+          setPurchaseMessage(message);
+        }
+        return;
+      }
+
+      setPurchaseStatus(result.status);
+      setStep("success");
+    } catch (error) {
+      console.error("[EXTRA_CREDIT_PURCHASE_UI_ERROR]", error);
+
+      setStep("confirm");
+      if (error instanceof PagarmeTokenizationError) {
+        newCardFormRef.current?.clearCvv();
+        setCardError(
+          "Não foi possível validar os dados do cartão. Verifique as informações e tente novamente."
+        );
+        setPurchaseMessage(null);
+      } else {
+        setPurchaseMessage(
+          error instanceof Error ? error.message : "Não foi possível processar a compra."
+        );
+      }
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button className="h-12 w-full rounded-xl text-base font-bold">
+          Comprar {packageData.credits === 1 ? "crédito" : "créditos"}
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-none p-0 shadow-2xl sm:max-w-[620px]">
+        {step !== "success" && (
+          <div className={step === "processing" ? "hidden" : "p-8"}>
+            <DialogHeader className="mb-8">
+              <DialogTitle className="text-2xl font-extrabold text-slate-800">
+                Confirmar Compra
+              </DialogTitle>
+
+              <p className="font-medium text-slate-500">
+                Confirme os detalhes da sua aquisição de créditos.
+              </p>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold tracking-widest text-slate-400 uppercase">
+                  Resumo da compra
+                </h4>
+
+                <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                  <p className="font-bold text-slate-700">
+                    {packageData.credits}{" "}
+                    {packageData.credits === 1 ? "crédito extra" : "créditos extras"}
+                  </p>
+
+                  <p className="shrink-0 text-lg font-extrabold text-slate-800">
+                    {formatCurrency(packageData.price * 100)}
+                  </p>
+                </div>
+              </div>
+
+              {getExtraCreditPaymentView(paymentSelection.type) === "new_card_form" ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <h4 className="text-xs font-bold tracking-widest text-slate-400 uppercase">
+                      Forma de pagamento
+                    </h4>
+
+                    {lastSavedCardId ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-xs font-bold text-slate-500"
+                        onClick={() => {
+                          setPaymentSelection({
+                            type: "saved_card",
+                            paymentCardId: lastSavedCardId,
+                          });
+                          setCardError(null);
+                          setPurchaseMessage(null);
+                        }}
+                      >
+                        <ArrowLeft className="mr-1 size-3.5" />
+                        Usar cartão salvo
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  <NewCardForm ref={newCardFormRef} compact cardError={cardError} />
+                </div>
+              ) : (
+                <PaymentMethodSelector
+                  cards={savedCards}
+                  value={paymentSelection}
+                  onChange={(selection) => {
+                    setPaymentSelection(selection);
+
+                    if (selection.type === "saved_card") {
+                      setLastSavedCardId(selection.paymentCardId);
+                    }
+
+                    setCardError(null);
+                    setPurchaseMessage(null);
+                  }}
+                />
+              )}
+
+              {purchaseMessage ? (
+                <div className="border-destructive/20 bg-destructive/5 rounded-xl border p-4">
+                  <p className="text-destructive text-sm font-semibold">{purchaseMessage}</p>
+                </div>
+              ) : null}
+
+              <div className="flex gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+                <Info className="size-5 shrink-0 text-blue-500" />
+
+                <p className="text-xs leading-relaxed font-semibold text-blue-700/80">
+                  Ao confirmar, a cobrança será realizada no método de pagamento selecionado. Os
+                  créditos avulsos não possuem validade.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="ghost"
+                  onClick={() => handleOpenChange(false)}
+                  className="h-10 flex-1 font-bold text-slate-500"
+                >
+                  Cancelar
+                </Button>
+
+                <Button onClick={handleConfirm} className="h-10 flex-1 rounded-xl font-bold">
+                  Confirmar Compra
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === "processing" && (
+          <div className="flex flex-col items-center justify-center gap-4 p-16 text-center">
+            <Loader2 className="size-12 animate-spin text-amber-500" />
+
+            <p className="font-bold text-slate-600">Processando seu pagamento...</p>
+
+            <p className="text-sm font-medium text-slate-400">Não feche esta janela.</p>
+          </div>
+        )}
+
+        {step === "success" && (
+          <div className="flex flex-col items-center p-10 text-center">
+            <div
+              className={`mb-6 flex size-20 items-center justify-center rounded-full ${
+                purchaseStatus === "paid" ? "bg-green-50" : "bg-blue-50"
+              }`}
+            >
+              <CheckCircle2
+                className={`size-12 ${
+                  purchaseStatus === "paid" ? "text-green-500" : "text-blue-500"
+                }`}
+              />
+            </div>
+
+            <h2 className="mb-4 text-2xl font-extrabold text-slate-800">
+              {purchaseStatus === "paid" ? "Compra confirmada!" : "Pedido recebido!"}
+            </h2>
+
+            <p className="mb-8 max-w-md leading-relaxed font-medium text-slate-500">
+              {purchaseStatus === "paid" ? (
+                <>
+                  Seu pagamento foi aprovado e{" "}
+                  {packageData.credits === 1 ? (
+                    <>
+                      seu <strong className="text-slate-700">crédito extra</strong> já está sendo
+                      adicionado à sua conta. Agora é só aproveitar para mandar mais uma redação
+                      quando quiser.
+                    </>
+                  ) : (
+                    <>
+                      seus{" "}
+                      <strong className="text-slate-700">
+                        {packageData.credits} créditos extras
+                      </strong>{" "}
+                      já estão sendo adicionados à sua conta. Agora é só aproveitar para mandar mais
+                      redações quando quiser.
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  Seu pagamento está sendo processado. Assim que ele for aprovado,{" "}
+                  {packageData.credits === 1
+                    ? "seu crédito extra será adicionado"
+                    : `seus ${packageData.credits} créditos extras serão adicionados`}{" "}
+                  à sua conta.
+                </>
+              )}
+            </p>
+
+            <Button
+              onClick={() => handleOpenChange(false)}
+              className="h-12 w-full rounded-xl bg-slate-800 font-bold text-white hover:bg-slate-900"
+            >
+              Continuar
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -6,6 +6,7 @@ import {
   getSubscriptionData,
   getSubscriptionHistory,
 } from "@/app/actions/subscription";
+import { canPurchaseExtraCredits } from "@/app/actions/credits";
 import { CreditsUsageCard } from "@/components/credits-usage-card";
 import { PlanDetailsCard } from "@/components/plan-details-card";
 import { parseCreditsTransactionsFilters } from "@/utils/parse-filters";
@@ -42,7 +43,10 @@ export default async function SubscriptionPage({
 
   const { subscription, credits } = data;
 
-  const subscriptionHistoryData = await getSubscriptionHistory({ filters, page, });
+  const [subscriptionHistoryData, extraCreditEligibility] = await Promise.all([
+    getSubscriptionHistory({ filters, page }),
+    canPurchaseExtraCredits(),
+  ]);
 
   return (
     <div className="min-h-dvh space-y-8 px-2 py-4 md:px-10 lg:px-12">
@@ -110,6 +114,7 @@ export default async function SubscriptionPage({
             <CreditsUsageCard
               credits={credits}
               subscription={subscription}
+              extraCreditPurchaseEligible={extraCreditEligibility.eligible}
             />
           </div>
 

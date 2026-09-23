@@ -32,7 +32,7 @@ export function parseGradedEssaysFilters(params: NextSearchParams = {}): GradedE
 }
 
 export function parseStudentsFilters(params: NextSearchParams = {}): StudentsFilter {
-  const allowedKeys: (keyof StudentsFilter)[] = ["search", "status", "from", "to"];
+  const allowedKeys: (keyof StudentsFilter)[] = ["search", "status", "plan", "from", "to"];
 
   return allowedKeys.reduce((acc, key) => {
     const value = params[key];

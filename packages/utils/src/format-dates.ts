@@ -5,10 +5,10 @@ function getDateObject(date: string | Date): Date {
   return typeof date === "string" ? new Date(date) : date;
 }
 
-type DateStyle = "short" | "long" | "full" | "numeric";
+type DateStyle = "short" | "long" | "full" | "numeric" | "compact";
 
 /**
- * @param style - "short": "12 de Jan", "long": "12 de Janeiro", "full": "Quinta-feira, 12 de fevereiro", "numeric": "12/10/2023"
+ * @param style - "short": "12 de Jan", "long": "12 de Janeiro", "full": "Quinta-feira, 12 de fevereiro", "numeric": "12/10/2023", "compact": "12/10/23"
  */
 
 export function formatDate(
@@ -28,6 +28,15 @@ export function formatDate(
       timeZone: "America/Sao_Paulo",
     });
   }
+
+  if (style === "compact") {
+  return dateObj.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    timeZone: "America/Sao_Paulo",
+  });
+}
 
   if (style === "long") {
     return format(dateObj, "d 'de' MMMM", { locale: ptBR });

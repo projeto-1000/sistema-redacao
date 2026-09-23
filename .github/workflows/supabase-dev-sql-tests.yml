@@ -2,6 +2,15 @@ name: Supabase DEV SQL Tests
 
 on:
   workflow_dispatch:
+    inputs:
+      test_suite:
+        description: SQL test suite
+        required: true
+        type: choice
+        default: pagarme-renewal
+        options:
+          - pagarme-renewal
+          - extra-credit-purchase
 
 permissions:
   contents: read
@@ -11,8 +20,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  pagarme-renewal-convergence:
-    name: Test Pagar.me renewal convergence on DEV
+  sql-tests:
+    name: Test ${{ inputs.test_suite }} on DEV
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -22,24 +31,37 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Validate versioned SQL test
-        env:
-          SQL_TEST_FILE: supabase/tests/pagarme_subscription_renewal_convergence.sql
+      - name: Resolve SQL test file
+        id: sql-test
         shell: bash
         run: |
           set -euo pipefail
+
+          case "${{ inputs.test_suite }}" in
+            pagarme-renewal)
+              SQL_TEST_FILE="supabase/tests/pagarme_subscription_renewal_convergence.sql"
+              ;;
+            extra-credit-purchase)
+              SQL_TEST_FILE="supabase/tests/extra_credit_purchase_finalization.sql"
+              ;;
+            *)
+              echo "Unknown SQL test suite: ${{ inputs.test_suite }}" >&2
+              exit 1
+              ;;
+          esac
 
           if [[ ! -f "$SQL_TEST_FILE" ]]; then
             echo "SQL test file not found: $SQL_TEST_FILE" >&2
             exit 1
           fi
 
+          echo "sql_test_file=$SQL_TEST_FILE" >> "$GITHUB_OUTPUT"
           echo "Validated SQL test file: $SQL_TEST_FILE"
 
-      - name: Run Pagar.me renewal convergence SQL test on DEV
+      - name: Run SQL test on DEV
         env:
           SUPABASE_DEV_DB_URL: ${{ secrets.SUPABASE_DEV_DB_URL }}
-          SQL_TEST_FILE: supabase/tests/pagarme_subscription_renewal_convergence.sql
+          SQL_TEST_FILE: ${{ steps.sql-test.outputs.sql_test_file }}
         shell: bash
         run: |
           set -euo pipefail

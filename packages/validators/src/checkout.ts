@@ -58,17 +58,39 @@ export const checkoutPaymentSchema = z
     method: checkoutPaymentMethodSchema,
 
     installments: z.number().int().min(1).max(1).default(1),
-    
+
+    paymentSource: z.enum(["saved_card", "new_card"]),
+    paymentCardId: z.string().uuid("Cartão inválido.").nullable().optional(),
+
     cardNumber: z.string().optional(),
     holderName: z.string().optional(),
     holderDocument: z.string().optional(),
     expirationDate: z.string().optional(),
     cvv: z.string().optional(),
-    saveCard: z.boolean().default(false)
   })
   .superRefine((value, context) => {
     if (value.method === "boleto") {
       return;
+    }
+
+    if (value.paymentSource === "saved_card") {
+      if (!value.paymentCardId) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["paymentCardId"],
+          message: "Selecione um cartão.",
+        });
+      }
+
+      return;
+    }
+
+    if (value.paymentCardId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["paymentCardId"],
+        message: "A fonte do cartão é inválida.",
+      });
     }
 
     if (!value.cardNumber) {
@@ -176,6 +198,41 @@ export const checkoutSchema = z.object({
   payment: checkoutPaymentSchema,
 });
 
+export const extraCreditsPaymentSchema = z.discriminatedUnion("paymentSource", [
+  z.object({
+    paymentSource: z.literal("saved_card"),
+    paymentCardId: z.string().uuid("Cartão inválido."),
+  }),
+
+  z.object({
+    paymentSource: z.literal("new_card"),
+    paymentCardId: z.null().optional(),
+
+    cardNumber: z
+      .string()
+      .refine(isValidCardNumber, "Digite um número de cartão válido."),
+
+    holderName: z
+      .string()
+      .trim()
+      .min(3, "Digite o nome impresso no cartão."),
+
+    holderDocument: z
+      .string()
+      .refine(isValidCPF, "Digite um CPF válido."),
+
+    expirationDate: z
+      .string()
+      .refine(isValidCardExpiration, "Digite uma validade válida."),
+
+    cvv: z
+      .string()
+      .refine(isValidCardCvv, "Digite um CVV válido."),
+
+    address: checkoutAddressSchema,
+  }),
+]);
+
 export type CheckoutAddressFormInput = z.input<typeof checkoutAddressSchema>;
 export type CheckoutAddressFormValues = z.infer<typeof checkoutAddressSchema>;
 
@@ -184,3 +241,7 @@ export type CheckoutPaymentFormValues = z.infer<typeof checkoutPaymentSchema>;
 
 export type CheckoutFormInput = z.input<typeof checkoutSchema>;
 export type CheckoutFormValues = z.infer<typeof checkoutSchema>;
+
+export type ExtraCreditsPaymentInput = z.input<
+  typeof extraCreditsPaymentSchema
+>;

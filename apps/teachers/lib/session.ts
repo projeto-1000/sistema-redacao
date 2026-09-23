@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { AUTH_COOKIE_OPTIONS } from "./auth-cookie";
 
 export async function updateSession(request: NextRequest) {
   const ALLOWED_ROLE = "TEACHER";
@@ -15,6 +16,7 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
     {
+      cookieOptions: AUTH_COOKIE_OPTIONS,
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -38,8 +40,15 @@ export async function updateSession(request: NextRequest) {
     ? await supabase.rpc("get_my_role")
     : { data: null };
 
-  const publicRoutes = ["/login", "/esqueci-minha-senha", "/"];
+  const publicRoutes = ["/login", "/esqueci-minha-senha", "/cadastro/senha", "/auth/confirm", "/"];
   const isPublicRoute = publicRoutes.includes(pathname);
+
+  if (user && userRole === ALLOWED_ROLE && user.user_metadata?.teacher_invitation_pending === true && pathname !== "/cadastro/senha" && pathname !== "/auth/confirm") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/cadastro/senha";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   if (!isPublicRoute) {
     if (!user) {

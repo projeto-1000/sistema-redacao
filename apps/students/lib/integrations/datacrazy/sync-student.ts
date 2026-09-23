@@ -2,9 +2,13 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/admin";
 import {
+  buildDataCrazyTokensExpirationField,
+  getDataCrazyEligibility,
+  getDataCrazyPaymentStatus,
   sendDataCrazyStudentPayload,
   type DataCrazyDeliveryErrorCode,
   type DataCrazyEvent,
+  type DataCrazySyncContext,
   type DataCrazyStudentPayload,
 } from "@repo/datacrazy";
 import { onlyDigits } from "@repo/utils";
@@ -53,8 +57,64 @@ export function getDataCrazySyncErrorCode(error: unknown) {
   return error instanceof DataCrazySyncError ? error.code : "UNKNOWN_ERROR";
 }
 
-export async function syncStudentToDataCrazy(userId: string, event: DataCrazyEvent): Promise<void> {
+export async function syncStudentToDataCrazy(
+  userId: string,
+  event: DataCrazyEvent,
+  context: DataCrazySyncContext = {}
+): Promise<void> {
   const supabaseAdmin = createAdminClient();
+
+  const subscriptionResult = await supabaseAdmin
+    .from("subscriptions")
+    .select("plan_id, status")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (subscriptionResult.error) {
+    throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
+  }
+
+  if (!subscriptionResult.data) {
+    throw new DataCrazySyncError("SUBSCRIPTION_NOT_FOUND");
+  }
+
+  const { data: plan, error: planError } = await supabaseAdmin
+    .from("plans")
+    .select("name, external_id")
+    .eq("id", subscriptionResult.data.plan_id)
+    .maybeSingle();
+
+  if (planError) {
+    throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
+  }
+
+  if (!plan) {
+    throw new DataCrazySyncError("PLAN_NOT_FOUND");
+  }
+
+  const eligibility = getDataCrazyEligibility({
+    event,
+    currentPlanExternalId: plan.external_id,
+    previousPlanExternalId: context.previousPlanExternalId,
+    paymentAttempt: context.paymentAttempt,
+  });
+
+  console.info("[DATACRAZY_DEBUG]", {
+    stage: "eligibility_checked",
+    user_id: userId,
+    event,
+    eligible: eligibility.eligible,
+    reason: eligibility.reason,
+    current_plan_external_id: plan.external_id,
+    previous_plan_external_id: context.previousPlanExternalId ?? null,
+    payment_attempt: context.paymentAttempt ?? null,
+  });
+
+  if (!eligibility.eligible) {
+    return;
+  }
 
   const profileResult = await supabaseAdmin
     .from("profiles")
@@ -80,43 +140,16 @@ export async function syncStudentToDataCrazy(userId: string, event: DataCrazyEve
   let payload: DataCrazyStudentPayload;
 
   if (event === "user_signup" || event === "subscription_updated") {
-    const [subscriptionResult, allocationResult] = await Promise.all([
-      supabaseAdmin
-        .from("subscriptions")
-        .select("plan_id")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabaseAdmin
-        .from("free_credit_allocations")
-        .select("expires_at")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-    ]);
-
-    if (subscriptionResult.error || allocationResult.error) {
-      throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
-    }
-
-    if (!subscriptionResult.data) {
-      throw new DataCrazySyncError("SUBSCRIPTION_NOT_FOUND");
-    }
-
-    const { data: plan, error: planError } = await supabaseAdmin
-      .from("plans")
-      .select("name, external_id")
-      .eq("id", subscriptionResult.data.plan_id)
+    const allocationResult = await supabaseAdmin
+      .from("free_credit_allocations")
+      .select("expires_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    if (planError) {
+    if (allocationResult.error) {
       throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
-    }
-
-    if (!plan) {
-      throw new DataCrazySyncError("PLAN_NOT_FOUND");
     }
 
     const internalPlanLabel = PLAN_LABELS_BY_EXTERNAL_ID[plan.external_id];
@@ -133,9 +166,7 @@ export async function syncStudentToDataCrazy(userId: string, event: DataCrazyEve
       event,
       lead,
       plan: planLabel,
-      ...(allocationResult.data?.expires_at
-        ? { tokens_expire_at: allocationResult.data.expires_at }
-        : {}),
+      ...buildDataCrazyTokensExpirationField(allocationResult.data?.expires_at),
     };
   } else if (event === "essay_status_updated") {
     const essayResult = await supabaseAdmin
@@ -156,6 +187,14 @@ export async function syncStudentToDataCrazy(userId: string, event: DataCrazyEve
 
     const essayStatus = ESSAY_STATUS_LABELS[essayResult.data.status];
 
+    console.info("[DATACRAZY_DEBUG]", {
+      stage: "essay_status_resolved",
+      user_id: userId,
+      event,
+      internal_status: essayResult.data.status,
+      mapped_status: essayStatus ?? null,
+    });
+
     if (!essayStatus) {
       throw new DataCrazySyncError("ESSAY_STATUS_NOT_MAPPED");
     }
@@ -169,23 +208,9 @@ export async function syncStudentToDataCrazy(userId: string, event: DataCrazyEve
         : {}),
     };
   } else {
-    const subscriptionResult = await supabaseAdmin
-      .from("subscriptions")
-      .select("status")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (subscriptionResult.error) {
-      throw new DataCrazySyncError("STUDENT_STATE_FETCH_FAILED");
-    }
-
-    if (!subscriptionResult.data) {
-      throw new DataCrazySyncError("SUBSCRIPTION_NOT_FOUND");
-    }
-
-    const paymentStatus = PAYMENT_STATUS_LABELS[subscriptionResult.data.status];
+    const paymentStatus =
+      getDataCrazyPaymentStatus(context.paymentAttempt) ??
+      PAYMENT_STATUS_LABELS[subscriptionResult.data.status];
 
     if (!paymentStatus) {
       throw new DataCrazySyncError("PAYMENT_STATUS_NOT_MAPPED");

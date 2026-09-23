@@ -1,119 +1,346 @@
-import { StudentCredits, StudentSubscription, SubscriptionStatus } from "@repo/types";
+import {
+  StudentCredits,
+  StudentSubscription,
+  SubscriptionStatus,
+} from "@repo/types";
 import { formatDate } from "@repo/utils";
 import { CircleAlert } from "lucide-react";
 
-const statusBadgeConfig: Record<SubscriptionStatus, { label: string; classes: string }> = {
+const statusBadgeConfig: Record<
+  SubscriptionStatus,
+  { label: string; classes: string }
+> = {
   active: {
     label: "Ativo",
-    classes: "bg-emerald-50 text-emerald-600"
+    classes: "bg-emerald-50 text-emerald-600",
   },
   trial: {
-    label: "Teste",
-    classes: "bg-blue-50 text-blue-600"
+    label: "Ativo",
+    classes: "bg-emerald-50 text-emerald-600",
   },
   past_due: {
-    label: "Atrasado",
-    classes: "bg-amber-50 text-amber-600"
+    label: "Inadimplente",
+    classes: "bg-amber-50 text-amber-700",
   },
   unpaid: {
-    label: "Bloqueado",
-    classes: "bg-red-50 text-red-600"
+    label: "Inadimplente",
+    classes: "bg-amber-50 text-amber-700",
   },
   canceled: {
     label: "Cancelado",
-    classes: "bg-slate-100 text-slate-500"
+    classes: "bg-slate-200 text-slate-600",
   },
 };
 
 interface StudentSubscriptionCardProps {
-  subscription: StudentSubscription | null
-  credits: StudentCredits | null
-  hasSubscriptionError: boolean
-  hasCreditsError: boolean
+  subscription: StudentSubscription | null;
+  credits: StudentCredits | null;
+  hasSubscriptionError: boolean;
+  hasCreditsError: boolean;
 }
 
-export default function StudentSubscriptionCard({ subscription, credits, hasCreditsError, hasSubscriptionError }: StudentSubscriptionCardProps) {
+function getPlanPeriodLabel(subscription: StudentSubscription) {
+  if (subscription.interval === "lifetime") {
+    return null;
+  }
 
+  if (
+    subscription.interval === "month" &&
+    subscription.interval_count === 3
+  ) {
+    return "Trimestral";
+  }
+
+  if (subscription.interval === "month") {
+    return "Mensal";
+  }
+
+  if (subscription.interval === "day") {
+    const count = subscription.interval_count ?? 1;
+
+    return `${count} dia${count > 1 ? "s" : ""}`;
+  }
+
+  return null;
+}
+
+export default function StudentSubscriptionCard({
+  subscription,
+  credits,
+  hasCreditsError,
+  hasSubscriptionError,
+}: StudentSubscriptionCardProps) {
   if (hasSubscriptionError || hasCreditsError) {
     return (
-      <div className="bg-slate-50 flex flex-col items-center justify-center py-8 px-6">
-        <div className="flex items-center mb-2 gap-2">
-          <CircleAlert className="size-4 bg-white rounded-full text-red-500 shadow-sm" />
+      <div className="flex flex-col items-center justify-center bg-slate-50 px-6 py-8">
+        <div className="mb-2 flex items-center gap-2">
+          <CircleAlert className="size-4 rounded-full bg-white text-red-500 shadow-sm" />
+
           <h3 className="font-bold text-red-600">
             Ocorreu um erro.
           </h3>
         </div>
-        <p className="text-slate-600 text-sm max-w-sm md:max-w-md leading-relaxed text-center">
-          Não conseguimos carregar os dados de assinatura do aluno.<br /> Por favor, recarregue a página ou tente novamente em instantes.
+
+        <p className="max-w-sm text-center text-sm leading-relaxed text-slate-600 md:max-w-md">
+          Não conseguimos carregar os dados de assinatura do aluno.
+          <br />
+          Por favor, recarregue a página ou tente novamente em instantes.
         </p>
       </div>
     );
   }
 
-  if (!subscription) {
-    return (
-      <div className="bg-slate-50 flex flex-col items-center justify-center py-8 px-6">
-        <h3 className="font-bold text-slate-700 mb-1">Nenhum plano ativo</h3>
-        <p className="text-slate-500 text-sm max-w-sm text-center">
-          Este aluno não possui uma assinatura ou ela expirou.
-        </p>
-      </div>
-    );
-  }
+  const totalCredits =
+    (credits?.plan_credits ?? 0) +
+    (credits?.extra_credits ?? 0) +
+    (credits?.free_credits ?? 0) +
+    (credits?.mentorship_credits ?? 0);
 
-  const badge = statusBadgeConfig[subscription.status as SubscriptionStatus];
+  const creditItems = [
+    {
+      label: "Plano",
+      value: credits?.plan_credits ?? 0,
+      expiresAt: subscription?.current_period_end ?? null,
+      dotClass: "bg-blue-500",
+      textClass: "text-blue-700",
+    },
+    {
+      label: "Extra",
+      value: credits?.extra_credits ?? 0,
+      expiresAt: null,
+      dotClass: "bg-violet-500",
+      textClass: "text-violet-700",
+    },
+    {
+      label: "Gratuito",
+      value: credits?.free_credits ?? 0,
+      expiresAt: credits?.free_credit_expires_at ?? null,
+      dotClass: "bg-emerald-500",
+      textClass: "text-emerald-700",
+    },
+    {
+      label: "Mentoria",
+      value: credits?.mentorship_credits ?? 0,
+      expiresAt: credits?.mentorship_credit_expires_at ?? null,
+      dotClass: "bg-amber-500",
+      textClass: "text-amber-700",
+    },
+  ];
 
-  const renderDateText = () => {
-    if (!subscription.current_period_end || subscription.interval === 'lifetime') {
-      return <>Acesso: <span className="font-bold">Vitalício</span></>;
+  const activeCreditItems = creditItems.filter(
+    (credit) => credit.value > 0
+  );
+
+  const planPeriodLabel = subscription
+    ? getPlanPeriodLabel(subscription)
+    : null;
+
+  const badge = subscription
+    ? statusBadgeConfig[
+    subscription.status as SubscriptionStatus
+    ]
+    : null;
+
+  const isLifetime =
+    subscription?.interval === "lifetime";
+
+  const periodStart = subscription?.current_period_start
+    ? formatDate(
+      subscription.current_period_start,
+      "compact"
+    )
+    : null;
+
+  const periodEnd = subscription?.current_period_end
+    ? formatDate(
+      subscription.current_period_end,
+      "compact"
+    )
+    : null;
+
+  const isCanceled =
+    subscription?.status === "canceled" ||
+    subscription?.cancel_at_period_end;
+
+  const planDateLabel = (() => {
+    if (!subscription) return null;
+
+    if (isLifetime) {
+      return "Sem vencimento";
     }
 
-    const formattedDate = formatDate(subscription.current_period_end, 'numeric');
-
-    if (!subscription.cancel_at_period_end && subscription.status !== 'canceled') {
-      return <>Próxima renovação: <span className="font-bold">{formattedDate}</span></>;
+    if (!periodEnd) {
+      return "Sem vigência";
     }
 
-    return <>Expira em: <span className="font-bold">{formattedDate}</span></>;
-  };
+    if (isCanceled) {
+      return `Expira em ${periodEnd}`;
+    }
+
+    return `Renova em ${periodEnd}`;
+  })();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+    <div className="grid grid-cols-1 divide-y divide-slate-200 md:grid-cols-[0.9fr_1.6fr] md:divide-x md:divide-y-0">
+      {/* PLANO E VIGÊNCIA */}
+      <div className="bg-slate-100 p-8">
+        <h3 className="mb-5 text-xs font-bold uppercase tracking-widest text-slate-500">
+          Plano e vigência
+        </h3>
 
-      <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-100">
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Dados da Assinatura</h3>
-        <div className="flex items-center gap-2 mb-2">
-          <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider ${badge.classes}`}>
-            {badge.label}
-          </span>
-          <span className="font-black text-lg capitalize">{subscription.plan_name}</span>
-        </div>
-        <p className="text-sm font-medium text-slate-500">
-          {renderDateText()}
-        </p>
+        {subscription ? (
+          <div className="space-y-4">
+            {badge && (
+              <span
+                className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${badge.classes}`}
+              >
+                {badge.label}
+              </span>
+            )}
+
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-lg font-black text-slate-800">
+                  {subscription.plan_name === "Plano Gratuito"
+                    ? "Gratuito"
+                    : subscription.plan_name}
+                </span>
+
+                {planPeriodLabel && (
+                  <>
+                    <span
+                      className="h-4 w-px bg-slate-300"
+                      aria-hidden="true"
+                    />
+
+                    <span className="text-sm font-bold text-slate-600">
+                      {planPeriodLabel}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              <p className="mt-2 text-sm font-semibold text-slate-500">
+                {planDateLabel}
+              </p>
+
+              {!isLifetime &&
+                !isCanceled &&
+                subscription.status === "active" && (
+                  <p className="mt-1 text-xs font-medium text-slate-400">
+                    Renovação automática ao fim do período
+                  </p>
+                )}
+
+              {isCanceled && periodEnd && (
+                <p className="mt-1 text-xs font-medium text-slate-400">
+                  O acesso permanece disponível até o fim do ciclo
+                </p>
+              )}
+            </div>
+
+            {!isLifetime &&
+              periodStart &&
+              periodEnd && (
+                <div className="rounded-xl border border-slate-200 bg-white/60 px-4 py-3">
+                  <p className="text-xs font-semibold text-slate-500">
+                    Ciclo atual
+                  </p>
+
+                  <p className="mt-1 text-sm font-bold text-slate-700">
+                    {periodStart} – {periodEnd}
+                  </p>
+                </div>
+              )}
+          </div>
+        ) : (
+          <div>
+            <p className="font-bold text-slate-700">
+              Sem plano ativo
+            </p>
+
+            <p className="mt-1 max-w-xs text-sm text-slate-500">
+              Este aluno não possui uma assinatura ativa no momento.
+            </p>
+          </div>
+        )}
       </div>
 
-      <div className="p-8 flex flex-col items-center justify-center bg-slate-100">
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">
-          Redações Restantes
-        </h3>
-        <div className="size-20 rounded-full border-[6px] border-amber-200/40 flex items-center justify-center">
+      {/* CRÉDITOS */}
+      <div className="bg-slate-100 p-8">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+              Créditos disponíveis
+            </h3>
 
-          <div className="flex items-baseline translate-x-1">
-            <span className="text-3xl font-black text-amber-400">{credits?.plan_credits || 0}</span>
-            <span className="text-sm font-bold text-amber-400/60 ml-0.5">/{credits?.total_credits || 0}</span>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-4xl font-black text-slate-800">
+                {totalCredits}
+              </span>
+
+              <span className="text-sm font-semibold text-slate-400">
+                {totalCredits === 1
+                  ? "crédito no total"
+                  : "créditos no total"}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="p-8 flex flex-col items-center justify-center bg-slate-100">
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">
-          Créditos Adicionais
-        </h3>
-        <div className="size-20 rounded-full border-[6px] border-blue-100 flex items-center justify-center">
-          <span className="text-3xl font-black text-blue-600">{credits?.extra_credits || 0} </span>
+        {totalCredits > 0 && (
+          <div className="mb-5 flex h-2 overflow-hidden rounded-full bg-slate-200">
+            {activeCreditItems.map((credit) => (
+              <div
+                key={credit.label}
+                className={credit.dotClass}
+                style={{
+                  width: `${(credit.value / totalCredits) * 100
+                    }%`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          {creditItems.map((credit) => (
+            <div
+              key={credit.label}
+              className="rounded-xl border border-slate-200 bg-white/60 p-3"
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className={`size-2.5 rounded-full ${credit.dotClass}`}
+                />
+
+                <span
+                  className={`text-lg font-black ${credit.textClass}`}
+                >
+                  {credit.value}
+                </span>
+              </div>
+
+              <p
+                className={`mt-1 text-xs font-bold ${credit.textClass}`}
+              >
+                {credit.label}
+              </p>
+
+              <p className="mt-2 text-[11px] font-medium leading-snug text-slate-500">
+                {credit.label === "Extra"
+                  ? "Sem validade"
+                  : credit.expiresAt
+                    ? `Válido até ${formatDate(
+                      credit.expiresAt,
+                      "compact"
+                    )}`
+                    : "—"}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
-  )
+  );
 }

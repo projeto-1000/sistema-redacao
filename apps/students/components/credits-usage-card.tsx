@@ -14,6 +14,7 @@ import Link from "next/link";
 interface CreditsUsageCardProps {
   credits: StudentCredits;
   subscription: StudentSubscription;
+  extraCreditPurchaseEligible: boolean;
 }
 
 interface PlanCreditsContent {
@@ -27,6 +28,7 @@ interface PlanCreditsContent {
 export function CreditsUsageCard({
   credits,
   subscription,
+  extraCreditPurchaseEligible,
 }: CreditsUsageCardProps) {
   const isFreeTrial =
     subscription.plan_external_id ===
@@ -348,13 +350,30 @@ export function CreditsUsageCard({
           </span>
         </div>
 
-        <Link
-          href="/assinatura/comprar-creditos"
-          className="mt-auto flex items-center justify-end gap-2 pt-6 text-[13px] font-medium text-slate-700 transition-colors hover:font-bold hover:text-secondary"
-        >
-          <Plus className="size-4" />
-          Comprar mais créditos
-        </Link>
+        {extraCreditPurchaseEligible ? (
+          <Link
+            href="/assinatura/comprar-creditos"
+            className="mt-auto flex items-center justify-end gap-2 pt-6 text-[13px] font-medium text-slate-700 transition-colors hover:font-bold hover:text-secondary"
+          >
+            <Plus className="size-4" />
+            Comprar mais créditos
+          </Link>
+        ) : (
+          <div className="mt-auto pt-6 text-right">
+            <p className="text-xs font-medium text-slate-500">
+              Disponível para assinaturas pagas ativas.
+            </p>
+            {(isFreeTrial || isMentorshipPlan) && (
+              <Link
+                href="/assinatura/planos"
+                className="mt-2 inline-flex items-center gap-2 text-[13px] font-medium text-slate-700 transition-colors hover:font-bold hover:text-secondary"
+              >
+                <Plus className="size-4" />
+                Conhecer planos
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { DateRange } from "react-day-picker";
 import { Activity, Layers } from "lucide-react";
+import { useStudentsNavigation } from "@/components/students-navigation-provider";
 
-export function useStudentFilters() {
-  const router = useRouter();
+export function useStudentFilters(planOptions: { label: string; value: string }[]) {
+  const { navigate } = useStudentsNavigation();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -46,10 +47,13 @@ export function useStudentFilters() {
     const newQueryString = params.toString();
 
     if (currentQueryString !== newQueryString) {
-      params.delete("page");
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      params.set("page", "1");
+      navigate(`${pathname}?${params.toString()}`, {
+        replace: true,
+        scroll: false,
+      });
     }
-  }, [debouncedSearch, statusFilter, planFilter, dateRange, pathname, router, searchParams]);
+  }, [debouncedSearch, statusFilter, planFilter, dateRange, pathname, navigate, searchParams]);
 
   const filterOptions = [
     {
@@ -60,8 +64,10 @@ export function useStudentFilters() {
       onChange: setStatusFilter,
       options: [
         { label: "Todos", value: "all" },
-        { label: "Ativos", value: "active" },
-        { label: "Inativos", value: "inactive" },
+        { label: "Plano ativo", value: "plan_active" },
+        { label: "Inadimplente", value: "past_due" },
+        { label: "Cancelado", value: "canceled" },
+        { label: "Sem plano", value: "no_plan" },
         { label: "Bloqueados", value: "blocked" },
       ],
     },
@@ -71,11 +77,7 @@ export function useStudentFilters() {
       value: planFilter,
       icon: Layers,
       onChange: setPlanFilter,
-      options: [
-        { label: "Todos", value: "all" },
-        { label: "Basic", value: "basic" },
-        { label: "Premium", value: "premium" },
-      ],
+      options: [{ label: "Todos", value: "all" }, ...planOptions],
     },
   ];
 

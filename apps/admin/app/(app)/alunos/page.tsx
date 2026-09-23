@@ -1,16 +1,14 @@
 import { exportStudentsCsvAction } from "@/app/actions/export-students-csv";
-import { getStudentsCount } from "@/app/actions/students";
-import { StudentsTable, } from "@/components/students-table";
+import { getStudentPlanFilterOptions, getStudentsCount } from "@/app/actions/students";
+import { StudentsTable } from "@/components/students-table";
+import { StudentsNavigationProvider } from "@/components/students-navigation-provider";
 import StudentsFilterBar from "@/components/students-filter-bar";
 import { parseStudentsFilters } from "@/utils/parse-filters";
 import { PageHeader } from "@repo/ui/components/page-header";
-import { Skeleton } from "@repo/ui/components/skeleton";
 import { Plus } from "lucide-react";
-import { Suspense } from "react";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import { Button } from "@repo/ui/components/button";
 import Link from "next/link";
-
 
 export default async function StudentsPage({
   searchParams,
@@ -19,14 +17,27 @@ export default async function StudentsPage({
 }) {
   const resolvedParams = await searchParams;
   const page = Number(resolvedParams?.page) || 1;
-  const suspenseKey = JSON.stringify(resolvedParams);
   const filters = parseStudentsFilters(resolvedParams);
+  const sortParam =
+    typeof resolvedParams.sort === "string"
+      ? resolvedParams.sort
+      : "created_at";
 
-  const totalCount = await getStudentsCount()
+  const sort: "created_at" | "full_name" | "status" =
+    sortParam === "full_name" || sortParam === "status"
+      ? sortParam
+      : "created_at";
+
+  const order: "asc" | "desc" =
+    resolvedParams.order === "asc" ? "asc" : "desc";
+
+  const [totalCount, planFilterOptions] = await Promise.all([
+    getStudentsCount(),
+    getStudentPlanFilterOptions(),
+  ]);
 
   return (
     <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-8">
-
       <PageHeader
         title=" Gerenciamento de Alunos"
         subtitle={
@@ -51,14 +62,11 @@ export default async function StudentsPage({
         </Button>
       </PageHeader>
 
-      <StudentsFilterBar />
+      <StudentsNavigationProvider>
+        <StudentsFilterBar planOptions={planFilterOptions} />
 
-      <Suspense
-        key={suspenseKey}
-        fallback={<Skeleton className="rounded-3xl min-h-[250px] bg-slate-200 mt-6" />}
-      >
-        <StudentsTable filters={filters} page={page} />
-      </Suspense>
+        <StudentsTable filters={filters} page={page} sort={sort} order={order} />
+      </StudentsNavigationProvider>
     </div>
   );
 }

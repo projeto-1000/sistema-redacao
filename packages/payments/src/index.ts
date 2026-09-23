@@ -208,6 +208,7 @@ export async function createPagarmeCustomer({
   label?: string;
   verifyCard?: boolean;
   metadata?: Record<string, string>;
+  idempotencyKey?: string;
 }
 
  export interface PagarmeCard {
@@ -234,7 +235,14 @@ export async function createPagarmeCard({
   label,
   verifyCard = true,
   metadata,
+  idempotencyKey,
 }: CreatePagarmeCardParams) {
+  const headers: HeadersInit = {};
+
+  if (idempotencyKey) {
+    headers["Idempotency-Key"] = idempotencyKey;
+  }
+
   const payload = {
     token: cardToken,
     label,
@@ -247,6 +255,7 @@ export async function createPagarmeCard({
 
   return fetchPagarme<PagarmeCard>(`/customers/${customerId}/cards`, {
     method: "POST",
+    headers,
     body: JSON.stringify(payload),
   });
 }
@@ -292,6 +301,82 @@ export interface PagarmeSubscription {
   card?: PagarmeCard;
   items?: PagarmeSubscriptionItem[];
   metadata?: Record<string, string>;
+}
+
+export type PagarmeInvoiceStatus =
+  | "pending"
+  | "paid"
+  | "canceled"
+  | "scheduled"
+  | "failed";
+
+export interface PagarmeInvoicePeriod {
+  start_at?: string;
+  end_at?: string;
+}
+
+export interface PagarmeInvoiceTransaction {
+  id?: string;
+  status?: string;
+  success?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  acquirer_return_code?: string | number | null;
+  acquirer_message?: string | null;
+  gateway_response?: {
+    code?: string | number | null;
+    message?: string | null;
+  };
+}
+
+export interface PagarmeInvoiceCharge {
+  id?: string;
+  status?: string;
+  paid_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  recurrence_cycle?: string | null;
+  last_transaction?: PagarmeInvoiceTransaction;
+}
+
+export interface PagarmeInvoice {
+  id: string;
+  amount: number;
+  status: PagarmeInvoiceStatus;
+  payment_method?: string;
+  billing_at?: string | null;
+  due_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  canceled_at?: string | null;
+  period?: PagarmeInvoicePeriod;
+  cycle?: PagarmeInvoicePeriod;
+  charge?: PagarmeInvoiceCharge;
+  subscription?: {
+    id?: string;
+    code?: string;
+    status?: string;
+  };
+  metadata?: Record<string, string>;
+}
+
+export interface ListPagarmeInvoicesParams {
+  subscriptionId: string;
+  page?: number;
+  size?: number;
+}
+
+export interface ListPagarmeSubscriptionInvoicesParams {
+  subscriptionId: string;
+  pageSize?: number;
+  maxPages?: number;
+}
+
+export interface PagarmeInvoiceHistory {
+  invoices: PagarmeInvoice[];
+  historyComplete: boolean;
+  pagesFetched: number;
+  total?: number;
 }
 export interface CancelPagarmeSubscriptionParams {
   subscriptionId: string;
@@ -405,6 +490,112 @@ export async function getPagarmeSubscription({
   );
 }
 
+export interface UpdatePagarmeSubscriptionCardParams {
+  subscriptionId: string;
+  cardId: string;
+}
+
+export async function updatePagarmeSubscriptionCard({
+  subscriptionId,
+  cardId,
+}: UpdatePagarmeSubscriptionCardParams) {
+  if (!subscriptionId.startsWith("sub_")) {
+    throw new Error("ID da assinatura Pagar.me inválido.");
+  }
+
+  if (!cardId.startsWith("card_")) {
+    throw new Error("ID do cartão Pagar.me inválido.");
+  }
+
+  return fetchPagarme<PagarmeSubscription>(
+    `/subscriptions/${subscriptionId}/card`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        card_id: cardId,
+      }),
+    }
+  );
+}
+
+export async function listPagarmeInvoices({
+  subscriptionId,
+  page = 1,
+  size = 20,
+}: ListPagarmeInvoicesParams) {
+  if (!subscriptionId.startsWith("sub_")) {
+    throw new Error("ID da assinatura Pagar.me inválido.");
+  }
+
+  if (!Number.isInteger(page) || page < 1) {
+    throw new Error("Página de faturas inválida.");
+  }
+
+  if (!Number.isInteger(size) || size < 1 || size > 100) {
+    throw new Error("Tamanho da página de faturas inválido.");
+  }
+
+  const searchParams = new URLSearchParams({
+    subscription_id: subscriptionId,
+    page: String(page),
+    size: String(size),
+  });
+
+  return fetchPagarme<PagarmePaginatedResponse<PagarmeInvoice>>(
+    `/invoices?${searchParams.toString()}`,
+    { method: "GET" }
+  );
+}
+
+export async function listPagarmeSubscriptionInvoices({
+  subscriptionId,
+  pageSize = 20,
+  maxPages = 3,
+}: ListPagarmeSubscriptionInvoicesParams): Promise<PagarmeInvoiceHistory> {
+  if (!Number.isInteger(maxPages) || maxPages < 1 || maxPages > 10) {
+    throw new Error("Limite de páginas de faturas inválido.");
+  }
+
+  const invoices: PagarmeInvoice[] = [];
+  let pagesFetched = 0;
+  let total: number | undefined;
+
+  for (let page = 1; page <= maxPages; page += 1) {
+    const response = await listPagarmeInvoices({
+      subscriptionId,
+      page,
+      size: pageSize,
+    });
+
+    invoices.push(...response.data);
+    pagesFetched = page;
+
+    total = response.paging?.total ?? total;
+    const uniqueInvoiceCount = new Set(invoices.map((invoice) => invoice.id)).size;
+    const reachedTotal = typeof total === "number" && uniqueInvoiceCount >= total;
+    const reachedLastPage = response.data.length < pageSize;
+
+    if (reachedLastPage || reachedTotal) {
+      return {
+        invoices,
+        historyComplete:
+          reachedTotal || (typeof total !== "number" && reachedLastPage),
+        pagesFetched,
+        total,
+      };
+    }
+  }
+
+  return {
+    invoices,
+    historyComplete:
+      typeof total === "number" &&
+      new Set(invoices.map((invoice) => invoice.id)).size >= total,
+    pagesFetched,
+    total,
+  };
+}
+
 export interface CreatePagarmeOrderParams {
   code: string;
   customerId: string;
@@ -447,6 +638,16 @@ export interface PagarmeOrder {
   updated_at?: string;
   charges?: PagarmeCharge[];
   metadata?: Record<string, string>;
+}
+
+export async function getPagarmeOrder({ orderId }: { orderId: string }) {
+  if (!/^or_[A-Za-z0-9]+$/.test(orderId)) {
+    throw new Error("ID do pedido Pagar.me inválido.");
+  }
+
+  return fetchPagarme<PagarmeOrder>(`/orders/${orderId}`, {
+    method: "GET",
+  });
 }
 
 export async function createPagarmeOrder({

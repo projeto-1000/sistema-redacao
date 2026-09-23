@@ -1,5 +1,10 @@
 import { EssayStatus } from "@repo/types";
-import { ReactNode } from "react";
+export type {
+  TeacherPaymentAccount as PaymentAccount,
+  TeacherPaymentAccount as AccountData,
+  TeacherPaymentHistoryItem as PaymentHistoryItem,
+  TeacherPaymentMetrics as PaymentMetrics,
+} from "@repo/types";
 
 export type StudentsListItem = {
   id: string;
@@ -7,15 +12,31 @@ export type StudentsListItem = {
   email: string;
   avatar_url: string | null;
   status: "active" | "inactive" | "blocked";
+  created_at: string;
 
-  // TODO: revisar quando integrar plano, créditos e vigência reais na listagem de alunos do admin
+  plan: {
+    name: string;
+    interval: string;
+    interval_count: number | null;
+  } | null;
 
-  plan?: string;
-  creditsProf?: number | string;
-  creditsIA?: number | string;
-  validityStart?: string;
-  validityEnd?: string;
-  validityType?: "EXPIRADO" | "MANUAL" | string;
+  subscription: {
+    status: string;
+    current_period_start: string | null;
+    current_period_end: string | null;
+  } | null;
+
+  credits: {
+    plan: number;
+    extra: number;
+    free: number;
+    mentorship: number;
+  };
+
+  last_activity: {
+    date: string;
+    type: "submission" | "correction";
+  } | null;
 };
 
 export type GetStudentsFilters = {
@@ -111,56 +132,4 @@ export interface StudentEssayItem {
   status: EssayStatus;
   total_score: number;
   created_at: string;
-}
-export interface PaymentMetrics {
-  totalEssays: number;
-  onTime: number;
-  delayed: number;
-  valuePerCorrection: number;
-  dailyAverage: number;
-  totalAmount: number;
-  status: "paid" | "pending";
-}
-
-export type AccountMainType = "pix" | "bank_account";
-export type PixType = "cpf" | "cnpj" | "phone" | "email" | "random";
-export type BankAccountVariant = "corrente" | "poupanca";
-
-export interface PaymentAccount {
-  owner: ReactNode;
-  id: string;
-  teacher_id: string;
-  type: AccountMainType;
-  owner_name: string;
-  owner_document: string;
-  is_default: boolean;
-  pix_type?: PixType;
-  pix_key?: string;
-  bank_name?: string;
-  agency?: string;
-  account_number?: string;
-  account_variant?: BankAccountVariant;
-}
-
-export interface AccountData {
-  id: string;
-  is_default: boolean;
-  type: "pix" | "bank_account";
-  owner_name: string;
-  owner_document: string;
-  pix_key?: string;
-  pix_type?: string;
-  bank_name?: string;
-  agency?: string;
-  account_number?: string;
-  account_variant?: string;
-}
-export interface PaymentHistoryItem {
-  id: string;
-  processed_at: string;
-  billing_month: string;
-  essays_count: number;
-  total_amount: number;
-  status: "paid" | "pending" | "processing";
-  receipt_url?: string | null;
 }

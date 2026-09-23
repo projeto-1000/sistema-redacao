@@ -1,7 +1,7 @@
 "use server";
 
-import { UserData } from "@repo/types";
 import { createClient } from "@/lib/server";
+import { getPublicStorageObjectPath } from "@repo/utils";
 import { revalidatePath } from "next/cache";
 
 export async function getProfileData() {
@@ -15,16 +15,23 @@ export async function getProfileData() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, avatar_url")
+    .select(
+      "id, full_name, avatar_url, role, onboarding_completed, correction_review_required"
+    )
     .eq("id", user.id)
     .single();
 
   return {
     user: {
+      id: profile?.id ?? user.id,
       name: profile?.full_name || user.user_metadata?.full_name || "Professor",
-      email: user.email,
+      email: user.email ?? "",
+      credits: 0,
       avatarUrl: profile?.avatar_url || null,
-    } as UserData,
+      role: profile?.role ?? "TEACHER",
+      onboarding_completed: profile?.onboarding_completed ?? true,
+      correction_review_required: profile?.correction_review_required ?? false,
+    },
   };
 }
 
@@ -79,6 +86,23 @@ export async function uploadAvatar(formData: FormData) {
   const file = formData.get("file") as File;
   if (!file) throw new Error("Nenhum arquivo enviado");
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("avatar_url")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError) {
+    console.error("Erro ao localizar a foto atual:", profileError);
+    throw new Error("Falha ao localizar a foto atual");
+  }
+
+  const previousAvatarPath = getPublicStorageObjectPath(
+    profile.avatar_url,
+    "avatars",
+    user.id,
+  );
+
   const fileExt = file.name.split(".").pop();
   const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
@@ -102,10 +126,28 @@ export async function uploadAvatar(formData: FormData) {
     .eq("id", user.id);
 
   if (updateError) {
+    const { error: rollbackError } = await supabase.storage.from("avatars").remove([fileName]);
+
+    if (rollbackError) {
+      console.error("Erro ao remover a nova foto após falha no perfil:", rollbackError);
+    }
+
     console.error("Erro ao vincular imagem:", updateError);
     throw new Error("Falha ao atualizar a foto no perfil");
   }
 
+  if (previousAvatarPath && previousAvatarPath !== fileName) {
+    const { error: deleteError } = await supabase.storage
+      .from("avatars")
+      .remove([previousAvatarPath]);
+
+    if (deleteError) {
+      console.error("Erro ao remover a foto anterior:", deleteError);
+    }
+  }
+
   revalidatePath("/perfil");
   revalidatePath("/perfil/editar");
+
+  return { success: true, avatarUrl: publicUrl };
 }

@@ -3,6 +3,8 @@ import PendingEssaysRow from "./pending-essays-row";
 import { PendingEssaysFilter } from "@repo/types";
 import { CircleAlert, FileText, Search } from "lucide-react";
 import { TablePagination } from "@repo/ui/components/table-pagination";
+import { PENDING_ESSAYS_TABLE_GRID } from "./pending-essays-table-layout";
+import Link from "next/link";
 interface PendingEssaysTableProps {
   showHeader?: boolean
   filters?: PendingEssaysFilter;
@@ -36,13 +38,13 @@ export default async function PendingEssaysTable({ showHeader = false, filters, 
           {showHeader && (
             <div className="flex justify-between items-center p-8">
               <h3 className="text-lg font-bold">Fila de Correção</h3>
-              <button className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+              <Link href="/redacoes-pendentes" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
                 Ver fila completa
-              </button>
+              </Link>
             </div>
           )}
 
-          <div className={`hidden xl:grid grid-cols-[minmax(0,3fr)_minmax(0,5fr)_max-content_max-content] gap-4 px-8 pb-5 border-b border-slate-100 ${showHeader === true ? 'bg-transparent pb-5' : 'bg-slate-50/50 py-5'}`}>
+          <div className={`hidden xl:grid ${PENDING_ESSAYS_TABLE_GRID} px-8 pb-5 border-b border-slate-100 ${showHeader === true ? 'bg-transparent pb-5' : 'bg-slate-50/50 py-5'}`}>
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aluno</div>
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tema da Redação</div>
             <div className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Prazo</div>

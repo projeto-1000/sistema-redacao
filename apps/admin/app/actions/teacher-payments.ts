@@ -1,7 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import { PaymentHistoryItem, PaymentMetrics, TeacherEssayListItem } from "@/types";
+import { TeacherEssayListItem } from "@/types";
+import type { TeacherPaymentHistoryItem, TeacherPaymentMetrics } from "@repo/types";
 import { endOfMonth, getDaysInMonth, parseISO, startOfMonth } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { PostgrestError } from "@supabase/supabase-js";
@@ -16,6 +17,34 @@ interface GetEssaysByPeriodParams {
 
 const RECEIPT_URL_TTL_SECONDS = 60 * 60;
 const MAX_RECEIPT_SIZE_BYTES = 10 * 1024 * 1024;
+
+function getTodayInSaoPaulo() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function parsePaymentDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+
+  const [yearPart, monthPart, dayPart] = value.split("-");
+  if (!yearPart || !monthPart || !dayPart) return null;
+
+  const year = Number(yearPart);
+  const month = Number(monthPart);
+  const day = Number(dayPart);
+  const calendarDate = new Date(Date.UTC(year, month - 1, day));
+  const isValidDate = calendarDate.getUTCFullYear() === year
+    && calendarDate.getUTCMonth() === month - 1
+    && calendarDate.getUTCDate() === day;
+
+  if (!isValidDate || value > getTodayInSaoPaulo()) return null;
+
+  return new Date(`${value}T12:00:00-03:00`).toISOString();
+}
 
 async function getReceiptAccessUrl(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -51,7 +80,7 @@ async function getReceiptAccessUrl(
 export async function getPaymentMetrics(
   teacherId: string,
   month?: string
-): Promise<PaymentMetrics & { receiptUrl?: string }> {
+): Promise<TeacherPaymentMetrics> {
   const supabase = await createClient();
   const refDate = month ? parseISO(`${month}-01`) : new Date();
 
@@ -62,17 +91,27 @@ export async function getPaymentMetrics(
     .from("essays_with_delivery")
     .select("is_on_late")
     .eq("teacher_id", teacherId)
+    .eq("status", "corrected")
     .gte("correction_date", start)
     .lte("correction_date", end);
 
   const paymentQuery = supabase
     .from("teacher_payments")
-    .select("status, receipt_url")
+    .select("status, receipt_url, total_amount, essays_count, unit_value")
     .eq("teacher_id", teacherId)
-    .eq("billing_month", start)
+    .eq("billing_month", start.slice(0, 10))
     .maybeSingle();
 
-  const [essaysResult, paymentResult] = await Promise.all([essaysQuery, paymentQuery]);
+  const rateQuery = supabase.rpc("resolve_teacher_correction_rate", {
+    p_teacher_id: teacherId,
+    p_billing_month: start.slice(0, 10),
+  });
+
+  const [essaysResult, paymentResult, rateResult] = await Promise.all([
+    essaysQuery,
+    paymentQuery,
+    rateQuery,
+  ]);
 
   if (essaysResult.error) {
     console.error("Erro ao calcular métricas no banco: ", essaysResult.error);
@@ -83,15 +122,20 @@ export async function getPaymentMetrics(
       valuePerCorrection: 0,
       dailyAverage: 0,
       totalAmount: 0,
-      status: "pending",
+      status: null,
     };
+  }
+
+  if (rateResult.error) {
+    console.error("Erro ao buscar valor por correção:", rateResult.error);
+    throw new Error("Não foi possível calcular o valor por correção.");
   }
 
   const totalEssays = essaysResult.data.length;
   const delayed = essaysResult.data.filter((essay) => essay.is_on_late).length;
   const onTime = totalEssays - delayed;
 
-  const valuePerCorrection = 10.0;
+  const valuePerCorrection = Number(rateResult.data);
   const totalAmount = totalEssays * valuePerCorrection;
 
   const diffDays = getDaysInMonth(refDate);
@@ -101,13 +145,13 @@ export async function getPaymentMetrics(
   const receiptUrl = await getReceiptAccessUrl(supabase, dbPayment?.receipt_url);
 
   return {
-    totalEssays,
+    totalEssays: dbPayment?.essays_count ?? totalEssays,
     onTime,
     delayed,
-    valuePerCorrection,
+    valuePerCorrection: dbPayment ? Number(dbPayment.unit_value) : valuePerCorrection,
     dailyAverage,
-    totalAmount,
-    status: dbPayment?.status,
+    totalAmount: dbPayment ? Number(dbPayment.total_amount) : totalAmount,
+    status: dbPayment?.status ?? null,
     receiptUrl,
   };
 }
@@ -147,6 +191,7 @@ export async function getEssaysByPeriod({
       { count: "exact" }
     )
     .eq("teacher_id", teacherId)
+    .eq("status", "corrected")
     .gte("correction_date", start)
     .lte("correction_date", end);
 
@@ -171,24 +216,64 @@ export async function createTeacherPayment(formData: FormData) {
 
   const teacherId = formData.get("teacherId") as string;
   const monthStr = formData.get("month") as string;
+  const paymentDateStr = formData.get("paymentDate");
   const file = formData.get("receipt") as File;
-  const essaysCount = Number(formData.get("essaysCount"));
-  const unitValue = Number(formData.get("unitValue"));
-  const totalAmount = Number(formData.get("totalAmount"));
+
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(teacherId)) {
+    return { success: false, error: "Professor inválido." };
+  }
+
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthStr)) {
+    return { success: false, error: "Competência inválida." };
+  }
+
+  const processedAt = parsePaymentDate(typeof paymentDateStr === "string" ? paymentDateStr : "");
+  if (!processedAt) {
+    return { success: false, error: "Informe uma data de pagamento válida, sem usar uma data futura." };
+  }
 
   if (!file || file.size === 0) {
-    throw new Error("O comprovante em PDF é obrigatório.");
+    return { success: false, error: "O comprovante em PDF é obrigatório." };
   }
 
   if (file.type !== "application/pdf") {
-    throw new Error("O comprovante deve ser um arquivo PDF.");
+    return { success: false, error: "O comprovante deve ser um arquivo PDF." };
   }
 
   if (file.size > MAX_RECEIPT_SIZE_BYTES) {
-    throw new Error("O comprovante deve ter no máximo 10 MB.");
+    return { success: false, error: "O comprovante deve ter no máximo 10 MB." };
   }
 
   try {
+    const billingMonth = `${monthStr}-01T00:00:00.000-03:00`;
+    const [yearStr, monthStrPart] = monthStr.split("-");
+    const lastDay = new Date(Number(yearStr), Number(monthStrPart), 0).getDate();
+    const lastDayStr = String(lastDay).padStart(2, "0");
+
+    const endOfMonthStr = `${monthStr}-${lastDayStr}T23:59:59.999-03:00`;
+
+    const [{ data: payableEssays, error: essaysError }, { data: unitValueData, error: rateError }] =
+      await Promise.all([
+        supabase
+          .from("essays")
+          .select("id")
+          .eq("teacher_id", teacherId)
+          .eq("status", "corrected")
+          .gte("correction_date", billingMonth)
+          .lte("correction_date", endOfMonthStr)
+          .is("payment_id", null),
+        supabase.rpc("resolve_teacher_correction_rate", {
+          p_teacher_id: teacherId,
+          p_billing_month: `${monthStr}-01`,
+        }),
+      ]);
+
+    if (essaysError || rateError) throw essaysError ?? rateError;
+    const essaysCount = payableEssays?.length ?? 0;
+    if (!essaysCount) throw new Error("Não há redações pendentes de pagamento neste período.");
+
+    const unitValue = Number(unitValueData);
+    const totalAmount = essaysCount * unitValue;
     const fileName = `${teacherId}/${monthStr}-${Date.now()}.pdf`;
 
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -196,13 +281,6 @@ export async function createTeacherPayment(formData: FormData) {
       .upload(fileName, file);
 
     if (uploadError) throw uploadError;
-
-    const billingMonth = `${monthStr}-01T00:00:00.000-03:00`;
-    const [yearStr, monthStrPart] = monthStr.split("-");
-    const lastDay = new Date(Number(yearStr), Number(monthStrPart), 0).getDate();
-    const lastDayStr = String(lastDay).padStart(2, "0");
-
-    const endOfMonthStr = `${monthStr}-${lastDayStr}T23:59:59.999-03:00`;
 
     const { data: payment, error: paymentError } = await supabase
       .from("teacher_payments")
@@ -214,7 +292,7 @@ export async function createTeacherPayment(formData: FormData) {
         unit_value: unitValue,
         receipt_url: uploadData.path,
         status: "paid",
-        processed_at: new Date().toISOString(),
+        processed_at: processedAt,
       })
       .select()
       .single();
@@ -227,12 +305,16 @@ export async function createTeacherPayment(formData: FormData) {
     const { error: updateError } = await supabase
       .from("essays")
       .update({ payment_id: payment.id })
-      .eq("teacher_id", teacherId)
-      .gte("correction_date", billingMonth)
-      .lte("correction_date", endOfMonthStr)
+      .in("id", payableEssays.map((essay) => essay.id))
       .is("payment_id", null);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      await Promise.all([
+        supabase.from("teacher_payments").delete().eq("id", payment.id),
+        supabase.storage.from("receipts").remove([uploadData.path]),
+      ]);
+      throw updateError;
+    }
 
     revalidatePath(`/professores/${teacherId}/pagamentos`);
     return { success: true };
@@ -247,7 +329,7 @@ export async function getTeacherPaymentHistory(
   page: number = 1,
   limit: number = 10
 ): Promise<{
-  payments: PaymentHistoryItem[];
+  payments: TeacherPaymentHistoryItem[];
   totalPages: number;
   error: PostgrestError | null;
 }> {
@@ -264,6 +346,7 @@ export async function getTeacherPaymentHistory(
       billing_month,
       essays_count,
       total_amount,
+      unit_value,
       status,
       receipt_url,
       processed_at
@@ -314,12 +397,12 @@ export async function exportTeacherPaymentsCsv(payload: { teacherId: string }) {
   const columns = [
     {
       header: "Data do Pagamento",
-      key: (row: PaymentHistoryItem) =>
+      key: (row: TeacherPaymentHistoryItem) =>
         row.processed_at ? new Date(row.processed_at).toLocaleDateString("pt-BR") : "-",
     },
     {
       header: "Período de Referência",
-      key: (row: PaymentHistoryItem) => {
+      key: (row: TeacherPaymentHistoryItem) => {
         if (!row.billing_month) return "-";
         const date = new Date(row.billing_month);
         return `${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
@@ -327,18 +410,23 @@ export async function exportTeacherPaymentsCsv(payload: { teacherId: string }) {
     },
     {
       header: "Qtd. Redações",
-      key: (row: PaymentHistoryItem) => row.essays_count?.toString() || "0",
+      key: (row: TeacherPaymentHistoryItem) => row.essays_count?.toString() || "0",
+    },
+    {
+      header: "Valor por Redação",
+      key: (row: TeacherPaymentHistoryItem) =>
+        `R$ ${Number(row.unit_value).toFixed(2).replace(".", ",")}`,
     },
     {
       header: "Valor Total",
-      key: (row: PaymentHistoryItem) =>
+      key: (row: TeacherPaymentHistoryItem) =>
         row.total_amount
           ? `R$ ${Number(row.total_amount).toFixed(2).replace(".", ",")}`
           : "R$ 0,00",
     },
     {
       header: "Status",
-      key: (row: PaymentHistoryItem) => {
+      key: (row: TeacherPaymentHistoryItem) => {
         if (row.status === "paid") return "Pago";
         if (row.status === "pending") return "Pendente";
         return "Processando";
@@ -346,7 +434,7 @@ export async function exportTeacherPaymentsCsv(payload: { teacherId: string }) {
     },
     {
       header: "Link do Comprovante",
-      key: (row: PaymentHistoryItem) => row.receipt_url || "Não anexado",
+      key: (row: TeacherPaymentHistoryItem) => row.receipt_url || "Não anexado",
     },
   ];
 

@@ -3,8 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageSquareText, Trash2, X } from "lucide-react";
 import { HIGHLIGHT_STYLES } from "../../constants";
-import type { CorrectionHighlight } from "@repo/types";
+import type { CorrectionHighlight, MotivationalText } from "@repo/types";
 import { Button } from "@repo/ui/components/button";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@repo/ui/components/tabs";
+import { EssayTextStatistics } from "../../essays/components/essay-text-statistics";
 
 const COMP_BUTTONS = [
   { id: "c1", bg: "bg-comp-1" },
@@ -31,6 +38,8 @@ interface EssayViewerProps {
     id: string;
     title: string;
     content: string;
+    motivational_texts: MotivationalText[];
+    motivational_texts_load_error: boolean;
   };
   highlights: Highlight[];
   activeHighlightComp: string | null;
@@ -38,6 +47,7 @@ interface EssayViewerProps {
   onHighlightsChange: (newHighlights: Highlight[]) => void;
   onActiveHighlightChange: (compId: string | null) => void;
   onActiveHighlightIdChange: (id: string | null) => void;
+  readOnly?: boolean;
 }
 
 export function EssayViewer({
@@ -48,6 +58,7 @@ export function EssayViewer({
   onHighlightsChange,
   onActiveHighlightChange,
   onActiveHighlightIdChange,
+  readOnly = false,
 }: EssayViewerProps) {
 
   const [popover, setPopover] = useState<PopoverState | null>(null);
@@ -110,14 +121,14 @@ export function EssayViewer({
   }, [activeHighlightId]);
 
   useEffect(() => {
-    if (!popover?.compId) return;
+    if (readOnly || !popover?.compId) return;
 
     const frame = window.requestAnimationFrame(() => {
       commentInputRef.current?.focus();
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [popover?.compId]);
+  }, [popover?.compId, readOnly]);
 
   const getAbsoluteRange = (selection: Selection) => {
     if (!textRef.current || selection.rangeCount === 0) return null;
@@ -134,20 +145,22 @@ export function EssayViewer({
   };
 
   const handleSelectCompetency = (compId: string) => {
+    if (readOnly) return;
+
     setPopover((currentPopover) =>
       currentPopover
         ? {
-            ...currentPopover,
-            compId: compId.toLowerCase() as CorrectionHighlight["compId"],
-            comment: "",
-          }
+          ...currentPopover,
+          compId: compId.toLowerCase() as CorrectionHighlight["compId"],
+          comment: "",
+        }
         : null
     );
     onActiveHighlightChange(null);
   };
 
   const handleSaveHighlightComment = () => {
-    if (!popover?.compId) return;
+    if (readOnly || !popover?.compId) return;
 
     const comment = popover.comment.trim();
     if (!comment) return;
@@ -187,7 +200,23 @@ export function EssayViewer({
     onActiveHighlightIdChange(null);
   };
 
+  const handleHighlightCommentKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    const isSaveShortcut =
+      event.key === "Enter" && (event.metaKey || event.ctrlKey);
+
+    if (readOnly || event.nativeEvent.isComposing || !isSaveShortcut) {
+      return;
+    }
+
+    event.preventDefault();
+    handleSaveHighlightComment();
+  };
+
   const handleRemoveHighlight = (id: string) => {
+    if (readOnly) return;
+
     onHighlightsChange(highlights.filter(h => h.id !== id));
     window.getSelection()?.removeAllRanges();
     setPopover(null);
@@ -195,6 +224,8 @@ export function EssayViewer({
   };
 
   const handleSelectionEnd = (e: React.MouseEvent | React.TouchEvent) => {
+    if (readOnly) return;
+
     if ((e.target as HTMLElement).closest('.ignore-selection')) return;
 
     setTimeout(() => {
@@ -262,6 +293,15 @@ export function EssayViewer({
     onActiveHighlightIdChange(null);
   };
 
+  const handleTabChange = (value: string) => {
+    if (value === "student-text") return;
+
+    window.getSelection()?.removeAllRanges();
+    setPopover(null);
+    onActiveHighlightChange(null);
+    onActiveHighlightIdChange(null);
+  };
+
   const renderContent = () => {
     const fullText = essay.content;
     const sortedHighlights = [...highlights].sort((a, b) => a.startIndex - b.startIndex);
@@ -287,11 +327,10 @@ export function EssayViewer({
           onClick={(e) => handleMarkClick(e, hl)}
           onKeyDown={(e) => handleMarkKeyDown(e, hl)}
           aria-pressed={activeHighlightId === hl.id}
-          className={`cursor-pointer rounded-sm pb-0.5 transition-all hover:opacity-80 ${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]} ${
-            activeHighlightId === hl.id
-              ? "ring-2 ring-slate-700/70 ring-offset-2"
-              : ""
-          }`}
+          className={`cursor-pointer rounded-sm pb-0.5 transition-all hover:opacity-80 ${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]} ${activeHighlightId === hl.id
+            ? "ring-2 ring-slate-700/70 ring-offset-2"
+            : ""
+            }`}
         >
           {fullText.slice(hl.startIndex, hl.endIndex)}
         </mark>
@@ -346,6 +385,8 @@ export function EssayViewer({
             ref={commentInputRef}
             id={`highlight-comment-${popover.existingId ?? "new"}`}
             value={popover.comment}
+            readOnly={readOnly}
+            aria-keyshortcuts={readOnly ? undefined : "Meta+Enter Control+Enter"}
             onChange={(event) => {
               const comment = event.target.value;
               setPopover((currentPopover) =>
@@ -354,92 +395,172 @@ export function EssayViewer({
                   : currentPopover
               );
             }}
+            onKeyDown={handleHighlightCommentKeyDown}
             maxLength={2000}
             rows={4}
             placeholder="Explique o problema ou a orientação para este trecho..."
             className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700 outline-none placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200"
           />
 
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <span className="text-[10px] text-slate-400">
+          <div className="mt-1.5 flex items-center justify-between gap-3 text-[10px] text-slate-400">
+            <span>
               {popover.comment.length}/2000
             </span>
-
-            <div className="flex items-center gap-2">
-              {activeHighlight && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveHighlight(activeHighlight.id)}
-                  className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
-                >
-                  <Trash2 className="size-3.5" />
-                  Remover apontamento
-                </button>
-              )}
-
-              <Button
-                type="button"
-                size="sm"
-                disabled={!isCommentValid}
-                onClick={handleSaveHighlightComment}
-                className="rounded-lg bg-indigo-600 px-3 text-xs font-bold text-white hover:bg-indigo-700"
-              >
-                Salvar comentário
-              </Button>
-            </div>
+            {!readOnly && (
+              <span className="hidden sm:inline">⌘/Ctrl + Enter para salvar</span>
+            )}
           </div>
+
+          {!readOnly && (
+            <div className="mt-3 flex items-center justify-end gap-2">
+                {activeHighlight && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveHighlight(activeHighlight.id)}
+                    className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
+                  >
+                    <Trash2 className="size-3.5" />
+                    Remover apontamento
+                  </button>
+                )}
+
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={!isCommentValid}
+                  onClick={handleSaveHighlightComment}
+                  className="rounded-lg bg-indigo-600 px-3 text-xs font-bold text-white hover:bg-indigo-700"
+                >
+                  Salvar comentário
+                </Button>
+            </div>
+          )}
         </div>
       );
     }
 
     return (
       <>
-      <span className="text-[10px] font-black uppercase tracking-widest opacity-50 mr-1 hidden sm:block">
-        Vincular
-      </span>
+        <span className="text-[10px] font-black uppercase tracking-widest opacity-50 mr-1 hidden sm:block">
+          Vincular
+        </span>
 
-      {COMP_BUTTONS.map((btn) => (
-        <button
-          type="button"
-          key={btn.id}
-          onClick={() => handleSelectCompetency(btn.id)}
-          className={`size-8 md:size-7 rounded-full text-[11px] md:text-[10px] font-black hover:scale-110 transition-transform ${btn.bg} text-white opacity-90 hover:opacity-100 shadow-md`}
-        >
-          {btn.id.toUpperCase()}
+        {COMP_BUTTONS.map((btn) => (
+          <button
+            type="button"
+            key={btn.id}
+            onClick={() => handleSelectCompetency(btn.id)}
+            className={`size-8 md:size-7 rounded-full text-[11px] md:text-[10px] font-black hover:scale-110 transition-transform ${btn.bg} text-white opacity-90 hover:opacity-100 shadow-md`}
+          >
+            {btn.id.toUpperCase()}
+          </button>
+        ))}
+
+        <div className="w-px h-5 md:h-4 bg-slate-700 mx-1 md:mx-2"></div>
+
+        <button type="button" onClick={handleClosePopover} className="p-2 md:p-1.5 text-slate-400 hover:bg-slate-700 rounded-lg transition-colors">
+          <X className="size-5 md:size-4" />
         </button>
-      ))}
-
-      <div className="w-px h-5 md:h-4 bg-slate-700 mx-1 md:mx-2"></div>
-
-      <button type="button" onClick={handleClosePopover} className="p-2 md:p-1.5 text-slate-400 hover:bg-slate-700 rounded-lg transition-colors">
-        <X className="size-5 md:size-4" />
-      </button>
       </>
     );
   };
 
   return (
     <div className="lg:col-span-7 bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-fit relative">
-      <div className="px-6 py-4 md:px-8 md:py-6 border-b border-slate-100 uppercase tracking-widest text-[10px] font-bold text-slate-400">
-        Texto do Aluno
-      </div>
-
-      <div
-        className="p-4 md:p-10 overflow-y-auto min-h-[50vh]"
-        onMouseUp={handleSelectionEnd}
-        onTouchEnd={handleSelectionEnd}
+      <Tabs
+        defaultValue="student-text"
+        onValueChange={handleTabChange}
+        className="gap-0"
       >
-        <h2 className="text-lg md:text-2xl font-black mb-8 leading-tight text-center">
-          {essay.title}
-        </h2>
-
-        <div
-          ref={textRef}
-          className="text-justify text-base leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word selection:bg-amber-200/50 md:text-lg"
+        <TabsList
+          variant="line"
+          className="h-auto w-full justify-start gap-6 rounded-none border-b border-slate-100 px-6 py-4 md:gap-8 md:px-8 md:py-6"
         >
-          {renderContent()}
-        </div>
-      </div>
+          <TabsTrigger
+            value="student-text"
+            className="h-auto flex-none rounded-none p-0 uppercase tracking-widest text-[10px] font-bold text-slate-400 data-[state=active]:text-slate-700 after:bg-primary"
+          >
+            Texto do aluno
+          </TabsTrigger>
+          <TabsTrigger
+            value="motivational-texts"
+            className="h-auto flex-none rounded-none p-0 uppercase tracking-widest text-[10px] font-bold text-slate-400 data-[state=active]:text-slate-700 after:bg-primary"
+          >
+            Textos motivadores
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="student-text">
+          <div className="min-h-[50vh]">
+            <div
+              className="overflow-y-auto p-4 md:p-10"
+              onMouseUp={handleSelectionEnd}
+              onTouchEnd={handleSelectionEnd}
+            >
+              <h2 className="text-lg md:text-2xl font-black mb-8 leading-tight text-center">
+                {essay.title}
+              </h2>
+
+              <div
+                ref={textRef}
+                className="text-justify text-base leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word selection:bg-amber-200/50 md:text-lg"
+              >
+                {renderContent()}
+              </div>
+            </div>
+
+            <EssayTextStatistics text={essay.content} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="motivational-texts">
+          <div className="min-h-[50vh] p-4 md:p-6">
+            {essay.motivational_texts_load_error ? (
+              <p className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-500">
+                Não foi possível carregar os textos motivadores.
+              </p>
+            ) : essay.motivational_texts.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-400">
+                Nenhum texto motivador disponível.
+              </p>
+            ) : (
+              <div className="space-y-6">
+                {essay.motivational_texts.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-left"
+                  >
+                    <h3 className="mb-3 w-fit rounded-md bg-[#EBC84C]/20 px-2 py-1 text-xs font-bold uppercase tracking-widest text-[#8B781F]">
+                      Motivador {index + 1}
+                    </h3>
+
+                    <div className="space-y-4">
+                      {item.body_text && (
+                        <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700 md:text-base">
+                          {item.body_text}
+                        </p>
+                      )}
+
+                      {item.image_url && (
+                        <img
+                          src={item.image_url}
+                          className="h-auto w-full rounded-lg border border-slate-200 bg-white object-contain"
+                        />
+                      )}
+
+                      {item.source_reference && (
+                        <p className="text-right text-[10px] font-medium italic text-slate-400">
+                          Fonte: {item.source_reference}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {popover && (
         <>

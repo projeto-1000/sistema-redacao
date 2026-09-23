@@ -73,5 +73,5 @@ export function isValidCardExpiration(value: string) {
 export function isValidCardCvv(value: string) {
   const digits = onlyDigits(value);
 
-  return digits.length === 3 || digits.length === 4;
+  return digits.length === 3;
 }

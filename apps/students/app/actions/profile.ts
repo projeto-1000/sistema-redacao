@@ -4,6 +4,7 @@ import type { UserData } from "@repo/types";
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
 import { SetPasswordSchema } from "@repo/validators";
+import { getPublicStorageObjectPath } from "@repo/utils";
 import { redirect } from "next/navigation";
 import { getFriendlyErrorMessage } from "@/utils/auth-error-dictionary";
 
@@ -27,7 +28,7 @@ export async function getProfileData() {
   const [profileRes, creditsRes, statsRes, evolutionRes, rankingRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select(`full_name, email, avatar_url, onboarding_completed`)
+      .select(`id, full_name, email, avatar_url, onboarding_completed`)
       .eq("id", user.id)
       .single(),
 
@@ -64,6 +65,7 @@ export async function getProfileData() {
 
   return {
     user: {
+      id: profile.id,
       name: profile.full_name,
       email: profile.email,
       avatarUrl: profile.avatar_url,
@@ -152,21 +154,19 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResponse> 
   if (!user) return { success: false, error: "Usuário não autenticado." };
 
   try {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("avatar_url")
       .eq("id", user.id)
       .single();
 
-    if (profile?.avatar_url) {
-      const oldFilePath = profile.avatar_url.split("/avatars/").pop();
+    if (profileError) throw profileError;
 
-      if (oldFilePath) {
-        const { error: deleteError } = await supabase.storage.from("avatars").remove([oldFilePath]);
-
-        if (deleteError) console.error("Falha ao apagar foto antiga:", deleteError);
-      }
-    }
+    const previousAvatarPath = getPublicStorageObjectPath(
+      profile?.avatar_url,
+      "avatars",
+      user.id,
+    );
 
     const newFileName = `${user.id}/${Date.now()}.jpg`;
 
@@ -188,7 +188,25 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResponse> 
       .update({ avatar_url: newAvatarUrl })
       .eq("id", user.id);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      const { error: rollbackError } = await supabase.storage
+        .from("avatars")
+        .remove([newFileName]);
+
+      if (rollbackError) {
+        console.error("Falha ao remover a nova foto após erro no perfil:", rollbackError);
+      }
+
+      throw updateError;
+    }
+
+    if (previousAvatarPath && previousAvatarPath !== newFileName) {
+      const { error: deleteError } = await supabase.storage
+        .from("avatars")
+        .remove([previousAvatarPath]);
+
+      if (deleteError) console.error("Falha ao apagar foto antiga:", deleteError);
+    }
 
     revalidatePath("/perfil", "layout");
 

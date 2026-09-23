@@ -23,6 +23,7 @@ interface CompetencyCardProps {
   onSelectHighlight: (id: string) => void;
   onScoreChange: (newScore: number) => void;
   onCommentChange: (newComment: string) => void;
+  readOnly?: boolean;
 }
 
 export function CompetencyCard({
@@ -36,7 +37,8 @@ export function CompetencyCard({
   activeHighlightId,
   onSelectHighlight,
   onScoreChange,
-  onCommentChange
+  onCommentChange,
+  readOnly = false,
 }: CompetencyCardProps) {
   const compKey = comp.id.toLowerCase();
   const style = COMPETENCY_STYLES[compKey as keyof typeof COMPETENCY_STYLES];
@@ -62,8 +64,9 @@ export function CompetencyCard({
             ${isActiveForHighlight
                 ? `${style.btnHighlight} border-none shadow-md animate-pulse`
                 : "border-slate-200 text-slate-600 hover:bg-slate-50"}
-          `}
+            `}
             onClick={() => onActivateHighlightMode(comp.id)}
+            disabled={readOnly}
           >
             {isActiveForHighlight ? (
               <>
@@ -88,6 +91,7 @@ export function CompetencyCard({
           <Button
             key={level}
             onClick={() => onScoreChange(level)}
+            disabled={readOnly}
             className={`
               w-full min-w-0 px-0 h-10 rounded-xl text-sm font-bold transition-all
               ${score === level
@@ -108,6 +112,7 @@ export function CompetencyCard({
           commentError ? "border-red-400" : "border-slate-200"
         }`}
         value={comment}
+        readOnly={readOnly}
         onChange={(e) => onCommentChange(e.target.value)}
         maxLength={CORRECTION_COMPETENCY_COMMENT_MAX_LENGTH}
       />

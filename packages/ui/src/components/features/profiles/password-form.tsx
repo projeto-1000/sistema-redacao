@@ -77,7 +77,7 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="Digite sua nova senha"
                       {...field}
                       className="w-full rounded-2xl h-12 p-3.5 pr-12 focus:ring-1 focus:ring-primary border-[#e8e4ce]"
                     />
@@ -111,7 +111,7 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
                   <div className="relative">
                     <Input
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="Confirme sua nova senha"
                       {...field}
                       className="w-full rounded-2xl h-12 p-3.5 pr-12 focus:ring-1 focus:ring-primary border-[#e8e4ce]"
                     />

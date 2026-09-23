@@ -1,11 +1,10 @@
 import { getEssaysByStatus } from "@/app/actions/essays";
 import { Avatar } from "@repo/ui/components/avatar";
-import { Button } from "@repo/ui/components/button";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { DEADLINE_STATUS_STYLES } from "@repo/ui/components/features/constants";
 import { getDeadlineStatus } from "@repo/utils";
-import { ArrowRight, FileCheck, Hourglass } from "lucide-react";
-import Link from "next/link";
+import { FileCheck } from "lucide-react";
+import { StartEssayCorrectionButton } from "./start-essay-correction-button";
 
 export async function NextEssays() {
   const { essays } = await getEssaysByStatus({ status: ['pending', 'correcting'], limit: 3 });
@@ -71,21 +70,11 @@ export async function NextEssays() {
               </p>
             </div>
 
-            <Button asChild
-              variant={essay.status === 'pending' ? 'dark' : 'secondary'}
-              className="font-bold h-10 rounded-full text-sm">
-              <Link href={`/corrigir-redacao/${essay.id}`}>
-                {essay.status === 'pending' ? (
-                  <>
-                    Corrigir Agora <ArrowRight className="size-4" />
-                  </>
-                ) : (
-                  <>
-                    Terminar correção <Hourglass className="size-4" />
-                  </>
-                )}
-              </Link>
-            </Button>
+            <StartEssayCorrectionButton
+              essayId={essay.id}
+              isPending={essay.status === "pending"}
+              reviewStatus={essay.correction_review_status}
+            />
           </div>
         );
       })}
