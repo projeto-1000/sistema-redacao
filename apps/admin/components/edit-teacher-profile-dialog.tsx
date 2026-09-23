@@ -269,7 +269,7 @@ export function EditTeacherProfileDialog({
                             <div className="flex items-start justify-between gap-4">
                               <div>
                                 <p className="font-bold ">
-                                  Exigir revisão do admin
+                                  Exigir revisão
                                 </p>
                                 <p className="mt-1 text-sm leading-relaxed text-slate-600">
                                   As correções passam por revisão antes de chegar ao aluno.

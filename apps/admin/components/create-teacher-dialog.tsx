@@ -113,7 +113,7 @@ export function CreateTeacherDialog({ onCreate }: CreateTeacherDialogProps) {
                     />
                   </FormControl>
                   <div className="space-y-1">
-                    <FormLabel className="flex cursor-pointer items-center gap-2 font-bold text-slate-700"><ShieldCheck className="size-4 text-indigo-600" />Exigir revisão do admin</FormLabel>
+                    <FormLabel className="flex cursor-pointer items-center gap-2 font-bold text-slate-700"><ShieldCheck className="size-4 text-indigo-600" />Exigir revisão</FormLabel>
                     <p className="text-sm text-slate-600">As correções deste professor só serão liberadas aos alunos após revisão e aprovação de um administrador.</p>
                   </div>
                 </div>
