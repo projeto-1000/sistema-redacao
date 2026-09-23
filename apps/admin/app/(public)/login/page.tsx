@@ -1,8 +1,9 @@
-'use client'
+"use client";
 
 import { Suspense } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { LoginForm } from "@repo/ui/components/login-form";
+import { Logo } from "@repo/ui/components/logo";
 import type { LoginSchema } from "@repo/validators";
 import { useSearchParams } from "next/navigation";
 
@@ -18,21 +19,21 @@ function LoginContent() {
   };
 
   return (
-    <LoginForm
-      appType="admin"
-      onSubmit={handleLogin}
-      isSubmitting={isLoggingIn}
-      error={error}
-    />
+    <LoginForm appType="admin" onSubmit={handleLogin} isSubmitting={isLoggingIn} error={error} />
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="bg-gradient-soft min-h-dvh flex items-center justify-center px-4 md:p-0">
-      <Suspense fallback={<div>Carregando...</div>}>
-        <LoginContent />
-      </Suspense>
-    </div>
-  )
+    <main className="auth-page-background flex min-h-dvh items-center justify-center px-4 py-10 sm:px-6">
+      <div className="relative z-10 flex w-full max-w-[520px] flex-col items-center">
+        <Logo className="mb-8 h-20 sm:h-24" />
+        <Suspense
+          fallback={<div className="h-[520px] w-full animate-pulse rounded-[28px] bg-white/60" />}
+        >
+          <LoginContent />
+        </Suspense>
+      </div>
+    </main>
+  );
 }
