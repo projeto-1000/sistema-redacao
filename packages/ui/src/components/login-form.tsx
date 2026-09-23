@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircleIcon, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./form";
 import { Input } from "./input";
@@ -40,6 +40,9 @@ interface LoginFormProps {
 
 export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const formElementRef = useRef<HTMLFormElement>(null);
+  const submissionLockRef = useRef(false);
+  const credentialPickerInteractionRef = useRef(false);
 
   const text = APP_CONFIG[appType];
   const errorContent = getErrorContent(error);
@@ -56,8 +59,107 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
 
   const { isValid } = form.formState;
 
-  const handleSubmit = async (values: LoginSchema) => {
-    await onSubmit(values);
+  const submitValidCredentials = useCallback(async (values: LoginSchema) => {
+    if (isSubmitting || submissionLockRef.current) {
+      return;
+    }
+
+    submissionLockRef.current = true;
+
+    try {
+      await onSubmit(values);
+    } finally {
+      submissionLockRef.current = false;
+    }
+  }, [isSubmitting, onSubmit]);
+
+  const syncCredentialsFromInputs = useCallback((): LoginSchema | null => {
+    const formElement = formElementRef.current;
+
+    if (!formElement) {
+      return null;
+    }
+
+    const formData = new FormData(formElement);
+    const values = {
+      email: String(formData.get("email") ?? ""),
+      password: String(formData.get("password") ?? ""),
+    };
+
+    form.setValue("email", values.email, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+    form.setValue("password", values.password, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+
+    return values;
+  }, [form]);
+
+  const submitSelectedCredentials = useCallback(() => {
+    const values = syncCredentialsFromInputs();
+    const result = loginSchema.safeParse(values);
+
+    if (!result.success) {
+      return;
+    }
+
+    credentialPickerInteractionRef.current = false;
+    void submitValidCredentials(result.data);
+  }, [submitValidCredentials, syncCredentialsFromInputs]);
+
+  const handleAutofill = useCallback(() => {
+    if (credentialPickerInteractionRef.current) {
+      submitSelectedCredentials();
+      return;
+    }
+
+    syncCredentialsFromInputs();
+  }, [submitSelectedCredentials, syncCredentialsFromInputs]);
+
+  const scheduleAutofillCheck = useCallback((input: HTMLInputElement) => {
+    window.requestAnimationFrame(() => {
+      const isAutofilled = [":autofill", ":-webkit-autofill"].some((selector) => {
+        try {
+          return input.matches(selector);
+        } catch {
+          return false;
+        }
+      });
+
+      if (isAutofilled) {
+        handleAutofill();
+      }
+    });
+  }, [handleAutofill]);
+
+  const handleLoginInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      event.key.length === 1 ||
+      event.key === "Backspace" ||
+      event.key === "Delete"
+    ) {
+      credentialPickerInteractionRef.current = false;
+    } else if (event.key === "ArrowDown") {
+      credentialPickerInteractionRef.current = true;
+    }
+
+    if (event.key !== "Enter" || event.nativeEvent.isComposing) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      if (isSubmitting || submissionLockRef.current) {
+        return;
+      }
+
+      syncCredentialsFromInputs();
+      formElementRef.current?.requestSubmit();
+    });
   };
 
   const inputFocusClass = 'focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1';
@@ -78,7 +180,12 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
 
         <CardContent className="p-0">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+            <form
+              ref={formElementRef}
+              autoComplete="on"
+              onSubmit={form.handleSubmit(submitValidCredentials)}
+              className="space-y-5"
+            >
               <FormField
                 control={form.control}
                 name="email"
@@ -87,12 +194,26 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
                     <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">E-mail</FormLabel>
                     <FormControl>
                       <Input
-                        className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                        className={`login-autofill-detection w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                        type="email"
+                        inputMode="email"
+                        autoComplete="username"
+                        enterKeyHint="next"
                         placeholder="seu@email.com"
+                        {...field}
+                        onPointerDown={() => {
+                          credentialPickerInteractionRef.current = true;
+                        }}
+                        onKeyDown={handleLoginInputKeyDown}
+                        onAnimationStart={(event) => {
+                          if (event.animationName === "login-autofill-start") {
+                            window.requestAnimationFrame(handleAutofill);
+                          }
+                        }}
                         onInput={(event) => {
                           field.onChange(event.currentTarget.value);
+                          scheduleAutofillCheck(event.currentTarget);
                         }}
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -109,13 +230,24 @@ export function LoginForm({ appType, onSubmit, isSubmitting = false, error }: Lo
                     <FormControl>
                       <div className="relative">
                         <Input
-                          className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                          className={`login-autofill-detection w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
                           type={showPassword ? "text" : "password"}
                           autoComplete="current-password"
+                          enterKeyHint="go"
                           placeholder="******"
                           {...field}
+                          onPointerDown={() => {
+                            credentialPickerInteractionRef.current = true;
+                          }}
+                          onKeyDown={handleLoginInputKeyDown}
+                          onAnimationStart={(event) => {
+                            if (event.animationName === "login-autofill-start") {
+                              window.requestAnimationFrame(handleAutofill);
+                            }
+                          }}
                           onInput={(event) => {
                             field.onChange(event.currentTarget.value);
+                            scheduleAutofillCheck(event.currentTarget);
                           }}
                         />
                         <Button

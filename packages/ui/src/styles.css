@@ -155,6 +155,24 @@
     cursor: pointer;
   }
 
+  @keyframes login-autofill-start {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  .login-autofill-detection:-webkit-autofill {
+    animation: login-autofill-start 1ms;
+  }
+
+  .login-autofill-detection:autofill {
+    animation: login-autofill-start 1ms;
+  }
+
   .bg-gradient-soft {
     background: linear-gradient(135deg, #e0f2fe 0%, #ffffff 100%);
   }
