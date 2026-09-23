@@ -92,8 +92,14 @@ export async function createTeacherInvitation(input: TeacherInviteInput): Promis
     }
   }
 
-  const { data: verifiedProfile, error: verifyError } = await admin.from("profiles").select("role").eq("id", teacherId).single();
-  if (verifyError || verifiedProfile?.role !== "TEACHER") {
+  const { data: verifiedProfile, error: verifyError } = await admin.from("profiles")
+    .update({ correction_review_required: parsed.data.correction_review_required })
+    .eq("id", teacherId)
+    .eq("role", "TEACHER")
+    .select("role, correction_review_required")
+    .maybeSingle();
+  if (verifyError || verifiedProfile?.role !== "TEACHER" || verifiedProfile.correction_review_required !== parsed.data.correction_review_required) {
+    revalidatePath("/professores");
     return { success: false, error: "Não foi possível confirmar o perfil do professor. Nenhum convite foi enviado." };
   }
 

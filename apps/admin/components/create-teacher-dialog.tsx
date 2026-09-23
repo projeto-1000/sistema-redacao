@@ -22,6 +22,7 @@ const defaults: TeacherInviteInput = {
   email: "",
   document: "",
   phone: "",
+  correction_review_required: true,
 };
 
 export function CreateTeacherDialog({ onCreate }: CreateTeacherDialogProps) {
@@ -100,15 +101,25 @@ export function CreateTeacherDialog({ onCreate }: CreateTeacherDialogProps) {
               )} />
             </div>
 
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
-              <div className="flex items-start gap-3">
-                <Checkbox checked disabled aria-label="Exigir revisão do admin (em preparação)" className="mt-0.5" />
-                <div className="space-y-1">
-                  <p className="flex items-center gap-2 font-bold text-slate-700"><ShieldCheck className="size-4 text-amber-700" />Exigir revisão do admin <span className="text-xs font-medium text-amber-800">Em preparação</span></p>
-                  <p className="text-sm text-slate-600">Esta opção ainda não será aplicada ao professor. Após integrar o fluxo de revisão, configure a supervisão no perfil dele.</p>
+            <FormField control={form.control} name="correction_review_required" render={({ field }) => (
+              <FormItem className="rounded-2xl border border-indigo-200 bg-indigo-50/70 p-4">
+                <div className="flex items-start gap-3">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                      aria-label="Exigir revisão"
+                      className="mt-0.5"
+                    />
+                  </FormControl>
+                  <div className="space-y-1">
+                    <FormLabel className="flex cursor-pointer items-center gap-2 font-bold text-slate-700"><ShieldCheck className="size-4 text-indigo-600" />Exigir revisão do admin</FormLabel>
+                    <p className="text-sm text-slate-600">As correções deste professor só serão liberadas aos alunos após revisão e aprovação de um administrador.</p>
+                  </div>
                 </div>
-              </div>
-            </div>
+                <FormMessage />
+              </FormItem>
+            )} />
 
             {form.formState.errors.root?.message && <p role="alert" className="text-sm text-red-600">{form.formState.errors.root.message}</p>}
 

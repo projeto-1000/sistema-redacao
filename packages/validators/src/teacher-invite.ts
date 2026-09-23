@@ -9,6 +9,7 @@ export const teacherInviteSchema = z.object({
     const digits = onlyDigits(value);
     return digits.length === 10 || digits.length === 11;
   }, "Informe um telefone com DDD válido."),
+  correction_review_required: z.boolean(),
 });
 
 export type TeacherInviteInput = z.infer<typeof teacherInviteSchema>;
