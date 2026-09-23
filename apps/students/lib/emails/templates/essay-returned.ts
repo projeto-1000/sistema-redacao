@@ -44,7 +44,7 @@ export function buildEssayReturnedEmailHtml({
 `,
 
     action: {
-      label: "Ver minha redação",
+      label: "Revisar minha redação",
       url: essayUrl,
     },
 
