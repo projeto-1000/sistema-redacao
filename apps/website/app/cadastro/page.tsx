@@ -16,6 +16,7 @@ import {
 import { Container } from "@/components/site/Container";
 import { Reveal } from "@/components/site/Reveal";
 import { SignupForm } from "@/components/site/SignupForm";
+import { STUDENTS_LOGIN_URL } from "@/lib/students-app.server";
 const fernando = "/images/fernando.jpg";
 
 const title = "Corrigir minha redação grátis | Projeto 1000";
@@ -122,7 +123,7 @@ export default function CadastroPage() {
           <div className="order-1 md:order-2">
             <Reveal>
               <div id="signup" className="scroll-mt-28">
-                <SignupForm />
+                <SignupForm loginUrl={STUDENTS_LOGIN_URL} />
               </div>
             </Reveal>
           </div>
