@@ -42,6 +42,7 @@ interface LoginFormProps {
   onSubmit: (values: LoginSchema) => Promise<void>;
   isSubmitting?: boolean;
   error: string | null;
+  signupHref?: string;
 }
 
 export function LoginForm({
@@ -49,6 +50,7 @@ export function LoginForm({
   onSubmit,
   isSubmitting = false,
   error,
+  signupHref,
 }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const formElementRef = useRef<HTMLFormElement>(null);
@@ -191,15 +193,15 @@ export function LoginForm({
       title={text.title}
       description={text.description}
       footer={
-        appType === "student" ? (
+        appType === "student" && signupHref ? (
           <p>
             Ainda não tem uma conta?
-            <Link
+            <a
               className="ml-1 font-semibold text-primary hover:underline"
-              href="/cadastro"
+              href={signupHref}
             >
               Cadastre-se
-            </Link>
+            </a>
           </p>
         ) : undefined
       }
