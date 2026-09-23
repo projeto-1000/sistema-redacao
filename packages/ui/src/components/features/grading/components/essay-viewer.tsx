@@ -11,6 +11,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@repo/ui/components/tabs";
+import { EssayTextStatistics } from "../../essays/components/essay-text-statistics";
 
 const COMP_BUTTONS = [
   { id: "c1", bg: "bg-comp-1" },
@@ -46,6 +47,7 @@ interface EssayViewerProps {
   onHighlightsChange: (newHighlights: Highlight[]) => void;
   onActiveHighlightChange: (compId: string | null) => void;
   onActiveHighlightIdChange: (id: string | null) => void;
+  readOnly?: boolean;
 }
 
 export function EssayViewer({
@@ -56,6 +58,7 @@ export function EssayViewer({
   onHighlightsChange,
   onActiveHighlightChange,
   onActiveHighlightIdChange,
+  readOnly = false,
 }: EssayViewerProps) {
 
   const [popover, setPopover] = useState<PopoverState | null>(null);
@@ -118,14 +121,14 @@ export function EssayViewer({
   }, [activeHighlightId]);
 
   useEffect(() => {
-    if (!popover?.compId) return;
+    if (readOnly || !popover?.compId) return;
 
     const frame = window.requestAnimationFrame(() => {
       commentInputRef.current?.focus();
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [popover?.compId]);
+  }, [popover?.compId, readOnly]);
 
   const getAbsoluteRange = (selection: Selection) => {
     if (!textRef.current || selection.rangeCount === 0) return null;
@@ -142,6 +145,8 @@ export function EssayViewer({
   };
 
   const handleSelectCompetency = (compId: string) => {
+    if (readOnly) return;
+
     setPopover((currentPopover) =>
       currentPopover
         ? {
@@ -155,7 +160,7 @@ export function EssayViewer({
   };
 
   const handleSaveHighlightComment = () => {
-    if (!popover?.compId) return;
+    if (readOnly || !popover?.compId) return;
 
     const comment = popover.comment.trim();
     if (!comment) return;
@@ -195,7 +200,23 @@ export function EssayViewer({
     onActiveHighlightIdChange(null);
   };
 
+  const handleHighlightCommentKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    const isSaveShortcut =
+      event.key === "Enter" && (event.metaKey || event.ctrlKey);
+
+    if (readOnly || event.nativeEvent.isComposing || !isSaveShortcut) {
+      return;
+    }
+
+    event.preventDefault();
+    handleSaveHighlightComment();
+  };
+
   const handleRemoveHighlight = (id: string) => {
+    if (readOnly) return;
+
     onHighlightsChange(highlights.filter(h => h.id !== id));
     window.getSelection()?.removeAllRanges();
     setPopover(null);
@@ -203,6 +224,8 @@ export function EssayViewer({
   };
 
   const handleSelectionEnd = (e: React.MouseEvent | React.TouchEvent) => {
+    if (readOnly) return;
+
     if ((e.target as HTMLElement).closest('.ignore-selection')) return;
 
     setTimeout(() => {
@@ -362,6 +385,8 @@ export function EssayViewer({
             ref={commentInputRef}
             id={`highlight-comment-${popover.existingId ?? "new"}`}
             value={popover.comment}
+            readOnly={readOnly}
+            aria-keyshortcuts={readOnly ? undefined : "Meta+Enter Control+Enter"}
             onChange={(event) => {
               const comment = event.target.value;
               setPopover((currentPopover) =>
@@ -370,40 +395,46 @@ export function EssayViewer({
                   : currentPopover
               );
             }}
+            onKeyDown={handleHighlightCommentKeyDown}
             maxLength={2000}
             rows={4}
             placeholder="Explique o problema ou a orientação para este trecho..."
             className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700 outline-none placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200"
           />
 
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <span className="text-[10px] text-slate-400">
+          <div className="mt-1.5 flex items-center justify-between gap-3 text-[10px] text-slate-400">
+            <span>
               {popover.comment.length}/2000
             </span>
-
-            <div className="flex items-center gap-2">
-              {activeHighlight && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveHighlight(activeHighlight.id)}
-                  className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
-                >
-                  <Trash2 className="size-3.5" />
-                  Remover apontamento
-                </button>
-              )}
-
-              <Button
-                type="button"
-                size="sm"
-                disabled={!isCommentValid}
-                onClick={handleSaveHighlightComment}
-                className="rounded-lg bg-indigo-600 px-3 text-xs font-bold text-white hover:bg-indigo-700"
-              >
-                Salvar comentário
-              </Button>
-            </div>
+            {!readOnly && (
+              <span className="hidden sm:inline">⌘/Ctrl + Enter para salvar</span>
+            )}
           </div>
+
+          {!readOnly && (
+            <div className="mt-3 flex items-center justify-end gap-2">
+                {activeHighlight && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveHighlight(activeHighlight.id)}
+                    className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
+                  >
+                    <Trash2 className="size-3.5" />
+                    Remover apontamento
+                  </button>
+                )}
+
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={!isCommentValid}
+                  onClick={handleSaveHighlightComment}
+                  className="rounded-lg bg-indigo-600 px-3 text-xs font-bold text-white hover:bg-indigo-700"
+                >
+                  Salvar comentário
+                </Button>
+            </div>
+          )}
         </div>
       );
     }
@@ -460,21 +491,25 @@ export function EssayViewer({
         </TabsList>
 
         <TabsContent value="student-text">
-          <div
-            className="p-4 md:p-10 overflow-y-auto min-h-[50vh]"
-            onMouseUp={handleSelectionEnd}
-            onTouchEnd={handleSelectionEnd}
-          >
-            <h2 className="text-lg md:text-2xl font-black mb-8 leading-tight text-center">
-              {essay.title}
-            </h2>
-
+          <div className="min-h-[50vh]">
             <div
-              ref={textRef}
-              className="text-justify text-base leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word selection:bg-amber-200/50 md:text-lg"
+              className="overflow-y-auto p-4 md:p-10"
+              onMouseUp={handleSelectionEnd}
+              onTouchEnd={handleSelectionEnd}
             >
-              {renderContent()}
+              <h2 className="text-lg md:text-2xl font-black mb-8 leading-tight text-center">
+                {essay.title}
+              </h2>
+
+              <div
+                ref={textRef}
+                className="text-justify text-base leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word selection:bg-amber-200/50 md:text-lg"
+              >
+                {renderContent()}
+              </div>
             </div>
+
+            <EssayTextStatistics text={essay.content} />
           </div>
         </TabsContent>
 

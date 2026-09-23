@@ -5,6 +5,7 @@ import { Lexend } from "next/font/google";
 import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { Toaster } from "@repo/ui/components/toaster";
 import { RouteTransition } from "@repo/ui/components/route-transition";
+import { PostRedirectToast } from "@repo/ui/components/post-redirect-toast";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -29,6 +30,7 @@ export default function RootLayout({
           <RouteTransition>
             {children}
           </RouteTransition>
+          <PostRedirectToast />
           <Toaster />
         </TooltipProvider>
       </body>

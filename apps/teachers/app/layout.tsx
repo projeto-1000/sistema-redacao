@@ -7,6 +7,7 @@ import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { Footer } from "@repo/ui/components/footer";
 import { Toaster } from "@repo/ui/components/toaster";
 import { RouteTransition } from "@repo/ui/components/route-transition";
+import { PostRedirectToast } from "@repo/ui/components/post-redirect-toast";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -34,6 +35,7 @@ export default function RootLayout({
             {children}
           </RouteTransition>
           <Footer />
+          <PostRedirectToast />
           <Toaster />
         </TooltipProvider>
       </body>

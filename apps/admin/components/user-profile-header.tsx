@@ -30,6 +30,7 @@ interface UserProfileHeaderProps {
   user: BaseUserProfile;
   onEdit?: () => void;
   onToggleStatus?: () => void;
+  statusBadge?: React.ReactNode;
   footer?: React.ReactNode;
   disableAction?: boolean
 }
@@ -38,6 +39,7 @@ export function UserProfileHeader({
   user,
   onEdit,
   onToggleStatus,
+  statusBadge,
   footer,
   disableAction = false
 }: UserProfileHeaderProps) {
@@ -103,6 +105,8 @@ export function UserProfileHeader({
               <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider ${currentStatus.colors}`}>
                 {currentStatus.label}
               </span>
+              <span className="text-slate-300">|</span>
+              {statusBadge}
               <span className="text-slate-300">|</span>
               <span className="text-slate-500">Desde: {formatDate(user.created_at, 'numeric')}</span>
             </div>
