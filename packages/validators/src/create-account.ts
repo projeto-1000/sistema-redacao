@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isValidCNPJ, isValidCPF } from "@repo/utils";
 
-const cleanDigits = (value: string) => value.replace(/\D/g, "");
+const cleanDocument = (value: string) => value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 
 export const commonSchema = z.object({
   ownerName: z.string().trim().min(3, "O nome do titular deve ter pelo menos 3 caracteres.").max(120, "O nome do titular deve ter até 120 caracteres."),
@@ -26,8 +26,8 @@ export const accountFormSchema = z.discriminatedUnion("type", [
 ])
 .and(commonSchema)
 .superRefine((data, ctx) => {
-  const document = cleanDigits(data.ownerDocument);
-  const isValidDocument = document.length === 11
+  const document = cleanDocument(data.ownerDocument);
+  const isValidDocument = /^\d{11}$/.test(document)
     ? isValidCPF(document)
     : document.length === 14 && isValidCNPJ(document);
 

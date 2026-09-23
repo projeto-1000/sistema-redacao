@@ -1,6 +1,12 @@
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@repo/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@repo/ui/components/dialog";
 import { Button } from "@repo/ui/components/button";
 import { Eye } from "lucide-react";
 import { TeacherEssayListItem } from "@/types";
@@ -43,36 +49,56 @@ export function EssaysPeriodModal({ essays, totalPages }: EssaysPeriodModalProps
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="h-10 w-full rounded-xl px-3 font-bold text-slate-600 transition-colors hover:bg-primary/10 hover:text-slate-900 sm:w-auto" disabled={essays.length === 0}>
+        <Button
+          variant="ghost"
+          className="hover:bg-primary/10 h-10 w-full rounded-xl px-3 font-bold text-slate-600 transition-colors hover:text-slate-900 sm:w-auto"
+          disabled={essays.length === 0}
+        >
           <Eye className="size-4" /> Ver redações do período
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="min-w-[95%] px-4 overflow-y-scroll max-h-[90%] rounded-4xl border-none shadow-2xl bg-white">
-        <DialogHeader className="p-6 md:p-8 pb-0 text-left">
-          <DialogTitle className="text-xl md:text-2xl font-black tracking-tight">
+      <DialogContent className="flex max-h-[90dvh] w-[calc(100vw-2rem)] flex-col gap-0 overflow-hidden rounded-4xl border-none bg-white p-0 shadow-2xl sm:max-w-[95vw]">
+        <DialogHeader className="shrink-0 p-6 pb-4 text-left md:p-8 md:pb-4">
+          <DialogTitle className="text-xl font-black tracking-tight md:text-2xl">
             Redações no Período
           </DialogTitle>
         </DialogHeader>
 
-        <div className="w-full">
-          <div className="hidden lg:grid grid-cols-12 gap-4 px-4 py-5 border-b border-slate-100">
-            <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aluno</div>
-            <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tema / Eixo</div>
-            <div className="col-span-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Nota</div>
-            <div className="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Status</div>
-            <div className="col-span-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Prazo</div>
-            <div className="col-span-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Correção</div>
-            <div className="col-span-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Detalhes</div>
+        <div className="no-scrollbar min-h-0 w-full flex-1 overflow-y-auto px-4">
+          <div className="hidden grid-cols-12 gap-4 border-b border-slate-100 px-4 py-5 lg:grid">
+            <div className="col-span-3 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Aluno
+            </div>
+            <div className="col-span-3 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Tema / Eixo
+            </div>
+            <div className="col-span-1 text-center text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Nota
+            </div>
+            <div className="col-span-2 text-center text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Status
+            </div>
+            <div className="col-span-1 text-center text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Prazo
+            </div>
+            <div className="col-span-1 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Correção
+            </div>
+            <div className="col-span-1 text-right text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Detalhes
+            </div>
           </div>
 
-          <div className="divide-y divide-slate-100 pb-6 relative">
+          <div className="relative divide-y divide-slate-100 pb-6">
             {essays.map((essay) => (
               <TeacherEssaysRow key={essay.id} essay={essay} onViewDetails={handleOpenDetails} />
             ))}
           </div>
 
-          <div className={`pt-6 border-t border-slate-200 ${totalPages === 1 ? 'hidden' : 'block'}`}>
+          <div
+            className={`border-t border-slate-200 py-6 ${totalPages === 1 ? "hidden" : "block"}`}
+          >
             <TablePagination totalPages={totalPages} />
           </div>
         </div>

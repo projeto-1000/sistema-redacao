@@ -24,9 +24,12 @@ export function TeachersTableRow({ teacher }: { teacher: TeacherListItem }) {
 
       <div className="col-span-1 lg:col-span-4 flex items-center gap-4">
         <Avatar src={teacherItem.avatar_url} name={teacherItem.full_name} className="size-10" />
-        <span className="font-bold text-sm hover:underline cursor-pointer">
+        <Link
+          href={`/professores/${teacherItem.id}`}
+          className="rounded-sm text-sm font-bold transition-colors hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
+        >
           {teacherItem.full_name}
-        </span>
+        </Link>
       </div>
 
       <div className="col-span-1 lg:col-span-3 flex justify-between lg:block">

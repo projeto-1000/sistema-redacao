@@ -4,11 +4,11 @@
 @tailwind utilities;
 
 @theme {
-  --color-comp-1: #CC3725;
-  --color-comp-2: #0052CC;
-  --color-comp-3: #FFC400;
-  --color-comp-4: #00875A;
-  --color-comp-5: #8755DE;
+  --color-comp-1: #cc3725;
+  --color-comp-2: #0052cc;
+  --color-comp-3: #ffc400;
+  --color-comp-4: #00875a;
+  --color-comp-5: #8755de;
 }
 
 @layer components {
@@ -35,5 +35,16 @@
   .story-link[data-active="true"]::after {
     transform: scaleX(1);
     transform-origin: left;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

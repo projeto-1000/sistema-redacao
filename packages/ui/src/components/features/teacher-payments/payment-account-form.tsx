@@ -41,7 +41,7 @@ type FieldErrors = Partial<Record<FieldName, string>>;
 
 const pixPlaceholders: Record<TeacherPaymentPixType, string> = {
   cpf: "000.000.000-00",
-  cnpj: "00.000.000/0000-00",
+  cnpj: "00.000.000/0000-00 ou alfanumérico",
   phone: "(00) 00000-0000",
   email: "nome@exemplo.com",
   random: "00000000-0000-0000-0000-000000000000",
@@ -162,14 +162,14 @@ export function PaymentAccountForm({
         <button
           type="button"
           onClick={() => changeType("pix")}
-          className={`h-11 rounded-xl border-2 text-sm font-bold ${type === "pix" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-500"}`}
+          className={`h-11 rounded-xl border-2 text-sm font-bold ${type === "pix" ? "border-primary text-primary" : "border-slate-200 text-slate-500"}`}
         >
           Chave PIX
         </button>
         <button
           type="button"
           onClick={() => changeType("bank_account")}
-          className={`h-11 rounded-xl border-2 text-sm font-bold ${type === "bank_account" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-500"}`}
+          className={`h-11 rounded-xl border-2 text-sm font-bold ${type === "bank_account" ? "border-primary text-primary" : "border-slate-200 text-slate-500"}`}
         >
           Conta bancária
         </button>
@@ -303,8 +303,8 @@ export function PaymentAccountForm({
               setOwnerDocument(formatDocument(event.target.value));
               clearFieldError("ownerDocument");
             }}
-            placeholder="000.000.000-00"
-            inputMode="numeric"
+            placeholder="CPF ou CNPJ"
+            autoCapitalize="characters"
             maxLength={18}
             onBlur={() => validateField("ownerDocument")}
             aria-invalid={Boolean(fieldErrors.ownerDocument)}

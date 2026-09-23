@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/server";
 import type { GradedEssayListItem, TeacherPaymentAccount, TeacherPaymentHistoryItem, TeacherPaymentMetrics } from "@repo/types";
 import { accountFormSchema, type AccountFormValues } from "@repo/validators";
+import { normalizeCNPJ, normalizeDocument } from "@repo/utils";
 import { revalidatePath } from "next/cache";
 
 const RECEIPT_URL_TTL_SECONDS = 60 * 60;
@@ -133,9 +134,15 @@ function sanitizeAccount(values: AccountFormValues) {
   const common = {
     type: data.type,
     owner_name: data.ownerName,
-    owner_document: data.ownerDocument.replace(/\D/g, ""),
+    owner_document: normalizeDocument(data.ownerDocument),
     pix_type: data.type === "pix" ? data.pixType : null,
-    pix_key: data.type === "pix" ? (["cpf", "cnpj", "phone"].includes(data.pixType) ? data.pixKey.replace(/\D/g, "") : data.pixKey) : null,
+    pix_key: data.type === "pix"
+      ? data.pixType === "cnpj"
+        ? normalizeCNPJ(data.pixKey)
+        : ["cpf", "phone"].includes(data.pixType)
+          ? data.pixKey.replace(/\D/g, "")
+          : data.pixKey
+      : null,
     bank_name: data.type === "bank_account" ? data.bankName : null,
     account_variant: data.type === "bank_account" ? data.accountVariant : null,
     agency: data.type === "bank_account" ? data.agency.replace(/[^a-zA-Z0-9]/g, "") : null,
