@@ -53,7 +53,7 @@ export async function createTeacherInvitation(input: TeacherInviteInput): Promis
   let teacherId = emailOwner?.id;
   let invitationName = fullName;
   if (emailOwner) {
-    if (emailOwner.role !== "TEACHER" || emailOwner.document !== document) {
+    if ((emailOwner.role !== "TEACHER" && emailOwner.role !== "STUDENT") || emailOwner.document !== document) {
       return { success: false, error: "Este e-mail já está cadastrado." };
     }
     const { data: existing, error: existingError } = await admin.auth.admin.getUserById(emailOwner.id);
@@ -78,12 +78,33 @@ export async function createTeacherInvitation(input: TeacherInviteInput): Promis
       return { success: false, error: "Não foi possível cadastrar o professor. Confira se e-mail ou CPF já estão em uso." };
     }
     teacherId = created.user.id;
-    const { data: profile, error: profileError } = await admin.from("profiles").select("role").eq("id", teacherId).single();
-    if (profileError || profile?.role !== "TEACHER") {
-      // Only the account created above is removed; never alter a pre-existing account.
-      await admin.auth.admin.deleteUser(teacherId);
-      return { success: false, error: "Não foi possível confirmar o perfil do professor. Nenhum convite foi enviado." };
+  }
+
+  if (!teacherId) return { success: false, error: "Não foi possível identificar o professor. Nenhum convite foi enviado." };
+
+  if (emailOwner?.role !== "TEACHER") {
+    const { error: finalizeError } = await admin.rpc("finalize_teacher_invitation_profile", { p_user_id: teacherId });
+    if (finalizeError) {
+      // Leave the pending account intact for a safe retry. The SQL function is
+      // transactional and refuses to touch accounts with student activity.
+      revalidatePath("/professores");
+      return { success: false, error: "O cadastro ficou pendente e nenhum convite foi enviado. Corrija a configuração e tente novamente com os mesmos dados." };
     }
+  }
+
+  const { data: verifiedProfile, error: verifyError } = await admin.from("profiles").select("role").eq("id", teacherId).single();
+  if (verifyError || verifiedProfile?.role !== "TEACHER") {
+    return { success: false, error: "Não foi possível confirmar o perfil do professor. Nenhum convite foi enviado." };
+  }
+
+  const studentArtifacts = await Promise.all([
+    admin.from("subscriptions").select("id", { count: "exact", head: true }).eq("user_id", teacherId),
+    admin.from("credit_transactions").select("id", { count: "exact", head: true }).eq("user_id", teacherId),
+    admin.from("free_credit_allocations").select("id", { count: "exact", head: true }).eq("user_id", teacherId),
+    admin.from("student_credits").select("user_id", { count: "exact", head: true }).eq("user_id", teacherId),
+  ]);
+  if (studentArtifacts.some(({ count, error }) => error || count !== 0)) {
+    return { success: false, error: "O cadastro ainda possui dados de aluno. Nenhum convite foi enviado." };
   }
 
   const { data: link, error: linkError } = await admin.auth.admin.generateLink({ type: "recovery", email });
