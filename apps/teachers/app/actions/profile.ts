@@ -15,7 +15,9 @@ export async function getProfileData() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, full_name, avatar_url, role, onboarding_completed")
+    .select(
+      "id, full_name, avatar_url, role, onboarding_completed, correction_review_required"
+    )
     .eq("id", user.id)
     .single();
 
@@ -28,6 +30,7 @@ export async function getProfileData() {
       avatarUrl: profile?.avatar_url || null,
       role: profile?.role ?? "TEACHER",
       onboarding_completed: profile?.onboarding_completed ?? true,
+      correction_review_required: profile?.correction_review_required ?? false,
     },
   };
 }

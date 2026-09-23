@@ -5,7 +5,7 @@ import { Save, AlertCircle } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import { Alert, AlertDescription } from "@repo/ui/components/alert";
-import { submitEssay } from "@/app/actions/submit-essay";
+import { submitEssay, type ActionState } from "@/app/actions/submit-essay";
 import { SubmitEssayButton } from "./submit-essay-button";
 import { EssayTopicDetail } from "@repo/types";
 import { useEssayEditor } from "@/hooks/use-essay-editor";
@@ -33,15 +33,18 @@ export function EssayEditorForm({
     backup?.best_essay_consent ?? false
   );
   const router = useRouter()
-  const { content: text, setContent: setText, clearAutoSave } = useEssayEditor(
-    topic.id,
-    backup,
-    !hasAvailableCredits,
-    preferInitialBackup
-  );
+  const {
+    content: text,
+    setContent: setText,
+    clearAutoSave,
+    waitForAutoSave,
+  } = useEssayEditor(topic.id, backup, !hasAvailableCredits, preferInitialBackup);
 
   const [state, formAction] = useActionState(
-    submitEssay.bind(null, topic.id, topic.title, topic.axis),
+    async (prevState: ActionState, formData: FormData) => {
+      await waitForAutoSave();
+      return submitEssay(topic.id, topic.title, topic.axis, prevState, formData);
+    },
     null
   );
 
@@ -57,6 +60,8 @@ export function EssayEditorForm({
   const handleSaveDraft = async () => {
     setIsSaving(true)
     try {
+      await waitForAutoSave();
+
       const result = await saveDraft(
         topic.id,
         text,

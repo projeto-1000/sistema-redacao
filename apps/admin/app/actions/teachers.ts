@@ -12,6 +12,11 @@ import {
 } from "../../types";
 import { revalidatePath } from "next/cache";
 import { PostgrestError } from "@supabase/supabase-js";
+import {
+  createUpdateTeacherProfileSchema,
+  type UpdateTeacherProfileInput,
+} from "@repo/validators";
+import { onlyDigits } from "@repo/utils";
 
 interface GetTeachersParams {
   filters?: GetTeachersFilters;
@@ -24,6 +29,16 @@ interface GetTeacherEssaysParams {
   filters?: TeacherEssayFilters;
   page?: number;
   limit?: number;
+}
+
+const FULL_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SHORT_UUID_PATTERN = /^[0-9a-f]{8}$/i;
+
+function getUuidPrefixRange(prefix: string) {
+  return {
+    start: `${prefix}-0000-0000-0000-000000000000`,
+    end: `${prefix}-ffff-ffff-ffff-ffffffffffff`,
+  };
 }
 
 export async function getTeachers({
@@ -45,7 +60,16 @@ export async function getTeachers({
     .select(`id, full_name, email, status, avatar_url, total, currentMonth`, { count: "exact" });
 
   if (filters?.search) {
-    query = query.or(`full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
+    const search = filters.search.trim();
+
+    if (FULL_UUID_PATTERN.test(search)) {
+      query = query.eq("id", search);
+    } else if (SHORT_UUID_PATTERN.test(search)) {
+      const { start, end } = getUuidPrefixRange(search.toLowerCase());
+      query = query.gte("id", start).lte("id", end);
+    } else {
+      query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
+    }
   }
 
   if (filters?.status && filters.status !== "all") {
@@ -157,6 +181,86 @@ export async function updateTeacherStatus(teacherId: string, currentStatus: stri
   }
 
   revalidatePath("/professores");
+}
+
+export async function updateTeacherProfile(
+  teacherId: string,
+  input: UpdateTeacherProfileInput
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { success: false, error: "Usuário não autenticado." };
+  }
+
+  const { data: role, error: roleError } = await supabase.rpc("get_my_role");
+
+  if (roleError || role !== "ADMIN") {
+    return { success: false, error: "Apenas administradores podem editar professores." };
+  }
+
+  const { data: currentTeacher, error: teacherError } = await supabase
+    .from("profiles")
+    .select("document")
+    .eq("id", teacherId)
+    .eq("role", "TEACHER")
+    .maybeSingle();
+
+  if (teacherError || !currentTeacher) {
+    return { success: false, error: "Professor não encontrado." };
+  }
+
+  const validationResult = createUpdateTeacherProfileSchema(
+    currentTeacher.document
+  ).safeParse(input);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: "Revise os dados informados antes de salvar.",
+    };
+  }
+
+  const values = validationResult.data;
+  const document = onlyDigits(values.document);
+  const phone = onlyDigits(values.phone);
+
+  const { data: updatedTeacher, error: updateError } = await supabase
+    .from("profiles")
+    .update({
+      full_name: values.full_name,
+      document: document || null,
+      phone: phone || null,
+      correction_review_required: values.correction_review_required,
+    })
+    .eq("id", teacherId)
+    .eq("role", "TEACHER")
+    .select("id")
+    .maybeSingle();
+
+  if (updateError) {
+    console.error("Erro ao atualizar perfil do professor:", updateError);
+
+    if (updateError.code === "23505") {
+      return { success: false, error: "Este CPF já está associado a outro perfil." };
+    }
+
+    return { success: false, error: "Não foi possível atualizar o professor." };
+  }
+
+  if (!updatedTeacher) {
+    return { success: false, error: "Professor não encontrado." };
+  }
+
+  revalidatePath("/professores");
+  revalidatePath(`/professores/${teacherId}`);
+
+  return { success: true };
 }
 
 export async function getTeacherChartsData(teacherId: string): Promise<TeacherChartData[] | null> {

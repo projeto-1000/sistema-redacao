@@ -120,6 +120,33 @@ export interface CorrectionPayload {
   highlights: CorrectionHighlight[];
 }
 
+export type CorrectionReviewSubmissionStatus =
+  | "pending_review"
+  | "returned_to_teacher"
+  | "approved"
+  | "approved_with_changes";
+
+export type CorrectionReviewActionType =
+  | "approved"
+  | "approved_with_changes"
+  | "returned_to_teacher";
+
+export interface CorrectionReviewHistoryAction {
+  action: CorrectionReviewActionType;
+  feedback: string | null;
+  createdAt: string;
+  adminName: string;
+}
+
+export interface CorrectionReviewHistoryRound {
+  id: string;
+  roundNumber: number;
+  submittedAt: string;
+  status: CorrectionReviewSubmissionStatus;
+  payload: CorrectionPayload;
+  action: CorrectionReviewHistoryAction | null;
+}
+
 export type EssayType = {
   id: string;
   student: string;
@@ -163,6 +190,7 @@ export interface PendingEssayListItem {
   status?: string
   teacher_name?: string
   teacher_avatar?: string
+  correction_review_status?: "pending_review" | "returned_to_teacher" | null
 }
 
 export interface GradedEssayListItem {
@@ -320,7 +348,10 @@ export interface TeacherProfile {
   status: string;
   created_at: string;
   email: string;
-  avatar_url: string;
+  avatar_url: string | null;
+  document: string | null;
+  phone: string | null;
+  correction_review_required: boolean;
 }
 
 export type TeacherPaymentStatus =

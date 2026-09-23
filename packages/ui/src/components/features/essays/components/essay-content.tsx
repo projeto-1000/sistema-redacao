@@ -1,28 +1,33 @@
 "use client";
 
-import { Award, MessageSquareText } from "lucide-react";
+import { Award, Flag, MessageSquareText } from "lucide-react";
 import { Highlight, HighlightedText } from "./highlighted-text";
 import { COMPETENCY_INFO } from "../../constants";
 import {
   scrollToEssayFeedbackElement,
   useEssayHighlightNavigation,
 } from "./essay-highlight-navigation";
+import { EssayTextStatistics } from "./essay-text-statistics";
 interface EssayContentProps {
   text: string;
   highlights: Highlight[];
   generalComment: string;
   bestScores: string[]
+  showEmptyBestScores?: boolean;
+  showTextStatistics?: boolean;
 }
 
 type EssayTextContentProps = Pick<
   EssayContentProps,
-  "text" | "highlights" | "bestScores"
+  "text" | "highlights" | "bestScores" | "showEmptyBestScores" | "showTextStatistics"
 >;
 
 export function EssayTextContent({
   text,
   highlights,
   bestScores,
+  showEmptyBestScores = false,
+  showTextStatistics = false,
 }: EssayTextContentProps) {
   const {
     activeHighlightId,
@@ -41,10 +46,17 @@ export function EssayTextContent({
   return (
     <div className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden">
       <div className="px-8 py-5 border-b border-slate-100 flex flex-col w-full gap-4">
-        <span className="uppercase tracking-widest text-[12px] font-bold flex text-slate-400 sm:whitespace-nowrap">
-          <Award className="size-4 text-amber-400 mr-1" />
-          Competências com Nota Máxima
-        </span>
+        {bestScores.length > 0 || !showEmptyBestScores ? (
+          <span className="uppercase tracking-widest text-[12px] font-bold flex text-slate-400 sm:whitespace-nowrap">
+            <Award className="size-4 text-amber-400 mr-1" />
+            Competências com Nota Máxima
+          </span>
+        ) : (
+          <span className="flex items-center text-[12px] font-bold text-slate-500">
+            <Flag className="mr-1.5 size-4 text-slate-400" />
+            Nenhuma competência atingiu nota máxima nesta correção.
+          </span>
+        )}
 
         {bestScores.length > 0 && (
           <div className="flex flex-wrap gap-2 items-center">
@@ -79,6 +91,8 @@ export function EssayTextContent({
         }
       />
 
+      {showTextStatistics && <EssayTextStatistics text={text} />}
+
     </div>
   );
 }
@@ -104,6 +118,8 @@ export default function EssayContent({
   highlights,
   generalComment,
   bestScores,
+  showEmptyBestScores,
+  showTextStatistics,
 }: EssayContentProps) {
   return (
     <div className="space-y-8">
@@ -111,6 +127,8 @@ export default function EssayContent({
         text={text}
         highlights={highlights}
         bestScores={bestScores}
+        showEmptyBestScores={showEmptyBestScores}
+        showTextStatistics={showTextStatistics}
       />
       <EssayGeneralComment generalComment={generalComment} />
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, FileText } from "lucide-react";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
@@ -27,6 +27,12 @@ export function EssayWorkspace({
   hasAvailableCredits,
 }: EssayWorkspaceProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (isSuccess) {
+      localStorage.removeItem(`@backup:${essayTopic.id}`);
+    }
+  }, [essayTopic.id, isSuccess]);
 
   if (isSuccess) {
     return (
