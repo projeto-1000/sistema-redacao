@@ -7,6 +7,7 @@ import {
 } from "@/lib/integrations/datacrazy/sync-student";
 import {
   CorrectionPayload,
+  CorrectionReviewListItem,
   CorrectionReviewHistoryRound,
   EssayStatus,
   GradedEssayListItem,
@@ -64,15 +65,8 @@ interface TeacherReviewListEssayRelation {
   } | null;
 }
 
-export interface PendingTeacherCorrectionReviewListItem {
-  id: string;
+export interface PendingTeacherCorrectionReviewListItem extends CorrectionReviewListItem {
   essayId: string;
-  essayTitle: string;
-  studentName: string;
-  studentAvatarUrl: string | null;
-  dueDate: string;
-  remainingBusinessSeconds: number;
-  submittedAt: string;
 }
 
 async function getCorrectionReviewHistory(
