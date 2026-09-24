@@ -6,7 +6,12 @@ import {
   syncStudentToDataCrazy,
 } from "@/lib/integrations/datacrazy/sync-student";
 import { sendEssayCorrectionAvailableEmail } from "@repo/email";
-import type { CorrectionPayload, EssayStatus, MotivationalText } from "@repo/types";
+import type {
+  CorrectionPayload,
+  CorrectionReviewListItem,
+  EssayStatus,
+  MotivationalText,
+} from "@repo/types";
 import { finalCorrectionSchema } from "@repo/validators";
 import { revalidatePath } from "next/cache";
 
@@ -26,7 +31,7 @@ interface ReviewListEssayRelation {
   title: string;
   due_date: string;
   essay_remaining_business_seconds: number | string;
-  student: { full_name: string } | null;
+  student: { full_name: string; avatar_url: string | null } | null;
 }
 
 interface ReviewTeacherRelation {
@@ -48,15 +53,9 @@ interface CorrectionReturnResult {
   status: "returned_to_teacher";
 }
 
-export interface PendingCorrectionReviewListItem {
-  id: string;
-  essayTitle: string;
-  studentName: string;
+export interface PendingCorrectionReviewListItem extends CorrectionReviewListItem {
   teacherName: string;
   roundNumber: number;
-  submittedAt: string;
-  dueDate: string;
-  remainingBusinessSeconds: number;
 }
 
 export interface PendingCorrectionReviewDetails {
@@ -180,7 +179,7 @@ export async function getPendingCorrectionReviews({
           title,
           due_date,
           essay_remaining_business_seconds,
-          student:profiles!essays_student_id_fkey(full_name)
+          student:profiles!essays_student_id_fkey(full_name, avatar_url)
         ),
         teacher:profiles!correction_review_submissions_teacher_id_fkey(
           full_name
@@ -210,6 +209,7 @@ export async function getPendingCorrectionReviews({
       id: submission.id,
       essayTitle: essay.title,
       studentName: essay.student?.full_name ?? "Aluno não identificado",
+      studentAvatarUrl: essay.student?.avatar_url ?? null,
       teacherName: teacher.full_name,
       roundNumber: submission.round_number,
       submittedAt: submission.submitted_at,
