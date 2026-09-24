@@ -30,6 +30,7 @@ export type StudentsListItem = {
     plan: number;
     extra: number;
     free: number;
+    freeExpiresAt: string | null;
     mentorship: number;
   };
 
