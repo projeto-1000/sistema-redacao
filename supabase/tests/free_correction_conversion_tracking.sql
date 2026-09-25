@@ -284,6 +284,7 @@ set local "request.jwt.claims" =
 do $$
 declare
   v_metrics jsonb;
+  v_audience jsonb;
 begin
   select public.get_post_free_correction_campaign_metrics(
     now() - interval '1 day',
@@ -299,6 +300,22 @@ begin
     or (v_metrics #>> '{totals,revenue_cents}')::integer <> 4990
   then
     raise exception 'Campaign metrics are inconsistent: %', v_metrics;
+  end if;
+
+  select public.get_post_free_correction_campaign_audience(
+    now() - interval '1 day',
+    now() + interval '1 day',
+    20,
+    0
+  )
+  into v_audience;
+
+  if (v_audience ->> 'total')::integer <> 1
+    or v_audience #>> '{students,0,email}'
+      is distinct from 'free-correction-campaign-student@example.com'
+    or v_audience #>> '{students,0,stage}' is distinct from 'converted'
+  then
+    raise exception 'Campaign audience is inconsistent: %', v_audience;
   end if;
 end;
 $$;

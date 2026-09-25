@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/server";
 
-export type FreeCorrectionCampaignEventType = "impression" | "click" | "dismiss";
+export type FreeCorrectionCampaignEventType = "impression" | "click";
 export type FreeCorrectionCampaignPlacement = "score_card" | "footer_banner";
 
 interface TrackFreeCorrectionCampaignEventInput {
@@ -13,7 +13,7 @@ interface TrackFreeCorrectionCampaignEventInput {
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const EVENT_TYPES = new Set<FreeCorrectionCampaignEventType>(["impression", "click", "dismiss"]);
+const EVENT_TYPES = new Set<FreeCorrectionCampaignEventType>(["impression", "click"]);
 
 const PLACEMENTS = new Set<FreeCorrectionCampaignPlacement>(["score_card", "footer_banner"]);
 

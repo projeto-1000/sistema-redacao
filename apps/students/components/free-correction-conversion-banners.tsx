@@ -5,10 +5,10 @@ import {
   type FreeCorrectionCampaignPlacement,
 } from "@/app/actions/free-correction-conversion";
 import { Button } from "@repo/ui/components/button";
-import { ArrowRight, Star, TrendingUp, Trophy, X } from "lucide-react";
+import { ArrowRight, Star, TrendingUp, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type MouseEvent, useEffect, useRef, useState } from "react";
+import { type MouseEvent, useEffect, useRef } from "react";
 
 const PLANS_PATH = "/assinatura/planos";
 const TRACKING_NAVIGATION_TIMEOUT_MS = 700;
@@ -118,40 +118,18 @@ export function FreeCorrectionScoreCard({
 }
 
 export function FreeCorrectionFooterBanner({ essayId }: { essayId: string }) {
-  const [isVisible, setIsVisible] = useState(true);
   const placement = "footer_banner";
 
   useCampaignImpression(essayId, placement);
 
   const handlePlansClick = useTrackedPlansNavigation(essayId, placement);
 
-  const handleDismiss = () => {
-    setIsVisible(false);
-
-    void trackFreeCorrectionCampaignEvent({
-      essayId,
-      eventType: "dismiss",
-      placement,
-    });
-  };
-
-  if (!isVisible) return null;
-
   return (
     <section
       aria-labelledby="free-correction-conversion-title"
       className="relative rounded-3xl border border-emerald-200 bg-emerald-50 px-5 py-5 shadow-sm sm:px-6"
     >
-      <button
-        type="button"
-        onClick={handleDismiss}
-        aria-label="Fechar convite para conhecer os planos"
-        className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full text-emerald-600 transition-colors hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none sm:top-1/2 sm:right-4 sm:-translate-y-1/2"
-      >
-        <X className="size-5" aria-hidden="true" />
-      </button>
-
-      <div className="flex flex-col gap-5 pr-8 sm:flex-row sm:items-center sm:gap-5 sm:pr-14">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-5">
         <div className="flex min-w-0 flex-1 items-start gap-4 sm:items-center">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 sm:size-12">
             <TrendingUp className="size-6" aria-hidden="true" />
@@ -160,7 +138,7 @@ export function FreeCorrectionFooterBanner({ essayId }: { essayId: string }) {
           <div>
             <h2
               id="free-correction-conversion-title"
-              className="text-base leading-snug font-extrabold text-slate-900 sm:text-lg"
+              className="text-base leading-snug font-extrabold sm:text-lg"
             >
               A nota muda quando o treino continua
             </h2>

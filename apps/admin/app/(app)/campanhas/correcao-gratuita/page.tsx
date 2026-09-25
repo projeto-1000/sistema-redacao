@@ -1,9 +1,15 @@
 import {
+  exportFreeCorrectionCampaignAudienceCsv,
   getConversionCampaign,
+  getFreeCorrectionCampaignAudience,
   getFreeCorrectionCampaignMetrics,
+  type FreeCorrectionCampaignAudienceStage,
 } from "@/app/actions/free-correction-campaign";
 import { CampaignPeriodActions } from "@/components/campaign-period-actions";
+import { ExportCsvButton } from "@/components/export-csv-button";
 import { PageHeader } from "@repo/ui/components/page-header";
+import { TablePagination } from "@repo/ui/components/table-pagination";
+import { formatDate } from "@repo/utils";
 import {
   ArrowLeft,
   BadgeDollarSign,
@@ -11,10 +17,10 @@ import {
   CreditCard,
   Eye,
   Info,
+  Mail,
   MousePointerClick,
   ShoppingCart,
   Users,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -29,16 +35,25 @@ function formatDateInput(date: Date) {
   }).format(date);
 }
 
-function resolvePeriod(from?: string, to?: string) {
+function resolvePeriod(
+  from: string | undefined,
+  to: string | undefined,
+  campaignStartDate: string
+) {
   const today = new Date();
   const defaultFrom = new Date(today);
 
   defaultFrom.setDate(defaultFrom.getDate() - 29);
 
-  const fromDate = /^\d{4}-\d{2}-\d{2}$/.test(from ?? "")
-    ? (from as string)
-    : formatDateInput(defaultFrom);
-  const toDate = /^\d{4}-\d{2}-\d{2}$/.test(to ?? "") ? (to as string) : formatDateInput(today);
+  const todayDate = formatDateInput(today);
+  const defaultFromDate = formatDateInput(defaultFrom);
+  let fromDate = /^\d{4}-\d{2}-\d{2}$/.test(from ?? "") ? (from as string) : defaultFromDate;
+  let toDate = /^\d{4}-\d{2}-\d{2}$/.test(to ?? "") ? (to as string) : todayDate;
+
+  if (fromDate < campaignStartDate) fromDate = campaignStartDate;
+  if (toDate < campaignStartDate) toDate = campaignStartDate;
+  if (toDate > todayDate && campaignStartDate <= todayDate) toDate = todayDate;
+  if (fromDate > toDate) fromDate = toDate;
 
   return {
     fromDate,
@@ -64,22 +79,47 @@ function formatCurrency(valueInCents: number) {
 function formatCampaignDate(value: string | null) {
   if (!value) return "Sem data de término";
 
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    dateStyle: "long",
-  }).format(new Date(value));
+  return formatDate(value, "numeric");
+}
+
+function formatDateTime(value: string | null) {
+  if (!value) return "—";
+
+  return formatDate(value, "numeric");
+}
+
+function audienceStage(stage: FreeCorrectionCampaignAudienceStage) {
+  const stages: Record<FreeCorrectionCampaignAudienceStage, { label: string; className: string }> =
+    {
+      eligible: { label: "Elegível", className: "bg-slate-100 text-slate-600" },
+      exposed: { label: "Visualizou", className: "bg-violet-100 text-violet-700" },
+      clicked: { label: "Clicou", className: "bg-amber-100 text-amber-700" },
+      checkout_started: { label: "Iniciou checkout", className: "bg-cyan-100 text-cyan-700" },
+      converted: { label: "Assinou", className: "bg-emerald-100 text-emerald-700" },
+    };
+
+  return stages[stage];
 }
 
 export default async function FreeCorrectionCampaignPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; audiencePage?: string }>;
 }) {
   const params = await searchParams;
-  const period = resolvePeriod(params.from, params.to);
-  const [{ metrics, error }, campaign] = await Promise.all([
+  const campaign = await getConversionCampaign("post_free_correction");
+  const campaignStartDate = campaign
+    ? formatDateInput(new Date(campaign.starts_at))
+    : formatDateInput(new Date());
+  const period = resolvePeriod(params.from, params.to, campaignStartDate);
+  const requestedAudiencePage = Number(params.audiencePage);
+  const audiencePage =
+    Number.isInteger(requestedAudiencePage) && requestedAudiencePage > 0
+      ? requestedAudiencePage
+      : 1;
+  const [{ metrics, error }, audience] = await Promise.all([
     getFreeCorrectionCampaignMetrics(period.fromIso, period.toIso),
-    getConversionCampaign("post_free_correction"),
+    getFreeCorrectionCampaignAudience(period.fromIso, period.toIso, audiencePage),
   ]);
   const { totals } = metrics;
 
@@ -153,6 +193,7 @@ export default async function FreeCorrectionCampaignPage({
           toDate={period.toDate}
           fromIso={period.fromIso}
           toIso={period.toIso}
+          campaignStartDate={campaignStartDate}
         />
       </PageHeader>
 
@@ -230,13 +271,122 @@ export default async function FreeCorrectionCampaignPage({
           ].map(([label, value, rate]) => (
             <div key={String(label)} className="rounded-2xl bg-slate-50 px-5 py-4">
               <p className="text-xs font-bold tracking-wider text-slate-400 uppercase">{label}</p>
-              <p className="mt-2 text-3xl font-black text-slate-900">
-                {Number(value).toLocaleString("pt-BR")}
-              </p>
+              <p className="mt-2 text-3xl font-black">{Number(value).toLocaleString("pt-BR")}</p>
               {rate && <p className="mt-1 text-xs font-bold text-emerald-600">{rate}</p>}
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
+        <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <div>
+            <h2 className="text-xl font-extrabold text-slate-950">Alunos da campanha</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {audience.total.toLocaleString("pt-BR")} alunos entraram na campanha no período
+              selecionado.
+            </p>
+          </div>
+
+          <ExportCsvButton
+            action={exportFreeCorrectionCampaignAudienceCsv}
+            payload={{ from: period.fromIso, to: period.toIso }}
+            fileName={`alunos_campanha_correcao_gratuita_${period.fromDate}_${period.toDate}`}
+            className="w-full sm:w-auto"
+            label="Exportar alunos"
+          />
+        </div>
+
+        {audience.error ? (
+          <div className="px-6 py-12 text-center text-sm font-semibold text-red-700">
+            {audience.error}
+          </div>
+        ) : audience.students.length === 0 ? (
+          <div className="px-6 py-12 text-center">
+            <Users className="mx-auto size-9 text-slate-300" aria-hidden="true" />
+            <p className="mt-3 text-sm font-semibold text-slate-500">
+              Nenhum aluno entrou na campanha neste período.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-220 text-left">
+                <thead className="bg-slate-50 text-xs font-bold tracking-wider text-slate-400 uppercase">
+                  <tr>
+                    <th className="px-6 py-4 sm:px-8">Aluno</th>
+                    <th className="px-4 py-4">Contato</th>
+                    <th className="px-4 py-4">Entrada</th>
+                    <th className="px-4 py-4">Etapa atual</th>
+                    <th className="px-6 py-4 text-right sm:px-8">Conversão</th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-slate-100">
+                  {audience.students.map((student) => {
+                    const stage = audienceStage(student.stage);
+
+                    return (
+                      <tr key={student.participant_id} className="text-sm text-slate-700">
+                        <td className="px-6 py-5 sm:px-8">
+                          <Link
+                            href={`/alunos/${student.user_id}`}
+                            className="font-bold text-slate-950 hover:text-blue-700 hover:underline"
+                          >
+                            {student.full_name || "Aluno sem nome"}
+                          </Link>
+                          <p className="mt-1 font-mono text-xs text-slate-400">
+                            {student.user_id.slice(0, 8)}
+                          </p>
+                        </td>
+                        <td className="px-4 py-5">
+                          <a
+                            href={`mailto:${student.email}`}
+                            className="inline-flex items-center gap-2 font-semibold text-slate-700 hover:text-blue-700"
+                          >
+                            <Mail className="size-4 text-slate-400" aria-hidden="true" />
+                            {student.email}
+                          </a>
+                          <p className="mt-1 text-xs text-slate-400">{student.phone}</p>
+                        </td>
+                        <td className="px-4 py-5 font-medium">
+                          {formatDateTime(student.eligible_at)}
+                        </td>
+                        <td className="px-4 py-5">
+                          <span
+                            className={`inline-flex rounded-full px-3 py-1 text-xs font-extrabold ${stage.className}`}
+                          >
+                            {stage.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5 text-right sm:px-8">
+                          {student.converted_at ? (
+                            <>
+                              <p className="font-bold text-emerald-700">
+                                {formatCurrency(student.revenue_cents)}
+                              </p>
+                              <p className="mt-1 text-xs text-slate-400">
+                                {formatDateTime(student.converted_at)}
+                              </p>
+                            </>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {audience.totalPages > 1 && (
+              <div className="border-t border-slate-100 px-6 py-5">
+                <TablePagination totalPages={audience.totalPages} pageParam="audiencePage" />
+              </div>
+            )}
+          </>
+        )}
       </section>
 
       <section className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
@@ -265,7 +415,6 @@ export default async function FreeCorrectionCampaignPage({
                 <th className="px-4 py-4">Expostos</th>
                 <th className="px-4 py-4">Cliques</th>
                 <th className="px-4 py-4">CTR</th>
-                <th className="px-4 py-4">Fechamentos</th>
                 <th className="px-4 py-4">Checkout</th>
                 <th className="px-4 py-4">Assinaturas</th>
                 <th className="px-6 py-4 sm:px-8">Receita atribuída</th>
@@ -281,14 +430,6 @@ export default async function FreeCorrectionCampaignPage({
                   <td className="px-4 py-5 font-bold text-emerald-700">
                     {percentage(row.metrics.clickers, row.metrics.impressions)}
                   </td>
-                  <td className="px-4 py-5">
-                    {row.metrics.dismissals}
-                    {row.metrics.dismissals > 0 && (
-                      <span className="ml-1 text-xs text-slate-400">
-                        ({percentage(row.metrics.dismissals, row.metrics.impressions)})
-                      </span>
-                    )}
-                  </td>
                   <td className="px-4 py-5">{row.metrics.checkout_starters}</td>
                   <td className="px-4 py-5">{row.metrics.click_conversions}</td>
                   <td className="px-6 py-5 font-bold text-slate-950 sm:px-8">
@@ -298,11 +439,6 @@ export default async function FreeCorrectionCampaignPage({
               ))}
             </tbody>
           </table>
-        </div>
-
-        <div className="flex items-center gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4 text-xs text-slate-500 sm:px-8">
-          <X className="size-4 text-slate-400" aria-hidden="true" />O card da nota não possui
-          fechamento; essa métrica se aplica ao banner inferior.
         </div>
       </section>
     </div>

@@ -109,6 +109,10 @@ export async function getEssayById(essayId: string) {
     return null;
   }
 
+  const showFreeCorrectionConversionBanners =
+    essay.status === "corrected" &&
+    (await getFreeCorrectionConversionBannerEligibility(supabase, essay.id));
+
   return {
     id: essay.id,
     topicId: essay.topic_id,
@@ -139,9 +143,7 @@ export async function getEssayById(essayId: string) {
     returnReason: essay.return_reason,
     returnDescription: essay.return_description,
     status: essay.status,
-    showFreeCorrectionConversionBanners:
-      essay.status === "corrected" &&
-      (await getFreeCorrectionConversionBannerEligibility(supabase, essay.id)),
+    showFreeCorrectionConversionBanners,
   };
 }
 
