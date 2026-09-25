@@ -5,21 +5,32 @@ function getDateObject(date: string | Date): Date {
   return typeof date === "string" ? new Date(date) : date;
 }
 
-type DateStyle = "short" | "long" | "full" | "numeric" | "compact";
+type DateStyle =
+  | "short"
+  | "long"
+  | "full"
+  | "numeric"
+  | "compact"
+  | "date-time";
 
 /**
- * @param style - "short": "12 de Jan", "long": "12 de Janeiro", "full": "Quinta-feira, 12 de fevereiro", "numeric": "12/10/2023", "compact": "12/10/23"
+ * @param style - "short": "12 de Jan", "long": "12 de Janeiro", "full": "Quinta-feira, 12 de fevereiro", "numeric": "12/10/2023", "compact": "12/10/23", "date-time": "12/10/2023, 14:30"
  */
 
 export function formatDate(
   date: string | Date | null | undefined,
-  style: DateStyle = "short"
+  style: DateStyle = "short",
 ): string {
   if (!date) return "-";
 
   const dateObj = getDateObject(date);
 
-  if (isToday(dateObj) && style !== 'full' && style !== 'numeric') {
+  if (
+    isToday(dateObj) &&
+    style !== "full" &&
+    style !== "numeric" &&
+    style !== "date-time"
+  ) {
     return `Hoje às ${format(dateObj, "HH:mm")}`;
   }
 
@@ -29,14 +40,22 @@ export function formatDate(
     });
   }
 
+  if (style === "date-time") {
+    return new Intl.DateTimeFormat("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(dateObj);
+  }
+
   if (style === "compact") {
-  return dateObj.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-    timeZone: "America/Sao_Paulo",
-  });
-}
+    return dateObj.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      timeZone: "America/Sao_Paulo",
+    });
+  }
 
   if (style === "long") {
     return format(dateObj, "d 'de' MMMM", { locale: ptBR });
@@ -48,7 +67,11 @@ export function formatDate(
   }
 
   const formattedShort = format(dateObj, "d 'de' MMM, yyyy", { locale: ptBR });
-return formattedShort.replace(/ de ([a-z])/g, (_, match) => ` de ${match.toUpperCase()}`);}
+  return formattedShort.replace(
+    / de ([a-z])/g,
+    (_, match) => ` de ${match.toUpperCase()}`,
+  );
+}
 
 export function formatMonth(date: string | Date): string {
   const dateObj = getDateObject(date);

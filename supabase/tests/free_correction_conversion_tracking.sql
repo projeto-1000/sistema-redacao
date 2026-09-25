@@ -285,6 +285,7 @@ do $$
 declare
   v_metrics jsonb;
   v_audience jsonb;
+  v_events jsonb;
 begin
   select public.get_post_free_correction_campaign_metrics(
     now() - interval '1 day',
@@ -314,8 +315,32 @@ begin
     or v_audience #>> '{students,0,email}'
       is distinct from 'free-correction-campaign-student@example.com'
     or v_audience #>> '{students,0,stage}' is distinct from 'converted'
+    or v_audience #>> '{students,0,first_impression_at}' is null
+    or v_audience #>> '{students,0,first_click_at}' is null
+    or v_audience #>> '{students,0,checkout_started_at}' is null
+    or v_audience #>> '{students,0,converted_at}' is null
+    or v_audience #>> '{students,0,attributed_placement}' is distinct from 'footer_banner'
   then
     raise exception 'Campaign audience is inconsistent: %', v_audience;
+  end if;
+
+  select public.get_post_free_correction_campaign_events(
+    now() - interval '1 day',
+    now() + interval '1 day',
+    20,
+    0
+  )
+  into v_events;
+
+  if (v_events ->> 'total')::integer <> 6
+    or not exists (
+      select 1
+      from jsonb_array_elements(v_events -> 'events') as event
+      where event ->> 'event_type' = 'converted'
+        and event ->> 'placement' = 'footer_banner'
+    )
+  then
+    raise exception 'Campaign timeline events are inconsistent: %', v_events;
   end if;
 end;
 $$;

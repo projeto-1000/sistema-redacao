@@ -1,7 +1,6 @@
 "use client";
 
-import { exportFreeCorrectionCampaignCsv } from "@/app/actions/free-correction-campaign";
-import { ExportCsvButton } from "@/components/export-csv-button";
+import { CampaignExportMenu } from "@/components/campaign-export-menu";
 import { Button } from "@repo/ui/components/button";
 import { Calendar } from "@repo/ui/components/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
@@ -123,13 +122,7 @@ export function CampaignPeriodActions({
         </PopoverContent>
       </Popover>
 
-      <ExportCsvButton
-        action={exportFreeCorrectionCampaignCsv}
-        payload={{ from: fromIso, to: toIso }}
-        fileName={`campanha_correcao_gratuita_${fromDate}_${toDate}`}
-        className="w-full sm:w-auto"
-        label="Exportar métricas"
-      />
+      <CampaignExportMenu from={fromIso} to={toIso} fromDate={fromDate} toDate={toDate} />
     </div>
   );
 }

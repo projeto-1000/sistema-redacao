@@ -1,12 +1,10 @@
 import {
-  exportFreeCorrectionCampaignAudienceCsv,
   getConversionCampaign,
   getFreeCorrectionCampaignAudience,
   getFreeCorrectionCampaignMetrics,
   type FreeCorrectionCampaignAudienceStage,
 } from "@/app/actions/free-correction-campaign";
 import { CampaignPeriodActions } from "@/components/campaign-period-actions";
-import { ExportCsvButton } from "@/components/export-csv-button";
 import { PageHeader } from "@repo/ui/components/page-header";
 import { TablePagination } from "@repo/ui/components/table-pagination";
 import { formatDate } from "@repo/utils";
@@ -85,7 +83,7 @@ function formatCampaignDate(value: string | null) {
 function formatDateTime(value: string | null) {
   if (!value) return "—";
 
-  return formatDate(value, "numeric");
+  return formatDate(value, "date-time");
 }
 
 function audienceStage(stage: FreeCorrectionCampaignAudienceStage) {
@@ -104,7 +102,12 @@ function audienceStage(stage: FreeCorrectionCampaignAudienceStage) {
 export default async function FreeCorrectionCampaignPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; audiencePage?: string }>;
+  searchParams: Promise<{
+    from?: string;
+    to?: string;
+    audiencePage?: string;
+    view?: string;
+  }>;
 }) {
   const params = await searchParams;
   const campaign = await getConversionCampaign("post_free_correction");
@@ -117,6 +120,7 @@ export default async function FreeCorrectionCampaignPage({
     Number.isInteger(requestedAudiencePage) && requestedAudiencePage > 0
       ? requestedAudiencePage
       : 1;
+  const activeView = params.view === "journey" ? "journey" : "overview";
   const [{ metrics, error }, audience] = await Promise.all([
     getFreeCorrectionCampaignMetrics(period.fromIso, period.toIso),
     getFreeCorrectionCampaignAudience(period.fromIso, period.toIso, audiencePage),
@@ -221,226 +225,292 @@ export default async function FreeCorrectionCampaignPage({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {cards.map((card) => {
-          const Icon = card.icon;
+      <nav aria-label="Seções do relatório" className="flex w-full gap-1 border-b border-slate-200">
+        {[
+          { value: "overview", label: "Visão geral" },
+          { value: "journey", label: "Jornada dos alunos" },
+        ].map((tab) => {
+          const isActive = activeView === tab.value;
+          const tabParams = new URLSearchParams({
+            from: period.fromDate,
+            to: period.toDate,
+            view: tab.value,
+          });
 
           return (
-            <article
-              key={card.label}
-              className="flex items-start justify-between rounded-3xl border border-slate-100 bg-white p-6 shadow-sm"
+            <Link
+              key={tab.value}
+              href={`?${tabParams.toString()}`}
+              scroll={false}
+              aria-current={isActive ? "page" : undefined}
+              className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${
+                isActive
+                  ? "border-blue-600 text-blue-700"
+                  : "border-transparent text-slate-500 hover:text-slate-900"
+              }`}
             >
-              <div>
-                <p className="text-sm font-semibold text-slate-500">{card.label}</p>
-                <p className="mt-2 text-3xl font-black tracking-tight text-slate-950">
-                  {card.value}
-                </p>
-                <p className="mt-2 text-xs font-semibold text-slate-400">{card.helper}</p>
-              </div>
-
-              <div
-                className={`flex size-11 items-center justify-center rounded-full ${card.iconClass}`}
-              >
-                <Icon className="size-5" aria-hidden="true" />
-              </div>
-            </article>
+              {tab.label}
+            </Link>
           );
         })}
-      </div>
+      </nav>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
-        <div>
-          <h2 className="text-xl font-extrabold text-slate-950">Funil da campanha</h2>
-          <p className="mt-1 text-sm text-slate-500">Contagens únicas por aluno no período.</p>
-        </div>
+      {activeView === "overview" && (
+        <>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {cards.map((card) => {
+              const Icon = card.icon;
 
-        <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
-          {[
-            ["Expostos", totals.exposed, null],
-            ["Clicaram", totals.clickers, percentage(totals.clickers, totals.exposed)],
-            [
-              "Checkout",
-              totals.checkout_starters,
-              percentage(totals.checkout_starters, totals.clickers),
-            ],
-            [
-              "Assinaram",
-              totals.conversions,
-              percentage(totals.conversions, totals.checkout_starters),
-            ],
-          ].map(([label, value, rate]) => (
-            <div key={String(label)} className="rounded-2xl bg-slate-50 px-5 py-4">
-              <p className="text-xs font-bold tracking-wider text-slate-400 uppercase">{label}</p>
-              <p className="mt-2 text-3xl font-black">{Number(value).toLocaleString("pt-BR")}</p>
-              {rate && <p className="mt-1 text-xs font-bold text-emerald-600">{rate}</p>}
-            </div>
-          ))}
-        </div>
-      </section>
+              return (
+                <article
+                  key={card.label}
+                  className="flex items-start justify-between rounded-3xl border border-slate-100 bg-white p-6 shadow-sm"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-slate-500">{card.label}</p>
+                    <p className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+                      {card.value}
+                    </p>
+                    <p className="mt-2 text-xs font-semibold text-slate-400">{card.helper}</p>
+                  </div>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
-        <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <div>
-            <h2 className="text-xl font-extrabold text-slate-950">Alunos da campanha</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              {audience.total.toLocaleString("pt-BR")} alunos entraram na campanha no período
-              selecionado.
-            </p>
+                  <div
+                    className={`flex size-11 items-center justify-center rounded-full ${card.iconClass}`}
+                  >
+                    <Icon className="size-5" aria-hidden="true" />
+                  </div>
+                </article>
+              );
+            })}
           </div>
 
-          <ExportCsvButton
-            action={exportFreeCorrectionCampaignAudienceCsv}
-            payload={{ from: period.fromIso, to: period.toIso }}
-            fileName={`alunos_campanha_correcao_gratuita_${period.fromDate}_${period.toDate}`}
-            className="w-full sm:w-auto"
-            label="Exportar alunos"
-          />
-        </div>
-
-        {audience.error ? (
-          <div className="px-6 py-12 text-center text-sm font-semibold text-red-700">
-            {audience.error}
-          </div>
-        ) : audience.students.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <Users className="mx-auto size-9 text-slate-300" aria-hidden="true" />
-            <p className="mt-3 text-sm font-semibold text-slate-500">
-              Nenhum aluno entrou na campanha neste período.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-220 text-left">
-                <thead className="bg-slate-50 text-xs font-bold tracking-wider text-slate-400 uppercase">
-                  <tr>
-                    <th className="px-6 py-4 sm:px-8">Aluno</th>
-                    <th className="px-4 py-4">Contato</th>
-                    <th className="px-4 py-4">Entrada</th>
-                    <th className="px-4 py-4">Etapa atual</th>
-                    <th className="px-6 py-4 text-right sm:px-8">Conversão</th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-slate-100">
-                  {audience.students.map((student) => {
-                    const stage = audienceStage(student.stage);
-
-                    return (
-                      <tr key={student.participant_id} className="text-sm text-slate-700">
-                        <td className="px-6 py-5 sm:px-8">
-                          <Link
-                            href={`/alunos/${student.user_id}`}
-                            className="font-bold text-slate-950 hover:text-blue-700 hover:underline"
-                          >
-                            {student.full_name || "Aluno sem nome"}
-                          </Link>
-                          <p className="mt-1 font-mono text-xs text-slate-400">
-                            {student.user_id.slice(0, 8)}
-                          </p>
-                        </td>
-                        <td className="px-4 py-5">
-                          <a
-                            href={`mailto:${student.email}`}
-                            className="inline-flex items-center gap-2 font-semibold text-slate-700 hover:text-blue-700"
-                          >
-                            <Mail className="size-4 text-slate-400" aria-hidden="true" />
-                            {student.email}
-                          </a>
-                          <p className="mt-1 text-xs text-slate-400">{student.phone}</p>
-                        </td>
-                        <td className="px-4 py-5 font-medium">
-                          {formatDateTime(student.eligible_at)}
-                        </td>
-                        <td className="px-4 py-5">
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-xs font-extrabold ${stage.className}`}
-                          >
-                            {stage.label}
-                          </span>
-                        </td>
-                        <td className="px-6 py-5 text-right sm:px-8">
-                          {student.converted_at ? (
-                            <>
-                              <p className="font-bold text-emerald-700">
-                                {formatCurrency(student.revenue_cents)}
-                              </p>
-                              <p className="mt-1 text-xs text-slate-400">
-                                {formatDateTime(student.converted_at)}
-                              </p>
-                            </>
-                          ) : (
-                            <span className="text-slate-400">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+          <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
+            <div>
+              <h2 className="text-xl font-extrabold text-slate-950">Funil da campanha</h2>
+              <p className="mt-1 text-sm text-slate-500">Contagens únicas por aluno no período.</p>
             </div>
 
-            {audience.totalPages > 1 && (
-              <div className="border-t border-slate-100 px-6 py-5">
-                <TablePagination totalPages={audience.totalPages} pageParam="audiencePage" />
-              </div>
-            )}
-          </>
-        )}
-      </section>
-
-      <section className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
-          <h2 className="text-xl font-extrabold text-slate-950">Comparação entre os banners</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Mostra qual ponto da tela mais contribui para cliques, início de checkout e novas
-            assinaturas.
-          </p>
-        </div>
-
-        <div className="flex items-start gap-3 border-b border-blue-100 bg-blue-50 px-6 py-4 text-sm text-blue-900 sm:px-8">
-          <Info className="mt-0.5 size-4 shrink-0 text-blue-600" aria-hidden="true" />
-          <p>
-            A assinatura e a receita aparecem na posição do último banner clicado até 7 dias antes
-            da compra. Assim, é possível entender qual dos dois convites teve maior influência na
-            conversão.
-          </p>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-240 text-left">
-            <thead className="bg-slate-50 text-xs font-bold tracking-wider text-slate-400 uppercase">
-              <tr>
-                <th className="px-6 py-4 sm:px-8">Posição</th>
-                <th className="px-4 py-4">Expostos</th>
-                <th className="px-4 py-4">Cliques</th>
-                <th className="px-4 py-4">CTR</th>
-                <th className="px-4 py-4">Checkout</th>
-                <th className="px-4 py-4">Assinaturas</th>
-                <th className="px-6 py-4 sm:px-8">Receita atribuída</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-slate-100">
-              {placementRows.map((row) => (
-                <tr key={row.label} className="text-sm text-slate-700">
-                  <td className="px-6 py-5 font-bold text-slate-950 sm:px-8">{row.label}</td>
-                  <td className="px-4 py-5">{row.metrics.impressions}</td>
-                  <td className="px-4 py-5">{row.metrics.clickers}</td>
-                  <td className="px-4 py-5 font-bold text-emerald-700">
-                    {percentage(row.metrics.clickers, row.metrics.impressions)}
-                  </td>
-                  <td className="px-4 py-5">{row.metrics.checkout_starters}</td>
-                  <td className="px-4 py-5">{row.metrics.click_conversions}</td>
-                  <td className="px-6 py-5 font-bold text-slate-950 sm:px-8">
-                    {formatCurrency(row.metrics.click_revenue_cents)}
-                  </td>
-                </tr>
+            <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
+              {[
+                ["Expostos", totals.exposed, null],
+                ["Clicaram", totals.clickers, percentage(totals.clickers, totals.exposed)],
+                [
+                  "Checkout",
+                  totals.checkout_starters,
+                  percentage(totals.checkout_starters, totals.clickers),
+                ],
+                [
+                  "Assinaram",
+                  totals.conversions,
+                  percentage(totals.conversions, totals.checkout_starters),
+                ],
+              ].map(([label, value, rate]) => (
+                <div key={String(label)} className="rounded-2xl bg-slate-50 px-5 py-4">
+                  <p className="text-xs font-bold tracking-wider text-slate-400 uppercase">
+                    {label}
+                  </p>
+                  <p className="mt-2 text-3xl font-black">
+                    {Number(value).toLocaleString("pt-BR")}
+                  </p>
+                  {rate && <p className="mt-1 text-xs font-bold text-emerald-600">{rate}</p>}
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+            </div>
+          </section>
+        </>
+      )}
+
+      {activeView === "journey" && (
+        <section className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
+          <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+            <div>
+              <h2 className="text-xl font-extrabold text-slate-950">Alunos da campanha</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                {audience.total.toLocaleString("pt-BR")} alunos entraram na campanha no período
+                selecionado.
+              </p>
+            </div>
+
+            <p className="max-w-xl text-xs leading-relaxed text-slate-400 sm:text-right">
+              O período seleciona quem entrou na campanha. As datas mostram a primeira vez em que
+              cada aluno alcançou as etapas seguintes.
+            </p>
+          </div>
+
+          {audience.error ? (
+            <div className="px-6 py-12 text-center text-sm font-semibold text-red-700">
+              {audience.error}
+            </div>
+          ) : audience.students.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <Users className="mx-auto size-9 text-slate-300" aria-hidden="true" />
+              <p className="mt-3 text-sm font-semibold text-slate-500">
+                Nenhum aluno entrou na campanha neste período.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-360 text-left">
+                  <thead className="bg-slate-50 text-xs font-bold tracking-wider text-slate-400 uppercase">
+                    <tr>
+                      <th className="px-6 py-4 sm:px-8">Aluno</th>
+                      <th className="px-4 py-4">Contato</th>
+                      <th className="px-4 py-4">Entrada</th>
+                      <th className="px-4 py-4">Visualizou</th>
+                      <th className="px-4 py-4">Clicou</th>
+                      <th className="px-4 py-4">Checkout</th>
+                      <th className="px-4 py-4">Assinou</th>
+                      <th className="px-4 py-4">Etapa atual</th>
+                      <th className="px-6 py-4 text-right sm:px-8">Receita</th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="divide-y divide-slate-100">
+                    {audience.students.map((student) => {
+                      const stage = audienceStage(student.stage);
+
+                      return (
+                        <tr key={student.participant_id} className="text-sm text-slate-700">
+                          <td className="px-6 py-5 sm:px-8">
+                            <Link
+                              href={`/alunos/${student.user_id}`}
+                              className="font-bold text-slate-950 hover:text-blue-700 hover:underline"
+                            >
+                              {student.full_name || "Aluno sem nome"}
+                            </Link>
+                            <p className="mt-1 font-mono text-xs text-slate-400">
+                              {student.user_id.slice(0, 8)}
+                            </p>
+                          </td>
+                          <td className="px-4 py-5">
+                            <a
+                              href={`mailto:${student.email}`}
+                              className="inline-flex items-center gap-2 font-semibold text-slate-700 hover:text-blue-700"
+                            >
+                              <Mail className="size-4 text-slate-400" aria-hidden="true" />
+                              {student.email}
+                            </a>
+                            <p className="mt-1 text-xs text-slate-400">{student.phone}</p>
+                          </td>
+                          <td className="px-4 py-5 font-medium">
+                            {formatDateTime(student.eligible_at)}
+                          </td>
+                          <td className="px-4 py-5 font-medium">
+                            {formatDateTime(student.first_impression_at)}
+                          </td>
+                          <td className="px-4 py-5 font-medium">
+                            <p>{formatDateTime(student.first_click_at)}</p>
+                            {student.last_click_placement && (
+                              <p className="mt-1 text-xs text-slate-400">
+                                {student.last_click_placement === "score_card"
+                                  ? "Card da nota"
+                                  : "Banner inferior"}
+                              </p>
+                            )}
+                          </td>
+                          <td className="px-4 py-5 font-medium">
+                            {formatDateTime(student.checkout_started_at)}
+                          </td>
+                          <td className="px-4 py-5 font-medium">
+                            {formatDateTime(student.converted_at)}
+                          </td>
+                          <td className="px-4 py-5">
+                            <span
+                              className={`inline-flex rounded-full px-3 py-1 text-xs font-extrabold ${stage.className}`}
+                            >
+                              {stage.label}
+                            </span>
+                          </td>
+                          <td className="px-6 py-5 text-right sm:px-8">
+                            {student.converted_at ? (
+                              <>
+                                <p className="font-bold text-emerald-700">
+                                  {formatCurrency(student.revenue_cents)}
+                                </p>
+                                {student.attributed_placement && (
+                                  <p className="mt-1 text-xs text-slate-400">
+                                    {student.attributed_placement === "score_card"
+                                      ? "Card da nota"
+                                      : "Banner inferior"}
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {audience.totalPages > 1 && (
+                <div className="border-t border-slate-100 px-6 py-5">
+                  <TablePagination totalPages={audience.totalPages} pageParam="audiencePage" />
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      )}
+
+      {activeView === "overview" && (
+        <section className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
+          <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
+            <h2 className="text-xl font-extrabold text-slate-950">Comparação entre os banners</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Mostra qual ponto da tela mais contribui para cliques, início de checkout e novas
+              assinaturas.
+            </p>
+          </div>
+
+          <div className="flex items-start gap-3 border-b border-blue-100 bg-blue-50 px-6 py-4 text-sm text-blue-900 sm:px-8">
+            <Info className="mt-0.5 size-4 shrink-0 text-blue-600" aria-hidden="true" />
+            <p>
+              A assinatura e a receita aparecem na posição do último banner clicado até 7 dias antes
+              da compra. Assim, é possível entender qual dos dois convites teve maior influência na
+              conversão.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-240 text-left">
+              <thead className="bg-slate-50 text-xs font-bold tracking-wider text-slate-400 uppercase">
+                <tr>
+                  <th className="px-6 py-4 sm:px-8">Posição</th>
+                  <th className="px-4 py-4">Expostos</th>
+                  <th className="px-4 py-4">Cliques</th>
+                  <th className="px-4 py-4">CTR</th>
+                  <th className="px-4 py-4">Checkout</th>
+                  <th className="px-4 py-4">Assinaturas</th>
+                  <th className="px-6 py-4 sm:px-8">Receita atribuída</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-100">
+                {placementRows.map((row) => (
+                  <tr key={row.label} className="text-sm text-slate-700">
+                    <td className="px-6 py-5 font-bold text-slate-950 sm:px-8">{row.label}</td>
+                    <td className="px-4 py-5">{row.metrics.impressions}</td>
+                    <td className="px-4 py-5">{row.metrics.clickers}</td>
+                    <td className="px-4 py-5 font-bold text-emerald-700">
+                      {percentage(row.metrics.clickers, row.metrics.impressions)}
+                    </td>
+                    <td className="px-4 py-5">{row.metrics.checkout_starters}</td>
+                    <td className="px-4 py-5">{row.metrics.click_conversions}</td>
+                    <td className="px-6 py-5 font-bold text-slate-950 sm:px-8">
+                      {formatCurrency(row.metrics.click_revenue_cents)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
