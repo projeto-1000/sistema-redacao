@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -16,7 +16,11 @@ import {
 } from "@repo/ui/components/form";
 import { toast } from "sonner";
 import { ActionResponse } from "./profile-view";
-import { updatePasswordSchema, type UpdatePasswordSchema } from "@repo/validators";
+import {
+  updatePasswordSchema,
+  type UpdatePasswordSchema,
+} from "@repo/validators";
+import { PasswordRequirements } from "@repo/ui/components/password-requirements";
 
 interface PasswordFormProps {
   onUpdate: (password: string) => Promise<ActionResponse>;
@@ -29,10 +33,14 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
   const form = useForm<UpdatePasswordSchema>({
     resolver: zodResolver(updatePasswordSchema),
     mode: "onChange",
+    defaultValues: {
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   const { isValid, isDirty, isSubmitting } = form.formState;
-
+  const password = form.watch("password");
 
   const onSubmit = async (data: UpdatePasswordSchema) => {
     try {
@@ -50,7 +58,7 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
       form.reset();
       setShowPassword(false);
       setShowConfirmPassword(false);
-    } catch (error) {
+    } catch {
       toast.error("Erro de conexão ao tentar atualizar a senha.");
     }
   };
@@ -62,7 +70,9 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
           <Lock className="size-8 text-slate-400" />
         </div>
         <h3 className="text-xl font-bold">Alterar sua senha</h3>
-        <p className="text-sm text-slate-500">Escolha uma senha forte para proteger sua conta.</p>
+        <p className="text-sm text-slate-500">
+          Escolha uma senha forte para proteger sua conta.
+        </p>
       </div>
 
       <Form {...form}>
@@ -72,12 +82,14 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-bold text-slate-700">Nova Senha</FormLabel>
+                <FormLabel className="text-sm font-bold text-slate-700">
+                  Nova Senha
+                </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="Digite sua nova senha"
                       {...field}
                       className="w-full rounded-2xl h-12 p-3.5 pr-12 focus:ring-1 focus:ring-primary border-[#e8e4ce]"
                     />
@@ -101,17 +113,21 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
             )}
           />
 
+          <PasswordRequirements password={password} />
+
           <FormField
             control={form.control}
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-bold text-slate-700">Confirmar Nova Senha</FormLabel>
+                <FormLabel className="text-sm font-bold text-slate-700">
+                  Confirmar Nova Senha
+                </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="Confirme sua nova senha"
                       {...field}
                       className="w-full rounded-2xl h-12 p-3.5 pr-12 focus:ring-1 focus:ring-primary border-[#e8e4ce]"
                     />
@@ -120,7 +136,9 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
                       variant="ghost"
                       size="icon"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4 text-muted-foreground" />

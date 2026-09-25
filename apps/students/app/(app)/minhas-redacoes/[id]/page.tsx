@@ -5,12 +5,19 @@ import {
   EssayTextContent,
 } from "@repo/ui/components/features/essays/components/essay-content";
 
-import { EssayCompetencies, EssayScoreCard } from "@repo/ui/components/features/essays/components/essay-sidebar";
+import {
+  EssayCompetencies,
+  EssayScoreCard,
+} from "@repo/ui/components/features/essays/components/essay-sidebar";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReturnedEssayCard from "@repo/ui/components/features/grading/components/returned-essay-card";
 import EssayImprovementPlan from "@repo/ui/components/features/essays/components/essay-improvement-plan";
 import { EssayHighlightNavigationProvider } from "@repo/ui/components/features/essays/components/essay-highlight-navigation";
+import {
+  FreeCorrectionFooterBanner,
+  FreeCorrectionScoreCard,
+} from "@/components/free-correction-conversion-banners";
 
 export const metadata: Metadata = {
   title: "Detalhes da Redação",
@@ -18,7 +25,7 @@ export const metadata: Metadata = {
 
 export default async function EssayFeedbackPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const essay = await getEssayById(id)
+  const essay = await getEssayById(id);
 
   if (!essay) return notFound();
 
@@ -27,15 +34,13 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
   );
 
   return (
-    <div className="md:px-10 lg:px-12 py-4">
-
+    <div className="py-4 md:px-10 lg:px-12">
       <EssayHeader
         title={essay.title}
         date={essay.updatedAt}
         status={essay.status}
         className="mb-2 lg:mb-10"
       />
-
 
       <EssayHighlightNavigationProvider>
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-5">
@@ -45,6 +50,7 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
                 text={essay.text}
                 highlights={essay.highlights}
                 bestScores={bestScores}
+                showEmptyBestScores
               />
             </div>
 
@@ -52,13 +58,11 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
               <EssayGeneralComment generalComment={essay.generalComment} />
             </div>
 
-            {essay.status === 'corrected' && (
+            {essay.status === "corrected" && (
               <div className="order-5 empty:hidden lg:order-0">
                 <EssayImprovementPlan
                   mainBottleneck={essay.mainBottleneck}
-                  nextEssayPriorities={
-                    essay.nextEssayPriorities
-                  }
+                  nextEssayPriorities={essay.nextEssayPriorities}
                   rewriteTasks={essay.rewriteTasks}
                 />
               </div>
@@ -66,12 +70,14 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
           </div>
 
           <div className="contents lg:col-span-2 lg:flex lg:flex-col lg:gap-6">
-            {essay.status === 'corrected' ? (
+            {essay.status === "corrected" ? (
               <>
                 <div className="order-1 lg:order-0">
-                  <EssayScoreCard
-                    totalScore={essay.totalScore}
-                  />
+                  {essay.showFreeCorrectionConversionBanners ? (
+                    <FreeCorrectionScoreCard totalScore={essay.totalScore} />
+                  ) : (
+                    <EssayScoreCard totalScore={essay.totalScore} />
+                  )}
                 </div>
 
                 <div className="order-4 lg:order-0">
@@ -81,20 +87,26 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
                     highlights={essay.highlights}
                   />
                 </div>
-
               </>
             ) : (
               <div className="order-1 lg:order-0">
                 <ReturnedEssayCard
+                  essayId={essay.id}
+                  topicId={essay.topicId}
                   reason={essay.returnReason}
                   description={essay.returnDescription}
                 />
               </div>
             )}
           </div>
-
         </div>
       </EssayHighlightNavigationProvider>
+
+      {essay.status === "corrected" && essay.showFreeCorrectionConversionBanners && (
+        <div className="mt-8 lg:mt-10">
+          <FreeCorrectionFooterBanner />
+        </div>
+      )}
     </div>
   );
 }

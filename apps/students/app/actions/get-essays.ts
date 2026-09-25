@@ -35,9 +35,12 @@ export async function getStudentEssays({
 
   let query = supabase
     .from("essays")
-    .select("id, title, created_at, submission_date, correction_date, updated_at, status, total_score, thematic_axis, topic_id, due_date", {
-      count: "exact",
-    })
+    .select(
+      "id, title, created_at, submission_date, correction_date, updated_at, status, total_score, thematic_axis, topic_id, due_date",
+      {
+        count: "exact",
+      }
+    )
     .eq("student_id", user.id);
 
   if (filters?.search) {
@@ -107,6 +110,8 @@ export async function getEssayById(essayId: string) {
   }
 
   return {
+    id: essay.id,
+    topicId: essay.topic_id,
     correctedAt: essay.correction_date,
     updatedAt: essay.updated_at,
     title: essay.title,
@@ -134,5 +139,83 @@ export async function getEssayById(essayId: string) {
     returnReason: essay.return_reason,
     returnDescription: essay.return_description,
     status: essay.status,
+    showFreeCorrectionConversionBanners:
+      essay.status === "corrected" &&
+      (await getFreeCorrectionConversionBannerEligibility(supabase, user.id, essay.id)),
   };
+}
+
+async function getFreeCorrectionConversionBannerEligibility(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  essayId: string
+) {
+  const [profileResult, usageResult, subscriptionResult] = await Promise.all([
+    supabase.from("profiles").select("acquisition_channel").eq("id", userId).maybeSingle(),
+    supabase
+      .from("credit_transactions")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("type", "essay_usage")
+      .eq("metadata->>essay_id", essayId)
+      .eq("metadata->>credit_type", "free")
+      .eq("metadata->>credit_source", "free_trial")
+      .limit(1)
+      .maybeSingle(),
+    supabase.from("subscriptions").select("status, plan_id").eq("user_id", userId).maybeSingle(),
+  ]);
+
+  if (profileResult.error || usageResult.error || subscriptionResult.error) {
+    return false;
+  }
+
+  let hasActivePaidSubscription = false;
+
+  if (subscriptionResult.data?.status === "active") {
+    const { data: plan, error: planError } = await supabase
+      .from("plans")
+      .select("external_id, price")
+      .eq("id", subscriptionResult.data.plan_id)
+      .maybeSingle();
+
+    if (planError || !plan) {
+      return false;
+    }
+
+    hasActivePaidSubscription =
+      plan.external_id !== "internal_free_trial" &&
+      plan.external_id !== "internal_mentoria_free" &&
+      plan.price > 0;
+  }
+
+  return (
+    profileResult.data?.acquisition_channel === "ORGANIC" &&
+    usageResult.data != null &&
+    !hasActivePaidSubscription
+  );
+}
+
+export async function getReturnedEssayReuseSource(essayId: string, topicId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("essays")
+    .select("content, updated_at")
+    .eq("id", essayId)
+    .eq("topic_id", topicId)
+    .eq("student_id", user.id)
+    .eq("status", "returned")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Erro ao carregar redação devolvida para reenvio:", error);
+    return null;
+  }
+
+  return data;
 }

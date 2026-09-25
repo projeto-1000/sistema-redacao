@@ -15,7 +15,7 @@ export function ModalWrapper({
   children,
   param,
   title = "Visualização de Detalhes",
-  className = "min-w-[80%] max-h-[95%] p-8 bg-slate-50 overflow-y-auto focus:outline-none"
+  className = "no-scrollbar min-w-[80%] max-h-[95%] overflow-y-auto bg-slate-50 p-8 focus:outline-none",
 }: ModalWrapperProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -30,7 +30,7 @@ export function ModalWrapper({
       params.delete(name);
       return params.toString();
     },
-    [searchParams]
+    [searchParams],
   );
 
   const handleOpenChange = (open: boolean) => {

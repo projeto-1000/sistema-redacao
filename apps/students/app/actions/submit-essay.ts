@@ -8,7 +8,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-type ActionState = {
+export type ActionState = {
   error?: string;
 } | null;
 
@@ -59,6 +59,16 @@ export async function submitEssay(
       event: "essay_status_updated",
       success: true,
     });
+
+    const { error: backupDeleteError } = await supabase
+      .from("essay_backups")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("theme_id", topic_id);
+
+    if (backupDeleteError) {
+      console.error("Erro ao remover backup após envio da redação:", backupDeleteError);
+    }
   } catch (err) {
     console.error("Erro catch:", err);
     return { error: "Erro interno ao enviar redação." };

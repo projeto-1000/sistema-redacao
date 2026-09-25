@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { AlertCircle, Undo } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
@@ -40,7 +40,6 @@ export interface ReturnEssayParams {
   essayId: string;
   reason: string;
   description: string;
-  redirectPath: string;
 }
 
 interface ReturnEssayDialogProps {
@@ -73,7 +72,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function ReturnEssayDialog({ essayId, onReturnEssay }: ReturnEssayDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
+  const router = useRouter();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -87,19 +86,31 @@ export function ReturnEssayDialog({ essayId, onReturnEssay }: ReturnEssayDialogP
   const { isSubmitting, isValid } = form.formState;
 
   const onSubmit = async (values: FormValues) => {
-    const result = await onReturnEssay({
-      essayId,
-      reason: values.reason,
-      description: values.reason === "other" ? values.description! : "",
-      redirectPath: pathname,
-    });
+    setIsOpen(false);
+    const toastId = toast.loading("Devolvendo redação...");
 
-    if (result.success) {
-      toast.success("Redação devolvida e crédito estornado ao aluno.");
-      setIsOpen(false);
-      form.reset();
-    } else {
-      toast.error(result.error || "Erro ao tentar devolver a redação.");
+    try {
+      const result = await onReturnEssay({
+        essayId,
+        reason: values.reason,
+        description: values.reason === "other" ? values.description! : "",
+      });
+
+      if (result.success) {
+        router.replace("/redacoes-pendentes");
+        toast.success("Redação devolvida e crédito estornado ao aluno.", {
+          id: toastId,
+        });
+        form.reset();
+      } else {
+        toast.error(result.error || "Erro ao tentar devolver a redação.", {
+          id: toastId,
+        });
+        setIsOpen(true);
+      }
+    } catch {
+      toast.error("Erro ao tentar devolver a redação.", { id: toastId });
+      setIsOpen(true);
     }
   };
 
@@ -110,7 +121,7 @@ export function ReturnEssayDialog({ essayId, onReturnEssay }: ReturnEssayDialogP
     }}>
       <AlertDialogTrigger asChild>
         <Button variant="outline" className="h-12 rounded-xl text-red-600 hover:border-red-200! hover:bg-red-50! hover:text-red-700 bg-slate-300 font-medium">
-          <Undo /> Devolver Redação
+          <Undo /> Devolver sem correção
         </Button>
       </AlertDialogTrigger>
 

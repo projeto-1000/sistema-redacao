@@ -3,6 +3,8 @@ export * from './format-dates'
 export * from './format-name'
 export * from './format-document'
 export * from './format-currency'
+export * from './format-decimal-currency'
+export * from './mask-payment-data'
 export * from './errors'
 export * from './csv'
 export * from './format-phone'
@@ -13,3 +15,4 @@ export * from './map-subscription-history-item'
 export * from "./map-subscription-history-rpc-row";
 export * from "./build-subscription-history-result";
 export * from "./plan-pricing";
+export * from "./storage";

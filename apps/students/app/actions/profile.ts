@@ -3,7 +3,8 @@
 import type { UserData } from "@repo/types";
 import { createClient } from "@/lib/server";
 import { revalidatePath } from "next/cache";
-import { SetPasswordSchema } from "@repo/validators";
+import { passwordSchema, setPasswordSchema, type SetPasswordSchema } from "@repo/validators";
+import { getPublicStorageObjectPath } from "@repo/utils";
 import { redirect } from "next/navigation";
 import { getFriendlyErrorMessage } from "@/utils/auth-error-dictionary";
 
@@ -120,10 +121,19 @@ export async function updateProfile({ name }: { name: string }) {
 
 export async function updatePassword(password: string) {
   try {
+    const parsedPassword = passwordSchema.safeParse(password);
+
+    if (!parsedPassword.success) {
+      return {
+        success: false,
+        error: parsedPassword.error.issues[0]?.message ?? "Senha inválida.",
+      };
+    }
+
     const supabase = await createClient();
 
     const { error } = await supabase.auth.updateUser({
-      password: password,
+      password: parsedPassword.data,
     });
 
     if (error) {
@@ -153,21 +163,15 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResponse> 
   if (!user) return { success: false, error: "Usuário não autenticado." };
 
   try {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("avatar_url")
       .eq("id", user.id)
       .single();
 
-    if (profile?.avatar_url) {
-      const oldFilePath = profile.avatar_url.split("/avatars/").pop();
+    if (profileError) throw profileError;
 
-      if (oldFilePath) {
-        const { error: deleteError } = await supabase.storage.from("avatars").remove([oldFilePath]);
-
-        if (deleteError) console.error("Falha ao apagar foto antiga:", deleteError);
-      }
-    }
+    const previousAvatarPath = getPublicStorageObjectPath(profile?.avatar_url, "avatars", user.id);
 
     const newFileName = `${user.id}/${Date.now()}.jpg`;
 
@@ -189,7 +193,23 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResponse> 
       .update({ avatar_url: newAvatarUrl })
       .eq("id", user.id);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      const { error: rollbackError } = await supabase.storage.from("avatars").remove([newFileName]);
+
+      if (rollbackError) {
+        console.error("Falha ao remover a nova foto após erro no perfil:", rollbackError);
+      }
+
+      throw updateError;
+    }
+
+    if (previousAvatarPath && previousAvatarPath !== newFileName) {
+      const { error: deleteError } = await supabase.storage
+        .from("avatars")
+        .remove([previousAvatarPath]);
+
+      if (deleteError) console.error("Falha ao apagar foto antiga:", deleteError);
+    }
 
     revalidatePath("/perfil", "layout");
 
@@ -201,7 +221,15 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResponse> 
 }
 
 export async function setNewPassword(data: SetPasswordSchema) {
-  const { password } = data;
+  const parsedData = setPasswordSchema.safeParse(data);
+
+  if (!parsedData.success) {
+    return {
+      error: parsedData.error.issues[0]?.message ?? "Senha inválida.",
+    };
+  }
+
+  const { password } = parsedData.data;
 
   const supabase = await createClient();
   const {
@@ -209,10 +237,6 @@ export async function setNewPassword(data: SetPasswordSchema) {
   } = await supabase.auth.getUser();
 
   if (!user) throw new Error("Usuário não autenticado");
-
-  if (!password || password.length < 6) {
-    return { error: "A senha deve ter pelo menos 6 caracteres." };
-  }
 
   const { error } = await supabase.auth.updateUser({ password });
 

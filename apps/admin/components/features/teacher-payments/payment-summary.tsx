@@ -3,7 +3,7 @@ import { PaymentActions } from "./payment-actions";
 import { notFound } from "next/navigation";
 import { getPaymentAccounts } from "@/app/actions/payment-accounts";
 import { getEssaysByPeriod, getPaymentMetrics } from "@/app/actions/teacher-payments";
-import { formatCurrency } from "@repo/utils";
+import { formatDecimalCurrency } from "@repo/utils";
 interface PaymentSummaryProps {
   teacherId: string;
   month: string | undefined;
@@ -125,7 +125,7 @@ export async function PaymentSummary({ teacherId, month }: PaymentSummaryProps) 
             )}
           </div>
           <span className={`text-4xl font-black ${uiState.text}`}>
-            {formatCurrency(metrics.totalAmount)}
+            {formatDecimalCurrency(metrics.totalAmount)}
           </span>
         </div>
 
