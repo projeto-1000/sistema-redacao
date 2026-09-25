@@ -74,7 +74,7 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
               <>
                 <div className="order-1 lg:order-0">
                   {essay.showFreeCorrectionConversionBanners ? (
-                    <FreeCorrectionScoreCard totalScore={essay.totalScore} />
+                    <FreeCorrectionScoreCard essayId={essay.id} totalScore={essay.totalScore} />
                   ) : (
                     <EssayScoreCard totalScore={essay.totalScore} />
                   )}
@@ -104,7 +104,7 @@ export default async function EssayFeedbackPage({ params }: { params: Promise<{ 
 
       {essay.status === "corrected" && essay.showFreeCorrectionConversionBanners && (
         <div className="mt-8 lg:mt-10">
-          <FreeCorrectionFooterBanner />
+          <FreeCorrectionFooterBanner essayId={essay.id} />
         </div>
       )}
     </div>

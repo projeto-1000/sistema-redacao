@@ -1,13 +1,76 @@
 "use client";
 
+import {
+  trackFreeCorrectionCampaignEvent,
+  type FreeCorrectionCampaignPlacement,
+} from "@/app/actions/free-correction-conversion";
 import { Button } from "@repo/ui/components/button";
-import { ArrowRight, Star, TrendingUp, Trophy, X } from "lucide-react";
+import { ArrowRight, Star, TrendingUp, Trophy } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { type MouseEvent, useEffect, useRef } from "react";
 
 const PLANS_PATH = "/assinatura/planos";
+const TRACKING_NAVIGATION_TIMEOUT_MS = 700;
 
-export function FreeCorrectionScoreCard({ totalScore }: { totalScore: number }) {
+function useCampaignImpression(essayId: string, placement: FreeCorrectionCampaignPlacement) {
+  const hasTracked = useRef(false);
+
+  useEffect(() => {
+    if (hasTracked.current) return;
+
+    hasTracked.current = true;
+
+    void trackFreeCorrectionCampaignEvent({
+      essayId,
+      eventType: "impression",
+      placement,
+    });
+  }, [essayId, placement]);
+}
+
+function useTrackedPlansNavigation(essayId: string, placement: FreeCorrectionCampaignPlacement) {
+  const router = useRouter();
+
+  return (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      void trackFreeCorrectionCampaignEvent({
+        essayId,
+        eventType: "click",
+        placement,
+      });
+
+      return;
+    }
+
+    event.preventDefault();
+
+    const trackingRequest = trackFreeCorrectionCampaignEvent({
+      essayId,
+      eventType: "click",
+      placement,
+    });
+    const navigationTimeout = new Promise<void>((resolve) => {
+      window.setTimeout(resolve, TRACKING_NAVIGATION_TIMEOUT_MS);
+    });
+
+    void Promise.race([trackingRequest, navigationTimeout]).finally(() => router.push(PLANS_PATH));
+  };
+}
+
+export function FreeCorrectionScoreCard({
+  essayId,
+  totalScore,
+}: {
+  essayId: string;
+  totalScore: number;
+}) {
+  const placement = "score_card";
+
+  useCampaignImpression(essayId, placement);
+
+  const handlePlansClick = useTrackedPlansNavigation(essayId, placement);
+
   return (
     <div className="relative overflow-hidden rounded-3xl bg-[#0F172A] p-6 text-white shadow-lg sm:p-8">
       <div className="absolute top-0 right-0 p-6 opacity-10">
@@ -43,7 +106,7 @@ export function FreeCorrectionScoreCard({ totalScore }: { totalScore: number }) 
             className="mt-5 w-full rounded-xl bg-[#FACC15] font-extrabold text-slate-950 shadow-none hover:bg-[#EAB308]"
             asChild
           >
-            <Link href={PLANS_PATH}>
+            <Link href={PLANS_PATH} onClick={handlePlansClick}>
               Ver planos
               <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
@@ -54,26 +117,19 @@ export function FreeCorrectionScoreCard({ totalScore }: { totalScore: number }) 
   );
 }
 
-export function FreeCorrectionFooterBanner() {
-  const [isVisible, setIsVisible] = useState(true);
+export function FreeCorrectionFooterBanner({ essayId }: { essayId: string }) {
+  const placement = "footer_banner";
 
-  if (!isVisible) return null;
+  useCampaignImpression(essayId, placement);
+
+  const handlePlansClick = useTrackedPlansNavigation(essayId, placement);
 
   return (
     <section
       aria-labelledby="free-correction-conversion-title"
       className="relative rounded-3xl border border-emerald-200 bg-emerald-50 px-5 py-5 shadow-sm sm:px-6"
     >
-      <button
-        type="button"
-        onClick={() => setIsVisible(false)}
-        aria-label="Fechar convite para conhecer os planos"
-        className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full text-emerald-600 transition-colors hover:bg-emerald-100 hover:text-emerald-800 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none sm:top-1/2 sm:right-4 sm:-translate-y-1/2"
-      >
-        <X className="size-5" aria-hidden="true" />
-      </button>
-
-      <div className="flex flex-col gap-5 pr-8 sm:flex-row sm:items-center sm:gap-5 sm:pr-14">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-5">
         <div className="flex min-w-0 flex-1 items-start gap-4 sm:items-center">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 sm:size-12">
             <TrendingUp className="size-6" aria-hidden="true" />
@@ -82,7 +138,7 @@ export function FreeCorrectionFooterBanner() {
           <div>
             <h2
               id="free-correction-conversion-title"
-              className="text-base leading-snug font-extrabold text-slate-900 sm:text-lg"
+              className="text-base leading-snug font-extrabold sm:text-lg"
             >
               A nota muda quando o treino continua
             </h2>
@@ -97,7 +153,7 @@ export function FreeCorrectionFooterBanner() {
           className="w-full shrink-0 rounded-xl bg-emerald-600 px-6 font-bold text-white shadow-sm hover:bg-emerald-700 sm:w-auto"
           asChild
         >
-          <Link href={PLANS_PATH}>
+          <Link href={PLANS_PATH} onClick={handlePlansClick}>
             Ver planos
             <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
