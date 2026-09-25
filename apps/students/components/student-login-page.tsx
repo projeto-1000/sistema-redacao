@@ -70,7 +70,7 @@ export function StudentLoginPage({ signupHref }: StudentLoginPageProps) {
           <Logo className="mx-auto mb-8 h-20 sm:h-24 lg:mx-0" />
 
           <h1 className="text-4xl leading-[1.05] font-extrabold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-            Todo texto pode ir{" "}
+            Sua redação do Enem pode ir{" "}
             <span className="text-primary relative inline-block">
               mais longe.
               <span
