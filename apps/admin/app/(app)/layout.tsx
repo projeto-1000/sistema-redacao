@@ -23,6 +23,7 @@ export default function AppLayout({
     { label: 'Temas', href: '/temas' },
     { label: 'Planos', href: '/planos' },
     { label: 'Créditos', href: '/creditos-extras' },
+    { label: "Campanhas", href: "/campanhas" },
     { label: "Meu perfil", href: "/perfil" },
   ];
 
@@ -41,7 +42,7 @@ export default function AppLayout({
     <div className="min-h-dvh max-w-flex flex-col">
       <Header
         items={navItems}
-        activePath={pathname}
+        activePath={pathname.startsWith("/campanhas") ? "/campanhas" : pathname}
         onLogout={handleLogout}
       />
 
