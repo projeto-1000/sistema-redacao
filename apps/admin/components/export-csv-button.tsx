@@ -2,30 +2,44 @@
 
 import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@repo/ui/components/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@repo/ui/components/alert-dialog";
 import { Download } from "lucide-react";
 
 interface ExportCsvButtonProps<T> {
   action: (payload: T) => Promise<string>;
   payload: T;
   fileName: string;
-  className?: string
-  variant?: "outline" | "secondary"
+  className?: string;
+  variant?: "outline" | "secondary";
+  label?: string;
 }
 
 export function ExportCsvButton<T>({
   action,
   payload,
   fileName,
-  className = '',
-  variant = "outline"
+  className = "",
+  variant = "outline",
+  label = "Exportar CSV",
 }: ExportCsvButtonProps<T>) {
   const [isExporting, setIsExporting] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
 
-  const hasActiveFilters = payload && typeof payload === 'object'
-    ? Object.values(payload).some(value => value !== undefined && value !== null && value !== "")
-    : false;
+  const hasActiveFilters =
+    payload && typeof payload === "object"
+      ? Object.values(payload).some(
+          (value) => value !== undefined && value !== null && value !== ""
+        )
+      : false;
 
   const executeExport = async () => {
     setShowDialog(false);
@@ -65,26 +79,31 @@ export function ExportCsvButton<T>({
         variant={variant}
         onClick={handleClick}
         disabled={isExporting}
-        className={`rounded-xl font-bold h-10 ${className}`}
+        className={`h-10 rounded-xl font-bold ${className}`}
         isLoading={isExporting}
         loadingText="Exportando..."
       >
-        <Download className="size-4 mr-2" /> Exportar CSV
+        <Download className="mr-2 size-4" /> {label}
       </Button>
 
       <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Exportar base completa?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-600 leading-relaxed">
-              Você está prestes a exportar toda a base de dados. Como não há filtros ativos, isso pode demorar alguns instantes.
-              <br /><br />
+            <AlertDialogDescription className="leading-relaxed text-slate-600">
+              Você está prestes a exportar toda a base de dados. Como não há filtros ativos, isso
+              pode demorar alguns instantes.
+              <br />
+              <br />
               Deseja continuar?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl font-bold h-10">Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={executeExport} className="rounded-xl font-bold h-10 bg-blue-600 hover:bg-blue-700 text-white">
+            <AlertDialogCancel className="h-10 rounded-xl font-bold">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={executeExport}
+              className="h-10 rounded-xl bg-blue-600 font-bold text-white hover:bg-blue-700"
+            >
               Sim, exportar dados
             </AlertDialogAction>
           </AlertDialogFooter>
