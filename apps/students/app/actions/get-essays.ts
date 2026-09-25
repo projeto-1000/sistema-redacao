@@ -139,13 +139,63 @@ export async function getEssayById(essayId: string) {
     returnReason: essay.return_reason,
     returnDescription: essay.return_description,
     status: essay.status,
+    showFreeCorrectionConversionBanners:
+      essay.status === "corrected" &&
+      (await getFreeCorrectionConversionBannerEligibility(supabase, user.id, essay.id)),
   };
 }
 
-export async function getReturnedEssayReuseSource(
-  essayId: string,
-  topicId: string
+async function getFreeCorrectionConversionBannerEligibility(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  essayId: string
 ) {
+  const [profileResult, usageResult, subscriptionResult] = await Promise.all([
+    supabase.from("profiles").select("acquisition_channel").eq("id", userId).maybeSingle(),
+    supabase
+      .from("credit_transactions")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("type", "essay_usage")
+      .eq("metadata->>essay_id", essayId)
+      .eq("metadata->>credit_type", "free")
+      .eq("metadata->>credit_source", "free_trial")
+      .limit(1)
+      .maybeSingle(),
+    supabase.from("subscriptions").select("status, plan_id").eq("user_id", userId).maybeSingle(),
+  ]);
+
+  if (profileResult.error || usageResult.error || subscriptionResult.error) {
+    return false;
+  }
+
+  let hasActivePaidSubscription = false;
+
+  if (subscriptionResult.data?.status === "active") {
+    const { data: plan, error: planError } = await supabase
+      .from("plans")
+      .select("external_id, price")
+      .eq("id", subscriptionResult.data.plan_id)
+      .maybeSingle();
+
+    if (planError || !plan) {
+      return false;
+    }
+
+    hasActivePaidSubscription =
+      plan.external_id !== "internal_free_trial" &&
+      plan.external_id !== "internal_mentoria_free" &&
+      plan.price > 0;
+  }
+
+  return (
+    profileResult.data?.acquisition_channel === "ORGANIC" &&
+    usageResult.data != null &&
+    !hasActivePaidSubscription
+  );
+}
+
+export async function getReturnedEssayReuseSource(essayId: string, topicId: string) {
   const supabase = await createClient();
   const {
     data: { user },
