@@ -96,6 +96,34 @@ function getStatusView({
   hasFreeCredit: boolean;
   isCancellationScheduled: boolean;
 }): StatusView {
+  if (subscription.withdrawal_status === "under_review") {
+    return {
+      label: "Cancelamento em análise",
+      classes: "bg-amber-100 text-amber-800",
+    };
+  }
+
+  if (subscription.withdrawal_status === "refund_processing") {
+    return {
+      label: "Reembolso em processamento",
+      classes: "bg-blue-100 text-blue-800",
+    };
+  }
+
+  if (subscription.withdrawal_status === "refunded") {
+    return {
+      label: "Reembolso concluído",
+      classes: "bg-emerald-100 text-emerald-700",
+    };
+  }
+
+  if (subscription.withdrawal_status === "operational_issue") {
+    return {
+      label: "Reembolso em acompanhamento",
+      classes: "bg-amber-100 text-amber-800",
+    };
+  }
+
   if (isCancellationScheduled) {
     return {
       label: "Cancelamento agendado",
@@ -141,6 +169,22 @@ function getDescription({
   isTrial: boolean;
   isLifetime: boolean;
 }): string {
+  if (subscription.withdrawal_status === "under_review") {
+    return "Seu pedido de cancelamento está em análise. Os créditos desta assinatura e novas compras de créditos extras estão temporariamente bloqueados.";
+  }
+
+  if (subscription.withdrawal_status === "refund_processing") {
+    return "A assinatura foi cancelada e o reembolso integral está sendo processado.";
+  }
+
+  if (subscription.withdrawal_status === "refunded") {
+    return "O cancelamento e o reembolso integral desta assinatura foram concluídos.";
+  }
+
+  if (subscription.withdrawal_status === "operational_issue") {
+    return "Seu cancelamento permanece ativo e a equipe está acompanhando a conclusão do reembolso.";
+  }
+
   if (isCanceled) {
     return "Sua assinatura foi encerrada. Sua conta continua disponível e você pode assinar novamente quando quiser.";
   }
@@ -174,6 +218,7 @@ function getDescription({
 }
 
 function getPeriodLabel({
+  subscription,
   isCanceled,
   isCancellationScheduled,
   isFreeTrial,
@@ -182,6 +227,7 @@ function getPeriodLabel({
   isLifetime,
   isTrial,
 }: {
+  subscription: StudentSubscription;
   isCanceled: boolean;
   isCancellationScheduled: boolean;
   isFreeTrial: boolean;
@@ -190,6 +236,10 @@ function getPeriodLabel({
   isLifetime: boolean;
   isTrial: boolean;
 }): string {
+  if (subscription.withdrawal_status) {
+    return "Status do cancelamento";
+  }
+
   if (isCanceled) {
     return "Plano encerrado em";
   }
@@ -238,6 +288,22 @@ function getPeriodValue({
   isMentorship: boolean;
   isTrial: boolean;
 }): string {
+  if (subscription.withdrawal_status === "under_review") {
+    return "Aguardando análise";
+  }
+
+  if (subscription.withdrawal_status === "refund_processing") {
+    return "Aguardando confirmação do reembolso";
+  }
+
+  if (subscription.withdrawal_status === "refunded") {
+    return "Concluído";
+  }
+
+  if (subscription.withdrawal_status === "operational_issue") {
+    return "Em acompanhamento pela equipe";
+  }
+
   if (isCanceled && cancellationEffectiveAt) {
     return formatDate(cancellationEffectiveAt, "numeric");
   }
@@ -309,7 +375,8 @@ export function getPlanDetailsCardViewModel({
 
   const hasFinishedFreeTrial = isFreeTrial && planCredits <= 0;
 
-  const isCancellationScheduled = subscription.cancel_at_period_end;
+  const isCancellationScheduled =
+    subscription.cancel_at_period_end && subscription.cancellation_mode === "end_of_period";
 
   const isPlanChangeScheduled =
     subscription.pending_change_type === "downgrade" &&
@@ -335,6 +402,7 @@ export function getPlanDetailsCardViewModel({
     !isTrial &&
     !isFreeTrial &&
     !isCancellationScheduled &&
+    !subscription.withdrawal_status &&
     !isPlanChangeScheduled &&
     Boolean(subscription.current_period_end);
 
@@ -368,6 +436,7 @@ export function getPlanDetailsCardViewModel({
     }),
 
     periodLabel: getPeriodLabel({
+      subscription,
       isCanceled,
       isCancellationScheduled,
       isFreeTrial,

@@ -98,9 +98,27 @@ interface PagarmeSubscriptionWebhookData {
   };
 }
 
+interface PagarmeChargeWebhookData {
+  id?: string;
+  status?: string;
+  amount?: number;
+  paid_amount?: number;
+  refunded_amount?: number;
+  paid_at?: string | null;
+  refunded_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  last_transaction?: {
+    id?: string;
+    status?: string;
+    success?: boolean;
+  };
+}
+
 type PagarmeWebhookData =
   | PagarmeInvoiceWebhookData
   | PagarmeSubscriptionWebhookData
+  | PagarmeChargeWebhookData
   | PagarmeOrder;
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -319,7 +337,37 @@ function buildStoredOrderPayload(webhook: PagarmeWebhook<PagarmeOrder>) {
   };
 }
 
+function buildStoredChargePayload(webhook: PagarmeWebhook<PagarmeChargeWebhookData>) {
+  const charge = webhook.data;
+
+  return {
+    id: webhook.id,
+    event: webhook.event,
+    status: webhook.status,
+    data: {
+      id: charge.id ?? null,
+      status: charge.status ?? null,
+      amount: charge.amount ?? null,
+      paid_amount: charge.paid_amount ?? null,
+      refunded_amount: charge.refunded_amount ?? null,
+      paid_at: charge.paid_at ?? null,
+      refunded_at: charge.refunded_at ?? null,
+      created_at: charge.created_at ?? null,
+      updated_at: charge.updated_at ?? null,
+      last_transaction: {
+        id: charge.last_transaction?.id ?? null,
+        status: charge.last_transaction?.status ?? null,
+        success: charge.last_transaction?.success ?? null,
+      },
+    },
+  };
+}
+
 function buildStoredWebhookPayload(webhook: PagarmeWebhook<PagarmeWebhookData>) {
+  if (webhook.event === "charge.refunded") {
+    return buildStoredChargePayload(webhook as PagarmeWebhook<PagarmeChargeWebhookData>);
+  }
+
   if (webhook.event === "subscription.canceled") {
     return buildStoredSubscriptionPayload(
       webhook as PagarmeWebhook<PagarmeSubscriptionWebhookData>
@@ -695,6 +743,7 @@ export async function POST(request: Request) {
     "invoice.paid",
     "invoice.payment_failed",
     "subscription.canceled",
+    "charge.refunded",
     "order.paid",
     "order.payment_failed",
   ]);
@@ -715,6 +764,73 @@ export async function POST(request: Request) {
       received: true,
       ignored: true,
       reason: "unsupported_event",
+      webhookEventId,
+    });
+  }
+
+  if (verifiedWebhook.event === "charge.refunded") {
+    const charge = verifiedWebhook.data as PagarmeChargeWebhookData;
+    const chargeId = charge.id;
+
+    if (!chargeId || !/^ch_[A-Za-z0-9]+$/.test(chargeId) || charge.status !== "refunded") {
+      const errorMessage = "Os dados da cobrança reembolsada estão incompletos.";
+      await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+      return NextResponse.json({ error: errorMessage }, { status: 422 });
+    }
+
+    const { data, error } = await supabaseAdmin.rpc(
+      "process_subscription_withdrawal_refund_confirmation",
+      {
+        p_provider_charge_id: chargeId,
+        p_refunded_at: charge.refunded_at ?? charge.updated_at ?? new Date().toISOString(),
+        p_provider_refund_id: charge.last_transaction?.id ?? null,
+      }
+    );
+
+    if (error) {
+      console.error("[PROCESS_WITHDRAWAL_REFUND_CONFIRMATION_ERROR]", error);
+      await markWebhookFailed(
+        supabaseAdmin,
+        webhookEventId,
+        "Não foi possível confirmar o reembolso da assinatura."
+      );
+      return NextResponse.json(
+        { error: "Não foi possível confirmar o reembolso da assinatura." },
+        { status: 500 }
+      );
+    }
+
+    const result = data as {
+      matched?: boolean;
+      completed?: boolean;
+      request_id?: string;
+      invalidated_plan_credits?: number;
+    } | null;
+
+    const { error: finishEventError } = await supabaseAdmin
+      .from("pagarme_webhook_events")
+      .update({
+        status: result?.matched ? "processed" : "ignored",
+        processed_at: new Date().toISOString(),
+        error_message: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", webhookEventId);
+
+    if (finishEventError) {
+      console.error("[FINISH_WITHDRAWAL_REFUND_WEBHOOK_ERROR]", finishEventError);
+      return NextResponse.json(
+        { error: "O reembolso foi processado, mas o evento não pôde ser finalizado." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      received: true,
+      processed: result?.matched ?? false,
+      completed: result?.completed ?? false,
+      withdrawalRequestId: result?.request_id ?? null,
+      creditsInvalidated: result?.invalidated_plan_credits ?? 0,
       webhookEventId,
     });
   }
@@ -845,6 +961,41 @@ export async function POST(request: Request) {
           subscriptionExternalId,
           status: verifiedWebhook.event === "invoice.paid" ? "paid" : "failed",
         });
+
+        if (verifiedWebhook.event === "invoice.paid" && invoice.charge?.paid_at) {
+          const { data: initialPayment, error: initialPaymentError } = await supabaseAdmin
+            .from("student_payments")
+            .select("id, metadata")
+            .eq("external_id", subscriptionExternalId)
+            .eq("kind", "subscription")
+            .in("status", ["paid", "active"])
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+          if (initialPaymentError || !initialPayment) {
+            throw initialPaymentError ?? new Error("Pagamento inicial não encontrado.");
+          }
+
+          const { error: paymentTimestampError } = await supabaseAdmin
+            .from("student_payments")
+            .update({
+              paid_at: invoice.charge.paid_at,
+              metadata: {
+                ...(initialPayment.metadata as Record<string, unknown>),
+                pagarme_subscription_id: subscriptionExternalId,
+                pagarme_invoice_id: invoice.id ?? null,
+                pagarme_charge_id: invoice.charge.id ?? null,
+                pagarme_charge_paid_at: invoice.charge.paid_at,
+              },
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", initialPayment.id);
+
+          if (paymentTimestampError) {
+            throw paymentTimestampError;
+          }
+        }
       } catch (error) {
         console.error("[RECONCILE_INITIAL_CHECKOUT_PAYMENT_CARD_ERROR]", error);
         await markWebhookFailed(

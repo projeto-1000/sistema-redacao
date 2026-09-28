@@ -124,6 +124,8 @@ export function PlanDetailsCard({
                 <CancelSubscriptionDialog
                   planName={subscription.plan_name}
                   effectiveAt={subscription.current_period_end}
+                  withdrawalEligible={subscription.withdrawal_eligible}
+                  withdrawalProcessingMode={subscription.withdrawal_processing_mode}
                 />
               )}
 

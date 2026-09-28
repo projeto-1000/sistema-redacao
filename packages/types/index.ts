@@ -291,6 +291,17 @@ export interface StudentSubscription {
   current_period_end: string | null;
   cancel_at_period_end: boolean;
   next_billing_at: string | null;
+  cancellation_mode: "end_of_period" | "withdrawal" | null;
+  withdrawal_status:
+    | "under_review"
+    | "refund_processing"
+    | "refunded"
+    | "operational_issue"
+    | null;
+  active_withdrawal_request_id: string | null;
+  withdrawal_eligible: boolean;
+  withdrawal_processing_mode: "automatic" | "manual" | null;
+  withdrawal_eligibility_deadline_at: string | null;
 
   pending_plan_id: string | null;
   pending_change_type: "downgrade" | null;

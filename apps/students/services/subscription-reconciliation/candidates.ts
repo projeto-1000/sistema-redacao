@@ -24,6 +24,7 @@ export async function listDuePagarmeSubscriptionCandidates({
       "id, external_id, status, current_period_start, current_period_end, next_billing_at, metadata, updated_at"
     )
     .in("status", ["active", "trial", "past_due"])
+    .is("withdrawal_status", null)
     .like("external_id", "sub_%")
     .or(`current_period_end.lt.${nowIso},status.eq.past_due`)
     .or(

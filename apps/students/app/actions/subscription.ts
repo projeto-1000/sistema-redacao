@@ -173,6 +173,65 @@ export async function getSubscriptionData() {
     };
   }
 
+  const [activeWithdrawalResult, initialPaymentResult, withdrawalCountResult] =
+    await Promise.all([
+      subscription.active_withdrawal_request_id
+        ? supabase
+            .from("subscription_withdrawal_requests")
+            .select("processing_mode, status, eligibility_deadline_at")
+            .eq("id", subscription.active_withdrawal_request_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      subscription.external_id
+        ? supabase
+            .from("student_payments")
+            .select("paid_at")
+            .eq("user_id", user.id)
+            .eq("subscription_id", subscription.id)
+            .eq("kind", "subscription")
+            .in("status", ["paid", "active"])
+            .not("paid_at", "is", null)
+            .or(
+              `external_id.eq.${subscription.external_id},metadata->>pagarme_subscription_id.eq.${subscription.external_id}`
+            )
+            .order("paid_at", { ascending: true })
+            .limit(1)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      supabase
+        .from("subscription_withdrawal_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", user.id),
+    ]);
+
+  if (activeWithdrawalResult.error) {
+    console.error("[GET_ACTIVE_WITHDRAWAL_ERROR]", activeWithdrawalResult.error);
+  }
+
+  if (initialPaymentResult.error) {
+    console.error("[GET_WITHDRAWAL_INITIAL_PAYMENT_ERROR]", initialPaymentResult.error);
+  }
+
+  if (withdrawalCountResult.error) {
+    console.error("[GET_WITHDRAWAL_COUNT_ERROR]", withdrawalCountResult.error);
+  }
+
+  const initialPaidAt = initialPaymentResult.data?.paid_at ?? subscription.current_period_start;
+  const withdrawalDeadline = initialPaidAt
+    ? new Date(new Date(initialPaidAt).getTime() + 168 * 60 * 60 * 1000).toISOString()
+    : null;
+  const withdrawalEligible =
+    Boolean(withdrawalDeadline) &&
+    new Date(withdrawalDeadline as string).getTime() >= referenceAt.getTime() &&
+    subscription.status === "active" &&
+    !subscription.active_withdrawal_request_id;
+  const withdrawalProcessingMode = activeWithdrawalResult.data?.processing_mode ??
+    (withdrawalEligible
+      ? (withdrawalCountResult.count ?? 0) === 0
+        ? "automatic"
+        : "manual"
+      : null);
+
   let pendingPlanName: string | null = null;
 
   if (subscription.pending_plan_id) {
@@ -264,6 +323,11 @@ export async function getSubscriptionData() {
         : null,
 
       mentorship_cycle_end: mentorshipCycle?.expires_at ?? null,
+
+      withdrawal_eligible: withdrawalEligible,
+      withdrawal_processing_mode: withdrawalProcessingMode,
+      withdrawal_eligibility_deadline_at:
+        activeWithdrawalResult.data?.eligibility_deadline_at ?? withdrawalDeadline,
 
       pending_plan_name: pendingPlanName,
     },

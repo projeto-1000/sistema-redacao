@@ -622,10 +622,46 @@ export interface PagarmeCharge {
   status: string;
   amount: number;
   paid_amount?: number;
+  refunded_amount?: number;
   payment_method?: string;
   paid_at?: string;
+  refunded_at?: string;
   created_at?: string;
+  updated_at?: string;
+  metadata?: Record<string, string>;
   last_transaction?: PagarmeChargeTransaction;
+}
+
+export interface RefundPagarmeChargeParams {
+  chargeId: string;
+  amount?: number;
+  idempotencyKey?: string;
+}
+
+export async function refundPagarmeCharge({
+  chargeId,
+  amount,
+  idempotencyKey,
+}: RefundPagarmeChargeParams) {
+  if (!/^ch_[A-Za-z0-9]+$/.test(chargeId)) {
+    throw new Error("ID da cobrança Pagar.me inválido.");
+  }
+
+  if (amount !== undefined && (!Number.isInteger(amount) || amount <= 0)) {
+    throw new Error("O valor do reembolso precisa ser um inteiro positivo em centavos.");
+  }
+
+  const headers: HeadersInit = {};
+
+  if (idempotencyKey) {
+    headers["Idempotency-Key"] = idempotencyKey;
+  }
+
+  return fetchPagarme<PagarmeCharge>(`/charges/${chargeId}`, {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify(amount === undefined ? {} : { amount }),
+  });
 }
 
 export interface PagarmeOrder {

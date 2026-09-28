@@ -35,6 +35,9 @@ importers:
       '@repo/email':
         specifier: workspace:*
         version: link:../../packages/email
+      '@repo/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@repo/types':
         specifier: workspace:*
         version: link:../../packages/types

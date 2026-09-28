@@ -5,6 +5,10 @@ import { cancelPagarmeSubscription } from "@repo/payments";
 import { createClient } from "@/lib/server";
 import { createAdminClient } from "@/lib/admin";
 import {
+  holdSubscriptionRenewalForManualReview,
+  startSubscriptionWithdrawalRefund,
+} from "@/services/subscription-withdrawal";
+import {
   subscriptionCancellationReasons,
   type RequestSubscriptionCancellationInput,
   type RequestSubscriptionCancellationResult,
@@ -41,6 +45,13 @@ export async function requestSubscriptionCancellation(
 
   const cancellationDetails = input.details?.trim() || null;
 
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.operationId)) {
+    return {
+      success: false,
+      message: "Não foi possível identificar esta solicitação. Atualize a página e tente novamente.",
+    };
+  }
+
   if (cancellationDetails && cancellationDetails.length > 500) {
     return {
       success: false,
@@ -57,8 +68,12 @@ export async function requestSubscriptionCancellation(
         plan_id,
         external_id,
         status,
+        current_period_start,
         current_period_end,
         cancel_at_period_end,
+        cancellation_mode,
+        withdrawal_status,
+        active_withdrawal_request_id,
         cancellation_requested_at,
         cancellation_effective_at,
         cancellation_provider_status
@@ -84,6 +99,7 @@ export async function requestSubscriptionCancellation(
   }
 
   if (
+    subscription.cancellation_mode === "end_of_period" &&
     subscription.cancel_at_period_end &&
     subscription.cancellation_provider_status === "canceled"
   ) {
@@ -99,8 +115,24 @@ export async function requestSubscriptionCancellation(
 
     return {
       success: true,
+      kind: "ordinary",
       effectiveAt,
       alreadyScheduled: true,
+    };
+  }
+
+  if (subscription.withdrawal_status && subscription.active_withdrawal_request_id) {
+    return {
+      success: true,
+      kind:
+        subscription.withdrawal_status === "under_review"
+          ? "withdrawal_manual"
+          : subscription.withdrawal_status === "operational_issue"
+            ? "withdrawal_operational_issue"
+            : "withdrawal_automatic",
+      effectiveAt: null,
+      alreadyScheduled: true,
+      withdrawalStatus: subscription.withdrawal_status,
     };
   }
 
@@ -168,6 +200,110 @@ export async function requestSubscriptionCancellation(
     };
   }
 
+  const { data: initialPayment, error: initialPaymentError } = await supabaseAdmin
+    .from("student_payments")
+    .select("id, paid_at")
+    .eq("user_id", user.id)
+    .eq("subscription_id", subscription.id)
+    .eq("kind", "subscription")
+    .in("status", ["paid", "active"])
+    .not("paid_at", "is", null)
+    .or(
+      `external_id.eq.${subscription.external_id},metadata->>pagarme_subscription_id.eq.${subscription.external_id}`
+    )
+    .order("paid_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (initialPaymentError) {
+    console.error("[CANCELLATION_INITIAL_PAYMENT_ERROR]", initialPaymentError);
+  }
+
+  const activatedAt = initialPayment?.paid_at ?? subscription.current_period_start;
+  const withdrawalDeadline = activatedAt
+    ? new Date(activatedAt).getTime() + 168 * 60 * 60 * 1000
+    : Number.NaN;
+
+  if (!Number.isNaN(withdrawalDeadline) && Date.now() <= withdrawalDeadline) {
+    const { data: withdrawalData, error: withdrawalError } = await supabase.rpc(
+      "request_subscription_withdrawal",
+      {
+        p_idempotency_key: input.operationId,
+        p_reason: input.reason,
+        p_details: cancellationDetails,
+      }
+    );
+
+    if (withdrawalError || !withdrawalData) {
+      console.error("[REQUEST_SUBSCRIPTION_WITHDRAWAL_ERROR]", withdrawalError);
+
+      return {
+        success: false,
+        message: "Não foi possível registrar o pedido de arrependimento.",
+      };
+    }
+
+    const withdrawal = withdrawalData as {
+      request_id: string;
+      processing_mode: "automatic" | "manual";
+      status: "under_review" | "refund_processing" | "refunded" | "operational_issue";
+      provider_subscription_id: string;
+      subscription_id: string;
+      original_activated_at: string;
+      duplicate?: boolean;
+    };
+
+    if (!withdrawal.duplicate) {
+      try {
+        if (withdrawal.processing_mode === "automatic") {
+          await startSubscriptionWithdrawalRefund({
+            requestId: withdrawal.request_id,
+            userId: user.id,
+            subscriptionId: withdrawal.subscription_id,
+            providerSubscriptionId: withdrawal.provider_subscription_id,
+            originalActivatedAt: withdrawal.original_activated_at,
+          });
+        } else {
+          await holdSubscriptionRenewalForManualReview({
+            requestId: withdrawal.request_id,
+            providerSubscriptionId: withdrawal.provider_subscription_id,
+          });
+        }
+      } catch (error) {
+        console.error("[PROCESS_SUBSCRIPTION_WITHDRAWAL_ERROR]", {
+          error,
+          requestId: withdrawal.request_id,
+          processingMode: withdrawal.processing_mode,
+        });
+
+        revalidatePath("/assinatura");
+        revalidatePath("/assinatura/planos");
+
+        return {
+          success: true,
+          kind: "withdrawal_operational_issue",
+          effectiveAt: null,
+          alreadyScheduled: false,
+          withdrawalStatus: "operational_issue",
+        };
+      }
+    }
+
+    revalidatePath("/assinatura");
+    revalidatePath("/assinatura/planos");
+
+    return {
+      success: true,
+      kind:
+        withdrawal.processing_mode === "automatic"
+          ? "withdrawal_automatic"
+          : "withdrawal_manual",
+      effectiveAt: null,
+      alreadyScheduled: withdrawal.duplicate ?? false,
+      withdrawalStatus: withdrawal.status,
+    };
+  }
+
   if (!subscription.current_period_end) {
     return {
       success: false,
@@ -198,6 +334,12 @@ export async function requestSubscriptionCancellation(
       .from("subscriptions")
       .update({
         cancel_at_period_end: true,
+
+        cancellation_mode: "end_of_period",
+
+        withdrawal_status: null,
+
+        active_withdrawal_request_id: null,
 
         cancellation_requested_at: requestedAt,
 
@@ -316,6 +458,7 @@ export async function requestSubscriptionCancellation(
 
     return {
       success: true,
+      kind: "ordinary",
       effectiveAt: subscription.current_period_end,
       alreadyScheduled: false,
     };

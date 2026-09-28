@@ -285,6 +285,34 @@ test("allows an active paid subscription confirmed active by Pagar.me", () => {
   });
 });
 
+test("blocks extra-credit purchases while a withdrawal is pending", () => {
+  assert.deepEqual(
+    evaluateExtraCreditEligibility({
+      ...activePaidEligibilityInput,
+      subscription: {
+        ...activePaidEligibilityInput.subscription,
+        withdrawalStatus: "under_review",
+      },
+    }),
+    { eligible: false, reason: "WITHDRAWAL_PENDING" }
+  );
+});
+
+test("allows extra-credit purchases until an ordinary cancellation becomes effective", () => {
+  assert.deepEqual(
+    evaluateExtraCreditEligibility({
+      ...activePaidEligibilityInput,
+      subscription: {
+        ...activePaidEligibilityInput.subscription,
+        cancelAtPeriodEnd: true,
+        cancellationMode: "end_of_period",
+      },
+      remoteStatus: "canceled",
+    }),
+    { eligible: true, reason: null }
+  );
+});
+
 test("fails closed when Pagar.me cannot be consulted", () => {
   assert.deepEqual(
     evaluateExtraCreditEligibility({

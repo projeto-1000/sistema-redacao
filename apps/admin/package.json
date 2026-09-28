@@ -15,6 +15,7 @@
     "@repo/constants": "workspace:*",
     "@repo/datacrazy": "workspace:*",
     "@repo/email": "workspace:*",
+    "@repo/payments": "workspace:*",
     "@repo/types": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/utils": "workspace:*",

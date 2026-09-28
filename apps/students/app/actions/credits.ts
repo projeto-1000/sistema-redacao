@@ -130,7 +130,9 @@ export async function canPurchaseExtraCredits() {
   const supabaseAdmin = createAdminClient();
   const { data: subscription, error } = await supabaseAdmin
     .from("subscriptions")
-    .select("id, plan_id, status, external_id")
+    .select(
+      "id, plan_id, status, external_id, cancel_at_period_end, cancellation_mode, withdrawal_status"
+    )
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -176,6 +178,9 @@ export async function canPurchaseExtraCredits() {
     subscription: {
       status: subscription.status,
       externalId: subscription.external_id,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      cancellationMode: subscription.cancellation_mode,
+      withdrawalStatus: subscription.withdrawal_status,
     },
     plan: {
       externalId: plan.external_id,
@@ -196,6 +201,9 @@ export async function canPurchaseExtraCredits() {
       subscription: {
         status: subscription.status,
         externalId: subscription.external_id,
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        cancellationMode: subscription.cancellation_mode,
+        withdrawalStatus: subscription.withdrawal_status,
       },
       plan: {
         externalId: plan.external_id,
@@ -226,6 +234,9 @@ export async function canPurchaseExtraCredits() {
         subscription: {
           status: subscription.status,
           externalId: subscription.external_id,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          cancellationMode: subscription.cancellation_mode,
+          withdrawalStatus: subscription.withdrawal_status,
         },
         plan: {
           externalId: plan.external_id,

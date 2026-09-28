@@ -39,6 +39,8 @@ import { formatDate } from "@repo/utils";
 interface CancelSubscriptionDialogProps {
   planName: string;
   effectiveAt: string;
+  withdrawalEligible: boolean;
+  withdrawalProcessingMode: "automatic" | "manual" | null;
 }
 
 type DialogState =
@@ -48,12 +50,15 @@ type DialogState =
 export function CancelSubscriptionDialog({
   planName,
   effectiveAt,
+  withdrawalEligible,
+  withdrawalProcessingMode,
 }: CancelSubscriptionDialogProps) {
   const router = useRouter();
 
 
   const [open, setOpen] = useState(false);
   const [details, setDetails] = useState("");
+  const [operationId, setOperationId] = useState(() => crypto.randomUUID());
 
   const [dialogState, setDialogState] =
     useState<DialogState>("confirmation");
@@ -67,7 +72,14 @@ export function CancelSubscriptionDialog({
     useState<string | null>(null);
 
   const [confirmedEffectiveAt, setConfirmedEffectiveAt] =
-    useState(effectiveAt);
+    useState<string | null>(effectiveAt);
+
+  const [resultKind, setResultKind] = useState<
+    | "ordinary"
+    | "withdrawal_automatic"
+    | "withdrawal_manual"
+    | "withdrawal_operational_issue"
+  >("ordinary");
 
   const [isPending, startTransition] =
     useTransition();
@@ -78,6 +90,8 @@ export function CancelSubscriptionDialog({
     setDetails("");
     setErrorMessage(null);
     setConfirmedEffectiveAt(effectiveAt);
+    setResultKind("ordinary");
+    setOperationId(crypto.randomUUID());
   }
 
   function handleOpenChange(nextOpen: boolean) {
@@ -98,6 +112,7 @@ export function CancelSubscriptionDialog({
     startTransition(async () => {
       const result =
         await requestSubscriptionCancellation({
+          operationId,
           reason,
           details:
             reason === "other" && details.trim()
@@ -113,6 +128,7 @@ export function CancelSubscriptionDialog({
       setConfirmedEffectiveAt(
         result.effectiveAt
       );
+      setResultKind(result.kind);
 
       setDialogState("success");
       router.refresh();
@@ -161,19 +177,30 @@ export function CancelSubscriptionDialog({
 
             <div className="space-y-5 py-2">
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                <p className="text-sm font-bold text-amber-950">
-                  Você poderá usar o plano até{" "}
-                  {formatDate(
-                    effectiveAt,
-                    "numeric"
-                  )}
-                  .
-                </p>
+                {withdrawalEligible ? (
+                  <>
+                    <p className="text-sm font-bold text-amber-950">
+                      Este pedido está dentro do prazo de 7 dias para arrependimento.
+                    </p>
 
-                <p className="mt-2 text-sm leading-relaxed text-amber-900/80">
-                  Depois dessa data, não haverá nova cobrança e os créditos restantes do plano expirarão.
-                  Créditos adicionais serão mantidos.
-                </p>
+                    <p className="mt-2 text-sm leading-relaxed text-amber-900/80">
+                      {withdrawalProcessingMode === "automatic"
+                        ? "O cancelamento será imediato e o reembolso integral será iniciado. Os créditos restantes desta assinatura serão bloqueados; créditos extras e gratuitos válidos continuam disponíveis."
+                        : "Como já houve um pedido de arrependimento nesta conta, a solicitação irá para análise. Os créditos desta assinatura e novas compras de créditos extras ficarão bloqueados até a decisão."}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-bold text-amber-950">
+                      Você poderá usar o plano até {formatDate(effectiveAt, "numeric")}.
+                    </p>
+
+                    <p className="mt-2 text-sm leading-relaxed text-amber-900/80">
+                      Depois dessa data, não haverá nova cobrança e os créditos restantes do plano expirarão.
+                      Créditos adicionais serão mantidos.
+                    </p>
+                  </>
+                )}
               </div>
 
               <div>
@@ -303,19 +330,31 @@ export function CancelSubscriptionDialog({
               </div>
 
               <h2 className="text-2xl font-bold">
-                Cancelamento agendado
+                {resultKind === "ordinary"
+                  ? "Cancelamento agendado"
+                  : resultKind === "withdrawal_manual"
+                    ? "Solicitação em análise"
+                    : resultKind === "withdrawal_operational_issue"
+                      ? "Cancelamento registrado"
+                      : "Reembolso em processamento"}
               </h2>
 
               <p className="mt-3 max-w-sm text-sm leading-relaxed text-slate-500">
-                Sua assinatura ficará disponível até{" "}
-                <strong className="text-slate-700">
-                  {formatDate(
-                    confirmedEffectiveAt,
-                    "numeric"
-                  )}
-                </strong>
-                . Depois disso, não haverá uma nova
-                cobrança.
+                {resultKind === "ordinary" && confirmedEffectiveAt ? (
+                  <>
+                    Sua assinatura ficará disponível até{" "}
+                    <strong className="text-slate-700">
+                      {formatDate(confirmedEffectiveAt, "numeric")}
+                    </strong>
+                    . Depois disso, não haverá uma nova cobrança.
+                  </>
+                ) : resultKind === "withdrawal_manual" ? (
+                  "Os créditos desta assinatura foram bloqueados enquanto a equipe analisa o pedido. Você continuará com acesso à plataforma."
+                ) : resultKind === "withdrawal_operational_issue" ? (
+                  "A renovação e os créditos desta assinatura permanecem bloqueados. A equipe acompanhará a pendência até a conclusão."
+                ) : (
+                  "A assinatura foi cancelada e o reembolso integral foi iniciado. A conclusão será confirmada após o retorno do meio de pagamento."
+                )}
               </p>
 
 

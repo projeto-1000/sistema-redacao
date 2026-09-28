@@ -12,6 +12,8 @@ do $$
 declare
   v_user_id uuid := '11000000-0000-0000-0000-000000000001';
   v_package_id uuid := '21000000-0000-0000-0000-000000000001';
+  v_plan_id uuid := '31000000-0000-0000-0000-000000000001';
+  v_subscription_id uuid := '41000000-0000-0000-0000-000000000001';
   v_payment_id uuid := '61000000-0000-0000-0000-000000000001';
   v_already_paid_id uuid := '61000000-0000-0000-0000-000000000002';
   v_existing_grant_id uuid := '61000000-0000-0000-0000-000000000003';
@@ -30,12 +32,27 @@ begin
   insert into public.student_credits (user_id, plan_credits, extra_credits, free_credits)
   values (v_user_id, 0, 0, 0);
 
+  insert into public.plans (
+    id, name, external_id, credits_included, price, interval, interval_count
+  ) values (
+    v_plan_id, 'Extra credit test plan', 'plan_extra_credit_test', 5, 5000, 'month', 1
+  );
+
+  insert into public.subscriptions (
+    id, user_id, plan_id, status, current_period_start, current_period_end,
+    next_billing_at, external_id, payment_method
+  ) values (
+    v_subscription_id, v_user_id, v_plan_id, 'active', now(), now() + interval '1 month',
+    now() + interval '1 month', 'sub_extracredittest', 'credit_card'
+  );
+
   insert into public.student_payments (
-    id, user_id, kind, provider, external_id, amount, credits_amount,
+    id, user_id, subscription_id, kind, provider, external_id, amount, credits_amount,
     status, payment_method, idempotency_key, metadata
   ) values (
     v_payment_id,
     v_user_id,
+    v_subscription_id,
     'extra_credits',
     'pagarme',
     null,
@@ -158,10 +175,10 @@ begin
   end if;
 
   insert into public.student_payments (
-    id, user_id, kind, provider, external_id, amount, credits_amount,
+    id, user_id, subscription_id, kind, provider, external_id, amount, credits_amount,
     status, payment_method, paid_at, idempotency_key, metadata
   ) values (
-    v_already_paid_id, v_user_id, 'extra_credits', 'pagarme', 'or_alreadypaid',
+    v_already_paid_id, v_user_id, v_subscription_id, 'extra_credits', 'pagarme', 'or_alreadypaid',
     3000, 3, 'paid', 'credit_card', '2026-09-02 13:00:00+00',
     'extra-credit-finalization:already-paid',
     jsonb_build_object('source', 'extra_credit_purchase', 'extra_credit_package_id', v_package_id::text)
@@ -190,10 +207,10 @@ begin
   end if;
 
   insert into public.student_payments (
-    id, user_id, kind, provider, external_id, amount, credits_amount,
+    id, user_id, subscription_id, kind, provider, external_id, amount, credits_amount,
     status, payment_method, idempotency_key, metadata
   ) values (
-    v_existing_grant_id, v_user_id, 'extra_credits', 'pagarme', 'or_existinggrant',
+    v_existing_grant_id, v_user_id, v_subscription_id, 'extra_credits', 'pagarme', 'or_existinggrant',
     2000, 2, 'processing', 'credit_card', 'extra-credit-finalization:existing-grant',
     jsonb_build_object('source', 'extra_credit_purchase', 'extra_credit_package_id', v_package_id::text)
   );
@@ -254,10 +271,10 @@ begin
   end if;
 
   insert into public.student_payments (
-    id, user_id, kind, provider, amount, credits_amount, status,
+    id, user_id, subscription_id, kind, provider, amount, credits_amount, status,
     payment_method, idempotency_key, metadata
   ) values (
-    v_amount_mismatch_id, v_user_id, 'extra_credits', 'pagarme', 4000, 4,
+    v_amount_mismatch_id, v_user_id, v_subscription_id, 'extra_credits', 'pagarme', 4000, 4,
     'processing', 'credit_card', 'extra-credit-finalization:amount-mismatch',
     jsonb_build_object('source', 'extra_credit_purchase', 'extra_credit_package_id', v_package_id::text)
   );
@@ -285,10 +302,10 @@ begin
   end if;
 
   insert into public.student_payments (
-    id, user_id, kind, provider, amount, credits_amount, status,
+    id, user_id, subscription_id, kind, provider, amount, credits_amount, status,
     payment_method, idempotency_key, metadata
   ) values (
-    v_wrong_kind_id, v_user_id, 'subscription', 'pagarme', 4000, 4,
+    v_wrong_kind_id, v_user_id, v_subscription_id, 'subscription', 'pagarme', 4000, 4,
     'processing', 'credit_card', 'extra-credit-finalization:wrong-kind',
     jsonb_build_object('source', 'extra_credit_purchase', 'extra_credit_package_id', v_package_id::text)
   );
@@ -316,10 +333,10 @@ begin
   end if;
 
   insert into public.student_payments (
-    id, user_id, kind, provider, amount, credits_amount, status,
+    id, user_id, subscription_id, kind, provider, amount, credits_amount, status,
     payment_method, idempotency_key, metadata
   ) values (
-    v_failed_payment_id, v_user_id, 'extra_credits', 'pagarme', 2500, 2,
+    v_failed_payment_id, v_user_id, v_subscription_id, 'extra_credits', 'pagarme', 2500, 2,
     'processing', 'credit_card', 'extra-credit-finalization:failed',
     jsonb_build_object('source', 'extra_credit_purchase', 'extra_credit_package_id', v_package_id::text)
   );

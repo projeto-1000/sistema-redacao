@@ -25,6 +25,7 @@ export type SubscriptionCancellationReason =
   (typeof subscriptionCancellationReasons)[number]["value"];
 
 export interface RequestSubscriptionCancellationInput {
+  operationId: string;
   reason: SubscriptionCancellationReason | null;
   details?: string;
 }
@@ -32,8 +33,18 @@ export interface RequestSubscriptionCancellationInput {
 export type RequestSubscriptionCancellationResult =
   | {
       success: true;
-      effectiveAt: string;
+      kind:
+        | "ordinary"
+        | "withdrawal_automatic"
+        | "withdrawal_manual"
+        | "withdrawal_operational_issue";
+      effectiveAt: string | null;
       alreadyScheduled: boolean;
+      withdrawalStatus?:
+        | "under_review"
+        | "refund_processing"
+        | "refunded"
+        | "operational_issue";
     }
   | {
       success: false;

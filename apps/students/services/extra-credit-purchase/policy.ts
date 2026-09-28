@@ -15,6 +15,7 @@ export type ExtraCreditEligibilityReason =
   | "PLAN_NOT_PAID"
   | "INTERNAL_PLAN"
   | "NO_REMOTE_SUBSCRIPTION"
+  | "WITHDRAWAL_PENDING"
   | "REMOTE_SUBSCRIPTION_NOT_ACTIVE"
   | "PAGARME_UNAVAILABLE";
 
@@ -22,6 +23,9 @@ export interface ExtraCreditEligibilityInput {
   subscription: {
     status: string;
     externalId: string | null;
+    cancelAtPeriodEnd?: boolean;
+    cancellationMode?: string | null;
+    withdrawalStatus?: string | null;
   } | null;
   plan: {
     externalId: string | null;
@@ -47,6 +51,10 @@ export function evaluateExtraCreditEligibility({
     return { eligible: false, reason: "LOCAL_SUBSCRIPTION_NOT_ACTIVE" };
   }
 
+  if (subscription.withdrawalStatus) {
+    return { eligible: false, reason: "WITHDRAWAL_PENDING" };
+  }
+
   if (!plan || !Number.isFinite(plan.price) || plan.price <= 0) {
     return { eligible: false, reason: "PLAN_NOT_PAID" };
   }
@@ -57,6 +65,13 @@ export function evaluateExtraCreditEligibility({
 
   if (!subscription.externalId || !/^sub_[A-Za-z0-9]+$/.test(subscription.externalId)) {
     return { eligible: false, reason: "NO_REMOTE_SUBSCRIPTION" };
+  }
+
+  if (
+    subscription.cancelAtPeriodEnd &&
+    subscription.cancellationMode === "end_of_period"
+  ) {
+    return { eligible: true, reason: null };
   }
 
   if (remoteLookupFailed) {
