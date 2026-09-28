@@ -1,9 +1,9 @@
 import { getEssaysByStatus } from "@/app/actions/essays";
 import PendingEssaysRow from "./pending-essays-row";
 import { CircleAlert, FileText, Search } from "lucide-react";
-import { TablePagination } from "./table-pagination";
+import { PendingEssaysTable } from "@repo/ui/components/features/essays/pending-essays-table";
+import { TablePagination } from "@repo/ui/components/table-pagination";
 import { PendingEssaysFilter } from "@repo/types";
-import { PENDING_ESSAYS_TABLE_GRID } from "./pending-essays-table-layout";
 
 interface PendingEssaysProps {
   filters?: PendingEssaysFilter;
@@ -32,26 +32,11 @@ export default async function PendingEssaysGrid({ filters, page }: PendingEssays
   return (
     essays.length > 0 ? (
       <>
-        <div className="rounded-4xl border border-slate-200 overflow-hidden shadow-sm mt-8 bg-white">
-          <div className={`hidden gap-4 border-b border-slate-100 bg-slate-50/50 px-8 py-5 lg:grid ${PENDING_ESSAYS_TABLE_GRID}`}>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Aluno
-            </div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Tema da Redação
-            </div>
-            <div className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Prazo
-            </div>
-            <div className="text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Ação
-            </div>
-          </div>
+        <PendingEssaysTable>
           {essays.map((essay) => (
             <PendingEssaysRow key={essay.id} essay={essay} />
           ))}
-
-        </div>
+        </PendingEssaysTable>
 
         <TablePagination totalPages={totalPages} />
       </>

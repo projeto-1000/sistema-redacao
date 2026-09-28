@@ -185,7 +185,7 @@ export async function getStudents({
   const studentIds = profiles.map((student) => student.id);
   const now = new Date().toISOString();
 
-  const [creditsRes, mentorshipCreditsRes, activityRes] = await Promise.all([
+  const [creditsRes, freeCreditsRes, mentorshipCreditsRes, activityRes] = await Promise.all([
     supabase
       .from("student_credits")
       .select(
@@ -196,6 +196,11 @@ export async function getStudents({
         free_credits
       `
       )
+      .in("user_id", studentIds),
+
+    supabase
+      .from("free_credit_allocations")
+      .select("user_id, expires_at")
       .in("user_id", studentIds),
 
     supabase
@@ -234,7 +239,8 @@ export async function getStudents({
       .limit(1, { referencedTable: "latest_correction" }),
   ]);
 
-  const relatedError = creditsRes.error || mentorshipCreditsRes.error || activityRes.error;
+  const relatedError =
+    creditsRes.error || freeCreditsRes.error || mentorshipCreditsRes.error || activityRes.error;
 
   if (relatedError) {
     console.error("Erro ao buscar dados complementares dos alunos:", relatedError);
@@ -248,6 +254,10 @@ export async function getStudents({
 
   const creditsByUser = new Map(
     (creditsRes.data ?? []).map((credits) => [credits.user_id, credits])
+  );
+
+  const freeCreditExpirationByUser = new Map(
+    (freeCreditsRes.data ?? []).map((allocation) => [allocation.user_id, allocation.expires_at])
   );
 
   const mentorshipCreditsByUser = new Map<string, number>();
@@ -316,6 +326,7 @@ export async function getStudents({
         plan: credits?.plan_credits ?? 0,
         extra: credits?.extra_credits ?? 0,
         free: credits?.free_credits ?? 0,
+        freeExpiresAt: freeCreditExpirationByUser.get(profile.id) ?? null,
         mentorship: mentorshipCreditsByUser.get(profile.id) ?? 0,
       },
 

@@ -4,7 +4,6 @@
 @import "@repo/tailwind-config";
 @source "./components";
 
-
 @theme {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -46,21 +45,21 @@
 
   @keyframes accordion-down {
     from {
-      height: 0
+      height: 0;
     }
 
     to {
-      height: var(--radix-accordion-content-height)
+      height: var(--radix-accordion-content-height);
     }
   }
 
   @keyframes accordion-up {
     from {
-      height: var(--radix-accordion-content-height)
+      height: var(--radix-accordion-content-height);
     }
 
     to {
-      height: 0
+      height: 0;
     }
   }
 }
@@ -116,13 +115,9 @@
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 45.1 93.3% 55.7%;
-    --blue-ring: 220 84% 51%
-      /* --ring: 219.8 84.2% 51%; */
-      /* Foco usa o Azul Vibrante */
-
-      /* Raio da borda (Border Radius) */
+    --blue-ring: 220 84% 51% /* --ring: 219.8 84.2% 51%; */
+      /* Foco usa o Azul Vibrante */ /* Raio da borda (Border Radius) */
       --radius: 0.5rem;
-
 
     /* SUCESSO: Verde (#28A745) */
     --success: 133.7 61.1% 40.6%;
@@ -155,8 +150,51 @@
     cursor: pointer;
   }
 
+  @keyframes login-autofill-start {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  .login-autofill-detection:-webkit-autofill {
+    animation: login-autofill-start 1ms;
+  }
+
+  .login-autofill-detection:autofill {
+    animation: login-autofill-start 1ms;
+  }
+
   .bg-gradient-soft {
     background: linear-gradient(135deg, #e0f2fe 0%, #ffffff 100%);
+  }
+
+  .auth-page-background {
+    background-color: #ffffff;
+    background-image:
+      radial-gradient(
+        circle at -4% 2%,
+        rgb(219 234 254 / 0.92) 0 12rem,
+        transparent 28rem
+      ),
+      radial-gradient(
+        circle at 104% 4%,
+        rgb(254 243 199 / 0.82) 0 10rem,
+        transparent 25rem
+      ),
+      radial-gradient(
+        circle at 104% 102%,
+        rgb(219 234 254 / 0.78) 0 11rem,
+        transparent 27rem
+      ),
+      radial-gradient(
+        circle at -5% 108%,
+        rgb(254 243 199 / 0.62) 0 8rem,
+        transparent 23rem
+      );
   }
 
   .page-transition {

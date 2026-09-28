@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowRight, CheckCircle2, FileText } from "lucide-react";
+import { useState } from "react";
+import { FileText } from "lucide-react";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
-import { Button } from "@repo/ui/components/button";
 import { EssayEditorForm } from "@/components/essay-editor-form";
 import { MotivationalTexts } from "@/components/motivational-texts";
 import MobileMotivationalTexts from "@/components/mobile-motivational-texts";
 import type { EssayTopicDetail } from "@repo/types";
-import { EssayDraft } from "@/types";
+import type { EssayDraft } from "@/types";
 
 interface EssayWorkspaceProps {
   essayTopic: EssayTopicDetail;
-  isSuccess: boolean;
   backup: EssayDraft | null;
   preferInitialBackup?: boolean;
   hasAvailableCredits: boolean;
@@ -21,66 +18,27 @@ interface EssayWorkspaceProps {
 
 export function EssayWorkspace({
   essayTopic,
-  isSuccess,
   backup,
   preferInitialBackup = false,
   hasAvailableCredits,
 }: EssayWorkspaceProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    if (isSuccess) {
-      localStorage.removeItem(`@backup:${essayTopic.id}`);
-    }
-  }, [essayTopic.id, isSuccess]);
-
-  if (isSuccess) {
-    return (
-      <div className="h-[calc(100vh-8rem)] flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-500">
-        <div className="bg-green-100 p-6 rounded-full mb-4">
-          <CheckCircle2 className="size-16 text-green-600" />
-        </div>
-        <h2 className="text-3xl font-bold mb-3">Redação enviada!</h2>
-        <p className="text-slate-500 max-w-md leading-relaxed text-center">
-          Sua redação sobre <span className="font-bold italic text-[#1E3A8A]">{`"${essayTopic.title}"`}</span> foi recebida e já está na fila de correção.
-        </p>
-        <div className="flex flex-col sm:flex-row mt-8 gap-4 w-full sm:w-auto">
-          <Button asChild variant="outline" className="h-12 rounded-2xl border-slate-300 font-bold">
-            <Link href="/inicio">Voltar ao Início</Link>
-          </Button>
-          <Button asChild className="h-12 rounded-2xl shadow-lg font-bold">
-            <Link href="/minhas-redacoes">
-              Ver minhas redações <ArrowRight className="size-4" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col max-w-full justify-normal animate-in fade-in duration-500">
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden gap-8">
-
-        <div className="hidden lg:flex w-full lg:w-[450px] shrink-0 flex-col bg-white rounded-3xl border border-slate-200 overflow-hidden h-full shadow-sm z-10">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2 text-[#1E3A8A] shrink-0">
+    <div className="animate-in fade-in flex h-[calc(100vh-8rem)] max-w-full flex-col justify-normal duration-500">
+      <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-hidden lg:flex-row">
+        <div className="z-10 hidden h-full w-full shrink-0 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:flex lg:w-[450px]">
+          <div className="flex shrink-0 items-center gap-2 border-b border-slate-100 bg-slate-50/50 p-5 text-[#1E3A8A]">
             <FileText className="size-4" />
-            <h3 className="font-bold text-sm uppercase tracking-wide">
-              Proposta de Redação
-            </h3>
+            <h3 className="text-sm font-bold tracking-wide uppercase">Proposta de Redação</h3>
           </div>
-          <ScrollArea className="flex-1 w-full h-full bg-white">
+          <ScrollArea className="h-full w-full flex-1 bg-white">
             <MotivationalTexts topic={essayTopic} />
           </ScrollArea>
         </div>
 
-        <div className="flex-1 h-full flex flex-col min-w-0">
-          <MobileMotivationalTexts
-            isOpen={isOpen}
-            onClose={setIsOpen}
-            topic={essayTopic}
-          />
+        <div className="flex h-full min-w-0 flex-1 flex-col">
+          <MobileMotivationalTexts isOpen={isOpen} onClose={setIsOpen} topic={essayTopic} />
 
           <EssayEditorForm
             topic={essayTopic}

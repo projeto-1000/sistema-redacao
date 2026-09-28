@@ -1,12 +1,23 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AuthFormCard } from "@repo/ui/components/auth-form-card";
 import { Button } from "@repo/ui/components/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@repo/ui/components/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/components/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@repo/ui/components/form";
 import { Input } from "@repo/ui/components/input";
-import { Logo } from "@repo/ui/components/logo";
-import { passwordSetupSchema, type PasswordSetupSchema } from "@repo/validators";
+import { PasswordRequirements } from "@repo/ui/components/password-requirements";
+import {
+  passwordSetupSchema,
+  type PasswordSetupSchema,
+} from "@repo/validators";
+import { LockKeyhole } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -20,13 +31,17 @@ interface PasswordSetupFormProps {
   loginHref: string;
 }
 
-export function PasswordSetupForm({ onSubmitAction, loginHref }: PasswordSetupFormProps) {
+export function PasswordSetupForm({
+  onSubmitAction,
+  loginHref,
+}: PasswordSetupFormProps) {
   const router = useRouter();
   const form = useForm<PasswordSetupSchema>({
     resolver: zodResolver(passwordSetupSchema),
     mode: "onChange",
     defaultValues: { password: "", confirmPassword: "" },
   });
+  const password = form.watch("password");
 
   const handleSubmit = async (values: PasswordSetupSchema) => {
     form.clearErrors("root");
@@ -42,61 +57,99 @@ export function PasswordSetupForm({ onSubmitAction, loginHref }: PasswordSetupFo
       router.replace(result.redirectTo);
       router.refresh();
     } catch {
-      form.setError("root", { message: "Não foi possível concluir o cadastro. Tente novamente." });
+      form.setError("root", {
+        message: "Não foi possível concluir o cadastro. Tente novamente.",
+      });
     }
   };
 
   return (
-    <div className="flex w-full max-w-[500px] flex-col items-center">
-      <Logo className="mb-8 h-20 md:h-22" />
-
-      <Card className="w-full rounded-xl border border-slate-100 bg-white px-5 py-6 shadow-xl md:px-6 md:py-8">
-        <CardHeader className="gap-2 text-center">
-          <CardTitle className="text-2xl leading-tight font-bold">Defina sua senha</CardTitle>
-          <CardDescription className="text-sm text-slate-500 sm:text-base md:text-[16px]">
-            Crie uma senha para concluir seu cadastro no Projeto 1000.
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="p-0">
-          <Form {...form}>
-            <form className="space-y-5" onSubmit={form.handleSubmit(handleSubmit)}>
-              <FormField control={form.control} name="password" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">Senha</FormLabel>
-                  <FormControl>
-                    <Input type="password" autoComplete="new-password" className="focus-visible:border-primary focus-visible:ring-primary h-12 w-full rounded-2xl p-3.5 focus-visible:ring-1" placeholder="Mínimo de 6 caracteres" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-
-              <FormField control={form.control} name="confirmPassword" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">Confirmar senha</FormLabel>
-                  <FormControl>
-                    <Input type="password" autoComplete="new-password" className="focus-visible:border-primary focus-visible:ring-primary h-12 w-full rounded-2xl p-3.5 focus-visible:ring-1" placeholder="Digite a senha novamente" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-
-              {form.formState.errors.root?.message && (
-                <p role="alert" className="text-destructive text-sm">{form.formState.errors.root.message}</p>
-              )}
-
-              <Button type="submit" className="h-12 w-full rounded-2xl" disabled={!form.formState.isValid} isLoading={form.formState.isSubmitting} loadingText="Concluindo cadastro...">
-                Concluir cadastro
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-
-        <CardFooter className="justify-center px-0 pt-6 pb-0 text-sm text-slate-500">
+    <AuthFormCard
+      title="Defina sua senha"
+      description="Crie uma senha para concluir seu cadastro no Projeto 1000."
+      footer={
+        <p>
           Já possui uma conta?&nbsp;
-          <Link href={loginHref} className="text-primary font-semibold hover:underline">Entrar</Link>
-        </CardFooter>
-      </Card>
-    </div>
+          <Link
+            href={loginHref}
+            className="font-semibold text-primary hover:underline"
+          >
+            Entrar
+          </Link>
+        </p>
+      }
+    >
+      <Form {...form}>
+        <form className="space-y-5" onSubmit={form.handleSubmit(handleSubmit)}>
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
+                  Senha
+                </FormLabel>
+                <div className="relative">
+                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="new-password"
+                      className="focus-visible:border-primary focus-visible:ring-primary h-12 w-full rounded-2xl py-3.5 pr-4 pl-12 focus-visible:ring-1"
+                      placeholder="Mínimo de 6 caracteres"
+                      {...field}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <PasswordRequirements password={password} />
+
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
+                  Confirmar senha
+                </FormLabel>
+                <div className="relative">
+                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="new-password"
+                      className="focus-visible:border-primary focus-visible:ring-primary h-12 w-full rounded-2xl py-3.5 pr-4 pl-12 focus-visible:ring-1"
+                      placeholder="Digite a senha novamente"
+                      {...field}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {form.formState.errors.root?.message && (
+            <p role="alert" className="text-destructive text-sm">
+              {form.formState.errors.root.message}
+            </p>
+          )}
+
+          <Button
+            type="submit"
+            className="h-12 w-full rounded-2xl"
+            disabled={!form.formState.isValid}
+            isLoading={form.formState.isSubmitting}
+            loadingText="Concluindo cadastro..."
+          >
+            Concluir cadastro
+          </Button>
+        </form>
+      </Form>
+    </AuthFormCard>
   );
 }

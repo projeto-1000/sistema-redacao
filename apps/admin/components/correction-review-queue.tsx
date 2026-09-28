@@ -1,103 +1,10 @@
-import {
-  type getPendingCorrectionReviews,
-  type PendingCorrectionReviewListItem,
-} from "@/app/actions/correction-reviews";
-import type { DeadlineInfo } from "@repo/types";
-import { Button } from "@repo/ui/components/button";
+import { type getPendingCorrectionReviews } from "@/app/actions/correction-reviews";
+import { CorrectionReviewTable } from "@repo/ui/components/features/essays/correction-review-table";
 import { TablePagination } from "@repo/ui/components/table-pagination";
-import { getDeadlineStatus } from "@repo/utils";
-import { CircleAlert, ClipboardCheck, Clock, Eye, Hourglass } from "lucide-react";
-import Link from "next/link";
+import { CircleAlert, ClipboardCheck } from "lucide-react";
 
 interface CorrectionReviewQueueProps {
   result: Awaited<ReturnType<typeof getPendingCorrectionReviews>>;
-}
-
-const CORRECTION_REVIEW_GRID =
-  "grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,2.4fr)_minmax(0,1.6fr)_minmax(8rem,1fr)_minmax(12rem,1.4fr)_minmax(11rem,auto)] xl:gap-4";
-
-function formatSubmittedAt(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-    timeZone: "America/Sao_Paulo",
-  }).format(new Date(value));
-}
-
-function DeadlineBadge({ review }: { review: PendingCorrectionReviewListItem }) {
-  const deadline = getDeadlineStatus(
-    review.dueDate,
-    review.remainingBusinessSeconds
-  ) as DeadlineInfo;
-  let classes = "border-blue-500 bg-blue-100 text-blue-700";
-
-  if (deadline.status === "urgent" || deadline.status === "expired") {
-    classes = "border-red-500 bg-red-100 text-red-700";
-  } else if (deadline.status === "warning") {
-    classes = "border-amber-400 bg-amber-100 text-amber-700";
-  }
-
-  return (
-    <div
-      className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide ${classes}`}
-      title={deadline.label}
-    >
-      <Clock className="size-3" />
-      {deadline.text}
-    </div>
-  );
-}
-
-function CorrectionReviewRow({ review }: { review: PendingCorrectionReviewListItem }) {
-  return (
-    <div className={`grid ${CORRECTION_REVIEW_GRID} border-b border-slate-100 px-6 py-5 last:border-b-0 xl:items-center xl:px-8`}>
-      <div className="min-w-0">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 xl:hidden">
-          Aluno
-        </span>
-        <p className="truncate text-sm font-bold text-slate-800">{review.studentName}</p>
-      </div>
-
-      <div className="min-w-0">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 xl:hidden">
-          Tema
-        </span>
-        <p className="line-clamp-2 text-sm font-medium text-slate-700" title={review.essayTitle}>
-          {review.essayTitle}
-        </p>
-      </div>
-
-      <div className="min-w-0">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 xl:hidden">
-          Professor
-        </span>
-        <p className="truncate text-sm font-medium text-slate-700">{review.teacherName}</p>
-      </div>
-
-      <div>
-        <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400 xl:hidden">
-          Prazo
-        </span>
-        <DeadlineBadge review={review} />
-      </div>
-
-      <div className="min-w-48">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">
-          <Hourglass className="size-3" />
-          Aguardando revisão
-        </div>
-        <p className="mt-1.5 text-xs text-slate-500">{formatSubmittedAt(review.submittedAt)}</p>
-      </div>
-
-      <div className="flex justify-end">
-        <Button asChild variant="secondary" className="rounded-2xl font-bold">
-          <Link href={`/redacoes-pendentes/revisoes/${review.id}`}>
-            Revisar correção <Eye className="size-4" />
-          </Link>
-        </Button>
-      </div>
-    </div>
-  );
 }
 
 export default function CorrectionReviewQueue({ result }: CorrectionReviewQueueProps) {
@@ -129,31 +36,14 @@ export default function CorrectionReviewQueue({ result }: CorrectionReviewQueueP
     );
   }
 
+  const tableReviews = reviews.map((review) => ({
+    ...review,
+    actionHref: `/redacoes-pendentes/revisoes/${review.id}`,
+  }));
+
   return (
     <>
-      <div className="overflow-hidden rounded-4xl border border-slate-200 bg-white shadow-sm">
-        <div className={`hidden ${CORRECTION_REVIEW_GRID} border-b border-slate-100 bg-slate-50/50 px-8 py-5 xl:grid`}>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Aluno</div>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Tema</div>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            Professor
-          </div>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            Prazo
-          </div>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            Enviada em
-          </div>
-          <div className="text-right text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            Ação
-          </div>
-        </div>
-
-        {reviews.map((review) => (
-          <CorrectionReviewRow key={review.id} review={review} />
-        ))}
-      </div>
-
+      <CorrectionReviewTable reviews={tableReviews} showTeacher />
       <TablePagination totalPages={totalPages} />
     </>
   );

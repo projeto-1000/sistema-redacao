@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, LogIn, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -13,7 +13,11 @@ const links = [
   { href: "/sobre", label: "Sobre" },
 ] as const;
 
-export function Navbar() {
+interface NavbarProps {
+  loginUrl: string;
+}
+
+export function Navbar({ loginUrl }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -58,6 +62,12 @@ export function Navbar() {
           >
             Corrigir grátis <ArrowRight className="h-4 w-4" />
           </Link>
+          <a
+            href={loginUrl}
+            className="press-fx hidden items-center gap-2 rounded-full border border-primary px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 md:inline-flex"
+          >
+            Entrar <LogIn className="h-4 w-4" />
+          </a>
           <button
             type="button"
             aria-label="Abrir menu"
@@ -88,6 +98,13 @@ export function Navbar() {
             >
               Corrigir grátis
             </Link>
+            <a
+              href={loginUrl}
+              onClick={() => setOpen(false)}
+              className="press-fx mt-1 inline-flex items-center justify-center gap-2 rounded-full border border-primary px-5 py-3.5 text-sm font-semibold text-primary"
+            >
+              Entrar <LogIn className="h-4 w-4" />
+            </a>
           </Container>
         </div>
       )}

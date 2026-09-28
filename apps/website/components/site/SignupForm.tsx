@@ -63,7 +63,11 @@ type AttemptsResponse = {
   continuationUrl?: string;
 };
 
-export function SignupForm() {
+interface SignupFormProps {
+  loginUrl: string;
+}
+
+export function SignupForm({ loginUrl }: SignupFormProps) {
   const [duplicateCode, setDuplicateCode] = useState<DuplicateCode | null>(
     null,
   );
@@ -82,8 +86,6 @@ export function SignupForm() {
 
   const selectedCountryCode = form.watch("phoneCountryCode");
   const isBrazil = selectedCountryCode === DEFAULT_PHONE_COUNTRY_CODE;
-  const loginUrl = getStudentsUrl("/login");
-
   async function onSubmit(registration: RegistrationDetailsSchema) {
     form.clearErrors("root");
     setDuplicateCode(null);
@@ -155,18 +157,12 @@ export function SignupForm() {
             cadastro ou não lembra qual e-mail utilizou, fale com nosso suporte.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            {loginUrl ? (
-              <a
-                href={loginUrl}
-                className="press-fx inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground"
-              >
-                <LogIn className="h-4 w-4" /> Entrar na minha conta
-              </a>
-            ) : (
-              <Button type="button" disabled>
-                Entrar na minha conta
-              </Button>
-            )}
+            <a
+              href={loginUrl}
+              className="press-fx inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground"
+            >
+              <LogIn className="h-4 w-4" /> Entrar na minha conta
+            </a>
             <a
               href={SUPPORT_URL}
               className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-3.5 text-sm font-semibold text-foreground hover:border-primary/50"
@@ -424,18 +420,12 @@ export function SignupForm() {
 
             <p className="mt-1 text-center text-xs text-muted-foreground">
               Já tem uma conta?{" "}
-              {loginUrl ? (
-                <a
-                  href={loginUrl}
-                  className="font-semibold text-primary hover:underline"
-                >
-                  Entrar na plataforma
-                </a>
-              ) : (
-                <span className="font-semibold text-primary">
-                  Entrar na plataforma
-                </span>
-              )}
+              <a
+                href={loginUrl}
+                className="font-semibold text-primary hover:underline"
+              >
+                Entrar na plataforma
+              </a>
             </p>
           </form>
         </Form>

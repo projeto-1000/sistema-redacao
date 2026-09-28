@@ -193,6 +193,17 @@ export interface PendingEssayListItem {
   correction_review_status?: "pending_review" | "returned_to_teacher" | null
 }
 
+export interface CorrectionReviewListItem {
+  id: string;
+  essayTitle: string;
+  studentName: string;
+  studentAvatarUrl: string | null;
+  teacherName?: string;
+  dueDate: string;
+  remainingBusinessSeconds: number;
+  submittedAt: string;
+}
+
 export interface GradedEssayListItem {
   id: string,
   title: string

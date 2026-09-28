@@ -109,6 +109,10 @@ export async function getEssayById(essayId: string) {
     return null;
   }
 
+  const showFreeCorrectionConversionBanners =
+    essay.status === "corrected" &&
+    (await getFreeCorrectionConversionBannerEligibility(supabase, essay.id));
+
   return {
     id: essay.id,
     topicId: essay.topic_id,
@@ -139,13 +143,22 @@ export async function getEssayById(essayId: string) {
     returnReason: essay.return_reason,
     returnDescription: essay.return_description,
     status: essay.status,
+    showFreeCorrectionConversionBanners,
   };
 }
 
-export async function getReturnedEssayReuseSource(
-  essayId: string,
-  topicId: string
+async function getFreeCorrectionConversionBannerEligibility(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  essayId: string
 ) {
+  const { data, error } = await supabase.rpc("can_view_post_free_correction_campaign", {
+    p_essay_id: essayId,
+  });
+
+  return error === null && data === true;
+}
+
+export async function getReturnedEssayReuseSource(essayId: string, topicId: string) {
   const supabase = await createClient();
   const {
     data: { user },

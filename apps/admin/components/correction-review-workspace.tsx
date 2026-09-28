@@ -11,17 +11,11 @@ import { EssayCorrectionWorkspace } from "@repo/ui/components/features/grading/c
 import type { CorrectionPayload } from "@repo/types";
 import { Clock, Pencil, UserPen } from "lucide-react";
 import { useState } from "react";
+import { formatDate } from "@repo/utils";
+
 
 interface CorrectionReviewWorkspaceProps {
   review: PendingCorrectionReviewDetails;
-}
-
-function formatSubmittedAt(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-    timeZone: "America/Sao_Paulo",
-  }).format(new Date(value));
 }
 
 export function CorrectionReviewWorkspace({ review }: CorrectionReviewWorkspaceProps) {
@@ -45,7 +39,7 @@ export function CorrectionReviewWorkspace({ review }: CorrectionReviewWorkspaceP
                 <span aria-hidden="true">·</span>
                 <span className="inline-flex items-center gap-1.5">
                   <Clock className="size-3.5" />
-                  Enviada em {formatSubmittedAt(review.submittedAt)}
+                  Enviada em {formatDate(review.submittedAt, 'numeric')}
                 </span>
               </p>
             </div>

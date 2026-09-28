@@ -273,6 +273,10 @@ export async function getCheckoutPageData(planId: string): Promise<CheckoutPageD
     return null;
   }
 
+  await supabase.rpc("record_post_free_correction_checkout_started", {
+    p_plan_id: plan.id,
+  });
+
   return {
     plan: {
       id: plan.id,

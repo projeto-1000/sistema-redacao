@@ -2,6 +2,7 @@
 
 import { updatePassword } from "@/app/actions/profile";
 import { SetPasswordForm } from "@repo/ui/components/set-password-form";
+import { Logo } from "@repo/ui/components/logo";
 import { type SetPasswordSchema } from "@repo/validators";
 import { getErrorMessage } from "@repo/utils";
 import { ShieldCheck } from "lucide-react";
@@ -28,19 +29,22 @@ export default function NewPasswordPage() {
   };
 
   return (
-    <div className="bg-gradient-soft min-h-dvh flex items-center flex-col justify-center p-4">
+    <main className="auth-page-background flex min-h-dvh items-center justify-center px-4 py-10 sm:px-6">
       <title>Redefinir Senha - Projeto 1000</title>
-      <SetPasswordForm
-        title="Redefinir Senha"
-        description="Crie uma nova senha de acesso à área administrativa."
-        buttonText="Atualizar Senha"
-        showTerms={false}
-        onSubmitAction={handlePasswordSubmit}
-      />
-      <footer className="mt-8 text-center text-[12px] text-slate-500 flex items-center gap-2 font-bold uppercase tracking-wider">
-        <ShieldCheck className="text-emerald-500 size-4" />
-        Ambiente seguro e criptografado.
-      </footer>
-    </div>
+      <div className="relative z-10 flex w-full max-w-[520px] flex-col items-center">
+        <Logo className="mb-8 h-20 sm:h-24" />
+        <SetPasswordForm
+          title="Redefinir Senha"
+          description="Crie uma nova senha de acesso à área administrativa."
+          buttonText="Atualizar Senha"
+          showTerms={false}
+          onSubmitAction={handlePasswordSubmit}
+        />
+        <footer className="mt-8 flex items-center gap-2 text-center text-[12px] font-bold tracking-wider text-slate-500 uppercase">
+          <ShieldCheck className="size-4 text-emerald-500" />
+          Ambiente seguro e criptografado.
+        </footer>
+      </div>
+    </main>
   );
 }
