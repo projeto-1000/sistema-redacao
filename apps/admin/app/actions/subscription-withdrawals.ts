@@ -57,7 +57,12 @@ export async function listSubscriptionWithdrawals() {
         reviewed_at,
         review_reason,
         profiles!subscription_withdrawal_requests_student_id_fkey(full_name, email),
-        subscriptions!subscription_withdrawal_requests_subscription_id_fkey(plan_id, status, withdrawal_status, plans(name, price))
+        subscriptions!subscription_withdrawal_requests_subscription_id_fkey(
+          plan_id,
+          status,
+          withdrawal_status,
+          plans!subscriptions_plan_id_fkey(name, price)
+        )
       `
     )
     .order("requested_at", { ascending: false });
