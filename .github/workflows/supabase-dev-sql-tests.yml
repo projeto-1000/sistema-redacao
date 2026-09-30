@@ -11,6 +11,7 @@ on:
         options:
           - pagarme-renewal
           - extra-credit-purchase
+          - subscription-withdrawal
 
 permissions:
   contents: read
@@ -43,6 +44,9 @@ jobs:
               ;;
             extra-credit-purchase)
               SQL_TEST_FILE="supabase/tests/extra_credit_purchase_finalization.sql"
+              ;;
+            subscription-withdrawal)
+              SQL_TEST_FILE="supabase/tests/subscription_withdrawal_policy.sql"
               ;;
             *)
               echo "Unknown SQL test suite: ${{ inputs.test_suite }}" >&2
