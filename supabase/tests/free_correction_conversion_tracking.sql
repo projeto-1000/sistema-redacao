@@ -1,5 +1,60 @@
 begin;
 
+do $$
+begin
+  if has_table_privilege('anon', 'public.conversion_campaigns', 'SELECT') then
+    raise exception 'Anonymous users must not read conversion campaigns';
+  end if;
+
+  if not has_table_privilege(
+    'authenticated',
+    'public.conversion_campaigns',
+    'SELECT'
+  ) then
+    raise exception 'Authenticated administrators need SELECT on conversion campaigns';
+  end if;
+
+  if has_table_privilege('authenticated', 'public.conversion_campaigns', 'INSERT')
+    or has_table_privilege('authenticated', 'public.conversion_campaigns', 'UPDATE')
+    or has_table_privilege('authenticated', 'public.conversion_campaigns', 'DELETE')
+    or has_table_privilege('authenticated', 'public.conversion_campaigns', 'TRUNCATE')
+  then
+    raise exception 'Authenticated users have excessive conversion campaign privileges';
+  end if;
+
+  if not has_table_privilege('service_role', 'public.conversion_campaigns', 'SELECT')
+    or not has_table_privilege('service_role', 'public.conversion_campaigns', 'INSERT')
+    or not has_table_privilege('service_role', 'public.conversion_campaigns', 'UPDATE')
+    or not has_table_privilege('service_role', 'public.conversion_campaigns', 'DELETE')
+  then
+    raise exception 'Service role must retain administrative campaign access';
+  end if;
+
+  if exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'conversion_campaigns'
+      and policyname = 'Authenticated users read active conversion campaigns'
+  ) then
+    raise exception 'The permissive conversion campaign policy still exists';
+  end if;
+
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'conversion_campaigns'
+      and policyname = 'Admins read conversion campaigns'
+      and roles = array['authenticated']::name[]
+      and cmd = 'SELECT'
+      and qual = 'is_admin()'
+  ) then
+    raise exception 'The admin-only conversion campaign policy is missing';
+  end if;
+end;
+$$;
+
 set local session_replication_role = replica;
 insert into auth.users (id)
 values
@@ -170,6 +225,20 @@ set local role authenticated;
 set local "request.jwt.claims" =
   '{"sub":"12000000-0000-0000-0000-000000000001","role":"authenticated"}';
 
+do $$
+declare
+  v_visible_campaigns integer;
+begin
+  select count(*)
+  into v_visible_campaigns
+  from public.conversion_campaigns;
+
+  if v_visible_campaigns <> 0 then
+    raise exception 'Students must not read conversion campaigns';
+  end if;
+end;
+$$;
+
 select public.record_post_free_correction_campaign_event(
   '32000000-0000-0000-0000-000000000001',
   'impression',
@@ -283,10 +352,20 @@ set local "request.jwt.claims" =
 
 do $$
 declare
+  v_visible_campaigns integer;
   v_metrics jsonb;
   v_audience jsonb;
   v_events jsonb;
 begin
+  select count(*)
+  into v_visible_campaigns
+  from public.conversion_campaigns
+  where id = 'post_free_correction';
+
+  if v_visible_campaigns <> 1 then
+    raise exception 'Administrators must read conversion campaigns';
+  end if;
+
   select public.get_post_free_correction_campaign_metrics(
     now() - interval '1 day',
     now() + interval '1 day'
