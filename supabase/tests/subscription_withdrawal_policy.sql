@@ -289,29 +289,24 @@ begin
     )
   );
 
-  begin
-    select public.process_pagarme_subscription_renewal(
-      v_renewal_event_id,
-      'sub_withdrawalone',
-      'in_withdrawalrenewal',
-      5000,
-      'paid',
-      'credit_card',
-      now(),
-      now() + interval '1 month',
-      now() + interval '2 months',
-      now()
-    ) into v_result;
+  select public.process_pagarme_subscription_renewal(
+    v_renewal_event_id,
+    'sub_withdrawalone',
+    'in_withdrawalrenewal',
+    5000,
+    'paid',
+    'credit_card',
+    now(),
+    now() + interval '1 month',
+    now() + interval '2 months',
+    now()
+  ) into v_result;
 
-    raise exception 'Renewal unexpectedly succeeded during withdrawal: %', v_result;
-  exception
-    when others then
-      if sqlerrm like 'Renewal unexpectedly succeeded during withdrawal:%'
-        or sqlerrm <> 'A assinatura está programada para cancelamento.'
-      then
-        raise;
-      end if;
-  end;
+  if coalesce((v_result ->> 'success')::boolean, true)
+    or v_result ->> 'message' <> 'A assinatura está programada para cancelamento.'
+  then
+    raise exception 'Renewal must be rejected during withdrawal: %', v_result;
+  end if;
 
   insert into public.subscription_withdrawal_refunds (
     request_id, student_payment_id, provider_charge_id, provider_invoice_id,
