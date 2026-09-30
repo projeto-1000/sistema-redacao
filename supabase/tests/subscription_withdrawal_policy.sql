@@ -210,6 +210,7 @@ declare
   v_result jsonb;
   v_status text;
   v_provider_status text;
+  v_cancel_at_period_end boolean;
   v_plan_balance integer;
   v_extra_balance integer;
   v_free_balance integer;
@@ -260,12 +261,13 @@ begin
     now()
   ) into v_result;
 
-  select status::text, cancellation_provider_status
-  into v_status, v_provider_status
+  select status::text, cancellation_provider_status, cancel_at_period_end
+  into v_status, v_provider_status, v_cancel_at_period_end
   from public.subscriptions where id = v_subscription_id;
 
   if v_status <> 'active'
     or v_provider_status <> 'canceled'
+    or v_cancel_at_period_end is not true
     or v_result ->> 'reason' <> 'withdrawal_refund_pending'
     or coalesce((v_result ->> 'credits_expired')::integer, -1) <> 0
   then
@@ -288,7 +290,7 @@ begin
   );
 
   begin
-    perform public.process_pagarme_subscription_renewal(
+    select public.process_pagarme_subscription_renewal(
       v_renewal_event_id,
       'sub_withdrawalone',
       'in_withdrawalrenewal',
@@ -299,12 +301,12 @@ begin
       now() + interval '1 month',
       now() + interval '2 months',
       now()
-    );
+    ) into v_result;
 
-    raise exception 'Renewal should have been blocked during withdrawal';
+    raise exception 'Renewal unexpectedly succeeded during withdrawal: %', v_result;
   exception
     when others then
-      if sqlerrm = 'Renewal should have been blocked during withdrawal'
+      if sqlerrm like 'Renewal unexpectedly succeeded during withdrawal:%'
         or sqlerrm <> 'A assinatura está programada para cancelamento.'
       then
         raise;
