@@ -1,5 +1,38 @@
 import { SubscriptionStatus } from '@repo/types';
 
+export const subscriptionCancellationReasons = [
+  {
+    value: "price",
+    label: "O valor do plano",
+    adminDescription:
+      "O aluno indicou que o valor do plano motivou o cancelamento.",
+  },
+  {
+    value: "not_using",
+    label: "Não estou utilizando a plataforma",
+    adminDescription:
+      "O aluno informou que não está utilizando a plataforma no momento.",
+  },
+  {
+    value: "technical_issues",
+    label: "Tive problemas com a plataforma",
+    adminDescription:
+      "O aluno relatou dificuldades técnicas durante o uso da plataforma.",
+  },
+  {
+    value: "changing_plan",
+    label: "Quero trocar de plano",
+    adminDescription:
+      "O aluno pretende cancelar esta assinatura para mudar de plano.",
+  },
+  {
+    value: "other",
+    label: "Outro motivo",
+    adminDescription:
+      "O aluno informou um motivo diferente das opções disponíveis.",
+  },
+] as const;
+
 export const USER_STATUS_MAP = {
   active: { label: "Ativo", colors: "bg-emerald-50 text-emerald-600" },
   inactive: { label: "Inativo", colors: "bg-slate-100 text-slate-500" },

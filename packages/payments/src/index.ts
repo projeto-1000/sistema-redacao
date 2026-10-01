@@ -457,17 +457,37 @@ export async function cancelPagarmeSubscription({
       idempotencyKey;
   }
 
-  return fetchPagarme<PagarmeSubscription>(
-    `/subscriptions/${subscriptionId}`,
-    {
-      method: "DELETE",
-      headers,
-      body: JSON.stringify({
-        cancel_pending_invoices:
-          cancelPendingInvoices,
-      }),
+  try {
+    return await fetchPagarme<PagarmeSubscription>(
+      `/subscriptions/${subscriptionId}`,
+      {
+        method: "DELETE",
+        headers,
+        body: JSON.stringify({
+          cancel_pending_invoices:
+            cancelPendingInvoices,
+        }),
+      }
+    );
+  } catch (error) {
+    if (
+      !(error instanceof PagarmeApiError) ||
+      error.status !== 412
+    ) {
+      throw error;
     }
-  );
+
+    const currentSubscription =
+      await getPagarmeSubscription({
+        subscriptionId,
+      });
+
+    if (currentSubscription.status !== "canceled") {
+      throw error;
+    }
+
+    return currentSubscription;
+  }
 }
 export interface GetPagarmeSubscriptionParams {
   subscriptionId: string;
@@ -628,8 +648,280 @@ export interface PagarmeCharge {
   refunded_at?: string;
   created_at?: string;
   updated_at?: string;
+  invoice?: { id?: string } | string;
+  invoice_id?: string;
   metadata?: Record<string, string>;
   last_transaction?: PagarmeChargeTransaction;
+}
+
+export function isPagarmeChargeFullyRefunded(
+  charge: PagarmeCharge
+) {
+  const refundedAmount =
+    charge.refunded_amount ?? 0;
+  const transactionStatus =
+    charge.last_transaction?.status?.toLowerCase();
+
+  return (
+    charge.status.toLowerCase() === "refunded" ||
+    transactionStatus === "refunded" ||
+    (Number.isInteger(refundedAmount) &&
+      refundedAmount >= charge.amount) ||
+    Boolean(charge.refunded_at)
+  );
+}
+
+export async function getPagarmeCharge({
+  chargeId,
+}: {
+  chargeId: string;
+}) {
+  if (!/^ch_[A-Za-z0-9]+$/.test(chargeId)) {
+    throw new Error(
+      "ID da cobrança Pagar.me inválido."
+    );
+  }
+
+  return fetchPagarme<PagarmeCharge>(
+    `/charges/${chargeId}`,
+    { method: "GET" }
+  );
+}
+
+export function getPagarmeChargeInvoiceId(
+  charge: PagarmeCharge
+) {
+  if (typeof charge.invoice === "string") {
+    return charge.invoice;
+  }
+
+  return (
+    charge.invoice?.id ??
+    charge.invoice_id ??
+    null
+  );
+}
+
+export interface ListPagarmeInvoiceChargesParams {
+  invoiceId: string;
+  createdSince: string;
+  pageSize?: number;
+  maxPages?: number;
+}
+
+export interface PagarmeChargeHistory {
+  charges: PagarmeCharge[];
+  candidates: PagarmeCharge[];
+  historyComplete: boolean;
+  pagesFetched: number;
+  total?: number;
+  scannedCharges: number;
+  queryMode:
+    | "filtered"
+    | "unfiltered_fallback";
+  invoiceReferenceShapes: {
+    nested: number;
+    flat: number;
+    string: number;
+    missing: number;
+  };
+}
+
+export async function listPagarmeInvoiceCharges({
+  invoiceId,
+  createdSince,
+  pageSize = 30,
+  maxPages = 3,
+}: ListPagarmeInvoiceChargesParams): Promise<PagarmeChargeHistory> {
+  if (!/^in_[A-Za-z0-9]+$/.test(invoiceId)) {
+    throw new Error(
+      "ID da fatura Pagar.me inválido."
+    );
+  }
+
+  if (
+    !Number.isInteger(pageSize) ||
+    pageSize < 1 ||
+    pageSize > 100
+  ) {
+    throw new Error(
+      "Tamanho da página de cobranças inválido."
+    );
+  }
+
+  if (
+    !Number.isInteger(maxPages) ||
+    maxPages < 1 ||
+    maxPages > 10
+  ) {
+    throw new Error(
+      "Limite de páginas de cobranças inválido."
+    );
+  }
+
+  if (
+    Number.isNaN(
+      new Date(createdSince).getTime()
+    )
+  ) {
+    throw new Error(
+      "Data inicial da busca de cobranças inválida."
+    );
+  }
+
+  const loadChargeHistory = async (
+    queryMode: PagarmeChargeHistory["queryMode"]
+  ): Promise<PagarmeChargeHistory> => {
+    const charges: PagarmeCharge[] = [];
+    const candidates: PagarmeCharge[] = [];
+    const scannedChargeIds = new Set<string>();
+    const invoiceReferenceShapes = {
+      nested: 0,
+      flat: 0,
+      string: 0,
+      missing: 0,
+    };
+    let pagesFetched = 0;
+    let total: number | undefined;
+
+    for (
+      let page = 1;
+      page <= maxPages;
+      page += 1
+    ) {
+      const searchParams = new URLSearchParams({
+        page: String(page),
+        size: String(pageSize),
+      });
+
+      if (queryMode === "filtered") {
+        searchParams.set("status", "paid");
+        searchParams.set(
+          "created_since",
+          new Date(createdSince)
+            .toISOString()
+            .slice(0, 10)
+        );
+      }
+
+      const response =
+        await fetchPagarme<
+          PagarmePaginatedResponse<PagarmeCharge>
+        >(
+          `/charges?${searchParams.toString()}`,
+          { method: "GET" }
+        );
+
+      for (const charge of response.data) {
+        const isNewCandidate =
+          !scannedChargeIds.has(charge.id);
+        scannedChargeIds.add(charge.id);
+
+        if (isNewCandidate) {
+          candidates.push(charge);
+        }
+
+        if (typeof charge.invoice === "string") {
+          invoiceReferenceShapes.string += 1;
+        } else if (charge.invoice?.id) {
+          invoiceReferenceShapes.nested += 1;
+        } else if (charge.invoice_id) {
+          invoiceReferenceShapes.flat += 1;
+        } else {
+          invoiceReferenceShapes.missing += 1;
+        }
+
+        if (
+          getPagarmeChargeInvoiceId(charge) ===
+          invoiceId
+        ) {
+          charges.push(charge);
+        }
+      }
+
+      pagesFetched = page;
+      total = response.paging?.total ?? total;
+
+      const reachedTotal =
+        typeof total === "number" &&
+        scannedChargeIds.size >= total;
+      const reachedLastPage =
+        response.data.length < pageSize;
+
+      if (reachedLastPage || reachedTotal) {
+        return {
+          charges,
+          candidates,
+          historyComplete:
+            reachedLastPage || reachedTotal,
+          pagesFetched,
+          total,
+          scannedCharges: scannedChargeIds.size,
+          queryMode,
+          invoiceReferenceShapes,
+        };
+      }
+    }
+
+    return {
+      charges,
+      candidates,
+      historyComplete:
+        typeof total === "number" &&
+        scannedChargeIds.size >= total,
+      pagesFetched,
+      total,
+      scannedCharges: scannedChargeIds.size,
+      queryMode,
+      invoiceReferenceShapes,
+    };
+  };
+
+  const filteredHistory =
+    await loadChargeHistory("filtered");
+  const history =
+    filteredHistory.charges.length === 0
+      ? await loadChargeHistory(
+          "unfiltered_fallback"
+        )
+      : filteredHistory;
+
+  if (history.charges.length === 0) {
+    console.warn(
+      "[PAGARME_INVOICE_CHARGE_MATCH_MISS]",
+      {
+        scannedCharges: history.scannedCharges,
+        pagesFetched: history.pagesFetched,
+        total: history.total ?? null,
+        queryMode: history.queryMode,
+        invoiceReferenceShapes:
+          history.invoiceReferenceShapes,
+      }
+    );
+
+    return history;
+  }
+
+  const detailedCharges = await Promise.all(
+    history.charges.map((charge) =>
+      getPagarmeCharge({ chargeId: charge.id })
+    )
+  );
+  const detailedChargesById = new Map(
+    detailedCharges.map((charge) => [
+      charge.id,
+      charge,
+    ])
+  );
+
+  return {
+    ...history,
+    charges: detailedCharges,
+    candidates: history.candidates.map(
+      (charge) =>
+        detailedChargesById.get(charge.id) ?? charge
+    ),
+  };
 }
 
 export interface RefundPagarmeChargeParams {

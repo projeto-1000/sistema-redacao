@@ -2,6 +2,10 @@ import "server-only";
 
 import {
   cancelPagarmeSubscription,
+  getPagarmeChargeInvoiceId,
+  getPagarmeSubscription,
+  isPagarmeChargeFullyRefunded,
+  listPagarmeInvoiceCharges,
   listPagarmeSubscriptionInvoices,
   refundPagarmeCharge,
   updatePagarmeSubscriptionItem,
@@ -25,13 +29,16 @@ interface RefundTarget {
   amount: number;
   paidAt: string | null;
   source: "subscription_invoice" | "plan_upgrade";
+  alreadyRefunded: boolean;
+  refundedAt: string | null;
+  providerRefundId: string | null;
 }
 
-async function markOperationalIssue(
-  requestId: string,
-  stage: string,
-  error: unknown
-) {
+interface RefundDiscoveryContext extends Omit<WithdrawalContext, "requestId"> {
+  providerLocalSubscriptionCode?: string;
+}
+
+async function markOperationalIssue(requestId: string, stage: string, error: unknown) {
   const supabaseAdmin = createAdminClient();
   const message = error instanceof Error ? error.message : "Falha operacional não detalhada.";
 
@@ -109,13 +116,33 @@ async function collectRefundTargets({
   subscriptionId,
   providerSubscriptionId,
   originalActivatedAt,
-}: Omit<WithdrawalContext, "requestId">): Promise<RefundTarget[]> {
+  providerLocalSubscriptionCode,
+}: RefundDiscoveryContext): Promise<RefundTarget[]> {
   const supabaseAdmin = createAdminClient();
   const activatedAt = new Date(originalActivatedAt).getTime();
 
   if (Number.isNaN(activatedAt)) {
     throw new Error("A data de ativação original da assinatura é inválida.");
   }
+
+  const { data: initialPayment, error: initialPaymentError } = await supabaseAdmin
+    .from("student_payments")
+    .select("metadata")
+    .eq("user_id", userId)
+    .eq("subscription_id", subscriptionId)
+    .eq("kind", "subscription")
+    .in("status", ["paid", "active"])
+    .order("paid_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (initialPaymentError) {
+    throw new Error("Não foi possível consultar os identificadores do pagamento inicial.");
+  }
+
+  const initialPaymentMetadata = initialPayment?.metadata as Record<string, unknown> | undefined;
+  const localSubscriptionCode =
+    providerLocalSubscriptionCode ?? initialPaymentMetadata?.local_subscription_code;
 
   const history = await listPagarmeSubscriptionInvoices({
     subscriptionId: providerSubscriptionId,
@@ -130,30 +157,65 @@ async function collectRefundTargets({
   const targets = new Map<string, RefundTarget>();
 
   for (const invoice of history.invoices) {
-    const chargeId = invoice.charge?.id;
-    const paidAt = invoice.charge?.paid_at ?? invoice.updated_at ?? invoice.created_at;
-    const paidAtMs = paidAt ? new Date(paidAt).getTime() : Number.NaN;
-
-    if (
-      invoice.status !== "paid" ||
-      !chargeId ||
-      !/^ch_[A-Za-z0-9]+$/.test(chargeId) ||
-      !Number.isInteger(invoice.amount) ||
-      invoice.amount <= 0 ||
-      Number.isNaN(paidAtMs) ||
-      paidAtMs < activatedAt
-    ) {
+    if (!Number.isInteger(invoice.amount) || invoice.amount <= 0) {
       continue;
     }
 
-    targets.set(chargeId, {
-      chargeId,
+    const invoiceCreatedAt = invoice.created_at
+      ? new Date(invoice.created_at).getTime()
+      : Number.NaN;
+    const chargeSearchStart = new Date(
+      Math.min(activatedAt, Number.isNaN(invoiceCreatedAt) ? activatedAt : invoiceCreatedAt) -
+        5 * 60 * 1000
+    ).toISOString();
+
+    const chargeHistory = await listPagarmeInvoiceCharges({
       invoiceId: invoice.id,
-      studentPaymentId: null,
-      amount: invoice.amount,
-      paidAt: paidAt ?? null,
-      source: "subscription_invoice",
+      createdSince: chargeSearchStart,
+      pageSize: 30,
+      maxPages: 10,
     });
+
+    if (!chargeHistory.historyComplete) {
+      throw new Error(`O histórico de cobranças da fatura ${invoice.id} está incompleto.`);
+    }
+
+    for (const charge of chargeHistory.candidates) {
+      const paidAt = charge.paid_at ?? charge.updated_at ?? charge.created_at;
+      const paidAtMs = paidAt ? new Date(paidAt).getTime() : Number.NaN;
+      const chargeInvoiceId = getPagarmeChargeInvoiceId(charge);
+      const metadataMatchesSubscription =
+        typeof localSubscriptionCode === "string" &&
+        localSubscriptionCode.length > 0 &&
+        charge.metadata?.user_id === userId &&
+        charge.metadata.local_subscription_code === localSubscriptionCode &&
+        charge.amount === invoice.amount;
+      const alreadyRefunded = isPagarmeChargeFullyRefunded(charge);
+
+      if (
+        (chargeInvoiceId !== invoice.id && !metadataMatchesSubscription) ||
+        (charge.status !== "paid" && !alreadyRefunded) ||
+        !/^ch_[A-Za-z0-9]+$/.test(charge.id) ||
+        !Number.isInteger(charge.amount) ||
+        charge.amount <= 0 ||
+        Number.isNaN(paidAtMs) ||
+        (!metadataMatchesSubscription && paidAtMs < activatedAt - 5 * 60 * 1000)
+      ) {
+        continue;
+      }
+
+      targets.set(charge.id, {
+        chargeId: charge.id,
+        invoiceId: chargeInvoiceId ?? invoice.id,
+        studentPaymentId: null,
+        amount: charge.amount,
+        paidAt: paidAt ?? null,
+        source: "subscription_invoice",
+        alreadyRefunded,
+        refundedAt: charge.refunded_at ?? charge.updated_at ?? null,
+        providerRefundId: charge.last_transaction?.id ?? null,
+      });
+    }
   }
 
   const { data: upgradePayments, error: upgradePaymentsError } = await supabaseAdmin
@@ -189,6 +251,9 @@ async function collectRefundTargets({
       amount: payment.amount,
       paidAt: payment.paid_at,
       source: "plan_upgrade",
+      alreadyRefunded: false,
+      refundedAt: null,
+      providerRefundId: null,
     });
   }
 
@@ -197,36 +262,17 @@ async function collectRefundTargets({
 
 export async function startSubscriptionWithdrawalRefund(context: WithdrawalContext) {
   const supabaseAdmin = createAdminClient();
-
-  try {
-    const canceledSubscription = await cancelPagarmeSubscription({
-      subscriptionId: context.providerSubscriptionId,
-      cancelPendingInvoices: true,
-      idempotencyKey: `withdrawal-cancel-${context.requestId}`,
-    });
-
-    const { error } = await supabaseAdmin
-      .from("subscriptions")
-      .update({
-        cancellation_provider_status: canceledSubscription.status,
-        provider_canceled_at: canceledSubscription.canceled_at ?? new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", context.subscriptionId)
-      .eq("active_withdrawal_request_id", context.requestId);
-
-    if (error) {
-      throw error;
-    }
-  } catch (error) {
-    await markOperationalIssue(context.requestId, "provider_subscription_cancellation", error);
-    throw error;
-  }
-
   let targets: RefundTarget[];
 
   try {
-    targets = await collectRefundTargets(context);
+    const providerSubscription = await getPagarmeSubscription({
+      subscriptionId: context.providerSubscriptionId,
+    });
+    targets = await collectRefundTargets({
+      ...context,
+      providerLocalSubscriptionCode:
+        providerSubscription.metadata?.local_subscription_code ?? providerSubscription.code,
+    });
 
     if (targets.length === 0) {
       throw new Error("Nenhuma cobrança paga elegível para reembolso foi encontrada.");
@@ -273,10 +319,62 @@ export async function startSubscriptionWithdrawalRefund(context: WithdrawalConte
     throw startError;
   }
 
+  try {
+    // Do not cancel invoices before refunding: Pagar.me changes the paid charge
+    // to canceled, which prevents the refund request from targeting it safely.
+    const canceledSubscription = await cancelPagarmeSubscription({
+      subscriptionId: context.providerSubscriptionId,
+      cancelPendingInvoices: false,
+      idempotencyKey: `withdrawal-cancel-${context.requestId}`,
+    });
+
+    const { error } = await supabaseAdmin
+      .from("subscriptions")
+      .update({
+        cancellation_provider_status: canceledSubscription.status,
+        provider_canceled_at: canceledSubscription.canceled_at ?? new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", context.subscriptionId)
+      .eq("active_withdrawal_request_id", context.requestId);
+
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    await markOperationalIssue(context.requestId, "provider_subscription_cancellation", error);
+    throw error;
+  }
+
   for (const target of targets) {
     const idempotencyKey = `withdrawal-refund-${context.requestId}-${target.chargeId}`;
 
     try {
+      if (target.alreadyRefunded) {
+        const { data, error } = await supabaseAdmin.rpc(
+          "process_subscription_withdrawal_refund_confirmation",
+          {
+            p_provider_charge_id: target.chargeId,
+            p_refunded_at: target.refundedAt ?? new Date().toISOString(),
+            p_provider_refund_id: target.providerRefundId,
+          }
+        );
+
+        if (error) {
+          throw error;
+        }
+
+        const result = data as { matched?: boolean } | null;
+
+        if (!result?.matched) {
+          throw new Error(
+            "O estorno foi confirmado no Pagar.me, mas não foi possível vinculá-lo ao pedido local."
+          );
+        }
+
+        continue;
+      }
+
       await refundPagarmeCharge({
         chargeId: target.chargeId,
         amount: target.amount,
