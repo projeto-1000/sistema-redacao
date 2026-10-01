@@ -592,6 +592,15 @@ export interface HistoryDisplayItem {
 
   category: HistoryItemCategory;
   valueTone: HistoryValueTone;
+
+  details?: {
+    label: string;
+    title: string;
+    description: string;
+    reasonLabel: string;
+    reason: string;
+    occurredAt: string | null;
+  };
 }
 
 export interface CreditsFilters {

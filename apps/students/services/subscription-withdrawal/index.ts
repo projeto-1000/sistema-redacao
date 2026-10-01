@@ -346,40 +346,56 @@ export async function startSubscriptionWithdrawalRefund(context: WithdrawalConte
     throw error;
   }
 
+  const confirmRefund = async (
+    chargeId: string,
+    refundedAt: string | null | undefined,
+    providerRefundId: string | null | undefined
+  ) => {
+    const { data, error } = await supabaseAdmin.rpc(
+      "process_subscription_withdrawal_refund_confirmation",
+      {
+        p_provider_charge_id: chargeId,
+        p_refunded_at: refundedAt ?? new Date().toISOString(),
+        p_provider_refund_id: providerRefundId ?? null,
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    const result = data as { matched?: boolean } | null;
+
+    if (!result?.matched) {
+      throw new Error(
+        "O estorno foi confirmado no Pagar.me, mas não foi possível vinculá-lo ao pedido local."
+      );
+    }
+  };
+
   for (const target of targets) {
     const idempotencyKey = `withdrawal-refund-${context.requestId}-${target.chargeId}`;
 
     try {
       if (target.alreadyRefunded) {
-        const { data, error } = await supabaseAdmin.rpc(
-          "process_subscription_withdrawal_refund_confirmation",
-          {
-            p_provider_charge_id: target.chargeId,
-            p_refunded_at: target.refundedAt ?? new Date().toISOString(),
-            p_provider_refund_id: target.providerRefundId,
-          }
-        );
-
-        if (error) {
-          throw error;
-        }
-
-        const result = data as { matched?: boolean } | null;
-
-        if (!result?.matched) {
-          throw new Error(
-            "O estorno foi confirmado no Pagar.me, mas não foi possível vinculá-lo ao pedido local."
-          );
-        }
-
+        await confirmRefund(target.chargeId, target.refundedAt, target.providerRefundId);
         continue;
       }
 
-      await refundPagarmeCharge({
+      const refundedCharge = await refundPagarmeCharge({
         chargeId: target.chargeId,
         amount: target.amount,
         idempotencyKey,
       });
+
+      if (isPagarmeChargeFullyRefunded(refundedCharge)) {
+        await confirmRefund(
+          refundedCharge.id,
+          refundedCharge.refunded_at ?? refundedCharge.updated_at,
+          refundedCharge.last_transaction?.id
+        );
+        continue;
+      }
 
       const { error } = await supabaseAdmin
         .from("subscription_withdrawal_refunds")

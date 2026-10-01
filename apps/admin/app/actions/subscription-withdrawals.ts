@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   cancelPagarmeSubscription,
+  getPagarmeCharge,
   getPagarmeChargeInvoiceId,
   getPagarmeSubscription,
   isPagarmeChargeFullyRefunded,
@@ -422,37 +423,53 @@ export async function approveSubscriptionWithdrawal(formData: FormData) {
       .update({ refund_started_at: new Date().toISOString() })
       .eq("id", request.id);
 
+    const confirmRefund = async (
+      chargeId: string,
+      refundedAt: string | null | undefined,
+      providerRefundId: string | null | undefined
+    ) => {
+      const { data, error } = await supabaseAdmin.rpc(
+        "process_subscription_withdrawal_refund_confirmation",
+        {
+          p_provider_charge_id: chargeId,
+          p_refunded_at: refundedAt ?? new Date().toISOString(),
+          p_provider_refund_id: providerRefundId ?? null,
+        }
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      const result = data as { matched?: boolean } | null;
+
+      if (!result?.matched) {
+        throw new Error(
+          "O estorno foi confirmado no Pagar.me, mas não foi possível vinculá-lo ao pedido local."
+        );
+      }
+    };
+
     for (const target of targets.values()) {
       if (target.alreadyRefunded) {
-        const { data, error } = await supabaseAdmin.rpc(
-          "process_subscription_withdrawal_refund_confirmation",
-          {
-            p_provider_charge_id: target.chargeId,
-            p_refunded_at: target.refundedAt ?? new Date().toISOString(),
-            p_provider_refund_id: target.providerRefundId,
-          }
-        );
-
-        if (error) {
-          throw error;
-        }
-
-        const result = data as { matched?: boolean } | null;
-
-        if (!result?.matched) {
-          throw new Error(
-            "O estorno foi confirmado no Pagar.me, mas não foi possível vinculá-lo ao pedido local."
-          );
-        }
-
+        await confirmRefund(target.chargeId, target.refundedAt, target.providerRefundId);
         continue;
       }
 
-      await refundPagarmeCharge({
+      const refundedCharge = await refundPagarmeCharge({
         chargeId: target.chargeId,
         amount: target.amount,
         idempotencyKey: `withdrawal-refund-${request.id}-${target.chargeId}`,
       });
+
+      if (isPagarmeChargeFullyRefunded(refundedCharge)) {
+        await confirmRefund(
+          refundedCharge.id,
+          refundedCharge.refunded_at ?? refundedCharge.updated_at,
+          refundedCharge.last_transaction?.id
+        );
+        continue;
+      }
 
       const { error } = await supabaseAdmin
         .from("subscription_withdrawal_refunds")
@@ -472,6 +489,68 @@ export async function approveSubscriptionWithdrawal(formData: FormData) {
   revalidatePath(WITHDRAWALS_PATH);
 }
 
+export async function reconcileSubscriptionWithdrawal(formData: FormData) {
+  const requestId = String(formData.get("requestId") ?? "");
+
+  if (!requestId) {
+    throw new Error("O identificador do pedido de arrependimento não foi informado.");
+  }
+
+  await requireAdmin();
+  const supabaseAdmin = createAdminClient();
+
+  const { data: request, error: requestError } = await supabaseAdmin
+    .from("subscription_withdrawal_requests")
+    .select("id, status")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (requestError || !request) {
+    throw new Error("Pedido de arrependimento não encontrado.");
+  }
+
+  if (request.status !== "refund_processing") {
+    revalidatePath(WITHDRAWALS_PATH);
+    return;
+  }
+
+  const { data: refunds, error: refundsError } = await supabaseAdmin
+    .from("subscription_withdrawal_refunds")
+    .select("provider_charge_id, status")
+    .eq("request_id", requestId);
+
+  if (refundsError || !refunds?.length) {
+    throw new Error("Não foi possível localizar as cobranças deste reembolso.");
+  }
+
+  for (const refund of refunds) {
+    if (refund.status === "refunded") {
+      continue;
+    }
+
+    const charge = await getPagarmeCharge({ chargeId: refund.provider_charge_id });
+
+    if (!isPagarmeChargeFullyRefunded(charge)) {
+      continue;
+    }
+
+    const { error } = await supabaseAdmin.rpc(
+      "process_subscription_withdrawal_refund_confirmation",
+      {
+        p_provider_charge_id: charge.id,
+        p_refunded_at: charge.refunded_at ?? charge.updated_at ?? new Date().toISOString(),
+        p_provider_refund_id: charge.last_transaction?.id ?? null,
+      }
+    );
+
+    if (error) {
+      throw new Error("O estorno foi encontrado, mas não foi possível confirmá-lo no sistema.");
+    }
+  }
+
+  revalidatePath(WITHDRAWALS_PATH);
+}
+
 export async function rejectSubscriptionWithdrawal(formData: FormData) {
   const requestId = String(formData.get("requestId") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
@@ -485,12 +564,17 @@ export async function rejectSubscriptionWithdrawal(formData: FormData) {
   const { data: request, error: requestError } = await supabaseAdmin
     .from("subscription_withdrawal_requests")
     .select(
-      "id, provider_subscription_id, provider_item_id, subscriptions!subscription_withdrawal_requests_subscription_id_fkey(plans(name, price))"
+      "id, provider_subscription_id, provider_item_id, subscriptions!subscription_withdrawal_requests_subscription_id_fkey(plans!subscriptions_plan_id_fkey(name, price))"
     )
     .eq("id", requestId)
     .maybeSingle();
 
-  if (requestError || !request) {
+  if (requestError) {
+    console.error("[SUBSCRIPTION_WITHDRAWAL_REJECTION_LOOKUP_ERROR]", requestError);
+    throw new Error("Não foi possível consultar o pedido de arrependimento.");
+  }
+
+  if (!request) {
     throw new Error("Não foi possível localizar o pedido de arrependimento.");
   }
 

@@ -1,6 +1,7 @@
 import {
   approveSubscriptionWithdrawal,
   listSubscriptionWithdrawals,
+  reconcileSubscriptionWithdrawal,
   rejectSubscriptionWithdrawal,
 } from "@/app/actions/subscription-withdrawals";
 import { SubscriptionWithdrawalSubmitButton } from "@/components/subscription-withdrawal-submit-button";
@@ -24,7 +25,7 @@ const statusConfig: Record<
 > = {
   under_review: {
     label: "Aguardando decisão",
-    detail: "O Admin precisa analisar o pedido.",
+    detail: "O administrador precisa analisar o pedido.",
     classes: "bg-amber-50 text-amber-700",
     icon: Clock3,
   },
@@ -135,6 +136,7 @@ export default async function SubscriptionWithdrawalsPage() {
               const canRetry =
                 request.status === "operational_issue" &&
                 (request.processing_mode === "automatic" || request.reviewed_at !== null);
+              const canReconcile = request.status === "refund_processing";
               const status = statusConfig[request.status] ?? {
                 label: request.status,
                 detail: "Status do pedido.",
@@ -145,21 +147,21 @@ export default async function SubscriptionWithdrawalsPage() {
               const isAutomatic = request.processing_mode === "automatic";
               const processing = isAutomatic
                 ? {
-                    label: "Fluxo automático",
-                    detail: "Dentro do prazo de 7 dias",
-                    classes: "bg-blue-50 text-blue-700",
-                  }
+                  label: "Fluxo automático",
+                  detail: "Dentro do prazo de 7 dias",
+                  classes: "bg-blue-50 text-blue-700",
+                }
                 : {
-                    label: "Revisão manual",
-                    detail: request.reviewed_at
-                      ? "Decisão administrativa registrada"
-                      : "Aguardando análise do Admin",
-                    classes: "bg-amber-50 text-amber-700",
-                  };
+                  label: "Revisão manual",
+                  detail: request.reviewed_at
+                    ? "Decisão administrativa registrada"
+                    : `Solicitação nº ${request.request_number} deste aluno`,
+                  classes: "bg-amber-50 text-amber-700",
+                };
               const adminDecision = request.reviewed_at
                 ? request.status === "rejected"
-                  ? "Recusado pelo Admin"
-                  : "Aprovado pelo Admin"
+                  ? "Recusado pelo administrador"
+                  : "Aprovado pelo administrador"
                 : isAutomatic
                   ? "Sem intervenção"
                   : "Aguardando decisão";
@@ -179,7 +181,8 @@ export default async function SubscriptionWithdrawalsPage() {
                         ? (refundStartedAt ?? reviewedAt)
                         : null;
               const cancellationReason = getCancellationReason(request.cancellation_reason);
-              const showAdminSection = !isAutomatic || request.reviewed_at !== null || canRetry;
+              const showAdminSection =
+                !isAutomatic || request.reviewed_at !== null || canRetry || canReconcile;
 
               return (
                 <details key={request.id} className="group">
@@ -248,11 +251,10 @@ export default async function SubscriptionWithdrawalsPage() {
 
                   <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-5 lg:px-6">
                     <div
-                      className={`grid gap-6 ${
-                        showAdminSection
-                          ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(320px,1.15fr)]"
-                          : "lg:grid-cols-2"
-                      }`}
+                      className={`grid gap-6 ${showAdminSection
+                        ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(320px,1.15fr)]"
+                        : "lg:grid-cols-2"
+                        }`}
                     >
                       <div className="space-y-4">
                         <div>
@@ -370,13 +372,24 @@ export default async function SubscriptionWithdrawalsPage() {
                             Ação administrativa
                           </span>
 
-                          {request.reviewed_at ? (
+                          {canReconcile ? (
+                            <div className="mt-2">
+                              <p className="text-sm leading-relaxed text-slate-600">
+                                O reembolso foi solicitado e aguarda a confirmação do meio de
+                                pagamento. Se a confirmação já ocorreu, sincronize o status abaixo.
+                              </p>
+                              <form action={reconcileSubscriptionWithdrawal} className="mt-3">
+                                <input type="hidden" name="requestId" value={request.id} />
+                                <SubscriptionWithdrawalSubmitButton isRetry={false} isReconcile />
+                              </form>
+                            </div>
+                          ) : request.reviewed_at ? (
                             <div className="mt-2">
                               <p className="text-sm font-bold text-slate-700">{adminDecision}</p>
                               <p className="mt-1 text-xs text-slate-500">
                                 Por {reviewer?.full_name ?? "Administrador"} em {reviewedAt}
                               </p>
-                              <p className="mt-3 rounded-xl bg-white px-3 py-2 text-sm text-slate-600">
+                              <p className="mt-3 rounded-xl bg-white px-3 py-2 text-sm text-slate-600 border border-slate-200">
                                 {request.review_reason || "Nenhuma observação foi registrada."}
                               </p>
                             </div>
@@ -387,6 +400,17 @@ export default async function SubscriptionWithdrawalsPage() {
                             </p>
                           ) : canReview ? (
                             <div className="mt-3 grid gap-3">
+                              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-amber-900">
+                                <p className="text-sm font-bold">
+                                  Por que este pedido exige análise?
+                                </p>
+                                <p className="mt-1 text-xs leading-relaxed">
+                                  Esta é a solicitação de arrependimento nº {request.request_number}{" "}
+                                  deste aluno. Apenas a primeira solicitação dentro do prazo de 7
+                                  dias é processada automaticamente; as seguintes precisam de uma
+                                  decisão administrativa.
+                                </p>
+                              </div>
                               <form action={approveSubscriptionWithdrawal} className="space-y-2">
                                 <input type="hidden" name="requestId" value={request.id} />
                                 <Input
