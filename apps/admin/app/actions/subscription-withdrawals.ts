@@ -86,6 +86,38 @@ export async function listSubscriptionWithdrawals() {
   return data ?? [];
 }
 
+export async function listOrdinarySubscriptionCancellations() {
+  const { supabase } = await requireAdmin();
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select(
+      `
+        id,
+        user_id,
+        status,
+        cancellation_requested_at,
+        cancellation_effective_at,
+        cancellation_reason,
+        cancellation_provider_status,
+        provider_canceled_at,
+        canceled_at,
+        cancellation_metadata,
+        profiles!subscriptions_user_id_fkey(full_name, email),
+        plans!subscriptions_plan_id_fkey(name, price)
+      `
+    )
+    .eq("cancellation_mode", "end_of_period")
+    .not("cancellation_requested_at", "is", null)
+    .order("cancellation_requested_at", { ascending: false });
+
+  if (error) {
+    console.error("[LIST_ORDINARY_SUBSCRIPTION_CANCELLATIONS_ERROR]", error);
+    throw new Error("Não foi possível carregar os cancelamentos agendados.");
+  }
+
+  return data ?? [];
+}
+
 async function markOperationalIssue(requestId: string, stage: string, error: unknown) {
   const supabaseAdmin = createAdminClient();
   await supabaseAdmin.rpc("mark_subscription_withdrawal_operational_issue", {

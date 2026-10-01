@@ -1,5 +1,6 @@
 import {
   approveSubscriptionWithdrawal,
+  listOrdinarySubscriptionCancellations,
   listSubscriptionWithdrawals,
   reconcileSubscriptionWithdrawal,
   rejectSubscriptionWithdrawal,
@@ -10,7 +11,15 @@ import { Input } from "@repo/ui/components/input";
 import { PageHeader } from "@repo/ui/components/page-header";
 import { subscriptionCancellationReasons } from "@repo/constants";
 import { formatDate } from "@repo/utils";
-import { CheckCircle2, ChevronDown, CircleAlert, Clock3, UserRoundCheck, Zap } from "lucide-react";
+import {
+  CalendarClock,
+  CheckCircle2,
+  ChevronDown,
+  CircleAlert,
+  Clock3,
+  UserRoundCheck,
+  Zap,
+} from "lucide-react";
 
 const WITHDRAWALS_TABLE_GRID =
   "lg:grid-cols-[minmax(0,2.15fr)_minmax(0,1.45fr)_minmax(0,1.55fr)_2.5rem]";
@@ -86,16 +95,34 @@ function getCancellationReason(value: string | null) {
 }
 
 export default async function SubscriptionWithdrawalsPage() {
-  const requests = await listSubscriptionWithdrawals();
+  const [requests, ordinaryCancellations] = await Promise.all([
+    listSubscriptionWithdrawals(),
+    listOrdinarySubscriptionCancellations(),
+  ]);
+  const cancellationItems = [
+    ...requests.map((request) => ({
+      kind: "withdrawal" as const,
+      requestedAt: request.requested_at,
+      request,
+    })),
+    ...ordinaryCancellations.map((subscription) => ({
+      kind: "ordinary" as const,
+      requestedAt: subscription.cancellation_requested_at as string,
+      subscription,
+    })),
+  ].sort(
+    (first, second) =>
+      new Date(second.requestedAt).getTime() - new Date(first.requestedAt).getTime()
+  );
 
   return (
     <div className="min-h-dvh space-y-6 px-2 py-4 md:px-10 lg:px-12">
       <PageHeader
         title="Cancelamentos e reembolsos"
-        subtitle="Acompanhe solicitações e resolva somente os casos que precisam de ação."
+        subtitle="Acompanhe cancelamentos, reembolsos e os casos que precisam de ação."
       />
 
-      {requests.length === 0 ? (
+      {cancellationItems.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
           Nenhum pedido de cancelamento foi registrado.
         </div>
@@ -117,7 +144,207 @@ export default async function SubscriptionWithdrawalsPage() {
           </div>
 
           <div className="divide-y divide-slate-100">
-            {requests.map((request) => {
+            {cancellationItems.map((item) => {
+              if (item.kind === "ordinary") {
+                const subscription = item.subscription;
+                const profile = subscription.profiles as unknown as {
+                  full_name: string;
+                  email: string;
+                } | null;
+                const plan = subscription.plans as unknown as {
+                  name: string;
+                } | null;
+                const requestedAt = formatDateTime(subscription.cancellation_requested_at);
+                const providerCanceledAt = formatDateTime(subscription.provider_canceled_at);
+                const effectiveAt = formatDateTime(subscription.cancellation_effective_at);
+                const completedAt = formatDateTime(subscription.canceled_at);
+                const providerConfirmationPending =
+                  subscription.cancellation_provider_status === "pending";
+                const cancellationCompleted = subscription.status === "canceled";
+                const cancellationReason = getCancellationReason(subscription.cancellation_reason);
+                const cancellationMetadata = subscription.cancellation_metadata as Record<
+                  string,
+                  unknown
+                > | null;
+                const cancellationDetails =
+                  typeof cancellationMetadata?.details === "string"
+                    ? cancellationMetadata.details
+                    : null;
+
+                const ordinaryStatus = providerConfirmationPending
+                  ? {
+                      label: "Confirmação pendente",
+                      detail: "O cancelamento foi registrado e aguarda confirmação do provedor.",
+                      classes: "bg-amber-50 text-amber-700",
+                      icon: Clock3,
+                    }
+                  : cancellationCompleted
+                    ? {
+                        label: "Cancelamento concluído",
+                        detail: "Assinatura encerrada ao fim do período, sem reembolso.",
+                        classes: "bg-slate-100 text-slate-700",
+                        icon: CheckCircle2,
+                      }
+                    : {
+                        label: "Cancelamento agendado",
+                        detail: "Renovação interrompida, sem reembolso.",
+                        classes: "bg-violet-50 text-violet-700",
+                        icon: CalendarClock,
+                      };
+                const OrdinaryStatusIcon = ordinaryStatus.icon;
+
+                return (
+                  <details key={`ordinary-${subscription.id}`} className="group">
+                    <summary
+                      className={`grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-4 px-5 py-5 transition-colors hover:bg-slate-50/60 lg:gap-4 lg:px-6 [&::-webkit-details-marker]:hidden ${WITHDRAWALS_TABLE_GRID}`}
+                    >
+                      <div className="min-w-0">
+                        <span className="block truncate text-sm font-bold text-slate-800">
+                          {profile?.full_name ?? "Aluno"}
+                        </span>
+                        <span className="mt-1 block text-xs text-slate-500">
+                          {profile?.email ?? "E-mail não disponível"}
+                        </span>
+                        <span className="mt-1 block truncate text-xs text-slate-500">
+                          ID: {subscription.user_id}
+                        </span>
+                        <span className="mt-1 block text-xs font-medium text-slate-600">
+                          Plano: {plan?.name ?? "Não encontrado"}
+                        </span>
+                        <span className="mt-1 block text-xs text-slate-500">
+                          Solicitado em {requestedAt}
+                        </span>
+                      </div>
+
+                      <div className="col-span-2 lg:col-span-1">
+                        {providerCanceledAt ? (
+                          <>
+                            <span className="mb-1 block text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
+                              Data do processamento
+                            </span>
+                            <span className="block text-sm font-bold text-slate-700">
+                              {providerCanceledAt}
+                            </span>
+                          </>
+                        ) : null}
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-md bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 ${providerCanceledAt ? "mt-2" : ""}`}
+                        >
+                          <CalendarClock className="size-3.5" />
+                          Sem reembolso
+                        </span>
+                        <span className="mt-1.5 block text-xs text-slate-500">
+                          Acesso até {effectiveAt ?? "o fim do período vigente"}
+                        </span>
+                      </div>
+
+                      <div className="col-span-2 lg:col-span-1">
+                        <span className="mb-1 block text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
+                          Status
+                        </span>
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-black tracking-wide uppercase ${ordinaryStatus.classes}`}
+                        >
+                          <OrdinaryStatusIcon className="size-3.5" />
+                          {ordinaryStatus.label}
+                        </span>
+                        <span className="mt-1.5 block text-xs leading-snug text-slate-500">
+                          {ordinaryStatus.detail}
+                        </span>
+                      </div>
+
+                      <span className="flex size-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors group-open:bg-slate-100">
+                        <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+                      </span>
+                    </summary>
+
+                    <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-5 lg:px-6">
+                      <div className="grid gap-6 lg:grid-cols-2">
+                        <div className="space-y-4">
+                          <div>
+                            <span className="block text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+                              Dados do cancelamento
+                            </span>
+                            <p className="mt-2 text-sm font-semibold text-slate-700">
+                              Cancelamento solicitado em{" "}
+                              {formatDate(
+                                subscription.cancellation_requested_at as string,
+                                "numeric"
+                              )}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              {profile?.email ?? "E-mail não disponível"} · Plano{" "}
+                              {plan?.name ?? "não encontrado"}
+                            </p>
+                            <p className="mt-1 truncate text-xs text-slate-500">
+                              ID do aluno: {subscription.user_id}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="block text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+                              Motivo informado pelo aluno
+                            </span>
+                            <div className="mt-2 rounded-xl border border-slate-200 bg-white px-3 py-3">
+                              <p className="text-sm font-semibold text-slate-700">
+                                {cancellationReason.label}
+                              </p>
+                              <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                                {cancellationReason.adminDescription}
+                              </p>
+                              {cancellationDetails ? (
+                                <div className="mt-3 border-t border-slate-100 pt-3">
+                                  <span className="block text-[10px] font-bold tracking-wide text-slate-400 uppercase">
+                                    Detalhes adicionais
+                                  </span>
+                                  <p className="mt-1 text-sm leading-relaxed text-slate-700">
+                                    {cancellationDetails}
+                                  </p>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="block text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+                            Histórico do cancelamento
+                          </span>
+                          <div className="relative mt-3 space-y-5 pl-7 text-sm text-slate-700">
+                            <span className="absolute top-2 bottom-2 left-[5px] w-px bg-slate-200" />
+                            <div className="relative">
+                              <span className="absolute top-1 -left-7 size-3 rounded-full border-[3px] border-blue-500 bg-white" />
+                              <p className="font-semibold">Cancelamento solicitado</p>
+                              <p className="mt-0.5 text-xs text-slate-500">{requestedAt}</p>
+                            </div>
+                            {providerCanceledAt ? (
+                              <div className="relative">
+                                <span className="absolute top-1 -left-7 size-3 rounded-full border-[3px] border-violet-500 bg-white" />
+                                <p className="font-semibold">Renovação interrompida</p>
+                                <p className="mt-0.5 text-xs text-slate-500">
+                                  {providerCanceledAt} · Sem reembolso
+                                </p>
+                              </div>
+                            ) : null}
+                            <div className="relative">
+                              <span className="absolute top-1 -left-7 size-3 rounded-full border-[3px] border-slate-400 bg-white" />
+                              <p className="font-semibold">
+                                {cancellationCompleted
+                                  ? "Assinatura encerrada"
+                                  : "Encerramento programado"}
+                              </p>
+                              <p className="mt-0.5 text-xs text-slate-500">
+                                {completedAt ?? effectiveAt ?? "Fim do período vigente"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+                );
+              }
+
+              const request = item.request;
               const profile = request.profiles as unknown as {
                 full_name: string;
                 email: string;
@@ -147,17 +374,17 @@ export default async function SubscriptionWithdrawalsPage() {
               const isAutomatic = request.processing_mode === "automatic";
               const processing = isAutomatic
                 ? {
-                  label: "Fluxo automático",
-                  detail: "Dentro do prazo de 7 dias",
-                  classes: "bg-blue-50 text-blue-700",
-                }
+                    label: "Fluxo automático",
+                    detail: "Dentro do prazo de 7 dias",
+                    classes: "bg-blue-50 text-blue-700",
+                  }
                 : {
-                  label: "Revisão manual",
-                  detail: request.reviewed_at
-                    ? "Decisão administrativa registrada"
-                    : `Solicitação nº ${request.request_number} deste aluno`,
-                  classes: "bg-amber-50 text-amber-700",
-                };
+                    label: "Revisão manual",
+                    detail: request.reviewed_at
+                      ? "Decisão administrativa registrada"
+                      : `Solicitação nº ${request.request_number} deste aluno`,
+                    classes: "bg-amber-50 text-amber-700",
+                  };
               const adminDecision = request.reviewed_at
                 ? request.status === "rejected"
                   ? "Recusado pelo administrador"
@@ -219,7 +446,7 @@ export default async function SubscriptionWithdrawalsPage() {
                         </>
                       ) : null}
                       <span
-                        className={`${processedAt ? "mt-2 " : ""}inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold ${processing.classes}`}
+                        className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold ${processing.classes} ${processedAt ? "mt-2" : ""}`}
                       >
                         {isAutomatic ? (
                           <Zap className="size-3.5" />
@@ -255,10 +482,11 @@ export default async function SubscriptionWithdrawalsPage() {
 
                   <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-5 lg:px-6">
                     <div
-                      className={`grid gap-6 ${showAdminSection
-                        ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(320px,1.15fr)]"
-                        : "lg:grid-cols-2"
-                        }`}
+                      className={`grid gap-6 ${
+                        showAdminSection
+                          ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(320px,1.15fr)]"
+                          : "lg:grid-cols-2"
+                      }`}
                     >
                       <div className="space-y-4">
                         <div>
@@ -393,7 +621,7 @@ export default async function SubscriptionWithdrawalsPage() {
                               <p className="mt-1 text-xs text-slate-500">
                                 Por {reviewer?.full_name ?? "Administrador"} em {reviewedAt}
                               </p>
-                              <p className="mt-3 rounded-xl bg-white px-3 py-2 text-sm text-slate-600 border border-slate-200">
+                              <p className="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600">
                                 {request.review_reason || "Nenhuma observação foi registrada."}
                               </p>
                             </div>
