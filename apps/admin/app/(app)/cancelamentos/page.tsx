@@ -208,14 +208,18 @@ export default async function SubscriptionWithdrawalsPage() {
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <span className="mb-1 block text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
-                        Data do processamento
-                      </span>
-                      <span className="block text-sm font-bold text-slate-700">
-                        {processedAt ?? "Ainda não processado"}
-                      </span>
+                      {processedAt ? (
+                        <>
+                          <span className="mb-1 block text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
+                            Data do processamento
+                          </span>
+                          <span className="block text-sm font-bold text-slate-700">
+                            {processedAt}
+                          </span>
+                        </>
+                      ) : null}
                       <span
-                        className={`mt-2 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold ${processing.classes}`}
+                        className={`${processedAt ? "mt-2 " : ""}inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold ${processing.classes}`}
                       >
                         {isAutomatic ? (
                           <Zap className="size-3.5" />
