@@ -19,6 +19,7 @@ import {
   validateExtraCreditOrderForPayment,
 } from "@/services/extra-credit-purchase/webhook";
 import { reconcileInitialCheckoutPaymentCard } from "@/services/payments/payment-cards";
+import { isConfirmedRefundCharge } from "@/services/payments/refund-confirmation-policy";
 
 import { NextResponse } from "next/server";
 
@@ -102,6 +103,7 @@ interface PagarmeChargeWebhookData {
   id?: string;
   status?: string;
   amount?: number;
+  canceled_amount?: number;
   paid_amount?: number;
   refunded_amount?: number;
   paid_at?: string | null;
@@ -112,6 +114,7 @@ interface PagarmeChargeWebhookData {
     id?: string;
     status?: string;
     success?: boolean;
+    amount?: number;
   };
 }
 
@@ -772,7 +775,7 @@ export async function POST(request: Request) {
     const charge = verifiedWebhook.data as PagarmeChargeWebhookData;
     const chargeId = charge.id;
 
-    if (!chargeId || !/^ch_[A-Za-z0-9]+$/.test(chargeId) || charge.status !== "refunded") {
+    if (!chargeId || !/^ch_[A-Za-z0-9]+$/.test(chargeId) || !isConfirmedRefundCharge(charge)) {
       const errorMessage = "Os dados da cobrança reembolsada estão incompletos.";
       await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
       return NextResponse.json({ error: errorMessage }, { status: 422 });
@@ -951,10 +954,49 @@ export async function POST(request: Request) {
 
   const recurrenceCycle = invoice.charge?.recurrence_cycle;
 
+  let isScheduledReactivation = false;
+
+  if (recurrenceCycle === "first" && subscriptionExternalId) {
+    const { data: localSubscription, error: localSubscriptionError } = await supabaseAdmin
+      .from("subscriptions")
+      .select("metadata")
+      .eq("external_id", subscriptionExternalId)
+      .maybeSingle();
+
+    if (localSubscriptionError) {
+      console.error("[SCHEDULED_REACTIVATION_LOOKUP_ERROR]", localSubscriptionError);
+
+      const errorMessage = "Não foi possível identificar o tipo da primeira cobrança.";
+
+      await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+
+      return NextResponse.json(
+        { error: errorMessage },
+        {
+          status: 503,
+          headers: {
+            "Retry-After": "2",
+          },
+        }
+      );
+    }
+
+    const metadata =
+      localSubscription?.metadata &&
+      typeof localSubscription.metadata === "object" &&
+      !Array.isArray(localSubscription.metadata)
+        ? localSubscription.metadata
+        : null;
+
+    isScheduledReactivation = metadata?.scheduled_reactivation === true;
+  }
+
   /*
-   * A primeira cobrança é tratada pelo checkout.
+   * A primeira cobrança original é tratada pelo checkout. Quando o aluno
+   * desfaz um cancelamento, a primeira cobrança da nova recorrência acontece
+   * somente no fim do acesso atual e precisa ser processada como renovação.
    */
-  if (recurrenceCycle === "first") {
+  if (recurrenceCycle === "first" && !isScheduledReactivation) {
     if (subscriptionExternalId) {
       try {
         await reconcileInitialCheckoutPaymentCard({

@@ -7,6 +7,7 @@ import { formatDate } from "@repo/utils";
 
 import { CancelPlanChangeDialog } from "@/components/subscription/cancel-plan-change-dialog";
 import { CancelSubscriptionDialog } from "@/components/subscription/cancel-subscription-dialog";
+import { ReactivateSubscriptionDialog } from "@/components/subscription/reactivate-subscription-dialog";
 import { getPlanDetailsCardViewModel } from "@/utils/get-plan-details-card-view-model";
 
 interface PlanDetailsCardProps {
@@ -105,6 +106,11 @@ export function PlanDetailsCard({
                 currentPlanName={subscription.plan_name}
                 pendingPlanName={subscription.pending_plan_name ?? "novo plano"}
                 effectiveAt={subscription.pending_change_at}
+              />
+            ) : viewModel.isCancellationScheduled && viewModel.cancellationEffectiveAt ? (
+              <ReactivateSubscriptionDialog
+                planName={subscription.plan_name}
+                effectiveAt={viewModel.cancellationEffectiveAt}
               />
             ) : (
               <Button asChild className="h-11 w-full rounded-xl font-medium md:w-auto">

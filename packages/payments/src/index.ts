@@ -267,11 +267,13 @@ export interface CreatePagarmeSubscriptionParams {
   planId: string;
   customerId: string;
   paymentMethod: PagarmePaymentMethod;
-  billingAddress: PagarmeBillingAddress;
+  billingAddress?: PagarmeBillingAddress;
   cardToken?: string;
   cardId?: string;
+  startAt?: string;
   boletoDueDays?: number;
   metadata?: Record<string, string>;
+  idempotencyKey?: string;
 }
 
 export interface PagarmeSubscriptionCycle {
@@ -392,8 +394,10 @@ export async function createPagarmeSubscription({
   billingAddress,
   cardToken,
   cardId,
+  startAt,
   boletoDueDays = 3,
   metadata,
+  idempotencyKey,
 }: CreatePagarmeSubscriptionParams) {
   const isCardPayment =
     paymentMethod === "credit_card" || paymentMethod === "debit_card";
@@ -401,6 +405,12 @@ export async function createPagarmeSubscription({
   if (isCardPayment && !cardToken && !cardId) {
     throw new Error(
       "É necessário informar cardToken ou cardId para pagamento com cartão."
+    );
+  }
+
+  if (isCardPayment && !billingAddress) {
+    throw new Error(
+      "É necessário informar o endereço de cobrança do cartão."
     );
   }
 
@@ -419,6 +429,8 @@ export async function createPagarmeSubscription({
     payment_method: paymentMethod,
     installments: 1,
 
+    start_at: startAt,
+
     card_token: isCardPayment && !cardId ? cardToken : undefined,
     card_id: isCardPayment && cardId ? cardId : undefined,
 
@@ -433,8 +445,16 @@ export async function createPagarmeSubscription({
     metadata,
   };
 
+  const headers: HeadersInit = {};
+
+  if (idempotencyKey) {
+    headers["Idempotency-Key"] =
+      idempotencyKey;
+  }
+
   return fetchPagarme<PagarmeSubscription>("/subscriptions", {
     method: "POST",
+    headers,
     body: JSON.stringify(payload),
   });
 }
