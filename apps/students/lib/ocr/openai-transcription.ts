@@ -116,12 +116,12 @@ function getClient() {
 }
 
 export async function transcribeEssayWithOpenAI({
-  file,
+  fileUrl,
   filename,
   contentType,
   model,
 }: {
-  file: ArrayBuffer;
+  fileUrl: string;
   filename: string;
   contentType: string;
   model: OpenAiOcrModel;
@@ -130,19 +130,16 @@ export async function transcribeEssayWithOpenAI({
 
   const modelId = OPENAI_OCR_MODELS[model];
 
-  const base64 = Buffer.from(file).toString("base64");
-  const dataUrl = `data:${contentType};base64,${base64}`;
-
   const fileInput =
     contentType === "application/pdf"
       ? {
           type: "input_file" as const,
           filename,
-          file_data: dataUrl,
+          file_url: fileUrl,
         }
       : {
           type: "input_image" as const,
-          image_url: dataUrl,
+          image_url: fileUrl,
           detail: "high" as const,
         };
 

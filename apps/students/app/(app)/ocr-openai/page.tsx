@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { createClient } from "@/lib/client";
 
 type Model = "luna" | "terra" | "sol";
 
@@ -30,7 +31,13 @@ const MODELS: {
   ];
 
 export default function OpenAiOcrPage() {
+  const supabase = useMemo(() => createClient(), []);
+
   const [file, setFile] = useState<File | null>(null);
+
+  const [uploadedPath, setUploadedPath] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
 
   const [results, setResults] = useState<Record<Model, Result>>({
     luna: {},
@@ -44,8 +51,44 @@ export default function OpenAiOcrPage() {
     return URL.createObjectURL(file);
   }, [file]);
 
+  async function uploadFileToSupabase(selectedFile: File) {
+    setUploading(true);
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error("Usuário não autenticado.");
+      }
+
+      const extension = selectedFile.name.split(".").pop() ?? "file";
+
+      const path = `${user.id}/${crypto.randomUUID()}.${extension}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("ocr-poc-temp")
+        .upload(path, selectedFile, {
+          contentType: selectedFile.type,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      setUploadedPath(path);
+
+      return path;
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function transcribe(model: Model) {
-    if (!file) return;
+    if (!file || !uploadedPath) return;
 
     setResults((current) => ({
       ...current,
@@ -54,14 +97,17 @@ export default function OpenAiOcrPage() {
       },
     }));
 
-    const formData = new FormData();
-
-    formData.append("file", file);
-
     try {
       const response = await fetch(`/api/ocr/openai/${model}`, {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          path: uploadedPath,
+          filename: file.name,
+          contentType: file.type,
+        }),
       });
 
       const data = await response.json();
@@ -118,16 +164,21 @@ export default function OpenAiOcrPage() {
             type="file"
             accept="image/jpeg,image/png,application/pdf"
             className="hidden"
-            onChange={(event) => {
+            onChange={async (event) => {
               const selectedFile = event.target.files?.[0] ?? null;
 
               setFile(selectedFile);
+              setUploadedPath(null);
 
               setResults({
                 luna: {},
                 terra: {},
                 sol: {},
               });
+
+              if (selectedFile) {
+                await uploadFileToSupabase(selectedFile);
+              }
             }}
           />
         </label>
@@ -177,7 +228,7 @@ export default function OpenAiOcrPage() {
 
                     <button
                       type="button"
-                      disabled={result.loading}
+                      disabled={result.loading || uploading || !uploadedPath}
                       onClick={() => transcribe(model.id)}
                       className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
                     >
