@@ -49,7 +49,7 @@ export function useTransactionsFilters() {
         { label: "Compra Avulsa", value: "standalone_purchase" },
         { label: "Envio de Redação", value: "essay_usage" },
         { label: "Mudança de Plano", value: "plan_change" },
-        { label: "Ajuste Admin", value: "administrative_adjustment" },
+        { label: "Ajuste por um administrador", value: "administrative_adjustment" },
       ],
     },
   ];
