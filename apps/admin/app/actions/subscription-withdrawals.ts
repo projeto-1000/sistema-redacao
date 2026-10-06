@@ -1,31 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-
-export interface CancellationHistoryEntry {
-  id: string;
-  student_id: string;
-  kind: "withdrawal" | "ordinary";
-  status: string;
-  requested_at: string;
-  last_activity_at: string;
-  effective_at: string | null;
-  refund_started_at: string | null;
-  refund_completed_at: string | null;
-  cancellation_reason: string | null;
-  cancellation_details: string | null;
-  snapshot: {
-    student_name: string | null;
-    student_email: string | null;
-    plan_name: string | null;
-    amount: number | null;
-    paid_at: string | null;
-    credits_granted: number | null;
-    credits_used: number | null;
-    historical_reconstruction: boolean;
-  };
-  events: { label: string; at: string; detail?: string | null }[];
-}
+import type { CancellationHistoryEntry } from "@/types/cancellation-history";
 
 export async function listCancellationHistory(): Promise<CancellationHistoryEntry[]> {
   const supabase = await createClient();
@@ -50,7 +26,9 @@ export async function listCancellationHistory(): Promise<CancellationHistoryEntr
     if (error) {
       console.error("[CANCELLATION_HISTORY_ERROR]", error.code);
       if (error.code === "42P01" || error.code === "PGRST205") {
-        throw new Error("A atualização do banco para o novo histórico ainda não foi aplicada. Os registros anteriores não foram apagados.");
+        throw new Error(
+          "A atualização do banco para o novo histórico ainda não foi aplicada. Os registros anteriores não foram apagados."
+        );
       }
       throw new Error("Não foi possível carregar o histórico de cancelamentos.");
     }
