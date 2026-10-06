@@ -134,7 +134,6 @@ export async function transcribeEssayWithOpenAI({
     contentType === "application/pdf"
       ? {
           type: "input_file" as const,
-          filename,
           file_url: fileUrl,
         }
       : {
