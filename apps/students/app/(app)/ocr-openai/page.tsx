@@ -164,7 +164,7 @@ export default function OpenAiOcrPage() {
             type="file"
             accept="image/jpeg,image/png,application/pdf"
             className="hidden"
-            onChange={async (event) => {
+            onChange={(event) => {
               const selectedFile = event.target.files?.[0] ?? null;
 
               setFile(selectedFile);
@@ -177,7 +177,7 @@ export default function OpenAiOcrPage() {
               });
 
               if (selectedFile) {
-                await uploadFileToSupabase(selectedFile);
+                void uploadFileToSupabase(selectedFile);
               }
             }}
           />
