@@ -440,6 +440,10 @@ begin
     cancellation_provider_status = 'active'
   where id = v_subscription_id;
 
+  -- Fixtures share transaction-time now(); put the prior grant in its real cycle.
+  update public.credit_transactions set created_at = now() - interval '23 hours'
+    where user_id = v_student_id and type::text = 'new_subscription';
+
   insert into public.student_payments (
     user_id, subscription_id, plan_id, kind, provider, external_id,
     amount, credits_amount, status, payment_method, paid_at, metadata
@@ -464,7 +468,8 @@ begin
     'new_subscription',
     5,
     'Second withdrawal policy test grant',
-    jsonb_build_object('credit_type', 'plan', 'subscription_id', v_subscription_id)
+    jsonb_build_object('credit_type', 'plan', 'subscription_id', v_subscription_id,
+      'provider_subscription_id', 'sub_withdrawaltwo')
   );
 end;
 $$;
@@ -483,10 +488,10 @@ begin
     'Second request for the same account'
   ) into v_result;
 
-  if v_result ->> 'processing_mode' <> 'manual'
-    or v_result ->> 'status' <> 'under_review'
+  if v_result ->> 'processing_mode' <> 'automatic'
+    or v_result ->> 'status' <> 'refund_processing'
   then
-    raise exception 'The second request on the account must require manual review: %', v_result;
+    raise exception 'Repeated eligible requests must remain automatic: %', v_result;
   end if;
 end;
 $$;
@@ -496,133 +501,59 @@ set local "request.jwt.claims" = '{"role":"service_role"}';
 
 do $$
 declare
-  v_student_id uuid := '12000000-0000-0000-0000-000000000001';
-  v_admin_id uuid := '12000000-0000-0000-0000-000000000002';
   v_request_id uuid;
-  v_result jsonb;
-  v_balance integer;
+  v_history public.subscription_cancellation_history%rowtype;
+  v_snapshot jsonb;
+  v_count integer;
 begin
-  select id into v_request_id
-  from public.subscription_withdrawal_requests
-  where student_id = v_student_id and request_number = 2;
+  select id into v_request_id from public.subscription_withdrawal_requests
+    where student_id = '12000000-0000-0000-0000-000000000001' and request_number = 2;
+  select * into v_history from public.subscription_cancellation_history
+    where withdrawal_request_id = v_request_id;
+  if not found or v_history.snapshot ->> 'credits_granted' is distinct from '5'
+    or v_history.snapshot ->> 'credits_used' is distinct from '0'
+    or v_history.snapshot ->> 'amount' is distinct from '5000'
+  then raise exception 'New requests must capture attributable credits/payment: %', v_history; end if;
+  v_snapshot := v_history.snapshot;
 
-  perform public.mark_subscription_withdrawal_operational_issue(
-    v_request_id,
-    'provider_refund',
-    'Simulated provider failure recorded by the real RPC'
-  );
+  begin
+    perform public.reject_subscription_withdrawal(v_request_id,
+      '12000000-0000-0000-0000-000000000002', 'No longer allowed');
+    raise exception 'Retired rejection unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'A recusa administrativa de arrependimento foi desativada.' then raise; end if;
+  end;
+  begin
+    perform public.approve_subscription_withdrawal(v_request_id,
+      '12000000-0000-0000-0000-000000000002', null);
+    raise exception 'Retired approval unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'A aprovação administrativa de arrependimento foi desativada.' then raise; end if;
+  end;
 
-  select plan_credits into v_balance
-  from public.student_credits where user_id = v_student_id;
+  perform public.mark_subscription_withdrawal_operational_issue(v_request_id,
+    'provider_refund', 'Fixture failure');
+  if not exists (select 1 from public.subscription_cancellation_history
+    where withdrawal_request_id = v_request_id and status = 'operational_issue')
+  then raise exception 'Failure must be recorded in consultation history'; end if;
 
-  if v_balance <> 0 or not exists (
-    select 1 from public.subscriptions
-    where user_id = v_student_id
-      and withdrawal_status = 'operational_issue'
-      and cancel_at_period_end is true
-  ) then
-    raise exception 'Operational issue must keep credits and renewal blocked';
-  end if;
+  insert into public.subscription_withdrawal_refunds
+    (request_id, provider_charge_id, amount, status, idempotency_key)
+    values (v_request_id, 'ch_repeatedautomatic', 5000, 'processing', 'test-repeatedautomatic');
+  perform public.process_subscription_withdrawal_refund_confirmation('ch_repeatedautomatic', now(), 'tran_repeat');
+  select jsonb_array_length(events) into v_count from public.subscription_cancellation_history
+    where withdrawal_request_id = v_request_id;
+  perform public.process_subscription_withdrawal_refund_confirmation('ch_repeatedautomatic', now(), 'tran_repeat');
+  if not exists (select 1 from public.subscription_cancellation_history
+    where withdrawal_request_id = v_request_id and status = 'refunded'
+      and refund_completed_at is not null and snapshot = v_snapshot
+      and jsonb_array_length(events) = v_count)
+  then raise exception 'Confirmation replay must preserve snapshot and timeline'; end if;
 
-  select public.reject_subscription_withdrawal(
-    v_request_id,
-    v_admin_id,
-    'Manual review rejection test'
-  ) into v_result;
-
-  select plan_credits into v_balance
-  from public.student_credits where user_id = v_student_id;
-
-  if v_balance <> 5 then
-    raise exception 'Rejected manual review must release held plan credits; balance is %', v_balance;
-  end if;
-end;
-$$;
-
-set local role authenticated;
-set local "request.jwt.claims" = '{"role":"authenticated","sub":"12000000-0000-0000-0000-000000000001"}';
-
-do $$
-declare
-  v_result jsonb;
-begin
-  select public.request_subscription_withdrawal(
-    '52000000-0000-4000-8000-000000000003',
-    'other',
-    'Third request for manual approval'
-  ) into v_result;
-
-  if v_result ->> 'processing_mode' <> 'manual'
-    or v_result ->> 'status' <> 'under_review'
-  then
-    raise exception 'Every request after the first must require manual review: %', v_result;
-  end if;
-end;
-$$;
-
-set local role service_role;
-set local "request.jwt.claims" = '{"role":"service_role"}';
-
-do $$
-declare
-  v_student_id uuid := '12000000-0000-0000-0000-000000000001';
-  v_admin_id uuid := '12000000-0000-0000-0000-000000000002';
-  v_subscription_id uuid := '32000000-0000-0000-0000-000000000001';
-  v_request_id uuid;
-  v_result jsonb;
-  v_status text;
-  v_balance integer;
-begin
-  select id into v_request_id
-  from public.subscription_withdrawal_requests
-  where student_id = v_student_id and request_number = 3;
-
-  select public.approve_subscription_withdrawal(
-    v_request_id,
-    v_admin_id,
-    'Manual review approval test'
-  ) into v_result;
-
-  if not exists (
-    select 1 from public.subscription_withdrawal_requests
-    where id = v_request_id
-      and status = 'refund_processing'
-      and reviewed_by = v_admin_id
-      and reviewed_at is not null
-  ) then
-    raise exception 'Manual approval must move the request to refund processing: %', v_result;
-  end if;
-
-  insert into public.subscription_withdrawal_refunds (
-    request_id, provider_charge_id, provider_invoice_id,
-    amount, status, idempotency_key
-  ) values (
-    v_request_id,
-    'ch_withdrawalmanualapproval',
-    'in_withdrawalmanualapproval',
-    5000,
-    'processing',
-    'withdrawal-refund-test-manual-approval'
-  );
-
-  select public.process_subscription_withdrawal_refund_confirmation(
-    'ch_withdrawalmanualapproval',
-    now(),
-    'tran_withdrawalmanualapproval'
-  ) into v_result;
-
-  select status::text into v_status
-  from public.subscriptions where id = v_subscription_id;
-
-  select plan_credits into v_balance
-  from public.student_credits where user_id = v_student_id;
-
-  if not coalesce((v_result ->> 'completed')::boolean, false)
-    or v_status <> 'canceled'
-    or v_balance <> 0
-  then
-    raise exception 'Approved manual withdrawal must finalize after refund confirmation: %', v_result;
-  end if;
+  update public.plans set name = 'Changed later' where id = '22000000-0000-0000-0000-000000000001';
+  if not exists (select 1 from public.subscription_cancellation_history
+    where withdrawal_request_id = v_request_id and snapshot = v_snapshot)
+  then raise exception 'Later plan edits must not rewrite history'; end if;
 end;
 $$;
 
@@ -740,5 +671,53 @@ begin
   end if;
 end;
 $$;
+
+set local role service_role;
+set local "request.jwt.claims" = '{"role":"service_role"}';
+
+do $$
+declare
+  v_subscription_id uuid := '32000000-0000-0000-0000-000000000003';
+  v_history_id uuid;
+  v_snapshot jsonb;
+begin
+  update public.subscriptions set cancel_at_period_end = true,
+    cancellation_mode = 'end_of_period', cancellation_requested_at = now(),
+    cancellation_effective_at = current_period_end,
+    cancellation_provider_status = 'pending', cancellation_reason = 'not_using'
+  where id = v_subscription_id;
+  select id, snapshot into v_history_id, v_snapshot
+    from public.subscription_cancellation_history where subscription_id = v_subscription_id;
+  if v_history_id is null then raise exception 'Ordinary cancellation must create a history row'; end if;
+  update public.subscriptions set cancellation_requested_at = now() + interval '1 second'
+    where id = v_subscription_id;
+  if (select count(*) from public.subscription_cancellation_history
+    where subscription_id = v_subscription_id) <> 1 then
+    raise exception 'Repeated cancellation clicks must not create another history row';
+  end if;
+  update public.subscriptions set cancellation_provider_status = 'canceled',
+    provider_canceled_at = now() where id = v_subscription_id;
+  update public.subscriptions set cancel_at_period_end = false, cancellation_mode = null,
+    cancellation_requested_at = null, external_id = 'sub_reactivationreplacement'
+    where id = v_subscription_id;
+  if not exists (select 1 from public.subscription_cancellation_history
+    where id = v_history_id and status = 'undone' and snapshot = v_snapshot)
+  then raise exception 'Reactivation must retain the original cancellation snapshot'; end if;
+end;
+$$;
+
+set local role authenticated;
+set local "request.jwt.claims" = '{"role":"authenticated","sub":"12000000-0000-0000-0000-000000000001"}';
+do $$ begin
+  if exists (select 1 from public.subscription_cancellation_history) then
+    raise exception 'Non-admin must not read the admin history';
+  end if;
+end; $$;
+set local "request.jwt.claims" = '{"role":"authenticated","sub":"12000000-0000-0000-0000-000000000002"}';
+do $$ begin
+  if not exists (select 1 from public.subscription_cancellation_history) then
+    raise exception 'Admin must be able to read the history';
+  end if;
+end; $$;
 
 rollback;

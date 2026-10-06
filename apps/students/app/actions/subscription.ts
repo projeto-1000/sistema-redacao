@@ -230,7 +230,7 @@ export async function getSubscriptionData() {
     };
   }
 
-  const [activeWithdrawalResult, initialPaymentResult, withdrawalCountResult] = await Promise.all([
+  const [activeWithdrawalResult, initialPaymentResult] = await Promise.all([
     subscription.active_withdrawal_request_id
       ? supabase
           .from("subscription_withdrawal_requests")
@@ -254,10 +254,6 @@ export async function getSubscriptionData() {
           .limit(1)
           .maybeSingle()
       : Promise.resolve({ data: null, error: null }),
-    supabase
-      .from("subscription_withdrawal_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("student_id", user.id),
   ]);
 
   if (activeWithdrawalResult.error) {
@@ -266,10 +262,6 @@ export async function getSubscriptionData() {
 
   if (initialPaymentResult.error) {
     console.error("[GET_WITHDRAWAL_INITIAL_PAYMENT_ERROR]", initialPaymentResult.error);
-  }
-
-  if (withdrawalCountResult.error) {
-    console.error("[GET_WITHDRAWAL_COUNT_ERROR]", withdrawalCountResult.error);
   }
 
   const initialPaidAt = initialPaymentResult.data?.paid_at ?? subscription.current_period_start;
@@ -283,11 +275,7 @@ export async function getSubscriptionData() {
     !subscription.active_withdrawal_request_id;
   const withdrawalProcessingMode =
     activeWithdrawalResult.data?.processing_mode ??
-    (withdrawalEligible
-      ? (withdrawalCountResult.count ?? 0) === 0
-        ? "automatic"
-        : "manual"
-      : null);
+    (withdrawalEligible ? "automatic" : null);
 
   let pendingPlanName: string | null = null;
 

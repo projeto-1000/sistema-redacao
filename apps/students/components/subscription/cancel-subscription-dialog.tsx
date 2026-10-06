@@ -51,7 +51,6 @@ export function CancelSubscriptionDialog({
   planName,
   effectiveAt,
   withdrawalEligible,
-  withdrawalProcessingMode,
 }: CancelSubscriptionDialogProps) {
   const router = useRouter();
 
@@ -184,9 +183,7 @@ export function CancelSubscriptionDialog({
                     </p>
 
                     <p className="mt-2 text-sm leading-relaxed text-amber-900/80">
-                      {withdrawalProcessingMode === "automatic"
-                        ? "O cancelamento será imediato e o reembolso integral será iniciado. Os créditos restantes desta assinatura serão bloqueados; créditos extras e gratuitos válidos continuam disponíveis."
-                        : "Como já houve um pedido de arrependimento nesta conta, a solicitação irá para análise. Os créditos desta assinatura e novas compras de créditos extras ficarão bloqueados até a decisão."}
+                      O cancelamento será imediato e o reembolso integral será iniciado, mesmo que você já tenha feito uma solicitação anterior. Os créditos restantes desta assinatura serão bloqueados; créditos extras e gratuitos válidos continuam disponíveis.
                     </p>
                   </>
                 ) : (

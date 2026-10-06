@@ -9,10 +9,7 @@ import {
 } from "@repo/payments";
 import { createClient } from "@/lib/server";
 import { createAdminClient } from "@/lib/admin";
-import {
-  holdSubscriptionRenewalForManualReview,
-  startSubscriptionWithdrawalRefund,
-} from "@/services/subscription-withdrawal";
+import { startSubscriptionWithdrawalRefund } from "@/services/subscription-withdrawal";
 import {
   subscriptionCancellationReasons,
   type RequestSubscriptionCancellationInput,
@@ -231,6 +228,16 @@ export async function requestSubscriptionCancellation(
     : Number.NaN;
 
   if (!Number.isNaN(withdrawalDeadline) && Date.now() <= withdrawalDeadline) {
+    // Do not create a legacy manual request if code precedes its DB migration.
+    const { data: policyVersion, error: policyError } = await supabase.rpc(
+      "get_subscription_cancellation_policy_version"
+    );
+    if (policyError || policyVersion !== 2) {
+      return {
+        success: false,
+        message: "O cancelamento está temporariamente indisponível. Tente novamente em instantes.",
+      };
+    }
     const { data: withdrawalData, error: withdrawalError } = await supabase.rpc(
       "request_subscription_withdrawal",
       {
@@ -270,10 +277,9 @@ export async function requestSubscriptionCancellation(
             originalActivatedAt: withdrawal.original_activated_at,
           });
         } else {
-          await holdSubscriptionRenewalForManualReview({
-            requestId: withdrawal.request_id,
-            providerSubscriptionId: withdrawal.provider_subscription_id,
-          });
+          // Fail closed if the required migration has not been applied. Never
+          // silently create another administrative-approval request.
+          throw new Error("A política automática de arrependimento precisa ser atualizada.");
         }
       } catch (error) {
         console.error("[PROCESS_SUBSCRIPTION_WITHDRAWAL_ERROR]", {
