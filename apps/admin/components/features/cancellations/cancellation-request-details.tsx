@@ -1,6 +1,7 @@
 import type { CancellationHistoryEntry } from "@/types/cancellation-history";
 import { formatCancellationDate } from "@/utils/cancellation-history";
 import { subscriptionCancellationReasons } from "@repo/constants";
+import { formatCurrency } from "@repo/utils";
 
 export function CancellationRequestDetails({ entry }: { entry: CancellationHistoryEntry }) {
   const reason = subscriptionCancellationReasons.find((r) => r.value === entry.cancellation_reason);
@@ -10,10 +11,31 @@ export function CancellationRequestDetails({ entry }: { entry: CancellationHisto
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-slate-600">Motivo do cancelamento</h3>
         <p className="font-semibold text-slate-800">
-          {reason?.label ?? entry.cancellation_reason ?? "Não informado"}
+          {entry.kind === "support"
+            ? "Atendimento solicitado ao suporte"
+            : (reason?.label ?? entry.cancellation_reason ?? "Não informado")}
         </p>
         {entry.cancellation_details && (
           <p className="text-sm whitespace-pre-wrap text-slate-600">{entry.cancellation_details}</p>
+        )}
+        {entry.kind === "support" && (
+          <div className="space-y-1 rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm">
+            <p>Realizado por {entry.snapshot.administrator_name ?? "Administrador"}</p>
+            {entry.snapshot.administrator_id && (
+              <p className="text-xs break-all text-slate-500">
+                ID do administrador: {entry.snapshot.administrator_id}
+              </p>
+            )}
+            {typeof entry.snapshot.refund_amount === "number" && (
+              <p>Valor do reembolso: {formatCurrency(entry.snapshot.refund_amount)}</p>
+            )}
+            {entry.snapshot.courtesy_until && (
+              <p>
+                Cortesia: {entry.snapshot.courtesy_credits} créditos até{" "}
+                {formatCancellationDate(entry.snapshot.courtesy_until)}
+              </p>
+            )}
+          </div>
         )}
         <p className="text-xs text-slate-500">
           {entry.snapshot.historical_reconstruction

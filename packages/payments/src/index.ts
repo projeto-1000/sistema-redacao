@@ -654,6 +654,7 @@ export interface PagarmeChargeTransaction {
   id?: string;
   status?: string;
   success?: boolean;
+  amount?: number;
 }
 
 export interface PagarmeCharge {
@@ -663,6 +664,7 @@ export interface PagarmeCharge {
   amount: number;
   paid_amount?: number;
   refunded_amount?: number;
+  canceled_amount?: number;
   payment_method?: string;
   paid_at?: string;
   refunded_at?: string;
@@ -1324,3 +1326,4 @@ export async function getPagarmeWebhook<
         "Não foi possível consultar o webhook."
       );
 }
+export { getConfirmedRefundTotal } from "./refund-total";

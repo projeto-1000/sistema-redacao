@@ -11,7 +11,8 @@ export function formatCancellationDate(value: string | null): string {
 }
 
 export function getCancellationRefundLabel(entry: CancellationHistoryEntry): string {
-  if (entry.kind === "ordinary") return "Não se aplica";
+  if (entry.kind === "ordinary" || entry.snapshot.support_action === "cancel_only")
+    return "Não se aplica";
   if (entry.refund_completed_at) return formatCancellationDate(entry.refund_completed_at);
   return entry.status === "rejected" ? "Não realizado" : "Não confirmado";
 }

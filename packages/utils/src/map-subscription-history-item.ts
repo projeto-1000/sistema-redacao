@@ -271,6 +271,21 @@ function mapCreditEvent(
       };
 
     case "administrative_adjustment":
+      if (getMetadataString(event.metadata, "source") === "admin_support") {
+        const refundAmount = event.metadata?.refund_amount;
+        return {
+          id: event.id, title: event.description || "Atendimento da assinatura",
+          description: "Ação realizada pelo suporte a pedido do aluno.", createdAt: event.created_at,
+          primaryValue: typeof refundAmount === "number" && refundAmount > 0 ? formatCurrency(refundAmount) : event.amount === 0 ? "Registro de atendimento" : formatCreditsAmount(event.amount),
+          secondaryValue: null, category: "adjustment", valueTone: "neutral",
+          details: {
+            label: "Ver detalhes do atendimento", title: event.description || "Atendimento da assinatura",
+            description: "O suporte registrou esta ação no histórico da assinatura.",
+            reasonLabel: "Motivo informado pelo suporte",
+            reason: getMetadataString(event.metadata, "reason") || "Não informado", occurredAt: event.created_at,
+          },
+        };
+      }
       if (
         getMetadataString(event.metadata, "adjustment_kind") ===
         "withdrawal_hold"

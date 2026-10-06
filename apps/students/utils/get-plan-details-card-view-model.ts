@@ -376,7 +376,9 @@ export function getPlanDetailsCardViewModel({
   const hasFinishedFreeTrial = isFreeTrial && planCredits <= 0;
 
   const isCancellationScheduled =
-    subscription.cancel_at_period_end && subscription.cancellation_mode === "end_of_period";
+    !isCanceled &&
+    subscription.cancel_at_period_end &&
+    subscription.cancellation_mode === "end_of_period";
 
   const isPlanChangeScheduled =
     subscription.pending_change_type === "downgrade" &&

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { getStudentById, getStudentCreditsHistory } from "@/app/actions/students";
+import { getStudentById } from "@/app/actions/students";
+import { getStudentSubscriptionHistory } from "@/app/actions/student-subscription-history";
 import { notFound } from "next/navigation";
 import { StudentProfileHeader } from "@/components/features/students/student-profile-header";
 import { StudentStatsCards } from "@/components/features/students/student-stats-cards";
@@ -12,7 +13,8 @@ import { Skeleton } from "@repo/ui/components/skeleton";
 import { ModalWrapper } from "@repo/ui/components/modal-wrapper";
 import { GradedEssayView } from "@/components/graded-essay-view";
 import StudentSubscriptionCard from "@/components/student-subscription-card";
-import CreditTransactionsTable from "@repo/ui/components/features/credit-history/credits-transactions-table";
+import { HistoryList } from "@repo/ui/components/features/history/history-list";
+import { SubscriptionSupportSheet } from "@/components/features/students/subscription-support-sheet";
 
 export default async function StudentProfilePage({
   params,
@@ -32,7 +34,7 @@ export default async function StudentProfilePage({
 
   const { student, error, hasSubscriptionError, hasCreditsError } = await getStudentById(studentId);
 
-  const creditTransactionsData = await getStudentCreditsHistory({ studentId })
+  const historyData = await getStudentSubscriptionHistory(studentId, Number(resolvedSearchParams.historyPage) || 1);
 
 
   if (!student || error) {
@@ -67,6 +69,8 @@ export default async function StudentProfilePage({
         <StudentProfileHeader student={student} subscriptionCard={subscriptionCardContent} />
       </Suspense>
 
+      <div className="flex justify-end"><SubscriptionSupportSheet studentId={studentId} /></div>
+
       <StudentStatsCards studentId={student.id} />
 
       <StudentEssaysTable
@@ -75,7 +79,9 @@ export default async function StudentProfilePage({
         page={page}
       />
 
-      <CreditTransactionsTable data={creditTransactionsData} />
+      <HistoryList data={historyData} title="Histórico de créditos e cobranças"
+        description="Acompanhe pagamentos, créditos recebidos, envios de redação e expirações."
+        pageParam="historyPage" />
 
       {essayId && (
         <ModalWrapper

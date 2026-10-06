@@ -22,6 +22,7 @@ interface HistoryListProps {
   title?: string;
   description?: string;
   emptyMessage?: string;
+  pageParam?: string;
 }
 
 export function HistoryList({
@@ -29,6 +30,7 @@ export function HistoryList({
   title = "Histórico",
   description,
   emptyMessage = "Nenhuma movimentação encontrada.",
+  pageParam = "page",
 }: HistoryListProps) {
   const {
     items,
@@ -91,6 +93,7 @@ export function HistoryList({
         <div className="border-t border-slate-100 bg-slate-50 py-4">
           <TablePagination
             totalPages={totalPages}
+            pageParam={pageParam}
           />
         </div>
       )}

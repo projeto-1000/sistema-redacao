@@ -5,6 +5,7 @@ import { formatCurrency } from "@repo/utils";
 import { CANCELLATION_TABLE_GRID } from "./cancellation-table-layout";
 import { CancellationStatusBadge } from "./cancellation-status-badge";
 import { CancellationRequestDetails } from "./cancellation-request-details";
+import { SUBSCRIPTION_SUPPORT_ACTIONS } from "@/constants/subscription-support";
 
 export function CancellationRequestRow({ entry }: { entry: CancellationHistoryEntry }) {
   const snapshot = entry.snapshot;
@@ -19,7 +20,11 @@ export function CancellationRequestRow({ entry }: { entry: CancellationHistoryEn
             {snapshot.plan_name ?? "Plano não registrado"}
           </span>
           <span className="mt-1 block text-xs font-normal text-slate-500">
-            {entry.kind === "ordinary" ? "Sem reembolso" : "Arrependimento em até 7 dias"}
+            {entry.kind === "support" && snapshot.support_action
+              ? SUBSCRIPTION_SUPPORT_ACTIONS[snapshot.support_action].label
+              : entry.kind === "ordinary"
+                ? "Sem reembolso"
+                : "Arrependimento em até 7 dias"}
           </span>
         </span>
         <span className="text-sm font-normal text-slate-700">
