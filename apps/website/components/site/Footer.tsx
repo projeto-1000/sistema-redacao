@@ -1,4 +1,4 @@
-import { Instagram, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import Link from "next/link";
 import { BrandWordmark } from "./BrandWordmark";
 import { Container } from "./Container";
@@ -54,7 +54,20 @@ export function Footer() {
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 text-foreground/80 hover:text-accent"
           >
-            <Instagram className="h-5 w-5" />
+            <svg
+              aria-hidden="true"
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="2" y="2" width="20" height="20" rx="5" />
+              <circle cx="12" cy="12" r="4" />
+              <circle cx="18" cy="6" r=".5" fill="currentColor" />
+            </svg>
             <span className="text-sm">@fernandoentratice</span>
           </a>
         </div>

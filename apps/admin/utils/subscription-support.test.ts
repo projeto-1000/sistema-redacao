@@ -10,10 +10,10 @@ test("parses centavos without rounding unapproved precision", () => {
   }
 });
 
-test("uses Sao Paulo dates and preserves exact paid-period boundary", () => {
+test("uses the end of the Sao Paulo calendar day, including legacy period timestamps", () => {
   assert.equal(courtesyDateToIso("2026-11-01"), "2026-11-02T02:59:59.000Z");
   const end = "2026-11-02T23:59:59.000Z";
-  assert.equal(courtesyDateToIso("2026-11-02", end), end);
+  assert.equal(courtesyDateToIso("2026-11-02", end), "2026-11-03T02:59:59.000Z");
   assert.equal(courtesyDateToIso("not-a-date"), undefined);
   assert.equal(courtesyDateToIso("2026-02-30"), undefined);
 });

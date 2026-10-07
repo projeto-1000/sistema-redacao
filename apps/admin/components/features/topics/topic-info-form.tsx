@@ -4,11 +4,11 @@ import { Info } from "lucide-react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/components/form";
 import { Input } from "@repo/ui/components/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/select";
-import { THEMATIC_AXES, type CreateTopicSchema } from "@repo/validators";
+import { THEMATIC_AXES, type CreateTopicSchema, type CreateTopicInput } from "@repo/validators";
 import { useFormContext, useWatch } from "react-hook-form";
 
 export function TopicInfoForm() {
-  const { control } = useFormContext<CreateTopicSchema>();
+  const { control } = useFormContext<CreateTopicInput, unknown, CreateTopicSchema>();
 
   const sourceType = useWatch({
     control,

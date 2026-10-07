@@ -7,7 +7,6 @@ import {
   Controller,
   FormProvider,
   useFormContext,
-  UseFormReturn,
   useFormState,
   type ControllerProps,
   type FieldPath,
@@ -17,9 +16,7 @@ import {
 import { cn } from "@repo/ui/lib/utils"
 import { Label } from "@repo/ui/components/label"
 
-const Form = FormProvider as <TFieldValues extends FieldValues = FieldValues>(
-  props: UseFormReturn<TFieldValues> & { children?: React.ReactNode }
-) => React.ReactElement
+const Form = FormProvider
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
@@ -35,9 +32,10 @@ const FormFieldContext = React.createContext<FormFieldContextValue>(
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+  TTransformedValues = TFieldValues,
 >({
   ...props
-}: ControllerProps<TFieldValues, TName>) => {
+}: ControllerProps<TFieldValues, TName, TTransformedValues>) => {
   return (
     <FormFieldContext.Provider value={{ name: props.name }}>
       <Controller {...props} />

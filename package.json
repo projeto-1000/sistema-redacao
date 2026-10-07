@@ -9,13 +9,13 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "prettier": "^3.6.0",
-    "prettier-plugin-tailwindcss": "^0.7.1",
-    "supabase": "^2.111.0",
-    "turbo": "^2.7.6"
+    "prettier": "^3.9.9",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "supabase": "2.119.0",
+    "turbo": "^2.11.7"
   },
   "packageManager": "pnpm@11.10.0",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   }
 }

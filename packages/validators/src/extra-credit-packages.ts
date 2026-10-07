@@ -14,15 +14,13 @@ const extraCreditPackageFieldsSchema = z
       .nullable()
       .optional(),
     credits_amount: z.number({
-      required_error: "Informe a quantidade de créditos.",
-      invalid_type_error: "Informe a quantidade de créditos.",
+      error: "Informe a quantidade de créditos.",
   })
   .int("A quantidade de créditos deve ser um número inteiro.")
   .min(1, "A quantidade de créditos deve ser maior que zero."),
 price_cents: z
   .number({
-    required_error: "Informe o valor do pacote.",
-    invalid_type_error: "Informe o valor do pacote.",
+    error: "Informe o valor do pacote.",
   })
   .int("O valor do pacote é inválido.")
   .min(1, "O valor do pacote deve ser maior que zero."),

@@ -37,7 +37,7 @@ import { toast } from "sonner";
 export function CreatePlanDialog() {
   const [open, setOpen] = useState(false);
 
-  const form = useForm<CreatePlanFormInput>({
+  const form = useForm<CreatePlanFormInput, unknown, CreatePlanFormValues>({
     resolver: zodResolver(createPlanSchema),
     defaultValues: {
       name: "",
@@ -47,7 +47,7 @@ export function CreatePlanDialog() {
       is_public: true,
       is_recommended: false,
       discount_percentage: null,
-      price: "" as unknown as number,
+      price: "",
       credits_included: 4,
       interval: "month",
       interval_count: 1,
@@ -57,8 +57,8 @@ export function CreatePlanDialog() {
 
   const { isSubmitting, isValid } = form.formState;
 
-  const onSubmit = async (data: CreatePlanFormInput) => {
-    const result = await createPlan(data as CreatePlanFormValues);
+  const onSubmit = async (data: CreatePlanFormValues) => {
+    const result = await createPlan(data);
 
     if (result.success) {
       form.reset();

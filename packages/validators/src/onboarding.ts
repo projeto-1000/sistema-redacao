@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const step1Schema = z.object({
-  educationLevel: z.string({ required_error: "Obrigatório" }).min(1),
-  schoolType: z.string({ required_error: "Obrigatório" }).min(1),
+  educationLevel: z.string({ error: (issue) => issue.input === undefined ? "Obrigatório" : undefined }).min(1),
+  schoolType: z.string({ error: (issue) => issue.input === undefined ? "Obrigatório" : undefined }).min(1),
   knowsCourse: z.enum(["yes", "no"]),
   course: z.string().optional(),
 }).superRefine((data, ctx) => {
@@ -16,8 +16,8 @@ export const step1Schema = z.object({
 });
 
 export const step2Schema = z.object({
-  state: z.string({ required_error: "Obrigatório" }).min(2),
-  city: z.string({ required_error: "Obrigatório" }).min(1),
+  state: z.string({ error: (issue) => issue.input === undefined ? "Obrigatório" : undefined }).min(2),
+  city: z.string({ error: (issue) => issue.input === undefined ? "Obrigatório" : undefined }).min(1),
 });
 
 export const onboardingSchema = step1Schema.and(step2Schema);

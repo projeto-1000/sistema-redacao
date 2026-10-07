@@ -143,7 +143,7 @@ export function EssayTableFilters() {
               selected={dateRange}
               onSelect={handleDateRangeSelect}
               locale={ptBR}
-              initialFocus
+              autoFocus
             />
           </div>
         </PopoverContent>

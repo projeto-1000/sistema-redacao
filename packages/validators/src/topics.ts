@@ -25,14 +25,14 @@ const motivationalTextSchema = z.object({
 export const createTopicSchema = z.object({
   title: z.string().min(5, "O título precisa ter pelo menos 5 caracteres"),
   axis: z.enum(THEMATIC_AXES, {
-    errorMap: () => ({ message: "Selecione um eixo temático válido" })
+    error: "Selecione um eixo temático válido"
   }),
   sourceType: z.enum([
     "ENEM",
     "ENEM PPL/Reaplicação",
     "AUTORAL"
   ]),
-  sourceYear: z.coerce.number()
+  sourceYear: z.coerce.number<number | string>()
     .min(1998, "Ano inválido")
     .max(new Date().getFullYear())
     .optional()
@@ -49,3 +49,4 @@ export const createTopicSchema = z.object({
 });
 
 export type CreateTopicSchema = z.infer<typeof createTopicSchema>;
+export type CreateTopicInput = z.input<typeof createTopicSchema>;

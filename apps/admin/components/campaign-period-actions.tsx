@@ -116,7 +116,7 @@ export function CampaignPeriodActions({
               onSelect={selectRange}
               disabled={{ before: toLocalDate(campaignStartDate), after: new Date() }}
               locale={ptBR}
-              initialFocus
+              autoFocus
             />
           </div>
         </PopoverContent>

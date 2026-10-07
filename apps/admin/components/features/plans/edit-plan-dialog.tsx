@@ -42,13 +42,13 @@ interface EditPlanDialogProps {
 export function EditPlanDialog({ plan }: EditPlanDialogProps) {
   const [open, setOpen] = useState(false);
 
-  const form = useForm<CreatePlanFormInput>({
+  const form = useForm<CreatePlanFormInput, unknown, CreatePlanFormValues>({
     resolver: zodResolver(createPlanSchema),
     defaultValues: {
       name: plan.name,
       interval: plan.interval || "month",
       interval_count: plan.interval_count || 1,
-      price: (Number(plan.price) / 100).toFixed(2) as unknown as number,
+      price: (Number(plan.price) / 100).toFixed(2),
       credits_included: plan.credits_included,
       credits_expiration_days: plan.credits_expiration_days || 30,
       is_active: plan.is_active,
@@ -62,8 +62,8 @@ export function EditPlanDialog({ plan }: EditPlanDialogProps) {
 
   const { isSubmitting, isValid } = form.formState;
 
-  const onSubmit = async (data: CreatePlanFormInput) => {
-    const result = await updatePlan(plan.id, data as CreatePlanFormValues);
+  const onSubmit = async (data: CreatePlanFormValues) => {
+    const result = await updatePlan(plan.id, data);
 
     if (result.success) {
       setOpen(false);
