@@ -10,6 +10,7 @@ import type {
   SubscriptionSupportOperation,
 } from "@repo/types";
 import { revalidatePath } from "next/cache";
+import { getCycleInfo } from "@repo/utils";
 
 async function requireAdmin() {
   const client = await createClient();
@@ -62,7 +63,7 @@ export async function getSubscriptionSupportContext(
     .limit(1);
   if (payments.error) throw new Error("Não foi possível carregar o plano e seus pagamentos.");
   const [plan, snapshot] = await Promise.all([
-    client.from("plans").select("name").eq("id", sub.plan_id).single(),
+    client.from("plans").select("name,interval,interval_count").eq("id", sub.plan_id).single(),
     payments.data?.[0]
       ? client.rpc("preview_subscription_support_snapshot", {
           p_student_id: studentId,
@@ -86,6 +87,7 @@ export async function getSubscriptionSupportContext(
     name: profile.data.full_name,
     email: profile.data.email,
     planName: plan.data.name,
+    planPeriodLabel: getCycleInfo(plan.data.interval, plan.data.interval_count ?? 1).label,
     periodEnd: sub.current_period_end,
     availableCredits: credits.data.plan_credits,
     grantedCredits: snapshot?.data?.credits_granted ?? null,

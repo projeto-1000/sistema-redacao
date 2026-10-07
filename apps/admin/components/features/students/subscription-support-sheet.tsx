@@ -26,7 +26,7 @@ import { Label } from "@repo/ui/components/label";
 import { Textarea } from "@repo/ui/components/textarea";
 import { Alert, AlertDescription } from "@repo/ui/components/alert";
 import { formatCurrency, formatDate } from "@repo/utils";
-import { CalendarClock, CircleDollarSign, Gift, Loader2, RefreshCcw } from "lucide-react";
+import { CalendarClock, CircleDollarSign, Gift, Loader2, RefreshCcw, BanknoteX } from "lucide-react";
 import { SubscriptionSupportSummary } from "./subscription-support-summary";
 import { SubscriptionSupportStepper } from "./subscription-support-stepper";
 import { SubscriptionSupportContextCard } from "./subscription-support-context-card";
@@ -56,12 +56,13 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
     <Sheet open={form.open} onOpenChange={form.changeOpen}>
       <SheetTrigger asChild>
         <Button
-          variant="outline"
-          className="w-full bg-white"
+          variant="ghost"
+          size="sm"
+          className="max-w-full whitespace-normal"
           onMouseEnter={form.preload}
           onFocus={form.preload}
         >
-          <CircleDollarSign className="size-4" />
+          <BanknoteX className="size-4.5 shrink-0" />
           Cancelar ou reembolsar
         </Button>
       </SheetTrigger>
@@ -81,7 +82,12 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
             Atendimento em nome do aluno. Revise as consequências antes de confirmar.
           </SheetDescription>
         </header>
-        <div className="mt-5 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1 [&>*]:shrink-0">
+        {!context?.pendingOperation && (context || form.loading) && (
+          <div className="mt-5 shrink-0">
+            <SubscriptionSupportStepper step={form.step} />
+          </div>
+        )}
+        <div className="mt-5 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-1 *:shrink-0">
           {form.error && (
             <Alert variant="destructive">
               <AlertDescription>{form.error}</AlertDescription>
@@ -90,7 +96,6 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
           {!context && form.loading && (
             <>
               <SubscriptionSupportContextCard context={null} />
-              <SubscriptionSupportStepper step={1} />
               <Skeleton className="h-24 w-full rounded-xl" />
               <Skeleton className="h-24 w-full rounded-xl" />
             </>
@@ -116,7 +121,6 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
                 </Alert>
               ) : (
                 <>
-                  <SubscriptionSupportStepper step={form.step} />
                   {form.step === 1 && (
                     <RadioGroup
                       value={form.action}
@@ -262,10 +266,10 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
                           placeholder="Explique o pedido do aluno e o acordo feito pelo suporte."
                         />
                         <p className="text-xs text-slate-500">
-                          Esta justificativa ficará disponível também no histórico do aluno.
+                          Informe pelo menos 10 caracteres. Esta justificativa ficará disponível
+                          também no histórico do aluno.
                         </p>
                       </div>
-                      {summary}
                     </div>
                   )}
                   {form.step === 3 && summary}
@@ -287,7 +291,12 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
             </Button>
             <Button
               className="h-auto min-h-10 whitespace-normal"
-              disabled={form.pending || form.loading || !context.payments.length}
+              disabled={
+                form.pending ||
+                form.loading ||
+                !context.payments.length ||
+                (form.step >= 2 && !form.canReview)
+              }
               onClick={
                 form.step === 1
                   ? () => form.setStep(2)

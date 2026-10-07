@@ -27,6 +27,7 @@ export interface SubscriptionSupportContext {
   name: string;
   email: string;
   planName: string;
+  planPeriodLabel: string;
   periodEnd: string;
   availableCredits: number;
   grantedCredits: number | null;

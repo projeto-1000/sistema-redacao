@@ -23,8 +23,8 @@ export function SubscriptionSupportContextCard({
                 <p className="font-bold text-slate-800">{context.name}</p>
                 <p className="text-xs break-all text-slate-500">{context.email}</p>
               </div>
-              <Badge variant="secondary" className="shrink-0 bg-blue-50 text-blue-700">
-                {context.planName}
+              <Badge variant="secondary" className="max-w-[45%] shrink-0 whitespace-normal bg-blue-50 text-blue-700">
+                {context.planName} · {context.planPeriodLabel}
               </Badge>
             </div>
             <div className="mt-4 grid grid-cols-3 divide-x divide-slate-200 rounded-lg bg-slate-50 py-3 text-center">

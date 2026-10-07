@@ -72,6 +72,13 @@ export function useSubscriptionSupport(studentId: string) {
         }
       : {}),
   };
+  const canReview =
+    subscriptionSupportSchema.safeParse(input).success &&
+    Boolean(payment && (amount ?? 0) <= payment.amount) &&
+    (action !== "refund_courtesy" ||
+      (Number(courtesyCredits) <= (context?.availableCredits ?? 0) &&
+        Date.parse(input.courtesyUntil ?? "") <=
+          Date.parse(context ? getSubscriptionAccessEnd(context.periodEnd) : "")));
   const changeOpen = (next: boolean) => {
     if (pending) return;
     const request = ++opening.current;
@@ -117,14 +124,7 @@ export function useSubscriptionSupport(studentId: string) {
       setError(parsed.error.issues[0]?.message ?? "Confira os dados.");
       return;
     }
-    if (
-      !payment ||
-      (amount ?? 0) > payment.amount ||
-      (action === "refund_courtesy" &&
-        (Number(courtesyCredits) > (context?.availableCredits ?? 0) ||
-          Date.parse(input.courtesyUntil ?? "") >
-            Date.parse(context ? getSubscriptionAccessEnd(context.periodEnd) : "")))
-    ) {
+    if (!canReview) {
       setError(
         "Confira o valor e a cortesia: use apenas créditos existentes e validade dentro do período pago."
       );
@@ -192,6 +192,7 @@ export function useSubscriptionSupport(studentId: string) {
     setCourtesyUntil,
     payment,
     amount,
+    canReview,
     review,
     confirm,
     verify,
