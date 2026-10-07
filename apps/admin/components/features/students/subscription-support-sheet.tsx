@@ -309,8 +309,8 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
               {form.step === 1
                 ? "Continuar"
                 : form.step === 2
-                  ? "Revisar atendimento"
-                  : `Confirmar: ${SUBSCRIPTION_SUPPORT_ACTIONS[form.action].label.toLowerCase()}`}
+                  ? "Revisar"
+                  : "Confirmar"}
             </Button>
           </footer>
         )}

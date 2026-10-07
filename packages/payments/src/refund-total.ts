@@ -20,7 +20,8 @@ export function getConfirmedRefundTotal(charge: {
     Number.isInteger(charge.canceled_amount) &&
     (charge.canceled_amount ?? -1) >= 0 &&
     charge.canceled_amount! <= charge.amount &&
-    charge.last_transaction?.status === "refunded" &&
+    (charge.last_transaction?.status === "refunded" ||
+      charge.last_transaction?.status === "partial_refunded") &&
     charge.last_transaction.success === true
   )
     return charge.canceled_amount!;

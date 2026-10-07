@@ -54,6 +54,49 @@ test("does not mistake cancellation or pending refund for money returned", () =>
   );
 });
 
+test("confirms successful partial_refunded transactions using the cumulative canceled amount", () => {
+  assert.equal(
+    getConfirmedRefundTotal({
+      status: "paid",
+      amount: 3990,
+      canceled_amount: 500,
+      last_transaction: { status: "partial_refunded", success: true, amount: 500 },
+    }),
+    500,
+  );
+  // The last transaction may represent only the latest of several refunds.
+  assert.equal(
+    getConfirmedRefundTotal({
+      status: "paid",
+      amount: 3990,
+      canceled_amount: 1000,
+      last_transaction: { status: "partial_refunded", success: true, amount: 500 },
+    }),
+    1000,
+  );
+});
+
+test("partial refunds require success and a valid cumulative provider amount", () => {
+  for (const canceled_amount of [undefined, -1, 4000, 500.5]) {
+    assert.equal(
+      getConfirmedRefundTotal({
+        status: "paid", amount: 3990, canceled_amount,
+        last_transaction: { status: "partial_refunded", success: true, amount: 500 },
+      }),
+      null,
+    );
+  }
+  for (const status of ["partial_refunded", "pending_refund"]) {
+    assert.equal(
+      getConfirmedRefundTotal({
+        status: "paid", amount: 3990, canceled_amount: 500,
+        last_transaction: { status, success: false, amount: 500 },
+      }),
+      null,
+    );
+  }
+});
+
 test("accepts full refund evidence and zero confirmed refunded amount", () => {
   assert.equal(
     getConfirmedRefundTotal({ status: "refunded", amount: 8990 }),

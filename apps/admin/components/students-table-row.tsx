@@ -112,13 +112,12 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
   const validityLabel = isFreePlan
     ? hasValidFreeCreditExpiration
       ? `${freeCreditExpirationTime <= Date.now() ? "Expirou" : "Expira"} em ${formatDate(
-          freeCreditExpiresAt,
-          "compact"
-        )}`
+        freeCreditExpiresAt,
+        "compact"
+      )}`
       : legacyFreeCreditExpiration
-        ? `${legacyFreeCreditExpiration.hasExpired ? "Expirou" : "Expira"} em ${
-            legacyFreeCreditExpiration.label
-          }`
+        ? `${legacyFreeCreditExpiration.hasExpired ? "Expirou" : "Expira"} em ${legacyFreeCreditExpiration.label
+        }`
         : "Validade indisponível"
     : hasValidity
       ? `${periodStart} – ${periodEnd}`
