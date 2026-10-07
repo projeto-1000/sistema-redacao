@@ -1,11 +1,11 @@
 import { COMPETENCIES } from "@repo/constants";
 
 export const HIGHLIGHT_STYLES = {
-  c1: "bg-comp-1/15 border-b-2 border-comp-1 text-slate-900",
-  c2: "bg-comp-2/15 border-b-2 border-comp-2 text-slate-900",
-  c3: "bg-comp-3/20 border-b-2 border-comp-3 text-slate-900",
-  c4: "bg-comp-4/15 border-b-2 border-comp-4 text-slate-900",
-  c5: "bg-comp-5/15 border-b-2 border-comp-5 text-slate-900",
+  c1: "bg-comp-1/15 border-b-2 border-comp-1",
+  c2: "bg-comp-2/15 border-b-2 border-comp-2",
+  c3: "bg-comp-3/20 border-b-2 border-comp-3",
+  c4: "bg-comp-4/15 border-b-2 border-comp-4",
+  c5: "bg-comp-5/15 border-b-2 border-comp-5",
 };
 
 const COMPETENCY_DISPLAY_STYLES = {

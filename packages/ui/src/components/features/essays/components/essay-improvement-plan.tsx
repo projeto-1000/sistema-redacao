@@ -29,7 +29,7 @@ function ImprovementSection({
           {icon}
         </div>
 
-        <h3 className="text-sm font-bold text-slate-900">
+        <h3 className="text-sm font-bold">
           {title}
         </h3>
       </div>
@@ -73,7 +73,7 @@ export default function EssayImprovementPlan({
           Orientações do corretor
         </span>
 
-        <h2 className="mt-2 text-lg font-black text-slate-900">
+        <h2 className="mt-2 text-lg font-black">
           Plano de melhoria
         </h2>
 

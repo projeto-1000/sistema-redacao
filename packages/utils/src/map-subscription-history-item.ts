@@ -283,6 +283,8 @@ function mapCreditEvent(
             description: "O suporte registrou esta ação no histórico da assinatura.",
             reasonLabel: "Motivo informado pelo suporte",
             reason: getMetadataString(event.metadata, "reason") || "Não informado", occurredAt: event.created_at,
+            startedAt: getMetadataString(event.metadata, "support_started_at"),
+            completedAt: getMetadataString(event.metadata, "support_completed_at"),
           },
         };
       }

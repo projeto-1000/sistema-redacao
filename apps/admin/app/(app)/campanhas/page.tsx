@@ -60,7 +60,7 @@ export default async function CampaignsPage() {
       {!error && campaigns.length === 0 && (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
           <Megaphone className="mx-auto size-10 text-slate-300" aria-hidden="true" />
-          <h2 className="mt-4 text-lg font-extrabold text-slate-900">
+          <h2 className="mt-4 text-lg font-extrabold">
             Nenhuma campanha configurada
           </h2>
           <p className="mt-1 text-sm text-slate-500">

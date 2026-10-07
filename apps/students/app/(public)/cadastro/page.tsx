@@ -34,8 +34,8 @@ function SignupAccessMessage({
   description: string;
 }) {
   return (
-    <div className="w-full max-w-[500px] rounded-xl border border-slate-100 bg-white p-8 text-center shadow-xl">
-      <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
+    <div className="w-full max-w-125 rounded-xl border border-slate-100 bg-white p-8 text-center shadow-xl">
+      <h1 className="text-2xl font-bold">{title}</h1>
 
       <p className="mt-3 text-sm leading-relaxed text-slate-500">
         {description}

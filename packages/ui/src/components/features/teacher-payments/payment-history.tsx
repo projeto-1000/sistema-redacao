@@ -21,7 +21,7 @@ export function PaymentHistory({ payments, headerAction }: PaymentHistoryProps) 
     <section className="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-slate-900">Histórico de pagamentos</h2>
+          <h2 className="text-xl font-black">Histórico de pagamentos</h2>
           <p className="mt-1 text-sm font-medium text-slate-500">
             Consulte os repasses externos registrados pela equipe.
           </p>

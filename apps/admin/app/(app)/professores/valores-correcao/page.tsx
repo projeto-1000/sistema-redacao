@@ -14,7 +14,7 @@ export default async function TeacherCorrectionRatesPage() {
       <PageHeader title="Gestão de Professores" subtitle="Gerencie sua equipe docente e os valores por correção." />
       <TeacherManagementTabs active="rates" />
       <div>
-        <h1 className="text-3xl font-black tracking-tight text-slate-900">Valores de correção</h1>
+        <h1 className="text-3xl font-black tracking-tight">Valores de correção</h1>
         <p className="mt-1 font-medium text-slate-500">Defina o valor padrão e gerencie exceções por professor.</p>
       </div>
       <CorrectionRatesManager data={data} />

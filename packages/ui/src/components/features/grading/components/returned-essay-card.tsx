@@ -66,7 +66,7 @@ export default function ReturnedEssayCard({
         <span className="inline-flex rounded-full bg-[#EBC84C]/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#8B781F]">
           Recomendação
         </span>
-        <h3 className="mt-3 text-lg font-bold tracking-tight text-slate-900">
+        <h3 className="mt-3 text-lg font-bold tracking-tight">
           Como você quer continuar?
         </h3>
         <p className="mt-1 text-sm font-medium leading-relaxed text-slate-500">

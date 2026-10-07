@@ -600,6 +600,8 @@ export interface HistoryDisplayItem {
     reasonLabel: string;
     reason: string;
     occurredAt: string | null;
+    startedAt?: string | null;
+    completedAt?: string | null;
   };
 }
 

@@ -45,11 +45,10 @@ export default async function PendingEssaysPage({
           href="/redacoes-pendentes"
           role="tab"
           aria-selected={activeTab === "pendentes"}
-          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
-            activeTab === "pendentes"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
+          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${activeTab === "pendentes"
+            ? "bg-white shadow-sm"
+            : "text-slate-500 hover:text-slate-700"
+            }`}
         >
           Redações pendentes
         </Link>
@@ -57,11 +56,10 @@ export default async function PendingEssaysPage({
           href="/redacoes-pendentes?tab=revisoes"
           role="tab"
           aria-selected={activeTab === "revisoes"}
-          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
-            activeTab === "revisoes"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
+          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${activeTab === "revisoes"
+            ? "bg-white shadow-sm"
+            : "text-slate-500 hover:text-slate-700"
+            }`}
         >
           Aguardando revisão ({reviewQueueResult.totalCount})
         </Link>
@@ -74,7 +72,7 @@ export default async function PendingEssaysPage({
           <Suspense
             key={suspenseKey}
             fallback={
-              <Skeleton className="mt-6 min-h-[250px] rounded-3xl bg-slate-200" />
+              <Skeleton className="mt-6 min-h-62.5 rounded-3xl bg-slate-200" />
             }
           >
             <PendingEssaysGrid filters={filters} page={page} />

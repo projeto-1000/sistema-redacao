@@ -48,7 +48,7 @@ export function CreditsCard({
 
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-2xl leading-none font-extrabold tracking-tight text-slate-900">
+            <span className="text-2xl leading-none font-extrabold tracking-tight">
               {credits.total}
             </span>
 

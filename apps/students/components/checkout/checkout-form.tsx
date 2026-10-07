@@ -86,10 +86,10 @@ export function CheckoutForm({ planId, savedCards }: CheckoutFormProps) {
     (payment.paymentSource === "saved_card"
       ? Boolean(payment.paymentCardId)
       : onlyDigits(payment.cardNumber ?? "").length === 16 &&
-        (payment.holderName ?? "").trim().length >= 3 &&
-        onlyDigits(payment.holderDocument ?? "").length === 11 &&
-        (payment.expirationDate ?? "").length === 5 &&
-        onlyDigits(payment.cvv ?? "").length >= 3);
+      (payment.holderName ?? "").trim().length >= 3 &&
+      onlyDigits(payment.holderDocument ?? "").length === 11 &&
+      (payment.expirationDate ?? "").length === 5 &&
+      onlyDigits(payment.cvv ?? "").length >= 3);
 
   const canContinue =
     hasRequiredAddressFields &&
@@ -183,7 +183,7 @@ export function CheckoutForm({ planId, savedCards }: CheckoutFormProps) {
               </div>
 
               <div>
-                <p className="text-lg font-black tracking-tight text-slate-900">
+                <p className="text-lg font-black tracking-tight">
                   {checkoutStatus === "tokenized"
                     ? "Assinatura criada"
                     : checkoutStatus === "error"

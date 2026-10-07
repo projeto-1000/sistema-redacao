@@ -100,7 +100,7 @@ function getTransactionDisplay(
     valueClassName:
       tx.amount > 0
         ? "font-bold text-emerald-600"
-        : "font-bold text-slate-900",
+        : "font-bold",
   };
 }
 

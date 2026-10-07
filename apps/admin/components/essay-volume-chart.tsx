@@ -46,12 +46,12 @@ export default function EssayVolumeChart({ initialData }: EssayVolumeChartProps)
   };
 
   return (
-    <div className="bg-white rounded-4xl p-6 md:p-8 shadow-sm border border-slate-200 min-h-[400px] flex flex-col relative">
+    <div className="bg-white rounded-4xl p-6 md:p-8 shadow-sm border border-slate-200 min-h-100 flex flex-col relative">
       <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
 
         <div>
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-black text-slate-900">Volume de Redações</h3>
+            <h3 className="text-lg font-black">Volume de Redações</h3>
             {isPending && <Loader2 className="size-4 text-primary animate-spin" />}
           </div>
           <p className="text-sm font-medium text-slate-500 mt-1">Comparativo semanal de envios vs. correções finalizadas</p>
@@ -69,7 +69,7 @@ export default function EssayVolumeChart({ initialData }: EssayVolumeChartProps)
             onValueChange={handleWeekChange}
             disabled={isPending}
           >
-            <SelectTrigger className="w-[170px] h-9 bg-slate-50 border-slate-200 text-sm font-bold text-slate-600 focus:ring-2 focus:ring-blue-500/50 outline-none rounded-lg shadow-sm transition-colors">
+            <SelectTrigger className="w-42.5 h-9 bg-slate-50 border-slate-200 text-sm font-bold text-slate-600 focus:ring-2 focus:ring-blue-500/50 outline-none rounded-lg shadow-sm transition-colors">
               <SelectValue placeholder="Selecione a semana" />
             </SelectTrigger>
             <SelectContent className="border-slate-200 rounded-xl shadow-lg">
@@ -88,7 +88,7 @@ export default function EssayVolumeChart({ initialData }: EssayVolumeChartProps)
 
       </div>
 
-      <div className="w-full h-[300px] mt-4">
+      <div className="w-full h-75 mt-4">
         {(!data || data.length === 0) ? (
           <div className="h-full flex items-center justify-center text-sm font-bold text-slate-400">
             Sem dados para exibir nesta semana.

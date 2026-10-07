@@ -213,7 +213,7 @@ export function CreditsUsageCard({
           </div>
 
           <div className="shrink-0 text-right">
-            <span className="text-3xl font-bold text-slate-900">
+            <span className="text-3xl font-bold">
               {availableCredits}
             </span>
 
@@ -259,7 +259,7 @@ export function CreditsUsageCard({
             </div>
 
             <div className="shrink-0 text-right">
-              <span className="text-3xl font-bold text-slate-900">
+              <span className="text-3xl font-bold">
                 {freeCredits}
               </span>
 
@@ -302,7 +302,7 @@ export function CreditsUsageCard({
               </div>
 
               <div className="shrink-0 text-right">
-                <span className="text-3xl font-bold text-slate-900">
+                <span className="text-3xl font-bold">
                   {mentorshipAvailableCredits}
                 </span>
 
@@ -345,7 +345,7 @@ export function CreditsUsageCard({
             </p>
           </div>
 
-          <span className="text-3xl font-bold text-slate-900">
+          <span className="text-3xl font-bold">
             {credits.extra_credits ?? 0}
           </span>
         </div>

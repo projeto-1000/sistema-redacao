@@ -351,7 +351,7 @@ export function EssayViewer({
       const isCommentValid = popover.comment.trim().length > 0;
 
       return (
-        <div className="w-[min(22rem,calc(100vw-2rem))] text-slate-900">
+        <div className="w-[min(22rem,calc(100vw-2rem))]">
           <div className="mb-3 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -413,26 +413,26 @@ export function EssayViewer({
 
           {!readOnly && (
             <div className="mt-3 flex items-center justify-end gap-2">
-                {activeHighlight && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveHighlight(activeHighlight.id)}
-                    className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
-                  >
-                    <Trash2 className="size-3.5" />
-                    Remover apontamento
-                  </button>
-                )}
-
-                <Button
+              {activeHighlight && (
+                <button
                   type="button"
-                  size="sm"
-                  disabled={!isCommentValid}
-                  onClick={handleSaveHighlightComment}
-                  className="rounded-lg bg-indigo-600 px-3 text-xs font-bold text-white hover:bg-indigo-700"
+                  onClick={() => handleRemoveHighlight(activeHighlight.id)}
+                  className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50"
                 >
-                  Salvar comentário
-                </Button>
+                  <Trash2 className="size-3.5" />
+                  Remover apontamento
+                </button>
+              )}
+
+              <Button
+                type="button"
+                size="sm"
+                disabled={!isCommentValid}
+                onClick={handleSaveHighlightComment}
+                className="rounded-lg bg-indigo-600 px-3 text-xs font-bold text-white hover:bg-indigo-700"
+              >
+                Salvar comentário
+              </Button>
             </div>
           )}
         </div>

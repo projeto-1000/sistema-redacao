@@ -53,7 +53,16 @@ export function HistoryRow({ item }: HistoryRowProps) {
                 {item.details.description}
               </p>
 
-              {item.details.occurredAt && (
+              {item.details.startedAt && (
+                <p className="mt-2 text-xs font-medium text-slate-500">
+                  Solicitado em {formatDate(item.details.startedAt, "numeric")}
+                  {item.details.completedAt && (
+                    <> · Concluído em {formatDate(item.details.completedAt, "numeric")}</>
+                  )}
+                </p>
+              )}
+
+              {!item.details.startedAt && item.details.occurredAt && (
                 <p className="mt-2 text-xs font-medium text-slate-500">
                   Decisão registrada em {formatDate(item.details.occurredAt, "numeric")}
                 </p>

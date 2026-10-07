@@ -72,7 +72,7 @@ export function PaymentOverview({
         <section className="flex h-full flex-col rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-xl font-black text-slate-900">Resumo do período</h2>
+              <h2 className="text-xl font-black">Resumo do período</h2>
               <p className="mt-1 text-sm font-medium text-slate-500">
                 Somente redações finalizadas entram no cálculo.
               </p>
@@ -83,11 +83,11 @@ export function PaymentOverview({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="rounded-2xl bg-emerald-50 p-5">
               <p className="text-sm font-medium text-slate-600">Entregues no prazo</p>
-              <p className="mt-1 text-3xl font-black text-slate-900">{metrics.onTime}</p>
+              <p className="mt-1 text-3xl font-black">{metrics.onTime}</p>
             </div>
             <div className="rounded-2xl bg-red-50 p-5">
               <p className="text-sm font-medium text-slate-600">Entregues com atraso</p>
-              <p className="mt-1 text-3xl font-black text-slate-900">{metrics.delayed}</p>
+              <p className="mt-1 text-3xl font-black">{metrics.delayed}</p>
             </div>
           </div>
 
@@ -99,7 +99,7 @@ export function PaymentOverview({
                   Distribuição das entregas finalizadas no período
                 </p>
               </div>
-              <span className="shrink-0 text-lg font-black text-slate-900">{onTimePercentage}% no prazo</span>
+              <span className="shrink-0 text-lg font-black">{onTimePercentage}% no prazo</span>
             </div>
             <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-red-100">
               <span
@@ -118,7 +118,7 @@ export function PaymentOverview({
               <Landmark className="size-5" />
             </span>
             <div>
-              <h2 className="text-xl font-black text-slate-900">Conta principal</h2>
+              <h2 className="text-xl font-black">Conta principal</h2>
               <p className="text-sm font-medium text-slate-500">Usada para os próximos pagamentos</p>
             </div>
           </div>
@@ -127,7 +127,7 @@ export function PaymentOverview({
             <div className="rounded-2xl border border-slate-200 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-bold text-slate-900">
+                  <p className="font-bold">
                     {account.type === "pix" ? `PIX • ${account.pix_type?.toUpperCase()}` : account.bank_name}
                   </p>
                   <p className="mt-1 truncate text-sm font-medium text-slate-500">
@@ -184,7 +184,7 @@ function MetricCard({
         <div className="min-w-0">
           <p className="text-sm font-medium text-slate-500">{label}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <p className="text-2xl font-black text-slate-900">{value}</p>
+            <p className="text-2xl font-black">{value}</p>
             {badge && (
               <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${badgeClassName}`}>
                 {badge}

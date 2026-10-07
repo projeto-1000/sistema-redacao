@@ -17,7 +17,7 @@ export default function MobileMotivationalTexts({ isOpen, onClose, topic }: Prop
       <DialogTrigger asChild>
         <Button className="flex lg:hidden mb-4 pt-4 pb-4 h-16 text-[16px] border border-slate-200 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-bold justify-start">
           <div className="flex items-center rounded-xl bg-primary p-2 shadow-sm shadow-yellow-200 shrink-0">
-            <FileText className="size-5 text-slate-900" />
+            <FileText className="size-5" />
           </div>
           Ver textos motivadores
 
@@ -28,7 +28,7 @@ export default function MobileMotivationalTexts({ isOpen, onClose, topic }: Prop
           <DialogTitle>Textos Motivadores</DialogTitle>
         </DialogHeader>
 
-        <div className="no-scrollbar -mx-4 max-h-[600px] overflow-y-auto px-4">
+        <div className="no-scrollbar -mx-4 max-h-150 overflow-y-auto px-4">
           <MotivationalTexts topic={topic} />
         </div>
       </DialogContent>

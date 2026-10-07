@@ -47,7 +47,7 @@ export function CorrectionRatesManager({ data }: { data: CorrectionRatesManageme
             <div>
               <p className="text-sm font-bold text-slate-500">Valor padrão</p>
               <div className="mt-1 flex flex-wrap items-center gap-3">
-              <p className="text-4xl font-black text-slate-900">{formatDecimalCurrency(data.defaultRate)}</p>
+                <p className="text-4xl font-black">{formatDecimalCurrency(data.defaultRate)}</p>
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase text-emerald-700">Vigente</span>
               </div>
               <p className="mt-2 text-sm font-medium text-slate-500">Aplicado a professores sem valor personalizado.</p>
@@ -76,7 +76,7 @@ export function CorrectionRatesManager({ data }: { data: CorrectionRatesManageme
         <section className="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-black text-slate-900">Exceções por professor</h2>
+              <h2 className="text-xl font-black">Exceções por professor</h2>
               <p className="mt-1 text-sm font-medium text-slate-500">Professores com valor diferente do padrão ou alteração agendada.</p>
             </div>
             <Button onClick={() => setModal({ kind: "teacher", teacher: data.teachers.find((teacher) => teacher.usesDefault) ?? data.teachers[0]! })} disabled={data.teachers.length === 0} className="rounded-xl font-bold">
@@ -107,9 +107,9 @@ export function CorrectionRatesManager({ data }: { data: CorrectionRatesManageme
               <div key={teacher.id} className="grid grid-cols-1 gap-4 px-4 py-5 lg:grid-cols-12 lg:items-center">
                 <div className="flex items-center gap-3 lg:col-span-4">
                   <Avatar src={teacher.avatarUrl} name={teacher.name} className="size-10" />
-                  <div className="min-w-0"><p className="truncate text-sm font-bold text-slate-900">{teacher.name}</p><p className="truncate text-xs font-medium text-slate-500">{teacher.email}</p></div>
+                  <div className="min-w-0"><p className="truncate text-sm font-bold">{teacher.name}</p><p className="truncate text-xs font-medium text-slate-500">{teacher.email}</p></div>
                 </div>
-                <p className="text-sm font-black text-slate-900 lg:col-span-2">{formatDecimalCurrency(teacher.scheduledRate ?? teacher.currentRate)}</p>
+                <p className="text-sm font-black lg:col-span-2">{formatDecimalCurrency(teacher.scheduledRate ?? teacher.currentRate)}</p>
                 <p className="text-sm font-medium text-slate-500 lg:col-span-3">
                   {teacher.scheduledFrom ? `A partir de ${formatMonth(teacher.scheduledFrom)}` : `Desde ${formatMonth(teacher.effectiveFrom)}`}
                 </p>
@@ -127,7 +127,7 @@ export function CorrectionRatesManager({ data }: { data: CorrectionRatesManageme
 }
 
 function SummaryCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><span className="flex size-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">{icon}</span><div><p className="text-sm font-medium text-slate-500">{label}</p><p className="text-2xl font-black text-slate-900">{value}</p></div></div>;
+  return <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><span className="flex size-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">{icon}</span><div><p className="text-sm font-medium text-slate-500">{label}</p><p className="text-2xl font-black">{value}</p></div></div>;
 }
 
 function RateDialog({ data, target, onClose }: { data: CorrectionRatesManagementData; target: { kind: "default" } | { kind: "teacher"; teacher: CorrectionRateTeacherItem }; onClose: () => void }) {

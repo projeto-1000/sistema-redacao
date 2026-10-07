@@ -17,7 +17,7 @@ export function PaymentAccountsList({
     <section className="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-slate-900">
+          <h2 className="text-xl font-black">
             Contas de recebimento
           </h2>
           <p className="mt-1 text-sm font-medium text-slate-500">
@@ -51,7 +51,7 @@ export function PaymentAccountsList({
                 </span>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-bold text-slate-900">
+                    <p className="font-bold">
                       {account.type === "pix"
                         ? `PIX • ${account.pix_type?.toUpperCase()}`
                         : `${account.bank_name} • Conta ${account.account_variant}`}

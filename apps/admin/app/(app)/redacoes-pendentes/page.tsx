@@ -41,8 +41,8 @@ export default async function PendingEssaysPage({
           role="tab"
           aria-selected={activeTab === "pendentes"}
           className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${activeTab === "pendentes"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
+            ? "bg-white shadow-sm"
+            : "text-slate-500 hover:text-slate-700"
             }`}
         >
           Redações pendentes
@@ -52,8 +52,8 @@ export default async function PendingEssaysPage({
           role="tab"
           aria-selected={activeTab === "revisoes"}
           className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${activeTab === "revisoes"
-              ? "bg-white shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
+            ? "bg-white shadow-sm"
+            : "text-slate-500 hover:text-slate-700"
             }`}
         >
           Aguardando revisão ({reviewQueueResult.totalCount})
@@ -66,7 +66,7 @@ export default async function PendingEssaysPage({
 
           <Suspense
             key={suspenseKey}
-            fallback={<Skeleton className="rounded-3xl min-h-[250px] bg-slate-200 mt-6" />}
+            fallback={<Skeleton className="rounded-3xl min-h-62.5 bg-slate-200 mt-6" />}
           >
             <PendingEssaysTable filters={filters} page={page} />
           </Suspense>

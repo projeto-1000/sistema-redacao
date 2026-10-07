@@ -120,7 +120,7 @@ export function CampaignExportMenu({ from, to, fromDate, toDate }: CampaignExpor
               >
                 <Icon className="mt-0.5 size-4" aria-hidden="true" />
                 <span>
-                  <span className="block font-semibold text-slate-900">{exportConfig.label}</span>
+                  <span className="block font-semibold">{exportConfig.label}</span>
                   <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
                     {exportConfig.description}
                   </span>

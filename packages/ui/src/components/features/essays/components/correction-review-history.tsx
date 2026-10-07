@@ -336,7 +336,7 @@ function CorrectionChanges({
     <div className="grid items-start gap-8 lg:grid-cols-5">
       <section className="space-y-4 lg:col-span-3">
         <div>
-          <h3 className="text-xl font-black text-slate-900">
+          <h3 className="text-xl font-black">
             Ajustes realizados na revisão
           </h3>
           <p className="mt-1 text-sm text-slate-500">
@@ -417,7 +417,7 @@ function CorrectionChanges({
 
       <aside className="space-y-4 lg:col-span-2">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h3 className="flex items-center gap-2 font-bold text-slate-900">
+          <h3 className="flex items-center gap-2 font-bold">
             <History className="size-5 text-indigo-600" />
             Histórico da revisão
           </h3>
@@ -538,7 +538,7 @@ export function CorrectionReviewHistory({
     <div className="space-y-8">
       <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="flex items-center gap-2 font-bold text-slate-900">
+          <p className="flex items-center gap-2 font-bold">
             <History className="size-5 text-indigo-600" />
             Histórico desta correção
           </p>
@@ -552,7 +552,7 @@ export function CorrectionReviewHistory({
             type="button"
             onClick={() => setView("original")}
             className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${view === "original"
-              ? "bg-white text-slate-900 shadow-sm"
+              ? "bg-white shadow-sm"
               : "text-slate-500 hover:text-slate-700"
               }`}
           >
@@ -562,7 +562,7 @@ export function CorrectionReviewHistory({
             type="button"
             onClick={() => setView("published")}
             className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${view === "published"
-              ? "bg-white text-slate-900 shadow-sm"
+              ? "bg-white shadow-sm"
               : "text-slate-500 hover:text-slate-700"
               }`}
           >
@@ -572,7 +572,7 @@ export function CorrectionReviewHistory({
             type="button"
             onClick={() => setView("changes")}
             className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${view === "changes"
-              ? "bg-white text-slate-900 shadow-sm"
+              ? "bg-white shadow-sm"
               : "text-slate-500 hover:text-slate-700"
               }`}
           >
