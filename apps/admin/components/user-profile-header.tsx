@@ -31,6 +31,7 @@ interface UserProfileHeaderProps {
   onEdit?: () => void;
   onToggleStatus?: () => void;
   statusBadge?: React.ReactNode;
+  statusDisplay?: { label: string; colors: string };
   footer?: React.ReactNode;
   disableAction?: boolean
 }
@@ -40,11 +41,12 @@ export function UserProfileHeader({
   onEdit,
   onToggleStatus,
   statusBadge,
+  statusDisplay,
   footer,
   disableAction = false
 }: UserProfileHeaderProps) {
 
-  const currentStatus = USER_STATUS_MAP[user.status as keyof typeof USER_STATUS_MAP] || USER_STATUS_MAP.inactive;
+  const currentStatus = statusDisplay || USER_STATUS_MAP[user.status as keyof typeof USER_STATUS_MAP] || USER_STATUS_MAP.inactive;
   const isActive = user.status === 'active';
 
   const [isIdCopied, setIsIdCopied] = useState(false);

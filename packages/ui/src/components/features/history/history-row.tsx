@@ -45,16 +45,30 @@ export function HistoryRow({ item }: HistoryRowProps) {
             </summary>
 
             <div className="mt-3 border-t border-slate-200 pt-3">
-              <p className="text-sm font-bold text-slate-800">
-                {item.details.title}
-              </p>
+              {item.details.summary && (
+                <dl className="space-y-3 text-sm leading-relaxed">
+                  {item.details.summary.map(({ label, value }) => (
+                    <div key={label} className="grid gap-1 sm:grid-cols-[145px_minmax(0,1fr)] sm:gap-4">
+                      <dt className="font-semibold text-slate-600">{label}</dt>
+                      <dd className="text-slate-700">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {item.details.title && (
+                <p className="text-sm font-bold text-slate-800">
+                  {item.details.title}
+                </p>
+              )}
 
-              <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                {item.details.description}
-              </p>
+              {item.details.description && (
+                <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                  {item.details.description}
+                </p>
+              )}
 
               {item.details.startedAt && (
-                <p className="mt-2 text-xs font-medium text-slate-500">
+                <p className="mt-4 text-xs font-medium leading-relaxed text-slate-500">
                   Solicitado em {formatDate(item.details.startedAt, "numeric")}
                   {item.details.completedAt && (
                     <> · Concluído em {formatDate(item.details.completedAt, "numeric")}</>
@@ -68,8 +82,8 @@ export function HistoryRow({ item }: HistoryRowProps) {
                 </p>
               )}
 
-              <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-amber-700">
+              <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
+                <p className="text-sm font-semibold leading-relaxed text-amber-700">
                   {item.details.reasonLabel}
                 </p>
 

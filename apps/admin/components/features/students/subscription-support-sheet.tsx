@@ -38,7 +38,7 @@ const actionIcons = {
   refund_only: RefreshCcw,
 };
 
-export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
+export function SubscriptionSupportSheet({ studentId, disabled = false }: { studentId: string; disabled?: boolean }) {
   const form = useSubscriptionSupport(studentId);
   const context = form.context;
   const summary = context && (
@@ -58,6 +58,7 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
         <Button
           variant="ghost"
           size="sm"
+          disabled={disabled}
           className="max-w-full whitespace-normal"
           onMouseEnter={form.preload}
           onFocus={form.preload}

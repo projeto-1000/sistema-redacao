@@ -12,6 +12,7 @@ import { formatDate, formatShortId } from "@repo/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { STUDENTS_TABLE_GRID } from "./students-table-layout";
+import { isStudentCancellationScheduled, SCHEDULED_CANCELLATION_BADGE } from "@/utils/student-subscription-status";
 
 const CREDIT_STYLES: Record<string, string> = {
   Plano: "border-blue-100 bg-blue-50/60 text-blue-700",
@@ -141,6 +142,10 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
         label: "Bloqueado",
         colors: "bg-red-50 text-red-600",
       };
+    }
+
+    if (isStudentCancellationScheduled(studentItem.subscription)) {
+      return { label: SCHEDULED_CANCELLATION_BADGE.label, colors: SCHEDULED_CANCELLATION_BADGE.classes };
     }
 
     switch (studentItem.subscription?.status) {

@@ -78,6 +78,8 @@ export async function getStudents({
         created_at,
         subscriptions!subscriptions_user_id_fkey (
           status,
+          cancel_at_period_end,
+          cancellation_mode,
           plan_id,
           current_period_start,
           current_period_end,
@@ -112,11 +114,12 @@ export async function getStudents({
       query = query.neq("status", "blocked").is("subscriptions", null);
     } else if (
       filters.status === "plan_active" ||
+      filters.status === "cancellation_scheduled" ||
       filters.status === "past_due" ||
       filters.status === "canceled"
     ) {
       const subscriptionStatuses =
-        filters.status === "plan_active"
+        filters.status === "plan_active" || filters.status === "cancellation_scheduled"
           ? ["active", "trial"]
           : filters.status === "past_due"
             ? ["past_due", "unpaid"]
@@ -126,6 +129,12 @@ export async function getStudents({
         .neq("status", "blocked")
         .in("subscriptions.status", subscriptionStatuses)
         .not("subscriptions", "is", null);
+      if (filters.status === "cancellation_scheduled") {
+        query = query.eq("subscriptions.cancel_at_period_end", true)
+          .eq("subscriptions.cancellation_mode", "end_of_period");
+      } else if (filters.status === "plan_active") {
+        query = query.eq("subscriptions.cancel_at_period_end", false);
+      }
     }
   }
 
@@ -317,6 +326,8 @@ export async function getStudents({
       subscription: subscription
         ? {
             status: subscription.status,
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            cancellation_mode: subscription.cancellation_mode,
             current_period_start: subscription.current_period_start,
             current_period_end: subscription.current_period_end,
           }

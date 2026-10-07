@@ -595,13 +595,14 @@ export interface HistoryDisplayItem {
 
   details?: {
     label: string;
-    title: string;
-    description: string;
+    title: string | null;
+    description: string | null;
     reasonLabel: string;
     reason: string;
     occurredAt: string | null;
     startedAt?: string | null;
     completedAt?: string | null;
+    summary?: { label: string; value: string }[];
   };
 }
 

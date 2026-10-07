@@ -15,6 +15,7 @@ import { GradedEssayView } from "@/components/graded-essay-view";
 import StudentSubscriptionCard from "@/components/student-subscription-card";
 import { HistoryList } from "@repo/ui/components/features/history/history-list";
 import { SubscriptionSupportSheet } from "@/components/features/students/subscription-support-sheet";
+import { isStudentCancellationScheduled } from "@/utils/student-subscription-status";
 
 export default async function StudentProfilePage({
   params,
@@ -48,7 +49,10 @@ export default async function StudentProfilePage({
       credits={student.credits}
       hasSubscriptionError={hasSubscriptionError}
       hasCreditsError={hasCreditsError}
-      actions={<SubscriptionSupportSheet studentId={studentId} />}
+      actions={<SubscriptionSupportSheet studentId={studentId} disabled={
+        !student.subscription || isStudentCancellationScheduled(student.subscription) ||
+        student.subscription.status === "canceled" || Boolean(student.subscription.pending_plan_id)
+      } />}
     />
   );
 

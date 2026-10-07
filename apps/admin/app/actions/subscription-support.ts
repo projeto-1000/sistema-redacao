@@ -122,6 +122,7 @@ export async function submitSubscriptionSupport(input: SubscriptionSupportInput)
         true
       );
       revalidatePath(`/alunos/${parsed.studentId}`);
+      revalidatePath("/alunos");
       revalidatePath("/cancelamentos");
       return {
         success: true,
@@ -183,6 +184,7 @@ export async function submitSubscriptionSupport(input: SubscriptionSupportInput)
     prepared = true;
     const result = await processSupportOperation(data as SubscriptionSupportOperation);
     revalidatePath(`/alunos/${parsed.studentId}`);
+    revalidatePath("/alunos");
     revalidatePath("/cancelamentos");
     return {
       success: true,
@@ -219,6 +221,7 @@ export async function verifySubscriptionSupport(operationId: string, studentId: 
     if (error) throw new Error("Atendimento não encontrado.");
     const result = await processSupportOperation(data as SubscriptionSupportOperation, true);
     revalidatePath(`/alunos/${studentId}`);
+    revalidatePath("/alunos");
     revalidatePath("/cancelamentos");
     return {
       success: true,

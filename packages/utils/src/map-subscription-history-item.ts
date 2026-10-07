@@ -6,6 +6,25 @@ import type {
 } from "@repo/types";
 import { formatCurrency } from "./format-currency";
 
+const SUPPORT_HISTORY_COPY: Record<string, { title: string; description: string }> = {
+  cancel_only: {
+    title: "Cancelamento agendado",
+    description: "Renovação interrompida. Plano mantido até o fim do período pago.",
+  },
+  cancel_refund: {
+    title: "Cancelamento e reembolso confirmados",
+    description: "Benefícios e créditos restantes do plano encerrados.",
+  },
+  refund_courtesy: {
+    title: "Reembolso confirmado",
+    description: "Acesso e créditos mantidos conforme a cortesia concedida.",
+  },
+  refund_only: {
+    title: "Reembolso confirmado",
+    description: "Reembolso realizado pelo suporte, sem cancelar o plano.",
+  },
+};
+
 function getMetadataString(
   metadata: Record<string, unknown> | null,
   key: string,
@@ -13,6 +32,55 @@ function getMetadataString(
   const value = metadata?.[key];
 
   return typeof value === "string" && value.trim() ? value : null;
+}
+
+function getSupportHistorySummary(
+  action: string | null,
+  refundAmount: unknown,
+): { label: string; value: string }[] {
+  if (typeof refundAmount !== "number") {
+    return [{ label: "Situação", value: "Atendimento solicitado. Aguardando confirmação." }];
+  }
+
+  const refund = {
+    label: "Reembolso",
+    value: refundAmount > 0 ? `${formatCurrency(refundAmount)} devolvidos.` : "Sem devolução de valor.",
+  };
+
+  switch (action) {
+    case "refund_only":
+      return [
+        refund,
+        { label: "Renovação", value: "Mantida. A assinatura continua com renovação automática." },
+        { label: "Benefícios do plano", value: "Mantidos, sem alteração no período de acesso." },
+        { label: "Créditos", value: "Nenhum crédito foi retirado por este reembolso." },
+      ];
+    case "cancel_only":
+      return [
+        refund,
+        { label: "Renovação", value: "Interrompida. Não haverá novas cobranças de renovação." },
+        { label: "Benefícios do plano", value: "Disponíveis até o fim do período já pago." },
+        { label: "Créditos do plano", value: "Mantidos até o fim do período já pago." },
+      ];
+    case "cancel_refund":
+      return [
+        refund,
+        { label: "Renovação", value: "Interrompida. Não haverá novas cobranças de renovação." },
+        { label: "Benefícios do plano", value: "Encerrados com a confirmação do reembolso. Sua conta e seu histórico continuam disponíveis." },
+        { label: "Créditos do plano", value: "Os créditos restantes desta assinatura foram invalidados." },
+        { label: "Outros créditos", value: "Créditos extras, gratuitos e de mentoria não foram alterados." },
+      ];
+    case "refund_courtesy":
+      return [
+        refund,
+        { label: "Renovação", value: "Interrompida. Não haverá novas cobranças de renovação." },
+        { label: "Benefícios do plano", value: "Mantidos pelo período de cortesia concedido pelo suporte." },
+        { label: "Créditos do plano", value: "Disponíveis conforme a cortesia concedida pelo suporte." },
+        { label: "Outros créditos", value: "Créditos extras, gratuitos e de mentoria não foram alterados." },
+      ];
+    default:
+      return [refund];
+  }
 }
 
 function formatCreditsAmount(amount: number, showPositiveSign = false): string {
@@ -273,18 +341,22 @@ function mapCreditEvent(
     case "administrative_adjustment":
       if (getMetadataString(event.metadata, "source") === "admin_support") {
         const refundAmount = event.metadata?.refund_amount;
+        const action = getMetadataString(event.metadata, "support_action");
+        const completed = typeof refundAmount === "number";
+        const copy = completed && action ? SUPPORT_HISTORY_COPY[action] : null;
         return {
-          id: event.id, title: event.description || "Atendimento da assinatura",
-          description: "Ação realizada pelo suporte a pedido do aluno.", createdAt: event.created_at,
+          id: event.id, title: copy?.title || event.description || "Atendimento da assinatura",
+          description: copy?.description || "Solicitação registrada pelo suporte.", createdAt: event.created_at,
           primaryValue: typeof refundAmount === "number" && refundAmount > 0 ? formatCurrency(refundAmount) : event.amount === 0 ? "Registro de atendimento" : formatCreditsAmount(event.amount),
           secondaryValue: null, category: "adjustment", valueTone: "neutral",
           details: {
-            label: "Ver detalhes do atendimento", title: event.description || "Atendimento da assinatura",
-            description: "O suporte registrou esta ação no histórico da assinatura.",
+            label: "Ver detalhes do atendimento", title: null,
+            description: null,
             reasonLabel: "Motivo informado pelo suporte",
             reason: getMetadataString(event.metadata, "reason") || "Não informado", occurredAt: event.created_at,
             startedAt: getMetadataString(event.metadata, "support_started_at"),
             completedAt: getMetadataString(event.metadata, "support_completed_at"),
+            summary: getSupportHistorySummary(action, refundAmount),
           },
         };
       }
@@ -333,8 +405,8 @@ function mapCreditEvent(
                 label: "Ver detalhes da decisão",
                 title: "Decisão sobre o pedido de cancelamento",
                 description:
-                  "A solicitação foi analisada pela equipe e não pôde ser aprovada.",
-                reasonLabel: "Motivo informado pela equipe",
+                  "A solicitação foi analisada pelo suporte e não pôde ser aprovada.",
+                reasonLabel: "Motivo informado pelo suporte",
                 reason: reviewReason,
                 occurredAt: reviewedAt,
               }
@@ -347,7 +419,7 @@ function mapCreditEvent(
         title: "Ajuste de créditos",
         description:
           event.description ||
-          "Movimentação realizada pela equipe da plataforma.",
+          "Movimentação realizada pelo suporte da plataforma.",
         createdAt: event.created_at,
         primaryValue: formatCreditsAmount(event.amount, event.amount > 0),
         secondaryValue: null,

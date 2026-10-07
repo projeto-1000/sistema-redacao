@@ -22,6 +22,8 @@ export type StudentsListItem = {
 
   subscription: {
     status: string;
+    cancel_at_period_end: boolean;
+    cancellation_mode: string | null;
     current_period_start: string | null;
     current_period_end: string | null;
   } | null;

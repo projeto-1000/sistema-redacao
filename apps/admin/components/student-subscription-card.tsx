@@ -3,6 +3,7 @@ import { StudentCredits, StudentSubscription, SubscriptionStatus } from "@repo/t
 import { formatDate } from "@repo/utils";
 import { CircleAlert } from "lucide-react";
 import type { JSX } from "react";
+import { isStudentCancellationScheduled, SCHEDULED_CANCELLATION_BADGE } from "@/utils/student-subscription-status";
 interface StudentSubscriptionCardProps {
   subscription: StudentSubscription | null;
   credits: StudentCredits | null;
@@ -99,7 +100,9 @@ export default function StudentSubscriptionCard({
 
   const planPeriodLabel = subscription ? getPlanPeriodLabel(subscription) : null;
 
-  const badge = subscription ? statusBadgeConfig[subscription.status as SubscriptionStatus] : null;
+  const isCancellationScheduled = isStudentCancellationScheduled(subscription);
+  const badge = isCancellationScheduled ? SCHEDULED_CANCELLATION_BADGE
+    : subscription ? statusBadgeConfig[subscription.status as SubscriptionStatus] : null;
 
   const isLifetime = subscription?.interval === "lifetime";
 
