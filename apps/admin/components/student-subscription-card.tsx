@@ -5,6 +5,7 @@ import {
 } from "@repo/types";
 import { formatDate } from "@repo/utils";
 import { CircleAlert } from "lucide-react";
+import type { JSX } from "react";
 
 const statusBadgeConfig: Record<
   SubscriptionStatus,
@@ -37,6 +38,7 @@ interface StudentSubscriptionCardProps {
   credits: StudentCredits | null;
   hasSubscriptionError: boolean;
   hasCreditsError: boolean;
+  actions?: JSX.Element;
 }
 
 function getPlanPeriodLabel(subscription: StudentSubscription) {
@@ -69,6 +71,7 @@ export default function StudentSubscriptionCard({
   credits,
   hasCreditsError,
   hasSubscriptionError,
+  actions,
 }: StudentSubscriptionCardProps) {
   if (hasSubscriptionError || hasCreditsError) {
     return (
@@ -252,6 +255,7 @@ export default function StudentSubscriptionCard({
                   </p>
                 </div>
               )}
+            {actions && <div className="border-t border-slate-200 pt-4">{actions}</div>}
           </div>
         ) : (
           <div>

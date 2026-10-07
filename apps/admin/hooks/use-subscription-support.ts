@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   getSubscriptionSupportContext,
@@ -11,6 +11,7 @@ import { courtesyDateToIso, parseRefundAmount } from "@/utils/subscription-suppo
 import type { SubscriptionSupportAction, SubscriptionSupportContext } from "@repo/types";
 import { subscriptionSupportSchema } from "@repo/validators";
 import { toast } from "sonner";
+import { getSubscriptionAccessEnd } from "@repo/utils";
 
 export function useSubscriptionSupport(studentId: string) {
   const router = useRouter();
@@ -19,6 +20,33 @@ export function useSubscriptionSupport(studentId: string) {
   const [context, setContext] = useState<SubscriptionSupportContext | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [loading, setLoading] = useState(false);
+  const opening = useRef(0);
+  const preview = useRef<{
+    studentId: string;
+    at: number;
+    promise: Promise<SubscriptionSupportContext>;
+    data?: SubscriptionSupportContext;
+  } | null>(null);
+  // Short-lived, per-panel preview only. Submission always validates fresh data on the server.
+  const loadContext = () => {
+    if (preview.current?.studentId === studentId && Date.now() - preview.current.at < 30_000)
+      return preview.current.promise;
+    const entry = { studentId, at: Date.now(), promise: getSubscriptionSupportContext(studentId) };
+    preview.current = entry;
+    void entry.promise.then(
+      (data) => {
+        if (preview.current === entry) preview.current.data = data;
+      },
+      () => {
+        if (preview.current === entry) preview.current = null;
+      }
+    );
+    return entry.promise;
+  };
+  const preload = () => {
+    void loadContext().catch(() => undefined);
+  };
   const [action, setAction] = useState<SubscriptionSupportAction>("cancel_only");
   const [paymentId, setPaymentId] = useState("");
   const [partial, setPartial] = useState(false);
@@ -46,29 +74,42 @@ export function useSubscriptionSupport(studentId: string) {
   };
   const changeOpen = (next: boolean) => {
     if (pending) return;
+    const request = ++opening.current;
     setOpen(next);
-    if (!next) return;
+    if (!next) {
+      setLoading(false);
+      return;
+    }
     setStep(1);
-    setContext(null);
+    setContext(
+      preview.current?.studentId === studentId && Date.now() - preview.current.at < 30_000
+        ? (preview.current.data ?? null)
+        : null
+    );
     setError(null);
     setReason("");
     setAction("cancel_only");
     setPartial(false);
     setPartialAmount("");
     setOperationId(crypto.randomUUID());
-    startTransition(async () => {
+    setLoading(true);
+    void (async () => {
       try {
-        const data = await getSubscriptionSupportContext(studentId);
+        const data = await loadContext();
+        if (opening.current !== request) return;
         setContext(data);
         setPaymentId(data.payments[0]?.id ?? "");
         setCourtesyCredits(String(data.availableCredits));
         setCourtesyUntil("");
       } catch (cause) {
+        if (opening.current !== request) return;
         setError(
           cause instanceof Error ? cause.message : "Não foi possível carregar o atendimento."
         );
+      } finally {
+        if (opening.current === request) setLoading(false);
       }
-    });
+    })();
   };
   const review = () => {
     const parsed = subscriptionSupportSchema.safeParse(input);
@@ -81,7 +122,8 @@ export function useSubscriptionSupport(studentId: string) {
       (amount ?? 0) > payment.amount ||
       (action === "refund_courtesy" &&
         (Number(courtesyCredits) > (context?.availableCredits ?? 0) ||
-          Date.parse(input.courtesyUntil ?? "") > Date.parse(context?.periodEnd ?? "")))
+          Date.parse(input.courtesyUntil ?? "") >
+            Date.parse(context ? getSubscriptionAccessEnd(context.periodEnd) : "")))
     ) {
       setError(
         "Confira o valor e a cortesia: use apenas créditos existentes e validade dentro do período pago."
@@ -93,6 +135,7 @@ export function useSubscriptionSupport(studentId: string) {
   };
   const confirm = () =>
     startTransition(async () => {
+      preview.current = null;
       const result = await submitSubscriptionSupport(input);
       if (!result.success) {
         setError(result.message);
@@ -111,6 +154,7 @@ export function useSubscriptionSupport(studentId: string) {
     });
   const verify = () =>
     startTransition(async () => {
+      preview.current = null;
       if (!context?.pendingOperation) return;
       const result = await verifySubscriptionSupport(context.pendingOperation.id, studentId);
       if (result.success) toast.success(result.message);
@@ -130,6 +174,8 @@ export function useSubscriptionSupport(studentId: string) {
     context,
     error,
     pending,
+    loading,
+    preload,
     action,
     setAction,
     paymentId,

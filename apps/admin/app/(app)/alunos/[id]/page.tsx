@@ -48,6 +48,7 @@ export default async function StudentProfilePage({
       credits={student.credits}
       hasSubscriptionError={hasSubscriptionError}
       hasCreditsError={hasCreditsError}
+      actions={<SubscriptionSupportSheet studentId={studentId} />}
     />
   );
 
@@ -68,8 +69,6 @@ export default async function StudentProfilePage({
       >
         <StudentProfileHeader student={student} subscriptionCard={subscriptionCardContent} />
       </Suspense>
-
-      <div className="flex justify-end"><SubscriptionSupportSheet studentId={studentId} /></div>
 
       <StudentStatsCards studentId={student.id} />
 

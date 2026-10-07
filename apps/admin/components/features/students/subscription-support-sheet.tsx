@@ -20,12 +20,23 @@ import {
   SelectValue,
 } from "@repo/ui/components/select";
 import { Input } from "@repo/ui/components/input";
+import { CurrencyInput } from "@repo/ui/components/currency-input";
+import { Skeleton } from "@repo/ui/components/skeleton";
 import { Label } from "@repo/ui/components/label";
 import { Textarea } from "@repo/ui/components/textarea";
 import { Alert, AlertDescription } from "@repo/ui/components/alert";
 import { formatCurrency, formatDate } from "@repo/utils";
-import { Loader2 } from "lucide-react";
+import { CalendarClock, CircleDollarSign, Gift, Loader2, RefreshCcw } from "lucide-react";
 import { SubscriptionSupportSummary } from "./subscription-support-summary";
+import { SubscriptionSupportStepper } from "./subscription-support-stepper";
+import { SubscriptionSupportContextCard } from "./subscription-support-context-card";
+
+const actionIcons = {
+  cancel_only: CalendarClock,
+  cancel_refund: CircleDollarSign,
+  refund_courtesy: Gift,
+  refund_only: RefreshCcw,
+};
 
 export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
   const form = useSubscriptionSupport(studentId);
@@ -34,8 +45,9 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
     <SubscriptionSupportSummary
       action={form.action}
       amount={form.amount ?? 0}
-      availableCredits={context.availableCredits}
-      periodEnd={context.periodEnd}
+      context={context}
+      payment={form.payment}
+      reason={form.reason}
       courtesyCredits={Number(form.courtesyCredits)}
       courtesyUntil={form.courtesyUntil}
     />
@@ -43,7 +55,15 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
   return (
     <Sheet open={form.open} onOpenChange={form.changeOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline">Cancelar ou reembolsar</Button>
+        <Button
+          variant="outline"
+          className="w-full bg-white"
+          onMouseEnter={form.preload}
+          onFocus={form.preload}
+        >
+          <CircleDollarSign className="size-4" />
+          Cancelar ou reembolsar
+        </Button>
       </SheetTrigger>
       <SheetContent
         onInteractOutside={(event) => {
@@ -53,7 +73,7 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
           if (form.pending) event.preventDefault();
         }}
       >
-        <header className="pr-8">
+        <header className="shrink-0 pr-8">
           <SheetTitle className="text-xl font-bold text-slate-800">
             Cancelar ou reembolsar
           </SheetTitle>
@@ -61,34 +81,23 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
             Atendimento em nome do aluno. Revise as consequências antes de confirmar.
           </SheetDescription>
         </header>
-        <div className="mt-5 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1">
+        <div className="mt-5 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1 [&>*]:shrink-0">
           {form.error && (
             <Alert variant="destructive">
               <AlertDescription>{form.error}</AlertDescription>
             </Alert>
           )}
-          {!context && form.pending && (
-            <p className="flex items-center gap-2 text-sm">
-              <Loader2 className="size-4 animate-spin" />
-              Carregando atendimento…
-            </p>
+          {!context && form.loading && (
+            <>
+              <SubscriptionSupportContextCard context={null} />
+              <SubscriptionSupportStepper step={1} />
+              <Skeleton className="h-24 w-full rounded-xl" />
+              <Skeleton className="h-24 w-full rounded-xl" />
+            </>
           )}
           {context && (
             <>
-              <div className="rounded-xl border border-slate-200 p-4 text-sm">
-                <p className="font-bold">{context.name}</p>
-                <p className="text-slate-500">{context.email}</p>
-                <p className="mt-2">
-                  {context.planName} · {context.availableCredits} créditos disponíveis
-                </p>
-                <p className="text-slate-500">
-                  Disponibilizados: {context.grantedCredits ?? "Não registrado"} · Utilizados:{" "}
-                  {context.usedCredits ?? "Não registrado"}
-                </p>
-                <p className="text-slate-500">
-                  Período pago até {formatDate(context.periodEnd, "date-time")}
-                </p>
-              </div>
+              <SubscriptionSupportContextCard context={context} />
               {context.pendingOperation ? (
                 <Alert>
                   <AlertDescription className="space-y-3">
@@ -107,44 +116,39 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
                 </Alert>
               ) : (
                 <>
-                  <ol
-                    className="flex gap-4 text-xs text-slate-500"
-                    aria-label="Etapas do atendimento"
-                  >
-                    {["Tipo de ação", "Detalhes", "Confirmação"].map((label, index) => (
-                      <li
-                        key={label}
-                        aria-current={form.step === index + 1 ? "step" : undefined}
-                        className={form.step === index + 1 ? "font-bold text-blue-700" : ""}
-                      >
-                        {index + 1}. {label}
-                      </li>
-                    ))}
-                  </ol>
+                  <SubscriptionSupportStepper step={form.step} />
                   {form.step === 1 && (
                     <RadioGroup
                       value={form.action}
                       onValueChange={(value) => form.setAction(value as SubscriptionSupportAction)}
                     >
-                      {Object.entries(SUBSCRIPTION_SUPPORT_ACTIONS).map(([value, config]) => (
-                        <Label
-                          key={value}
-                          htmlFor={`support-${value}`}
-                          className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${form.action === value ? "border-blue-300 bg-blue-50" : "border-slate-200"}`}
-                        >
-                          <RadioGroupItem
-                            value={value}
-                            id={`support-${value}`}
-                            className="mt-0.5"
-                          />
-                          <span>
-                            <span className="block font-semibold">{config.label}</span>
-                            <span className="mt-1 block text-xs leading-relaxed font-normal text-slate-500">
-                              {config.description}
+                      {Object.entries(SUBSCRIPTION_SUPPORT_ACTIONS).map(([value, config]) => {
+                        const Icon = actionIcons[value as SubscriptionSupportAction];
+                        return (
+                          <Label
+                            key={value}
+                            htmlFor={`support-${value}`}
+                            className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${form.action === value ? "border-blue-400 bg-blue-50 shadow-sm ring-1 ring-blue-100" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"}`}
+                          >
+                            <RadioGroupItem
+                              value={value}
+                              id={`support-${value}`}
+                              className="mt-2"
+                            />
+                            <span
+                              className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${form.action === value ? "bg-blue-100 text-blue-600" : "bg-slate-100 text-slate-500"}`}
+                            >
+                              <Icon className="size-5" />
                             </span>
-                          </span>
-                        </Label>
-                      ))}
+                            <span className="min-w-0">
+                              <span className="block font-semibold">{config.label}</span>
+                              <span className="mt-1 block text-xs leading-relaxed font-normal text-slate-500">
+                                {config.description}
+                              </span>
+                            </span>
+                          </Label>
+                        );
+                      })}
                     </RadioGroup>
                   )}
                   {form.step === 2 && (
@@ -183,26 +187,39 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
                           <RadioGroup
                             value={form.partial ? "partial" : "full"}
                             onValueChange={(value) => form.setPartial(value === "partial")}
-                            className="flex gap-4"
+                            className="grid grid-cols-2 gap-3"
                           >
-                            <Label className="flex items-center gap-2">
-                              <RadioGroupItem value="full" />
+                            <Label
+                              htmlFor="refund-full"
+                              className={`flex items-center gap-2 rounded-lg border p-3 ${!form.partial ? "border-blue-300 bg-blue-50 text-blue-700" : "border-slate-200"}`}
+                            >
+                              <RadioGroupItem id="refund-full" value="full" />
                               Integral
                             </Label>
-                            <Label className="flex items-center gap-2">
-                              <RadioGroupItem value="partial" />
+                            <Label
+                              htmlFor="refund-partial"
+                              className={`flex items-center gap-2 rounded-lg border p-3 ${form.partial ? "border-blue-300 bg-blue-50 text-blue-700" : "border-slate-200"}`}
+                            >
+                              <RadioGroupItem id="refund-partial" value="partial" />
                               Parcial
                             </Label>
                           </RadioGroup>
-                          {form.partial && (
-                            <Input
-                              aria-label="Valor parcial em reais"
-                              inputMode="decimal"
-                              placeholder="Ex.: 20,00"
-                              value={form.partialAmount}
-                              onChange={(event) => form.setPartialAmount(event.target.value)}
-                            />
-                          )}
+                          <CurrencyInput
+                            aria-label="Valor do reembolso em reais"
+                            value={form.amount ?? null}
+                            readOnly={!form.partial}
+                            className={!form.partial ? "bg-slate-50 text-slate-600" : ""}
+                            onValueChange={(cents) =>
+                              form.setPartialAmount(cents === null ? "" : (cents / 100).toFixed(2))
+                            }
+                          />
+                          <p className="text-xs text-slate-500">
+                            {form.partial
+                              ? "Digite o valor em reais e centavos."
+                              : "Será devolvido o valor integral da cobrança selecionada."}{" "}
+                            {form.payment &&
+                              `Valor da cobrança: ${formatCurrency(form.payment.amount)}.`}
+                          </p>
                         </div>
                       )}
                       {form.action === "refund_courtesy" && (
@@ -251,28 +268,14 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
                       {summary}
                     </div>
                   )}
-                  {form.step === 3 && (
-                    <>
-                      {summary}
-                      <div className="rounded-xl border p-4 text-sm">
-                        <p className="font-semibold">Justificativa registrada</p>
-                        <p className="mt-2 whitespace-pre-wrap">{form.reason}</p>
-                      </div>
-                      <Alert>
-                        <AlertDescription>
-                          Ao confirmar, esta ação será enviada à Pagar.me. A devolução só será
-                          marcada como concluída após confirmação.
-                        </AlertDescription>
-                      </Alert>
-                    </>
-                  )}
+                  {form.step === 3 && summary}
                 </>
               )}
             </>
           )}
         </div>
         {context && !context.pendingOperation && (
-          <footer className="mt-5 flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-between">
+          <footer className="mt-5 flex shrink-0 flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-between">
             <Button
               variant="outline"
               disabled={form.pending}
@@ -284,7 +287,7 @@ export function SubscriptionSupportSheet({ studentId }: { studentId: string }) {
             </Button>
             <Button
               className="h-auto min-h-10 whitespace-normal"
-              disabled={form.pending || !context.payments.length}
+              disabled={form.pending || form.loading || !context.payments.length}
               onClick={
                 form.step === 1
                   ? () => form.setStep(2)

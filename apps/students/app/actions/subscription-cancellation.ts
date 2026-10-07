@@ -16,6 +16,7 @@ import {
   type RequestSubscriptionCancellationResult,
 } from "@/types/subscription-cancellation";
 import { buildSubscriptionCode, isValidPaymentMethod } from "@/utils/checkout-utils";
+import { getSubscriptionAccessEnd } from "@repo/utils";
 
 const allowedCancellationReasons = new Set<string>(
   subscriptionCancellationReasons.map((reason) => reason.value)
@@ -332,7 +333,7 @@ export async function requestSubscriptionCancellation(
     };
   }
 
-  if (effectiveAtDate.getTime() <= Date.now()) {
+  if (new Date(getSubscriptionAccessEnd(subscription.current_period_end)).getTime() <= Date.now()) {
     return {
       success: false,
       message: "O período atual da assinatura já terminou. Atualize a página e tente novamente.",
@@ -355,7 +356,8 @@ export async function requestSubscriptionCancellation(
 
         cancellation_requested_at: requestedAt,
 
-        cancellation_effective_at: subscription.current_period_end,
+        cancellation_effective_at: getSubscriptionAccessEnd(subscription.current_period_end),
+        current_period_end: getSubscriptionAccessEnd(subscription.current_period_end),
 
         cancellation_reason: input.reason,
 
@@ -365,6 +367,7 @@ export async function requestSubscriptionCancellation(
 
         cancellation_metadata: {
           source: "student_self_service",
+          original_period_end: subscription.current_period_end,
 
           requested_by_user_id: user.id,
 
@@ -471,7 +474,7 @@ export async function requestSubscriptionCancellation(
     return {
       success: true,
       kind: "ordinary",
-      effectiveAt: subscription.current_period_end,
+      effectiveAt: getSubscriptionAccessEnd(subscription.current_period_end),
       alreadyScheduled: false,
     };
   } catch (error) {
@@ -704,6 +707,10 @@ export async function reactivateScheduledSubscription(): Promise<ReactivateSched
       .from("subscriptions")
       .update({
         external_id: futureSubscription.id,
+        current_period_end:
+          typeof previousCancellationMetadata.original_period_end === "string"
+            ? previousCancellationMetadata.original_period_end
+            : subscription.current_period_end,
         cancel_at_period_end: false,
         cancellation_mode: null,
         cancellation_requested_at: null,

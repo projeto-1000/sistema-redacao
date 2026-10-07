@@ -13,11 +13,13 @@ import { revalidatePath } from "next/cache";
 
 async function requireAdmin() {
   const client = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await client.auth.getUser();
-  const { data: role, error: roleError } = await client.rpc("get_my_role");
+  const [
+    {
+      data: { user },
+      error,
+    },
+    { data: role, error: roleError },
+  ] = await Promise.all([client.auth.getUser(), client.rpc("get_my_role")]);
   if (error || !user || roleError || role !== "ADMIN")
     throw new Error("Sessão administrativa inválida.");
   return client;
@@ -49,26 +51,26 @@ export async function getSubscriptionSupportContext(
   if (profile.error || subscription.error || credits.error)
     throw new Error("Não foi possível carregar os dados do atendimento.");
   const sub = subscription.data;
-  const [plan, payments] = await Promise.all([
+  const payments = await client
+    .from("student_payments")
+    .select("id,amount,paid_at,credits_amount,external_id,metadata")
+    .eq("user_id", studentId)
+    .eq("subscription_id", sub.id)
+    .eq("kind", "subscription")
+    .in("status", ["paid", "active"])
+    .order("paid_at", { ascending: false })
+    .limit(1);
+  if (payments.error) throw new Error("Não foi possível carregar o plano e seus pagamentos.");
+  const [plan, snapshot] = await Promise.all([
     client.from("plans").select("name").eq("id", sub.plan_id).single(),
-    client
-      .from("student_payments")
-      .select("id,amount,paid_at,credits_amount,external_id,metadata")
-      .eq("user_id", studentId)
-      .eq("subscription_id", sub.id)
-      .eq("kind", "subscription")
-      .in("status", ["paid", "active"])
-      .order("paid_at", { ascending: false })
-      .limit(1),
+    payments.data?.[0]
+      ? client.rpc("preview_subscription_support_snapshot", {
+          p_student_id: studentId,
+          p_payment_id: payments.data[0].id,
+        })
+      : null,
   ]);
-  if (plan.error || payments.error)
-    throw new Error("Não foi possível carregar o plano e seus pagamentos.");
-  const snapshot = payments.data?.[0]
-    ? await client.rpc("preview_subscription_support_snapshot", {
-        p_student_id: studentId,
-        p_payment_id: payments.data[0].id,
-      })
-    : null;
+  if (plan.error) throw new Error("Não foi possível carregar o plano do aluno.");
   if (snapshot?.error) throw new Error("Não foi possível consultar os créditos da contratação.");
   if (
     !operations.data &&
