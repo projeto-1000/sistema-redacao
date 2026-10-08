@@ -4,8 +4,9 @@
 begin;
 set local session_replication_role = replica;
 insert into auth.users(id) values ('18000000-0000-0000-0000-000000000001');
-insert into public.profiles(id,email,full_name,role)
-values ('18000000-0000-0000-0000-000000000001','courtesy-local@example.com','Local Courtesy','STUDENT');
+insert into public.profiles(id,email,full_name,phone,document,role)
+values ('18000000-0000-0000-0000-000000000001','courtesy-local@example.com','Local Courtesy',
+  '11999999997','12345678903','STUDENT');
 insert into public.plans(id,name,external_id,credits_included,price,interval,interval_count)
 values ('28000000-0000-0000-0000-000000000001','Local plan','plan_localcourtesy',4,3990,'month',1);
 insert into public.subscriptions(id,user_id,plan_id,status,external_id,current_period_start,current_period_end,
