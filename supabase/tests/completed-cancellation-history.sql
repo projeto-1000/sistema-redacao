@@ -17,6 +17,15 @@ values ('38000000-0000-0000-0000-000000000001','18000000-0000-0000-0000-00000000
   '{"source":"admin_support","support_operation_id":"58000000-0000-0000-0000-000000000001"}');
 insert into public.student_credits(user_id,plan_credits,extra_credits,free_credits)
 values ('18000000-0000-0000-0000-000000000001',2,3,1);
+-- Expiry recomputes balances from the ledger, so the fixture needs matching grants.
+insert into public.credit_transactions(user_id,type,amount,description,metadata)
+values
+  ('18000000-0000-0000-0000-000000000001','new_subscription',2,'Local plan credits',
+    '{"credit_type":"plan"}'),
+  ('18000000-0000-0000-0000-000000000001','standalone_purchase',3,'Local extra credits',
+    '{"credit_type":"extra"}'),
+  ('18000000-0000-0000-0000-000000000001','free_trial_grant',1,'Local free credit',
+    '{"credit_type":"free"}');
 insert into public.student_payments(id,user_id,subscription_id,plan_id,kind,provider,external_id,
   amount,credits_amount,status,payment_method,paid_at)
 values ('48000000-0000-0000-0000-000000000001','18000000-0000-0000-0000-000000000001',
