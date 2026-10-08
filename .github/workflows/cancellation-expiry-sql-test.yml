@@ -27,7 +27,11 @@ jobs:
           version: 2.119.0
 
       - name: Start isolated local Supabase and apply migrations
-        run: supabase start
+        run: |
+          # The initial schema uses transaction_timeout, available in PostgreSQL 17.
+          # Override only this runner's local config; do not change remote settings.
+          sed -i 's/^major_version = 15$/major_version = 17/' supabase/config.toml
+          supabase start
 
       - name: Test refund history and courtesy expiry
         env:
