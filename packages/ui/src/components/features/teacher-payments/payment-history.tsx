@@ -23,7 +23,7 @@ export function PaymentHistory({ payments, headerAction }: PaymentHistoryProps) 
         <div>
           <h2 className="text-xl font-black">Histórico de pagamentos</h2>
           <p className="mt-1 text-sm font-medium text-slate-500">
-            Consulte os repasses externos registrados pela equipe.
+            Consulte os repasses externos registrados pelo suporte.
           </p>
         </div>
         {headerAction}

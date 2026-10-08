@@ -301,7 +301,7 @@ function getPeriodValue({
   }
 
   if (subscription.withdrawal_status === "operational_issue") {
-    return "Em acompanhamento pela equipe";
+    return "Em acompanhamento pelo suporte";
   }
 
   if (isCanceled && cancellationEffectiveAt) {
