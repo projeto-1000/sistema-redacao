@@ -317,7 +317,7 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
           Status
         </span>
         <span
-          className={`inline-flex h-7 min-w-24 items-center justify-center rounded-md px-2 text-center text-[10px] font-bold tracking-wider whitespace-nowrap uppercase xl:px-3 ${situation.colors}`}
+          className={`inline-flex min-h-7 max-w-full items-center justify-center rounded-md px-2 py-1 text-center text-[10px] leading-tight font-bold tracking-wider whitespace-normal uppercase xl:px-3 ${situation.colors}`}
         >
           {situation.label}
         </span>

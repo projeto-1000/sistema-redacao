@@ -3,7 +3,7 @@ import { StudentCredits, StudentSubscription, SubscriptionStatus } from "@repo/t
 import { formatDate } from "@repo/utils";
 import { CircleAlert } from "lucide-react";
 import type { JSX } from "react";
-import { isStudentCancellationScheduled, SCHEDULED_CANCELLATION_BADGE } from "@/utils/student-subscription-status";
+import { getStudentSubscriptionPeriodView, isStudentCancellationScheduled, SCHEDULED_CANCELLATION_BADGE } from "@/utils/student-subscription-status";
 interface StudentSubscriptionCardProps {
   subscription: StudentSubscription | null;
   credits: StudentCredits | null;
@@ -114,25 +114,7 @@ export default function StudentSubscriptionCard({
     ? formatDate(subscription.current_period_end, "compact")
     : null;
 
-  const isCanceled = subscription?.status === "canceled" || subscription?.cancel_at_period_end;
-
-  const planDateLabel = (() => {
-    if (!subscription) return null;
-
-    if (isLifetime) {
-      return "Sem vencimento";
-    }
-
-    if (!periodEnd) {
-      return "Sem vigência";
-    }
-
-    if (isCanceled) {
-      return `Expira em ${periodEnd}`;
-    }
-
-    return `Renova em ${periodEnd}`;
-  })();
+  const periodView = subscription ? getStudentSubscriptionPeriodView(subscription, periodEnd) : null;
 
   return (
     <div>
@@ -173,24 +155,18 @@ export default function StudentSubscriptionCard({
                   )}
                 </div>
 
-                <p className="mt-2 text-sm font-semibold text-slate-500">{planDateLabel}</p>
+                <p className="mt-2 text-sm font-semibold text-slate-500">{periodView?.dateLabel}</p>
 
-                {!isLifetime && !isCanceled && subscription.status === "active" && (
+                {periodView?.description && (
                   <p className="mt-1 text-xs font-medium text-slate-400">
-                    Renovação automática ao fim do período
-                  </p>
-                )}
-
-                {isCanceled && periodEnd && (
-                  <p className="mt-1 text-xs font-medium text-slate-400">
-                    O acesso permanece disponível até o fim do ciclo
+                    {periodView.description}
                   </p>
                 )}
               </div>
 
               {!isLifetime && periodStart && periodEnd && (
                 <dl className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-slate-200 pt-3">
-                  <dt className="text-xs font-semibold text-slate-500">Ciclo atual</dt>
+                  <dt className="text-xs font-semibold text-slate-500">{periodView?.cycleLabel}</dt>
                   <dd className="text-sm font-bold text-slate-700">
                     {periodStart} – {periodEnd}
                   </dd>
