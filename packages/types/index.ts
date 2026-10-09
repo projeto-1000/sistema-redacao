@@ -364,6 +364,36 @@ export interface StudentProfile {
   credits: StudentCredits;
 }
 
+export type ManualCreditGrantType = "mentorship" | "plan" | "extra";
+
+export type ManualCreditGrantReason =
+  | "mentorship_bonus"
+  | "administrative_adjustment"
+  | "technical_issue_compensation"
+  | "credit_replacement"
+  | "courtesy"
+  | "promotional_campaign"
+  | "other";
+
+export interface ManualCreditGrantContext {
+  studentId: string;
+  studentName: string;
+  blocked: boolean;
+  balances: {
+    mentorship: number;
+    plan: number;
+    extra: number;
+  };
+  options: Record<
+    ManualCreditGrantType,
+    {
+      available: boolean;
+      expiresAt: string | null;
+      unavailableReason: string | null;
+    }
+  >;
+}
+
 export interface TeacherProfile {
   id: string;
   full_name: string;

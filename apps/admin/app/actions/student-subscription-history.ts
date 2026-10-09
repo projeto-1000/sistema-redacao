@@ -21,6 +21,56 @@ export async function getStudentSubscriptionHistory(studentId: string, page = 1)
     });
     if (error) throw new Error("Não foi possível carregar o histórico do aluno.");
     const rows = (data ?? []) as SubscriptionHistoryRpcRow[];
+    const manualGrantIds = rows.flatMap((row) =>
+      row.metadata?.source === "manual_credit_grant" &&
+      typeof row.metadata.manual_credit_grant_id === "string"
+        ? [row.metadata.manual_credit_grant_id]
+        : []
+    );
+
+    if (manualGrantIds.length) {
+      const grants = await client
+        .from("manual_credit_grants")
+        .select("id,administrator_id,internal_note")
+        .eq("student_id", studentId)
+        .in("id", manualGrantIds);
+
+      if (grants.error) {
+        throw new Error("Não foi possível carregar a auditoria dos créditos adicionados.");
+      }
+
+      const administratorIds = [
+        ...new Set((grants.data ?? []).map((grant) => grant.administrator_id)),
+      ];
+      const administrators = administratorIds.length
+        ? await client.from("profiles").select("id,full_name").in("id", administratorIds)
+        : { data: [], error: null };
+
+      if (administrators.error) {
+        throw new Error("Não foi possível identificar os administradores responsáveis.");
+      }
+
+      const administratorNames = new Map(
+        (administrators.data ?? []).map((administrator) => [
+          administrator.id,
+          administrator.full_name?.trim() || "Administrador não identificado",
+        ])
+      );
+
+      for (const row of rows) {
+        const grant = grants.data?.find((item) => item.id === row.metadata?.manual_credit_grant_id);
+
+        if (grant) {
+          row.metadata = {
+            ...row.metadata,
+            administrator_name:
+              administratorNames.get(grant.administrator_id) ?? "Administrador não identificado",
+            internal_note: grant.internal_note,
+          };
+        }
+      }
+    }
+
     const ids = rows.flatMap((row) =>
       row.metadata?.adjustment_kind === "withdrawal_hold_release" &&
       typeof row.metadata.withdrawal_request_id === "string"

@@ -181,6 +181,8 @@ export default function StudentSubscriptionCard({
               <p className="mt-1 max-w-xs text-sm text-slate-500">
                 Este aluno não possui uma assinatura ativa no momento.
               </p>
+
+              {actions && <div className="pt-4">{actions}</div>}
             </div>
           )}
         </div>

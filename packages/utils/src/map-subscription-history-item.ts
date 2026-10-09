@@ -5,6 +5,7 @@ import type {
   SubscriptionHistoryPaymentEvent,
 } from "@repo/types";
 import { formatCurrency } from "./format-currency";
+import { formatDate } from "./format-dates";
 
 const SUPPORT_HISTORY_COPY: Record<string, { title: string; description: string }> = {
   cancel_only: {
@@ -23,6 +24,12 @@ const SUPPORT_HISTORY_COPY: Record<string, { title: string; description: string 
     title: "Reembolso confirmado",
     description: "Reembolso realizado pelo suporte, sem cancelar o plano.",
   },
+};
+
+const MANUAL_GRANT_TYPE_LABELS: Record<string, string> = {
+  mentorship: "Mentoria",
+  plan: "Plano",
+  extra: "Extra",
 };
 
 function getMetadataString(
@@ -339,6 +346,56 @@ function mapCreditEvent(
       };
 
     case "administrative_adjustment":
+      if (
+        getMetadataString(event.metadata, "source") === "manual_credit_grant"
+      ) {
+        const grantCategory = getMetadataString(
+          event.metadata,
+          "grant_category",
+        );
+        const typeLabel = grantCategory
+          ? (MANUAL_GRANT_TYPE_LABELS[grantCategory] ?? "Não identificado")
+          : "Não identificado";
+        const reasonLabel =
+          getMetadataString(event.metadata, "reason_label") ?? "Não informado";
+        const expiresAt = getMetadataString(event.metadata, "expires_at");
+        const administratorName = getMetadataString(
+          event.metadata,
+          "administrator_name",
+        );
+        const internalNote = getMetadataString(event.metadata, "internal_note");
+        const validity = expiresAt
+          ? `Válido até ${formatDate(expiresAt, "numeric")}`
+          : "Sem vencimento";
+
+        return {
+          id: event.id,
+          title: "Créditos adicionados",
+          description: `${typeLabel}: ${reasonLabel}. ${validity}.`,
+          createdAt: event.created_at,
+          primaryValue: formatCreditsAmount(event.amount, true),
+          secondaryValue: validity,
+          category: "credit_grant",
+          valueTone: "positive",
+          details: administratorName
+            ? {
+                label: "Ver detalhes",
+                title: "Créditos adicionados manualmente",
+                description: null,
+                reasonLabel: "Observação interna",
+                reason: internalNote ?? "Nenhuma observação informada.",
+                occurredAt: event.created_at,
+                summary: [
+                  { label: "Administrador", value: administratorName },
+                  { label: "Tipo", value: typeLabel },
+                  { label: "Motivo", value: reasonLabel },
+                  { label: "Validade", value: validity },
+                ],
+              }
+            : undefined,
+        };
+      }
+
       if (getMetadataString(event.metadata, "source") === "admin_support") {
         const refundAmount = event.metadata?.refund_amount;
         const action = getMetadataString(event.metadata, "support_action");

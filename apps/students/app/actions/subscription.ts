@@ -311,6 +311,7 @@ export async function getSubscriptionData() {
     amount: number;
     remaining_amount: number;
     compensatory_refunds: number;
+    administrative_grants: number;
     expires_at: string;
   } | null = null;
 
@@ -322,6 +323,7 @@ export async function getSubscriptionData() {
       amount,
       remaining_amount,
       compensatory_refunds,
+      administrative_grants,
       expires_at
     `
     )
@@ -359,12 +361,12 @@ export async function getSubscriptionData() {
 
       mentorship_cycle_number: mentorshipCycle?.cycle_number ?? null,
 
-      mentorship_cycle_remaining: mentorshipCycle
-        ? mentorshipCycle.remaining_amount + mentorshipCycle.compensatory_refunds
-        : null,
+      mentorship_cycle_remaining: mentorshipCycle ? mentorshipCycle.remaining_amount : null,
 
       mentorship_cycle_total: mentorshipCycle
-        ? mentorshipCycle.amount + mentorshipCycle.compensatory_refunds
+        ? mentorshipCycle.amount +
+          mentorshipCycle.compensatory_refunds +
+          mentorshipCycle.administrative_grants
         : null,
 
       mentorship_cycle_end: mentorshipCycle?.expires_at ?? null,
