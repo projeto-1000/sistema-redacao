@@ -1,0 +1,143 @@
+name: Admin Credit Grants Validation
+
+on:
+  push:
+    branches:
+      - feat/admin-credit-grants
+    paths:
+      - ".github/workflows/admin-credit-grants-validation.yml"
+      - "apps/admin/**"
+      - "apps/students/app/actions/subscription.ts"
+      - "packages/types/**"
+      - "packages/ui/**"
+      - "packages/utils/**"
+      - "packages/validators/**"
+      - "supabase/migrations/**"
+      - "supabase/tests/manual-credit-grants.sql"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-credit-grants-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  code-validation:
+    name: Validate affected workspaces
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Admin types
+        id: admin-types
+        continue-on-error: true
+        run: pnpm --filter admin check-types
+
+      - name: Check Students types
+        id: students-types
+        continue-on-error: true
+        run: pnpm --filter students check-types
+
+      - name: Check shared UI types
+        id: ui-types
+        continue-on-error: true
+        run: pnpm --filter @repo/ui check-types
+
+      - name: Lint Admin credit grant files
+        id: admin-lint
+        continue-on-error: true
+        run: |
+          pnpm --filter admin exec eslint \
+            'app/(app)/alunos/[id]/page.tsx' \
+            app/actions/manual-credit-grants.ts \
+            app/actions/student-subscription-history.ts \
+            components/features/students/grant-credits-dialog.tsx \
+            components/student-subscription-card.tsx
+
+      - name: Lint Students credit history file
+        id: students-lint
+        continue-on-error: true
+        run: pnpm --filter students exec eslint app/actions/subscription.ts
+
+      - name: Lint shared credit grant files
+        id: shared-lint
+        continue-on-error: true
+        run: |
+          pnpm --filter @repo/ui exec eslint src/components/select.tsx
+          pnpm --filter @repo/types exec eslint index.ts
+          pnpm --filter @repo/utils exec eslint src/map-subscription-history-item.ts
+
+      - name: Summarize code validation
+        if: always()
+        run: |
+          printf '%-24s %s\n' 'Admin types' '${{ steps.admin-types.outcome }}'
+          printf '%-24s %s\n' 'Students types' '${{ steps.students-types.outcome }}'
+          printf '%-24s %s\n' 'Shared UI types' '${{ steps.ui-types.outcome }}'
+          printf '%-24s %s\n' 'Admin lint' '${{ steps.admin-lint.outcome }}'
+          printf '%-24s %s\n' 'Students lint' '${{ steps.students-lint.outcome }}'
+          printf '%-24s %s\n' 'Shared lint' '${{ steps.shared-lint.outcome }}'
+
+          if [[ '${{ steps.admin-types.outcome }}' != 'success' \
+            || '${{ steps.students-types.outcome }}' != 'success' \
+            || '${{ steps.ui-types.outcome }}' != 'success' \
+            || '${{ steps.admin-lint.outcome }}' != 'success' \
+            || '${{ steps.students-lint.outcome }}' != 'success' \
+            || '${{ steps.shared-lint.outcome }}' != 'success' ]]; then
+            echo 'One or more code validations failed.' >&2
+            exit 1
+          fi
+
+  isolated-database-validation:
+    name: Run all SQL scenarios in isolated Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0
+
+      - name: Start disposable Supabase and apply migrations
+        run: |
+          # The schema uses transaction_timeout, available in PostgreSQL 17.
+          sed -i 's/^major_version = 15$/major_version = 17/' supabase/config.toml
+          # The suite creates deterministic fixtures and does not need repository seeds.
+          sed -i '/^\[db.seed\]$/ {n; s/^enabled = true$/enabled = false/;}' supabase/config.toml
+          supabase start
+
+      - name: Run complete credit grant suite
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h 127.0.0.1 -p 54322 -U postgres -d postgres \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --pset=pager=off \
+            --file=supabase/tests/manual-credit-grants.sql
+
+      - name: Stop disposable Supabase
+        if: always()
+        run: supabase stop --no-backup
