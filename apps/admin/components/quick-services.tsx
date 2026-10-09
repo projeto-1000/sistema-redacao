@@ -17,7 +17,7 @@ export default function QuickServices() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {services.map(({ title, description, href, icon: Icon, colors }) => (
-          <Link key={title} href={href} className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all text-left group">
+          <Link key={title} href={href} prefetch={false} className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all text-left group">
             <div className="flex items-center gap-4">
               <Icon className={`size-10 rounded-full p-2.5 ${colors}`} />
               <div>

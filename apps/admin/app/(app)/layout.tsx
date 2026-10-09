@@ -4,6 +4,7 @@ import { createClient } from "@/lib/client";
 import { useRouter, usePathname } from "next/navigation";
 import { Header } from "@repo/ui/components/header";
 import { Footer } from "@repo/ui/components/footer";
+import { useEffect, useState } from "react";
 
 export default function AppLayout({
   children,
@@ -12,7 +13,21 @@ export default function AppLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        router.replace("/login");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router, supabase]);
 
   const navItems = [
     { label: "Início", href: "/inicio" },
@@ -36,7 +51,6 @@ export default function AppLayout({
       throw error;
     }
 
-    router.replace("/login");
   };
 
   return (

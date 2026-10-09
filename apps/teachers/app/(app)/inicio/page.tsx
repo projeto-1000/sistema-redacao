@@ -50,7 +50,7 @@ export default async function DashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-800 text-lg">Próximas Redações</h3>
-          <Link href="/redacoes-pendentes" className="text-sm font-semibold text-blue-600 hover:underline flex items-center gap-1">
+          <Link href="/redacoes-pendentes" prefetch={false} className="text-sm font-semibold text-blue-600 hover:underline flex items-center gap-1">
             Ver todas <ArrowRight className="size-4" />
           </Link>
         </div>

@@ -33,7 +33,7 @@ export function ActionCard({
   const activeStyle = styles[variant];
 
   return (
-    <Link href={href} className="block group">
+    <Link href={href} prefetch={false} className="block group">
       <div className={`${activeStyle.wrapper} transition-all p-6 rounded-3xl relative overflow-hidden h-32 flex flex-col justify-between shadow-lg`}>
         <div className="relative z-10">
           <div className="bg-white/20 w-fit p-1.5 rounded-full mb-2">

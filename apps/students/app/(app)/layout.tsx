@@ -8,7 +8,7 @@ import {
 import { createClient } from "@/lib/client";
 import { Header } from "@repo/ui/components/header";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 const NAV_ITEMS = [
   {
@@ -53,10 +53,18 @@ function AppLayoutContent({
 
   const {
     profile,
+    isAuthenticated,
     isLoading,
     error,
+    retryProfile,
     markOnboardingCompleted,
   } = useStudentProfile();
+
+  useEffect(() => {
+    if (isAuthenticated === false) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, router]);
 
   const handleLogout = async () => {
     const { error } =
@@ -66,7 +74,6 @@ function AppLayoutContent({
       throw error;
     }
 
-    router.replace("/login");
   };
 
   return (
@@ -91,14 +98,29 @@ function AppLayoutContent({
       {error && (
         <div
           role="alert"
-          className="border-b border-red-200 bg-red-50 px-6 py-3 text-center text-sm text-red-700"
+          className="flex flex-wrap items-center justify-center gap-3 border-b border-red-200 bg-red-50 px-6 py-3 text-center text-sm text-red-700"
         >
-          {error}
+          <span>{error}</span>
+
+          <button
+            type="button"
+            className="font-semibold underline underline-offset-4"
+            onClick={() => void retryProfile()}
+          >
+            Tentar novamente
+          </button>
         </div>
       )}
 
       <main className="flex-1 w-full bg-slate-50 p-6 md:p-8">
-        {children}
+        {isAuthenticated !== true || isLoading ? (
+          <div
+            aria-label="Carregando perfil do aluno"
+            className="mx-auto h-24 w-full max-w-6xl animate-pulse rounded-2xl bg-slate-200"
+          />
+        ) : error ? null : (
+          children
+        )}
       </main>
     </div>
   );

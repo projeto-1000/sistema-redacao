@@ -104,7 +104,10 @@ export function CreditsCard({
           variant="ghost"
           className="h-8 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900"
         >
-          <Link href="/assinatura/comprar-creditos">
+          <Link
+            href="/assinatura/comprar-creditos"
+            prefetch={false}
+          >
             Adicionar
             <Plus className="ml-1 size-3.5" />
           </Link>

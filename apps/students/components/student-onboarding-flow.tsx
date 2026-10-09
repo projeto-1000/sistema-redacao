@@ -69,24 +69,27 @@ export function StudentOnboardingFlow({
 
   return (
     <>
-      <OnboardingModal
-        open={flowState.step === "ONBOARDING"}
-        onCompleted={handleOnboardingCompleted}
-      />
+      {flowState.step === "ONBOARDING" && (
+        <OnboardingModal
+          open
+          onCompleted={handleOnboardingCompleted}
+        />
+      )}
 
-      <MentorshipCreditsReminderModal
-        open={flowState.step === "MENTORSHIP_REMINDER"}
-        onClose={closeFlow}
-      />
+      {flowState.step === "MENTORSHIP_REMINDER" && (
+        <MentorshipCreditsReminderModal
+          open
+          onClose={closeFlow}
+        />
+      )}
 
-      {flowState.step ===
-        "FREE_CREDIT_REMINDER" && (
-          <FreeCreditReminderModal
-            open
-            freeCreditExpiresAt={flowState.freeCreditExpiresAt}
-            onClose={closeFlow}
-          />
-        )}
+      {flowState.step === "FREE_CREDIT_REMINDER" && (
+        <FreeCreditReminderModal
+          open
+          freeCreditExpiresAt={flowState.freeCreditExpiresAt}
+          onClose={closeFlow}
+        />
+      )}
     </>
   );
 }
