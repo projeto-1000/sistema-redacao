@@ -17,6 +17,7 @@ import { HistoryList } from "@repo/ui/components/features/history/history-list";
 import { SubscriptionSupportSheet } from "@/components/features/students/subscription-support-sheet";
 import { isStudentCancellationScheduled } from "@/utils/student-subscription-status";
 import { GrantCreditsDialog } from "@/components/features/students/grant-credits-dialog";
+import { getManualCreditGrantContext } from "@/app/actions/manual-credit-grants";
 
 export default async function StudentProfilePage({
   params,
@@ -34,9 +35,12 @@ export default async function StudentProfilePage({
 
   const filters = parseStudentEssaysFilters(resolvedSearchParams);
 
-  const { student, error, hasSubscriptionError, hasCreditsError } = await getStudentById(studentId);
-
-  const historyData = await getStudentSubscriptionHistory(studentId, Number(resolvedSearchParams.historyPage) || 1);
+  const [studentResult, historyData, initialCreditGrantContext] = await Promise.all([
+    getStudentById(studentId),
+    getStudentSubscriptionHistory(studentId, Number(resolvedSearchParams.historyPage) || 1),
+    getManualCreditGrantContext(studentId).catch(() => null),
+  ]);
+  const { student, error, hasSubscriptionError, hasCreditsError } = studentResult;
 
 
   if (!student || error) {
@@ -52,7 +56,11 @@ export default async function StudentProfilePage({
       hasCreditsError={hasCreditsError}
       actions={
         <div className="flex flex-wrap gap-2">
-          <GrantCreditsDialog studentId={studentId} disabled={student.status === "blocked"} />
+          <GrantCreditsDialog
+            studentId={studentId}
+            initialContext={initialCreditGrantContext}
+            disabled={student.status === "blocked"}
+          />
           <SubscriptionSupportSheet
             studentId={studentId}
             disabled={

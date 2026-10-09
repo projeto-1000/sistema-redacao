@@ -364,23 +364,37 @@ function mapCreditEvent(
           "administrator_name",
         );
         const internalNote = getMetadataString(event.metadata, "internal_note");
+        const isSingular = Math.abs(event.amount) === 1;
         const validity = expiresAt
           ? `Válido até ${formatDate(expiresAt, "numeric")}`
           : "Sem vencimento";
+        const title =
+          grantCategory === "extra"
+            ? isSingular
+              ? "Crédito extra adicionado"
+              : "Créditos extras adicionados"
+            : "Créditos adicionados";
+        const description =
+          grantCategory === "extra"
+            ? `${isSingular ? "Crédito" : "Créditos"} de ${reasonLabel.toLocaleLowerCase("pt-BR")} sem vencimento.`
+            : `${typeLabel}: ${reasonLabel}.`;
 
         return {
           id: event.id,
-          title: "Créditos adicionados",
-          description: `${typeLabel}: ${reasonLabel}. ${validity}.`,
+          title,
+          description,
           createdAt: event.created_at,
           primaryValue: formatCreditsAmount(event.amount, true),
-          secondaryValue: validity,
+          secondaryValue: expiresAt ? validity : null,
           category: "credit_grant",
           valueTone: "positive",
           details: administratorName
             ? {
                 label: "Ver detalhes",
-                title: "Créditos adicionados manualmente",
+                title:
+                  grantCategory === "extra"
+                    ? title
+                    : "Créditos adicionados manualmente",
                 description: null,
                 reasonLabel: "Observação interna",
                 reason: internalNote ?? "Nenhuma observação informada.",

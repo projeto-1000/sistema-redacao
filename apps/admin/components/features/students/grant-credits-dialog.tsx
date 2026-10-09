@@ -182,16 +182,18 @@ function getFirstAvailableType(context: ManualCreditGrantContext): ManualCreditG
 
 export function GrantCreditsDialog({
   studentId,
+  initialContext,
   disabled = false,
 }: {
   studentId: string;
+  initialContext: ManualCreditGrantContext | null;
   disabled?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pending, startTransition] = useTransition();
-  const [context, setContext] = useState<ManualCreditGrantContext | null>(null);
+  const [context, setContext] = useState<ManualCreditGrantContext | null>(initialContext);
   const [step, setStep] = useState<"form" | "review">("form");
   const [operationId, setOperationId] = useState("");
   const [creditType, setCreditType] = useState<ManualCreditGrantType>("extra");
@@ -218,22 +220,29 @@ export function GrantCreditsDialog({
     setError(null);
   }
 
-  async function loadContext() {
-    if (context) return context;
+  async function loadContext(refresh = false) {
+    if (context && !refresh) return context;
     if (contextRequestRef.current) return contextRequestRef.current;
 
-    setLoading(true);
+    const hasContext = Boolean(context);
+    if (!hasContext) setLoading(true);
     const request = getManualCreditGrantContext(studentId);
     contextRequestRef.current = request;
 
     try {
       const nextContext = await request;
       setContext(nextContext);
-      setCreditType(getFirstAvailableType(nextContext));
+      setCreditType((currentType) =>
+        nextContext.options[currentType].available
+          ? currentType
+          : getFirstAvailableType(nextContext)
+      );
       if (nextContext.blocked) setError("A conta do aluno está bloqueada.");
       return nextContext;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível carregar os dados.");
+      if (!hasContext) {
+        setError(cause instanceof Error ? cause.message : "Não foi possível carregar os dados.");
+      }
       return null;
     } finally {
       contextRequestRef.current = null;
@@ -301,10 +310,10 @@ export function GrantCreditsDialog({
           title={disabled ? "Contas bloqueadas não podem receber créditos." : undefined}
           className="max-w-full whitespace-normal"
           onPointerEnter={() => {
-            if (!disabled) void loadContext();
+            if (!disabled) void loadContext(true);
           }}
           onFocus={() => {
-            if (!disabled) void loadContext();
+            if (!disabled) void loadContext(true);
           }}
         >
           <Gift className="size-4.5" />
@@ -325,7 +334,7 @@ export function GrantCreditsDialog({
           <DialogTitle>Adicionar créditos</DialogTitle>
           <DialogDescription>
             {context
-              ? `Para ${context.studentName}. A alteração ficará registrada no histórico.`
+              ? "A alteração ficará registrada no histórico."
               : "Os saldos e ciclos do aluno estão sendo consultados."}
           </DialogDescription>
         </DialogHeader>
@@ -446,7 +455,7 @@ export function GrantCreditsDialog({
 
             <div className="space-y-2">
               <Label htmlFor="manual-credit-note">
-                Observação interna{noteRequired ? " *" : " (opcional)"}
+                Observação interna{noteRequired ? "" : " (opcional)"}
               </Label>
               <Textarea
                 id="manual-credit-note"
@@ -526,7 +535,14 @@ export function GrantCreditsDialog({
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={review} disabled={!selectedOption?.available || context.blocked}>
+                <Button
+                  onClick={review}
+                  disabled={
+                    !selectedOption?.available ||
+                    context.blocked ||
+                    (noteRequired && !internalNote.trim())
+                  }
+                >
                   Revisar
                 </Button>
               </>
