@@ -70,6 +70,20 @@ values
     '29000000-0000-0000-0000-000000000002', 'active', now() - interval '1 day',
     now() + interval '30 days', 'sub_manual_mentorship');
 
+insert into public.hotmart_mentorship_accesses (
+  id, webhook_event_id, transaction_id, product_ucode, buyer_email,
+  purchase_status, claimed_user_id
+)
+values (
+  '59000000-0000-0000-0000-000000000001',
+  '79000000-0000-0000-0000-000000000001',
+  'HP-MANUAL-GRANT-TEST',
+  'mentorship-manual-grant-test',
+  'grant-mentorship@example.com',
+  'APPROVED',
+  '19000000-0000-0000-0000-000000000003'
+);
+
 insert into public.mentorship_credit_allocations (
   id, mentorship_access_id, subscription_id, user_id, cycle_number, amount,
   remaining_amount, available_at, expires_at, released_at, status
@@ -503,14 +517,18 @@ begin
 end;
 $test$;
 
+-- Build this state as the database owner. An authenticated administrator can
+-- invoke the RPC, but direct subscription updates remain protected by RLS.
+reset role;
+update public.subscriptions
+set withdrawal_status = 'under_review'
+where id = '39000000-0000-0000-0000-000000000001';
+set local role authenticated;
+
 do $test$
 declare v_message text;
 begin
   begin
-    update public.subscriptions
-    set withdrawal_status = 'under_review'
-    where id = '39000000-0000-0000-0000-000000000001';
-
     perform public.grant_manual_credits(
       '69000000-0000-4000-8000-000000000013',
       '19000000-0000-0000-0000-000000000002',
@@ -594,15 +612,5 @@ select
   count(*) as total
 from credit_grant_test_results;
 
-select (count(*) filter (where not passed) > 0)::text as has_failures
-from credit_grant_test_results
-\gset
-
 rollback;
-
-\if :has_failures
-  \echo 'One or more isolated credit grant scenarios failed.'
-  \quit 1
-\else
-  \echo 'All isolated credit grant scenarios passed.'
-\endif
+\echo 'Isolated credit grant scenarios finished; the workflow validates the report.'

@@ -132,11 +132,21 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: |
+          REPORT_FILE="${RUNNER_TEMP}/manual-credit-grants-report.log"
+
           psql -h 127.0.0.1 -p 54322 -U postgres -d postgres \
             --no-psqlrc \
             --set=ON_ERROR_STOP=1 \
             --pset=pager=off \
-            --file=supabase/tests/manual-credit-grants.sql
+            --file=supabase/tests/manual-credit-grants.sql \
+            | tee "$REPORT_FILE"
+
+          if grep -Eq '^[[:space:]]*FAIL[[:space:]]*\|' "$REPORT_FILE"; then
+            echo 'One or more isolated credit grant scenarios failed.' >&2
+            exit 1
+          fi
+
+          echo 'All isolated credit grant scenarios passed.'
 
       - name: Stop disposable Supabase
         if: always()
