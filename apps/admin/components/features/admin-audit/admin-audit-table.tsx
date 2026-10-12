@@ -4,6 +4,12 @@ import type { AdminAuditEventItem } from "@/app/actions/admin-audit";
 import { TablePagination } from "@/components/table-pagination";
 import { Badge } from "@repo/ui/components/badge";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@repo/ui/components/sheet";
+import {
   Activity,
   Banknote,
   BookCheck,
@@ -333,6 +339,7 @@ export function AdminAuditTable({
   totalPages: number;
 }) {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(events[0]?.id ?? null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const selectedEvent = events.find((event) => event.id === selectedEventId) ?? events[0];
 
   if (!selectedEvent) {
@@ -343,14 +350,13 @@ export function AdminAuditTable({
     );
   }
 
-  const selectedStatus = STATUS_LABELS[selectedEvent.status];
-  const selectedActionLabel = ACTION_LABELS[selectedEvent.action] ?? selectedEvent.summary;
-  const isCorrectionReview = selectedEvent.resource_type === "correction_review";
-  const selectedChanges = isCorrectionReview ? [] : getChangeDetails(selectedEvent.changes);
-  const selectedMetadata = isCorrectionReview ? [] : getMetadataDetails(selectedEvent);
-  const eventLink = getEventLink(selectedEvent);
-  const selectedResourceStyle = RESOURCE_STYLES[selectedEvent.resource_type] ?? DEFAULT_RESOURCE_STYLE;
-  const SelectedIcon = selectedResourceStyle.icon;
+  const handleSelectEvent = (eventId: string) => {
+    setSelectedEventId(eventId);
+
+    if (!window.matchMedia("(min-width: 1280px)").matches) {
+      setDetailsOpen(true);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -378,7 +384,7 @@ export function AdminAuditTable({
                   key={event.id}
                   type="button"
                   aria-pressed={isSelected}
-                  onClick={() => setSelectedEventId(event.id)}
+                  onClick={() => handleSelectEvent(event.id)}
                   className={`grid w-full gap-3 border-l-4 px-5 py-4 text-left transition-colors lg:grid-cols-[minmax(220px,1.35fr)_minmax(130px,0.75fr)_minmax(150px,0.9fr)_120px_100px_20px] lg:items-center lg:gap-4 ${
                     isSelected
                       ? "border-l-blue-600 bg-blue-50/70"
@@ -439,129 +445,152 @@ export function AdminAuditTable({
           </div>
         </div>
 
-        <aside className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm xl:sticky xl:top-6">
-          <div className="border-b border-slate-100 px-6 py-5">
-            <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase">
-              Detalhes da atividade
-            </p>
-            <div className="mt-4 flex items-start gap-3">
-              <span
-                className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${selectedResourceStyle.containerClasses}`}
-              >
-                <SelectedIcon className={`size-5 ${selectedResourceStyle.iconClasses}`} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-base leading-6 font-black text-slate-900">
-                  {selectedActionLabel}
-                </h2>
-                <p className="mt-1 text-xs font-medium text-slate-500">
-                  {RESOURCE_LABELS[selectedEvent.resource_type] ?? selectedEvent.resource_type}
-                </p>
-              </div>
-              <Badge className={`shrink-0 border-none ${selectedStatus.classes}`}>
-                {selectedStatus.label}
-              </Badge>
-            </div>
-            {eventLink && (
-              <Link
-                href={eventLink.href}
-                className="mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-blue-600 px-4 text-sm font-bold text-white transition-colors hover:bg-blue-700"
-              >
-                {eventLink.label}
-                <ChevronRight className="ml-1 size-4" />
-              </Link>
-            )}
-          </div>
-
-          <div className="space-y-6 px-6 py-5 text-sm">
-            <dl className="divide-y divide-slate-100">
-              <DetailRow
-                label="Administrador"
-                value={selectedEvent.actor?.full_name || "Administrador não identificado"}
-                supportingValue={selectedEvent.actor?.email}
-              />
-              <DetailRow
-                label="Aluno"
-                value={selectedEvent.subject?.full_name || "Não identificado"}
-                supportingValue={selectedEvent.subject?.email}
-              />
-              <DetailRow label="Data e hora" value={formatDateTime(selectedEvent.created_at)} />
-              <DetailRow
-                label="Tipo"
-                value={RESOURCE_LABELS[selectedEvent.resource_type] ?? selectedEvent.resource_type}
-              />
-              {selectedEvent.resource_id && (
-                <DetailRow label="Referência" value={selectedEvent.resource_id} breakValue />
-              )}
-            </dl>
-
-            {selectedChanges.length > 0 && (
-              <section>
-                <h3 className="text-[10px] font-black tracking-widest text-slate-400 uppercase">
-                  Alterações
-                </h3>
-                <div className="mt-3 space-y-3">
-                  {selectedChanges.map((detail, index) => (
-                    <div
-                      key={`${detail.label}-${index}`}
-                      className="rounded-2xl border border-slate-200 p-4"
-                    >
-                      <p className="text-[10px] font-black tracking-wider text-slate-400 uppercase">
-                        {detail.label}
-                      </p>
-                      <div className="mt-3 grid grid-cols-[minmax(0,1fr)_20px_minmax(0,1fr)] items-start gap-2">
-                        <div className="min-w-0 rounded-xl bg-slate-50 p-3">
-                          <p className="text-[9px] font-black text-slate-400 uppercase">Antes</p>
-                          <p className="mt-1 whitespace-pre-wrap break-words text-xs font-medium text-slate-600">
-                            {detail.before}
-                          </p>
-                        </div>
-                        <ChevronRight className="mt-5 size-4 text-slate-300" />
-                        <div className="min-w-0 rounded-xl bg-blue-50 p-3">
-                          <p className="text-[9px] font-black text-blue-500 uppercase">Depois</p>
-                          <p className="mt-1 whitespace-pre-wrap break-words text-xs font-bold text-slate-800">
-                            {detail.after}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {selectedMetadata.length > 0 && (
-              <section>
-                <h3 className="text-[10px] font-black tracking-widest text-slate-400 uppercase">
-                  Resumo do registro
-                </h3>
-                <dl className="mt-2 divide-y divide-slate-100">
-                  {selectedMetadata.map((detail, index) => (
-                    <DetailRow
-                      key={`${detail.label}-${index}`}
-                      label={detail.label}
-                      value={detail.value ?? "Não informado"}
-                    />
-                  ))}
-                </dl>
-              </section>
-            )}
-
-            {isCorrectionReview ? (
-              <p className="rounded-2xl bg-slate-50 p-4 text-xs leading-5 font-medium text-slate-500">
-                Os dados completos desta correção permanecem disponíveis no histórico da redação.
-              </p>
-            ) : selectedChanges.length === 0 && selectedMetadata.length === 0 ? (
-              <p className="rounded-2xl bg-slate-50 p-4 text-xs font-medium text-slate-500">
-                Esta atividade não possui alterações adicionais para exibir.
-              </p>
-            ) : null}
-          </div>
+        <aside className="hidden overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm xl:sticky xl:top-6 xl:block">
+          <AuditDetailsContent event={selectedEvent} />
         </aside>
       </div>
 
+      <Sheet open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <SheetContent className="gap-0 overflow-hidden p-0 xl:hidden sm:max-w-xl">
+          <SheetTitle className="sr-only">Detalhes da atividade</SheetTitle>
+          <SheetDescription className="sr-only">
+            Informações completas da atividade administrativa selecionada.
+          </SheetDescription>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <AuditDetailsContent event={selectedEvent} sheet />
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {totalPages > 1 && <TablePagination totalPages={totalPages} />}
     </div>
+  );
+}
+
+function AuditDetailsContent({ event, sheet = false }: { event: AdminAuditEventItem; sheet?: boolean }) {
+  const status = STATUS_LABELS[event.status];
+  const actionLabel = ACTION_LABELS[event.action] ?? event.summary;
+  const isCorrectionReview = event.resource_type === "correction_review";
+  const changes = isCorrectionReview ? [] : getChangeDetails(event.changes);
+  const metadata = isCorrectionReview ? [] : getMetadataDetails(event);
+  const eventLink = getEventLink(event);
+  const resourceStyle = RESOURCE_STYLES[event.resource_type] ?? DEFAULT_RESOURCE_STYLE;
+  const ResourceIcon = resourceStyle.icon;
+
+  return (
+    <>
+      <div className={`border-b border-slate-100 px-6 py-5 ${sheet ? "pr-14" : ""}`}>
+        <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase">
+          Detalhes da atividade
+        </p>
+        <div className="mt-4 flex items-start gap-3">
+          <span
+            className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${resourceStyle.containerClasses}`}
+          >
+            <ResourceIcon className={`size-5 ${resourceStyle.iconClasses}`} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base leading-6 font-black text-slate-900">{actionLabel}</h2>
+            <p className="mt-1 text-xs font-medium text-slate-500">
+              {RESOURCE_LABELS[event.resource_type] ?? event.resource_type}
+            </p>
+          </div>
+          <Badge className={`shrink-0 border-none ${status.classes}`}>{status.label}</Badge>
+        </div>
+        {eventLink && (
+          <Link
+            href={eventLink.href}
+            className="mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-blue-600 px-4 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+          >
+            {eventLink.label}
+            <ChevronRight className="ml-1 size-4" />
+          </Link>
+        )}
+      </div>
+
+      <div className="space-y-6 px-6 py-5 text-sm">
+        <dl className="divide-y divide-slate-100">
+          <DetailRow
+            label="Administrador"
+            value={event.actor?.full_name || "Administrador não identificado"}
+            supportingValue={event.actor?.email}
+          />
+          <DetailRow
+            label="Aluno"
+            value={event.subject?.full_name || "Não identificado"}
+            supportingValue={event.subject?.email}
+          />
+          <DetailRow label="Data e hora" value={formatDateTime(event.created_at)} />
+          <DetailRow
+            label="Tipo"
+            value={RESOURCE_LABELS[event.resource_type] ?? event.resource_type}
+          />
+          {event.resource_id && <DetailRow label="Referência" value={event.resource_id} breakValue />}
+        </dl>
+
+        {changes.length > 0 && (
+          <section>
+            <h3 className="text-[10px] font-black tracking-widest text-slate-400 uppercase">
+              Alterações
+            </h3>
+            <div className="mt-3 space-y-3">
+              {changes.map((detail, index) => (
+                <div
+                  key={`${detail.label}-${index}`}
+                  className="rounded-2xl border border-slate-200 p-4"
+                >
+                  <p className="text-[10px] font-black tracking-wider text-slate-400 uppercase">
+                    {detail.label}
+                  </p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_20px_minmax(0,1fr)] sm:items-start">
+                    <div className="min-w-0 rounded-xl bg-slate-50 p-3">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Antes</p>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-xs font-medium text-slate-600">
+                        {detail.before}
+                      </p>
+                    </div>
+                    <ChevronRight className="mx-auto size-4 rotate-90 text-slate-300 sm:mt-5 sm:rotate-0" />
+                    <div className="min-w-0 rounded-xl bg-blue-50 p-3">
+                      <p className="text-[9px] font-black text-blue-500 uppercase">Depois</p>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-xs font-bold text-slate-800">
+                        {detail.after}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {metadata.length > 0 && (
+          <section>
+            <h3 className="text-[10px] font-black tracking-widest text-slate-400 uppercase">
+              Resumo do registro
+            </h3>
+            <dl className="mt-2 divide-y divide-slate-100">
+              {metadata.map((detail, index) => (
+                <DetailRow
+                  key={`${detail.label}-${index}`}
+                  label={detail.label}
+                  value={detail.value ?? "Não informado"}
+                />
+              ))}
+            </dl>
+          </section>
+        )}
+
+        {isCorrectionReview ? (
+          <p className="rounded-2xl bg-slate-50 p-4 text-xs leading-5 font-medium text-slate-500">
+            Os dados completos desta correção permanecem disponíveis no histórico da redação.
+          </p>
+        ) : changes.length === 0 && metadata.length === 0 ? (
+          <p className="rounded-2xl bg-slate-50 p-4 text-xs font-medium text-slate-500">
+            Esta atividade não possui alterações adicionais para exibir.
+          </p>
+        ) : null}
+      </div>
+    </>
   );
 }
 
