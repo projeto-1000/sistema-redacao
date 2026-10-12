@@ -56,7 +56,7 @@ export function Header({
                 href={item.href}
                 data-active={isActive}
                 className={`
-                  story-link py-1 transition-colors duration-300
+                  story-link transition-colors duration-300
                   ${isActive
                     ? "font-bold"
                     : "text-gray-600 hover:text-primary"
