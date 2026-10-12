@@ -9,6 +9,7 @@ export * from "./extra-credit-packages"
 export * from "./extra-credit-purchase"
 export * from "./payment-methods"
 export * from "./teacher-profile"
+export * from "./student-profile"
 export * from "./teacher-invite"
 export * from "./subscription-support";
 export * from "./manual-credit-grant";

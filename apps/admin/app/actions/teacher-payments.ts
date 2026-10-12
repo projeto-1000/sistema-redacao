@@ -214,6 +214,16 @@ export async function getEssaysByPeriod({
 export async function createTeacherPayment(formData: FormData) {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  const { data: role, error: roleError } = await supabase.rpc("get_my_role");
+
+  if (authError || !user || roleError || role !== "ADMIN") {
+    return { success: false, error: "Apenas administradores podem registrar pagamentos." };
+  }
+
   const teacherId = formData.get("teacherId") as string;
   const monthStr = formData.get("month") as string;
   const paymentDateStr = formData.get("paymentDate");
@@ -293,6 +303,7 @@ export async function createTeacherPayment(formData: FormData) {
         receipt_url: uploadData.path,
         status: "paid",
         processed_at: processedAt,
+        registered_by: user.id,
       })
       .select()
       .single();
@@ -317,6 +328,7 @@ export async function createTeacherPayment(formData: FormData) {
     }
 
     revalidatePath(`/professores/${teacherId}/pagamentos`);
+    revalidatePath("/atividades-administrativas");
     return { success: true };
   } catch (error) {
     console.error("Erro no processamento do pagamento:", error);

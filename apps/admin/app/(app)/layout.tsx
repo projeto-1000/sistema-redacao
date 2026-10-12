@@ -39,6 +39,7 @@ export default function AppLayout({
     { label: 'Planos', href: '/planos' },
     { label: 'Créditos', href: '/creditos-extras' },
     { label: 'Cancelamentos', href: '/cancelamentos' },
+    { label: 'Atividades', href: '/atividades-administrativas' },
     { label: "Campanhas", href: "/campanhas" },
     { label: "Meu perfil", href: "/perfil" },
   ];

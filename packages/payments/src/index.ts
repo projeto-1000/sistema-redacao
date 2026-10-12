@@ -192,6 +192,38 @@ export async function createPagarmeCustomer({
   return customer;
 }
 
+export interface UpdatePagarmeCustomerParams {
+  customerId: string;
+  name: string;
+  phoneCountryCode: string;
+  phone: string;
+}
+
+export async function updatePagarmeCustomer({
+  customerId,
+  name,
+  phoneCountryCode,
+  phone,
+}: UpdatePagarmeCustomerParams) {
+  if (!customerId.startsWith("cus_")) {
+    throw new Error("ID do cliente Pagar.me inválido.");
+  }
+
+  return fetchPagarme<PagarmeCustomer>(`/customers/${customerId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      name,
+      phones: {
+        mobile_phone: {
+          country_code: phoneCountryCode,
+          area_code: phone.slice(0, 2),
+          number: phone.slice(2),
+        },
+      },
+    }),
+  });
+}
+
  export interface PagarmeBillingAddress {
   line_1: string;
   line_2?: string;

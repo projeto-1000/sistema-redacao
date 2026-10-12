@@ -356,6 +356,10 @@ export interface StudentProfile {
   id: string;
   email: string;
   full_name: string;
+  document: string | null;
+  phone: string | null;
+  phone_country_code: string | null;
+  pagarme_customer_id: string | null;
   role: UserRole;
   created_at: string;
   status: UserStatus;

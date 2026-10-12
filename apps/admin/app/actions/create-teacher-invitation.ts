@@ -6,6 +6,7 @@ import { onlyDigits } from "@repo/utils";
 import { teacherInviteSchema, type TeacherInviteInput } from "@repo/validators";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+import { recordAdminAuditEvent } from "@/lib/admin-audit";
 
 function getTeachersAppOrigin() {
   const configured = process.env.TEACHERS_APP_URL;
@@ -19,7 +20,6 @@ function getTeachersAppOrigin() {
     return null;
   }
 }
-
 export async function createTeacherInvitation(input: TeacherInviteInput): Promise<{ success: boolean; error?: string }> {
   const parsed = teacherInviteSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
@@ -130,6 +130,28 @@ export async function createTeacherInvitation(input: TeacherInviteInput): Promis
     return { success: false, error: "Professor cadastrado, mas não foi possível confirmar o envio do convite. Tente novamente com os mesmos dados." };
   }
 
+  try {
+    await recordAdminAuditEvent({
+      action: emailOwner ? "teacher.invitation_resent" : "teacher.invitation_sent",
+      resourceType: "teacher_invitation",
+      resourceId: teacherId,
+      subjectId: teacherId,
+      summary: emailOwner
+        ? "Convite de professor reenviado"
+        : "Novo professor convidado pelo administrador",
+      metadata: {
+        correction_review_required: parsed.data.correction_review_required,
+      },
+    });
+  } catch (auditError) {
+    console.error("Convite enviado sem registro administrativo:", auditError);
+    return {
+      success: false,
+      error: "O convite foi enviado, mas o registro administrativo falhou.",
+    };
+  }
+
   revalidatePath("/professores");
+  revalidatePath("/atividades-administrativas");
   return { success: true };
 }
