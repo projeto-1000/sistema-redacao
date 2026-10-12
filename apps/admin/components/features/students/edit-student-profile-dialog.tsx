@@ -16,7 +16,6 @@ import { Button } from "@repo/ui/components/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -107,19 +106,16 @@ export function EditStudentProfileDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={(nextOpen) => !isBusy && onOpenChange(nextOpen)}>
-        <DialogContent className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden rounded-3xl border-none bg-white p-0 shadow-2xl sm:max-w-[720px]">
+        <DialogContent className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden rounded-3xl border-none bg-white p-0 shadow-2xl sm:max-w-180">
           <DialogHeader className="px-6 pt-6 pr-14 pb-4">
             <DialogTitle className="text-2xl font-black">Editar aluno</DialogTitle>
-            <DialogDescription>
-              Atualize os dados permitidos do perfil de {student.full_name}.
-            </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSave)} className="min-h-0 overflow-y-auto">
               <div className="space-y-6 px-6 pb-6">
                 <section>
-                  <h3 className="mb-4 font-black text-slate-900">Dados pessoais</h3>
+                  <h3 className="mb-4 font-black">Dados pessoais</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
@@ -158,19 +154,25 @@ export function EditStudentProfileDialog({
                 </section>
 
                 <section>
-                  <h3 className="mb-4 font-black text-slate-900">Dados protegidos</h3>
-                  <FormItem>
-                    <FormLabel>CPF</FormLabel>
-                    <Input
-                      value={student.document ? formatDocument(student.document) : "Não informado"}
-                      readOnly
-                      aria-readonly="true"
-                      className="h-11 rounded-xl bg-slate-100 text-slate-500"
-                    />
-                    <p className="text-xs font-medium text-slate-500">
-                      O CPF não pode ser alterado pelo Admin.
-                    </p>
-                  </FormItem>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormItem>
+                      <FormLabel>E-mail</FormLabel>
+                      <Input
+                        value={student.email}
+                        disabled
+                        className="h-11 rounded-xl bg-slate-100 text-slate-500"
+                      />
+                    </FormItem>
+
+                    <FormItem>
+                      <FormLabel>CPF</FormLabel>
+                      <Input
+                        value={student.document ? formatDocument(student.document) : "Não informado"}
+                        disabled
+                        className="h-11 rounded-xl bg-slate-100 text-slate-500"
+                      />
+                    </FormItem>
+                  </div>
                 </section>
 
                 <section className="flex flex-col gap-4 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -179,7 +181,7 @@ export function EditStudentProfileDialog({
                       <Mail className="size-5" />
                     </div>
                     <div>
-                      <h3 className="font-black text-slate-900">Recuperação de acesso</h3>
+                      <h3 className="font-black">Recuperação de acesso</h3>
                       <p className="text-sm text-slate-500">
                         Envie um link seguro para o aluno criar uma nova senha.
                       </p>
@@ -188,7 +190,7 @@ export function EditStudentProfileDialog({
                   <Button
                     type="button"
                     variant="outline"
-                    className="shrink-0 rounded-xl border-blue-500 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                    className="h-11 shrink-0 rounded-xl border-blue-500 px-5 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                     onClick={() => setResetConfirmationOpen(true)}
                     disabled={isBusy}
                   >
@@ -202,14 +204,13 @@ export function EditStudentProfileDialog({
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-xl"
+                  className="h-11 rounded-xl px-5"
                   onClick={() => onOpenChange(false)}
                   disabled={isBusy}
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" className="rounded-xl" disabled={!canSave}>
-                  {form.formState.isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+                <Button type="submit" className="h-11 rounded-xl px-5" disabled={!canSave} isLoading={form.formState.isSubmitting} loadingText="Salvando...">
                   Salvar alterações
                 </Button>
               </DialogFooter>
@@ -228,8 +229,11 @@ export function EditStudentProfileDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isResetting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="h-11" disabled={isResetting}>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
+              className="h-11"
               onClick={(event) => {
                 event.preventDefault();
                 void handlePasswordReset();

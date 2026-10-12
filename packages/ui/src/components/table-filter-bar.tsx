@@ -15,6 +15,7 @@ export interface FilterOption {
   id: string;
   label: string;
   value: string;
+  defaultValue?: string;
   icon: LucideIcon;
   options: { label: string; value: string }[];
   onChange: (value: string) => void;
@@ -49,7 +50,7 @@ export function TableFilterBar(props: TableFilterBarProps) {
   const hasActiveFilters =
     searchTerm !== "" ||
     (dateRange?.from !== undefined) ||
-    filters.some((filter) => filter.value !== "");
+    filters.some((filter) => filter.value !== (filter.defaultValue ?? ""));
 
 
   const countFilterItems = () => {
@@ -64,7 +65,7 @@ export function TableFilterBar(props: TableFilterBarProps) {
   const handleClearFilters = () => {
     onSearchChange("");
     if (onDateRangeChange) onDateRangeChange(undefined);
-    filters.forEach(filter => filter.onChange(""));
+    filters.forEach(filter => filter.onChange(filter.defaultValue ?? ""));
     setSelectedPreset(null); // Atualizado aqui
   };
 
@@ -113,7 +114,7 @@ export function TableFilterBar(props: TableFilterBarProps) {
         {filters.map((filter) => {
           const Icon = filter.icon;
           const selectedLabel = filter.options?.find(opt => opt.value === filter.value)?.label || filter.value;
-          const hasSelection = filter.value != ""
+          const hasSelection = filter.value !== (filter.defaultValue ?? "")
 
           return (
             <Select key={filter.id} value={filter.value} onValueChange={filter.onChange}>

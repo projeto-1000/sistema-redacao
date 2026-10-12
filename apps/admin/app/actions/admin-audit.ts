@@ -22,7 +22,7 @@ export interface AdminAuditEventItem {
   metadata: Record<string, unknown>;
   created_at: string;
   actor: { full_name: string | null; email: string } | null;
-  subject: { full_name: string | null; email: string } | null;
+  subject: { id: string; full_name: string | null; email: string } | null;
 }
 
 function sanitizeSearch(value: string) {
@@ -69,7 +69,7 @@ export async function getAdminAuditEvents({
       metadata,
       created_at,
       actor:profiles!admin_audit_events_actor_id_fkey(full_name,email),
-      subject:profiles!admin_audit_events_subject_id_fkey(full_name,email)
+      subject:profiles!admin_audit_events_subject_id_fkey(id,full_name,email)
     `,
     { count: "exact" }
   );

@@ -57,14 +57,18 @@ export async function StudentStatsCards({ studentId }: StudentStatsCardsProps) {
   ] as const;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-      {cards.map((card) => {
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
+      {cards.map((card, index) => {
         const Icon = card.icon;
 
         return (
           <article
             key={card.title}
-            className="flex h-36 flex-col justify-between rounded-4xl border border-slate-200 bg-white p-5 shadow-sm"
+            className={`flex h-36 flex-col justify-between rounded-4xl border border-slate-200 bg-white p-5 shadow-sm ${
+              index === cards.length - 1
+                ? "xl:col-span-3 2xl:col-span-1"
+                : "xl:col-span-2 2xl:col-span-1"
+            }`}
           >
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
@@ -92,7 +96,7 @@ export async function StudentStatsCards({ studentId }: StudentStatsCardsProps) {
         );
       })}
 
-      <article className="flex h-36 flex-col rounded-4xl border border-slate-200 bg-white p-5 shadow-sm">
+      <article className="flex h-36 flex-col rounded-4xl border border-slate-200 bg-white p-5 shadow-sm sm:col-span-2 xl:col-span-3 2xl:col-span-2">
         <div className="flex items-start justify-between gap-3">
           <h3 className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
             Acesso e atividade
@@ -100,28 +104,30 @@ export async function StudentStatsCards({ studentId }: StudentStatsCardsProps) {
           <Activity className="size-5 shrink-0 text-blue-600" />
         </div>
 
-        <div className="mt-4 grid flex-1 grid-cols-2 items-center divide-x divide-slate-200">
-          <div className="min-w-0 pr-3">
-            <p className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">
-              Último login
-            </p>
-            <p className="mt-1 truncate text-sm font-black text-slate-900">
-              {stats.lastLoginValue}
-            </p>
-            <p className="mt-1 truncate text-[11px] font-bold text-slate-400">
-              {stats.lastLoginDetail}
-            </p>
+        <div className="mt-3 grid flex-1 grid-cols-1 gap-2 md:grid-cols-2 md:items-center md:gap-0 md:divide-x md:divide-slate-200">
+          <div className="min-w-0 md:pr-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">
+                Último login
+              </p>
+              <p className="shrink-0 text-[10px] font-bold text-slate-400">
+                {stats.lastLoginDetail}
+              </p>
+            </div>
+            <p className="truncate text-sm font-black text-slate-900">{stats.lastLoginValue}</p>
           </div>
 
-          <div className="min-w-0 pl-3">
-            <p className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">
-              Última atividade
-            </p>
-            <p className="mt-1 truncate text-sm font-black text-slate-900">
+          <div className="min-w-0 border-t border-slate-200 pt-2 md:border-t-0 md:pt-0 md:pl-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">
+                Última atividade
+              </p>
+              <p className="shrink-0 text-[10px] font-bold text-slate-400">
+                {stats.lastActivityDetail}
+              </p>
+            </div>
+            <p className="truncate text-sm font-black text-slate-900">
               {stats.lastActivityValue}
-            </p>
-            <p className="mt-1 truncate text-[11px] font-bold text-slate-400">
-              {stats.lastActivityDetail}
             </p>
           </div>
         </div>
