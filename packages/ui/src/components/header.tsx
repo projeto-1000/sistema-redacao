@@ -80,6 +80,9 @@ export function Header({
     (item) => item.desktopPlacement === "overflow",
   );
   const accountItem = items.find((item) => item.desktopPlacement === "account");
+  const isAccountActive = accountItem
+    ? isItemActive(activePath, accountItem.href)
+    : false;
   const hasActiveOverflowItem = overflowItems.some((item) =>
     isItemActive(activePath, item.href),
   );
@@ -192,17 +195,25 @@ export function Header({
           <a
             href={accountItem.href}
             className={`flex h-10 items-center gap-2 whitespace-nowrap rounded-xl px-2.5 text-sm font-semibold transition-colors hover:bg-slate-100 ${
-              isItemActive(activePath, accountItem.href)
-                ? "text-primary"
+              isAccountActive
+                ? "bg-primary/10 text-slate-900 ring-1 ring-primary/20 hover:bg-primary/10"
                 : "text-slate-700"
             }`}
           >
-            <span className="flex size-8 items-center justify-center rounded-full bg-slate-100">
+            <span
+              className={`flex size-8 items-center justify-center rounded-full ${
+                isAccountActive
+                  ? "bg-white text-primary shadow-sm"
+                  : "bg-slate-100"
+              }`}
+            >
               <UserRound className="size-4" />
             </span>
             {accountItem.label}
           </a>
         )}
+
+        <span className="h-7 w-px shrink-0 bg-slate-200" aria-hidden="true" />
 
         <Button
           size="sm"
@@ -224,9 +235,19 @@ export function Header({
           {accountItem && (
             <a
               href={accountItem.href}
-              className="flex h-10 items-center gap-2 rounded-xl px-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              className={`flex h-10 items-center gap-2 rounded-xl px-2 text-sm font-semibold transition-colors ${
+                isAccountActive
+                  ? "bg-primary/10 text-slate-900 ring-1 ring-primary/20"
+                  : "text-slate-700 hover:bg-slate-100"
+              }`}
             >
-              <span className="flex size-8 items-center justify-center rounded-full bg-slate-100">
+              <span
+                className={`flex size-8 items-center justify-center rounded-full ${
+                  isAccountActive
+                    ? "bg-white text-primary shadow-sm"
+                    : "bg-slate-100"
+                }`}
+              >
                 <UserRound className="size-4" />
               </span>
               {accountItem.label}
