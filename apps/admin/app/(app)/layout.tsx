@@ -125,7 +125,7 @@ export default function AppLayout({
   };
 
   return (
-    <div className="min-h-dvh max-w-flex flex-col">
+    <div className="min-h-dvh max-w-full flex flex-col">
       <Header
         items={navItems}
         activePath={pathname}

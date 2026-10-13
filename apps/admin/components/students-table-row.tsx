@@ -207,7 +207,7 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
                 <button
                   type="button"
                   onClick={handleCopyId}
-                  className="rounded p-0.5 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                  className="rounded-sm p-0.5 transition-colors hover:bg-slate-100 hover:text-slate-600"
                   aria-label={isIdCopied ? "ID copiado" : "Copiar ID"}
                 >
                   {isIdCopied ? (

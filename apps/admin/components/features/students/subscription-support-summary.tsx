@@ -54,7 +54,7 @@ export function SubscriptionSupportSummary({
       </CardHeader>
       <CardContent className="divide-y divide-blue-100 px-4 text-sm">
         <section className="py-3" aria-label="Pagamento e reembolso">
-          <dl className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)] gap-x-3 gap-y-2 [&>dd]:min-w-0 [&>dd]:break-words">
+          <dl className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)] gap-x-3 gap-y-2 [&>dd]:min-w-0 [&>dd]:wrap-break-word">
             {hasRefund && (
               <>
                 <dt className="text-slate-500">Pagamento</dt>
@@ -100,7 +100,7 @@ export function SubscriptionSupportSummary({
           <h4 className="font-semibold">
             Justificativa <span className="font-normal text-slate-500">· visível ao aluno</span>
           </h4>
-          <p className="break-words whitespace-pre-wrap">
+          <p className="wrap-break-word whitespace-pre-wrap">
             {reason.trim() || "Preencha o motivo do atendimento para continuar."}
           </p>
           <p className="text-xs text-slate-500">

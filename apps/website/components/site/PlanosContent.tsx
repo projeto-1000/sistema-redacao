@@ -146,7 +146,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
         <Container className="pb-16 pt-4">
           {hasQuarterlyPlans && (
             <div className="flex flex-col items-center gap-3">
-              <div className="inline-flex items-center gap-4 rounded-full border border-border bg-card px-5 py-3 shadow-[var(--shadow-soft)]">
+              <div className="inline-flex items-center gap-4 rounded-full border border-border bg-card px-5 py-3 shadow-(--shadow-soft)">
                 <span
                   className={`text-sm font-bold transition-colors ${
                     quarterly ? "text-muted-foreground" : "text-primary"
@@ -165,7 +165,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                   }`}
                 >
                   <span
-                    className={`absolute top-1 h-5 w-5 rounded-full bg-card shadow transition-all duration-300 ${
+                    className={`absolute top-1 h-5 w-5 rounded-full bg-card shadow-sm transition-all duration-300 ${
                       quarterly ? "left-8" : "left-1"
                     }`}
                   />
@@ -235,8 +235,8 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                   intensity={6}
                   className={`relative flex h-full flex-col rounded-[1.75rem] bg-card p-8 ${
                     p.isRecommended
-                      ? "border-2 border-primary shadow-[var(--shadow-card)]"
-                      : "border border-border shadow-[var(--shadow-soft)]"
+                      ? "border-2 border-primary shadow-(--shadow-card)"
+                      : "border border-border shadow-(--shadow-soft)"
                   }`}
                 >
                   {p.isRecommended && (
@@ -323,7 +323,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
             {faq.map((f) => (
               <details
                 key={f.q}
-                className="group rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)] open:border-primary/40"
+                className="group rounded-2xl border border-border bg-card p-6 shadow-(--shadow-soft) open:border-primary/40"
               >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-bold text-card-foreground marker:hidden">
                   <span className="min-w-0">{f.q}</span>

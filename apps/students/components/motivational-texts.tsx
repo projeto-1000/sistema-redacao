@@ -53,10 +53,10 @@ export function MotivationalTexts({ topic }: { topic: EssayTopicDetail }) {
           {topic.title}
         </h2>
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded font-semibold uppercase">
+          <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded-sm font-semibold uppercase">
             {topic.source_type} {topic.source_year}
           </span>
-          <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-600 rounded font-semibold uppercase">
+          <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-600 rounded-sm font-semibold uppercase">
             {topic.axis}
           </span>
         </div>

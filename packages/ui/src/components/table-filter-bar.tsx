@@ -110,7 +110,7 @@ export function TableFilterBar(props: TableFilterBarProps) {
         />
       </div>
 
-      <div className="flex items-center gap-2 shrink-0 overflow-x-auto scrollbar-hide max-w-full pb-1 lg:pb-0">
+      <div className="flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar max-w-full pb-1 lg:pb-0">
         {filters.map((filter) => {
           const Icon = filter.icon;
           const selectedLabel = filter.options?.find(opt => opt.value === filter.value)?.label || filter.value;

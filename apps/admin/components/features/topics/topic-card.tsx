@@ -70,7 +70,7 @@ export default function TopicCard({ topic }: TopicCardProps) {
     >
       <ThemeBadge
         value={topic.axis}
-        className="inline-block px-2 py-1 text-[10px] font-bold uppercase tracking-widest mb-12rounded-sm w-fit"
+        className="inline-block px-2 py-1 text-[10px] font-bold uppercase tracking-widest mb-12 rounded-sm w-fit"
       />
 
       <h2 className="text-lg font-black leading-snug">

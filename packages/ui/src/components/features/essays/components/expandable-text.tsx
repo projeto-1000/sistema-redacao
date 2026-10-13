@@ -50,7 +50,7 @@ export function ExpandableText({
     <div className="min-w-0">
       <p
         ref={textRef}
-        className={`${isExpanded ? "" : "line-clamp-3"} whitespace-pre-line break-words [overflow-wrap:anywhere] ${className}`}
+        className={`${isExpanded ? "" : "line-clamp-3"} whitespace-pre-line [overflow-wrap:anywhere] ${className}`}
       >
         {text}
       </p>

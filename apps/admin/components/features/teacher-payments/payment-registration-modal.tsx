@@ -220,7 +220,7 @@ export function PaymentRegistrationModal({
                     {selectedAccount.type === 'pix' ? <KeyRound className="size-4 text-purple-600" /> : <Landmark className="size-4 text-blue-600" />}
                     Conta de Recebimento
                     {selectedAccount.is_default && (
-                      <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded uppercase tracking-wider ml-1">Padrão</span>
+                      <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-sm uppercase tracking-wider ml-1">Padrão</span>
                     )}
                   </h4>
 
@@ -231,7 +231,7 @@ export function PaymentRegistrationModal({
                           <ArrowRightLeft className="size-3.5" /> Trocar conta
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[280px] rounded-xl p-1">
+                      <DropdownMenuContent align="end" className="w-70 rounded-xl p-1">
                         {accounts.map((acc, index) => (
                           <DropdownMenuItem
                             key={acc.id || index}
@@ -243,7 +243,7 @@ export function PaymentRegistrationModal({
                                 {acc.type === 'pix' ? 'Chave PIX' : acc.bank_name}
                               </span>
                               {acc.is_default && (
-                                <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded uppercase tracking-wider">Padrão</span>
+                                <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Padrão</span>
                               )}
                             </div>
                             <span className="text-xs font-medium text-slate-500">

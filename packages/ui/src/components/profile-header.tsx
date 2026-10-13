@@ -36,7 +36,7 @@ export function ProfileHeader({ user, creditBalanceComponent, secondaryAction }:
   };
 
   return (
-    <div className="grid grid-cols-min md:grid-cols-[auto_1fr] xl:grid-cols-[auto_1fr_auto] gap-4 items-center p-6 xl:p-10 bg-white rounded-3xl border border-slate-200 shadow-sm">
+    <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] xl:grid-cols-[auto_1fr_auto] gap-4 items-center p-6 xl:p-10 bg-white rounded-3xl border border-slate-200 shadow-sm">
 
       <div className="justify-self-center md:justify-self-center xl:row-span-2">
         <Avatar
@@ -63,7 +63,7 @@ export function ProfileHeader({ user, creditBalanceComponent, secondaryAction }:
           <button
             type="button"
             onClick={handleCopyId}
-            className="rounded p-0.5 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-sm p-0.5 transition-colors hover:bg-slate-100 hover:text-slate-600"
             aria-label={isIdCopied ? "ID copiado" : "Copiar ID"}
             title={isIdCopied ? "ID copiado" : "Copiar ID"}
           >
@@ -91,7 +91,7 @@ export function ProfileHeader({ user, creditBalanceComponent, secondaryAction }:
             <button
               type="button"
               onClick={handleCopyId}
-              className="rounded p-0.5 text-slate-400 transition-colors hover:text-slate-700"
+              className="rounded-sm p-0.5 text-slate-400 transition-colors hover:text-slate-700"
               aria-label={isIdCopied ? "ID copiado" : "Copiar ID"}
               title={isIdCopied ? "ID copiado" : "Copiar ID"}
             >

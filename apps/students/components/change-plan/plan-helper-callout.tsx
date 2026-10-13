@@ -23,7 +23,7 @@ export function PlanHelpCallout() {
             </Link>
           </Button>
 
-          <Button asChild variant="outline" className="h-12 rounded-xl hover:text-primary hover:bg-primary-5 font-bold hover:text-amber-400 hover:font-extrabold">
+          <Button asChild variant="outline" className="h-12 rounded-xl hover:text-primary hover:bg-primary/5 font-bold hover:font-extrabold">
             <Link href="/assinaturas/comprar-creditos">
               <ShoppingCart className="mr-2 size-4" /> Comprar Créditos
             </Link>
@@ -31,7 +31,7 @@ export function PlanHelpCallout() {
         </div>
       </div>
 
-      <div className="relative w-full max-w-[350px] h-[300px] shrink-0 flex items-center justify-center">
+      <div className="relative w-full max-w-87.5 h-75 shrink-0 flex items-center justify-center">
         <Image
           src="/contact-us.svg"
           alt="Ilustração de Contato e Suporte"

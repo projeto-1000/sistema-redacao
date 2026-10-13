@@ -39,7 +39,7 @@ export async function NextEssays() {
                 <Avatar src={essay.avatar_url} name={essay.student_name} className="size-10 rounded-full" />
 
                 <div className="flex flex-col items-start gap-1 overflow-hidden">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${style.badgeBg} ${style.badgeText} whitespace-nowrap`}>
+                  <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wide ${style.badgeBg} ${style.badgeText} whitespace-nowrap`}>
                     {deadline.label}
                   </span>
                   <h4 className="font-bold text-sm leading-tight truncate w-full" title={essay.student_name}>

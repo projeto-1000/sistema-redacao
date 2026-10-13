@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start -p 3003",
     "lint": "eslint .",
+    "lint:tailwind": "eslint . --config eslint.tailwind.config.js",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {

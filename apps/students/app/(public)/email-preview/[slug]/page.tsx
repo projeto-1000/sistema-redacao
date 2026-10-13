@@ -135,7 +135,7 @@ export default async function EmailPreviewDetailPage({
               </p>
             </div>
 
-            <div className="grid shrink-0 gap-3 sm:grid-cols-2 lg:w-[520px]">
+            <div className="grid shrink-0 gap-3 sm:grid-cols-2 lg:w-130">
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                   Assunto
@@ -165,7 +165,7 @@ export default async function EmailPreviewDetailPage({
 
             <p className="mt-2 text-sm leading-6 text-slate-700">
               Esse é o único template que ainda usa a implementação antiga em
-              <code className="mx-1 rounded bg-white px-1.5 py-0.5">
+              <code className="mx-1 rounded-sm bg-white px-1.5 py-0.5">
                 apps/students/lib/hotmart/emails.ts
               </code>
               . A copy existente será preservada integralmente quando ele for
@@ -177,7 +177,7 @@ export default async function EmailPreviewDetailPage({
             <iframe
               title={`Preview: ${email.name}`}
               srcDoc={html ?? ""}
-              className="block min-h-[900px] w-full bg-white"
+              className="block min-h-225 w-full bg-white"
             />
           </div>
         )}

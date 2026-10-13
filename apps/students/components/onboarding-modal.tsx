@@ -305,7 +305,7 @@ export function OnboardingModal({
                                 (schoolType) => (
                                   <FormItem
                                     key={schoolType}
-                                    className="flex items-center rounded-xl border border-slate-200 px-3 md:px-4 py-2 hover:bg-slate-50 [&:has([data-state=checked])]:border-[#0A4BCC] transition-all cursor-pointer"
+                                    className="flex items-center rounded-xl border border-slate-200 px-3 md:px-4 py-2 hover:bg-slate-50 has-data-[state=checked]:border-[#0A4BCC] transition-all cursor-pointer"
                                   >
                                     <FormControl>
                                       <RadioGroupItem
@@ -402,8 +402,7 @@ export function OnboardingModal({
                                 onValueChange={field.onChange}
                               >
                                 <FormControl>
-                                  <SelectTrigger className="mt-1 bg-slate-200 border-transparent min-h-11 w-auto rounded-xl text-slate-800 font-medium focus-visible:border-[#0A4BCC] focus-visible:ring-1 focus-visible:ring-[#0A4BCC] focus:border-[#0A4BCC] focus:ring-0 focus:ring-[#0A4BCC],
-                                  ">
+                                  <SelectTrigger className="mt-1 bg-slate-200 border-transparent min-h-11 w-auto rounded-xl text-slate-800 font-medium focus-visible:border-secondary focus-visible:ring-1 focus-visible:ring-secondary focus:border-secondary focus:ring-0 focus:ring-secondary">
                                     <SelectValue placeholder="Selecione o curso" />
                                   </SelectTrigger>
                                 </FormControl>

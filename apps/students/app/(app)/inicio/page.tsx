@@ -63,7 +63,7 @@ export default async function DashboardPage() {
             <h1 className="text-3xl font-bold tracking-tight">
               Olá, {user.name}!
             </h1>
-            <p className="text-slate-500 text-md mt-1">
+            <p className="text-slate-500 text-base mt-1">
               Vamos escrever sua próxima redação nota 1000?
             </p>
           </div>
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Suspense fallback={<Skeleton className="rounded-3xl min-h-[300px] bg-slate-200" />}>
+        <Suspense fallback={<Skeleton className="rounded-3xl min-h-75 bg-slate-200" />}>
           <SectionCard
             title="Média por Competência"
             icon={FileText}
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
           </SectionCard>
         </Suspense>
 
-        <Suspense fallback={<Skeleton className="rounded-3xl min-h-[300px] bg-slate-200" />}>
+        <Suspense fallback={<Skeleton className="rounded-3xl min-h-75 bg-slate-200" />}>
           <SectionCard
             title="Evolução no Tempo"
             icon={TrendingUp}
@@ -128,7 +128,7 @@ export default async function DashboardPage() {
       </div>
 
       <Suspense fallback={
-        <Skeleton className="rounded-3xl min-h-[250px] bg-slate-200" />}>
+        <Skeleton className="rounded-3xl min-h-62.5 bg-slate-200" />}>
         <RecentEssaysList />
       </Suspense>
     </div >

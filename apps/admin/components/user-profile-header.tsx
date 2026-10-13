@@ -85,7 +85,7 @@ export function UserProfileHeader({
                   <button
                     type="button"
                     onClick={handleCopyId}
-                    className="rounded p-0.5 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                    className="rounded-sm p-0.5 transition-colors hover:bg-slate-100 hover:text-slate-600"
                     aria-label={isIdCopied ? "ID copiado" : "Copiar ID"}
                   >
                     {isIdCopied ? (
@@ -104,7 +104,7 @@ export function UserProfileHeader({
 
             <div className="flex items-center justify-center md:justify-start gap-3 text-xs font-bold">
 
-              <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider ${currentStatus.colors}`}>
+              <span className={`px-2 py-0.5 rounded-sm text-[10px] uppercase tracking-wider ${currentStatus.colors}`}>
                 {currentStatus.label}
               </span>
               {statusBadge && (

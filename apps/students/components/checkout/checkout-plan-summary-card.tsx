@@ -32,8 +32,6 @@ export function CheckoutPlanSummaryCard({
     intervalCount: plan.intervalCount,
   });
 
-  const includedFeatures = plan.features.filter((feature) => feature.included);
-
   return (
     <Card className="overflow-hidden rounded-3xl border-slate-100 bg-white p-0 shadow-sm">
       <CardHeader className="space-y-6 bg-slate-950 p-8 text-white">
@@ -58,7 +56,7 @@ export function CheckoutPlanSummaryCard({
             </span>
 
             {cycle.suffix && (
-              <span className="text-md font-bold text-slate-300">
+              <span className="text-base font-bold text-slate-300">
                 {cycle.suffix}
               </span>
             )}
