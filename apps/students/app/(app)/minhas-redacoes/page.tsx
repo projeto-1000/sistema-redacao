@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
 import { Plus } from "lucide-react";
 import { EssayGrid } from "@/components/essays/essay-grid";
@@ -7,6 +6,7 @@ import { Suspense } from "react";
 import { Skeleton } from "@repo/ui/components/skeleton";
 import { parseEssaysFilters } from "@/utils/parse-filters";
 import { PageHeader } from "@repo/ui/components/page-header";
+import { NewEssayTopicPicker } from "@/components/topics/new-essay-topic-picker";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -32,15 +32,12 @@ export default async function MyEssaysPage({
           subtitle="Acompanhe seu progresso e evolução na escrita."
           className="w-full"
         >
-          <Button
-            asChild
-            className="h-12 w-full rounded-3xl font-bold shadow-lg shadow-yellow-400/20 sm:w-auto"
-          >
-            <Link href="/temas">
+          <NewEssayTopicPicker>
+            <Button className="h-12 w-full rounded-3xl font-bold shadow-lg shadow-yellow-400/20 sm:w-auto">
               <Plus className="size-5" />
               Enviar nova redação
-            </Link>
-          </Button>
+            </Button>
+          </NewEssayTopicPicker>
         </PageHeader>
       </div>
 

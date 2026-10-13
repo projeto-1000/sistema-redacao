@@ -1,42 +1,9 @@
 "use client";
 
-import {
-  Search,
-  Leaf,
-  GraduationCap,
-  BriefcaseMedical,
-  Users,
-  Palette,
-  Cpu,
-  Scale,
-  TrendingUp,
-} from "lucide-react";
-import { ThematicAxis } from "@repo/types";
+import { Search } from "lucide-react";
 import { useTopicsFilters } from "@/hooks/use-topics-filter";
 import { PageHeader } from "@repo/ui/components/page-header";
-
-const AXIS_ICONS: Record<ThematicAxis, React.ElementType> = {
-  "Meio Ambiente": Leaf,
-  "Questões Sociais": Users,
-  Saúde: BriefcaseMedical,
-  Cultura: Palette,
-  "Direitos e Cidadania": Scale,
-  Educação: GraduationCap,
-  Tecnologia: Cpu,
-  Economia: TrendingUp,
-};
-
-const AXIS_FILTERS: ("Todos" | ThematicAxis)[] = [
-  "Todos",
-  "Meio Ambiente",
-  "Questões Sociais",
-  "Saúde",
-  "Cultura",
-  "Direitos e Cidadania",
-  "Educação",
-  "Tecnologia",
-  "Economia",
-];
+import { AXIS_FILTERS, AXIS_ICONS } from "./topic-filter-options";
 
 export function TopicFiltersBar() {
   const { searchTerm, setSearchTerm, axisFilter, setFilter } = useTopicsFilters();
@@ -77,10 +44,11 @@ export function TopicFiltersBar() {
                 suppressHydrationWarning
                 key={axis}
                 onClick={() => setFilter("axis", axis)}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${isActive
+                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${
+                  isActive
                     ? "border-[#1E3A8A] bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20"
                     : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                  } `}
+                } `}
               >
                 {Icon && (
                   <Icon className={`size-4 ${isActive ? "text-white" : "text-slate-500"}`} />

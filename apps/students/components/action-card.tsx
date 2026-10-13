@@ -2,13 +2,15 @@ import { LucideIcon } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
 import Link from "next/link";
+import { NewEssayTopicPicker } from "@/components/topics/new-essay-topic-picker";
 
 interface ActionCardProps {
   title: string;
   description: string;
   buttonText: string;
   icon: LucideIcon;
-  href: string;
+  href?: string;
+  opensTopicPicker?: boolean;
   variant?: "default" | "secondary" | "dark";
 }
 
@@ -33,6 +35,7 @@ export function ActionCard({
   buttonText,
   icon: Icon,
   href,
+  opensTopicPicker = false,
   variant = "default",
 }: ActionCardProps) {
   const style = variants[variant];
@@ -56,13 +59,26 @@ export function ActionCard({
 
       <p className="mb-6 text-sm leading-relaxed text-slate-500 md:mb-4">{description}</p>
 
-      <Button
-        asChild
-        variant={variant}
-        className={cn("h-12 w-full rounded-2xl font-bold shadow-lg")}
-      >
-        <Link href={href}>{buttonText}</Link>
-      </Button>
+      {opensTopicPicker ? (
+        <NewEssayTopicPicker>
+          <Button
+            variant={variant}
+            className={cn("mt-auto h-12 w-full rounded-2xl font-bold shadow-lg")}
+          >
+            {buttonText}
+          </Button>
+        </NewEssayTopicPicker>
+      ) : (
+        href && (
+          <Button
+            asChild
+            variant={variant}
+            className={cn("mt-auto h-12 w-full rounded-2xl font-bold shadow-lg")}
+          >
+            <Link href={href}>{buttonText}</Link>
+          </Button>
+        )
+      )}
     </div>
   );
 }

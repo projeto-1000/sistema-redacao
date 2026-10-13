@@ -20,11 +20,11 @@ export const metadata: Metadata = {
 const actions = [
   {
     title: "Nova Redação",
-    description: "Escolha um tema ou envie um texto livre para correção imediata.",
+    description: "Escolha um tema e comece sua próxima redação.",
     buttonText: "Começar Agora",
     icon: NotebookPen,
     variant: "default" as const,
-    href: "/temas",
+    opensTopicPicker: true,
   },
   {
     title: "Temas Disponíveis",
