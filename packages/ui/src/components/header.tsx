@@ -12,7 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "./dropdown-menu";
 import { Logo } from "./logo";
-import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "./sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "./sheet";
 
 export interface HeaderNavItem {
   label: string;
@@ -26,7 +32,7 @@ interface HeaderProps {
   items: HeaderNavItem[];
   activePath?: string;
   onLogout: () => Promise<void>;
-  collapseAt?: "md" | "xl";
+  collapseAt?: "md" | "lg" | "xl";
 }
 
 const RESPONSIVE_CLASSES = {
@@ -35,6 +41,11 @@ const RESPONSIVE_CLASSES = {
     mobile: "flex md:hidden",
     sheet: "md:hidden",
   },
+  lg: {
+    desktop: "hidden lg:flex",
+    mobile: "flex lg:hidden",
+    sheet: "lg:hidden",
+  },
   xl: {
     desktop: "hidden xl:flex",
     mobile: "flex xl:hidden",
@@ -42,28 +53,42 @@ const RESPONSIVE_CLASSES = {
   },
 } as const;
 
+const DESKTOP_MEDIA_QUERIES = {
+  md: "(min-width: 768px)",
+  lg: "(min-width: 1024px)",
+  xl: "(min-width: 1280px)",
+} as const;
+
 function isItemActive(activePath: string, href: string) {
   if (href === "/") return activePath === href;
   return activePath === href || activePath.startsWith(`${href}/`);
 }
 
-export function Header({ items, activePath = "", onLogout, collapseAt = "md" }: HeaderProps) {
+export function Header({
+  items,
+  activePath = "",
+  onLogout,
+  collapseAt = "md",
+}: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const responsiveClasses = RESPONSIVE_CLASSES[collapseAt];
   const primaryItems = items.filter(
-    (item) => !item.desktopPlacement || item.desktopPlacement === "primary"
+    (item) => !item.desktopPlacement || item.desktopPlacement === "primary",
   );
-  const overflowItems = items.filter((item) => item.desktopPlacement === "overflow");
+  const overflowItems = items.filter(
+    (item) => item.desktopPlacement === "overflow",
+  );
   const accountItem = items.find((item) => item.desktopPlacement === "account");
-  const activeItem = items.find((item) => isItemActive(activePath, item.href));
-  const hasActiveOverflowItem = overflowItems.some((item) => isItemActive(activePath, item.href));
+  const hasActiveOverflowItem = overflowItems.some((item) =>
+    isItemActive(activePath, item.href),
+  );
 
   const mobileGroups = useMemo(() => {
     const groups = new Map<string, HeaderNavItem[]>();
 
     items.forEach((item) => {
-      const group = item.group ?? "Navegação";
+      const group = item.group ?? "Menu";
       groups.set(group, [...(groups.get(group) ?? []), item]);
     });
 
@@ -71,9 +96,7 @@ export function Header({ items, activePath = "", onLogout, collapseAt = "md" }: 
   }, [items]);
 
   useEffect(() => {
-    const desktopMedia = window.matchMedia(
-      collapseAt === "xl" ? "(min-width: 1280px)" : "(min-width: 768px)"
-    );
+    const desktopMedia = window.matchMedia(DESKTOP_MEDIA_QUERIES[collapseAt]);
     const closeMenuOnDesktop = (event: MediaQueryListEvent) => {
       if (event.matches) setIsMobileMenuOpen(false);
     };
@@ -96,23 +119,19 @@ export function Header({ items, activePath = "", onLogout, collapseAt = "md" }: 
 
   return (
     <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/90 px-4 shadow-sm backdrop-blur-md sm:px-6">
-      <div className="flex min-w-0 items-center gap-4">
+      <div className="flex min-w-0 items-center">
         <a href="/" className="shrink-0" aria-label="Ir para o início">
           <Logo className="h-10 w-auto" />
         </a>
-        <span
-          className={`h-7 w-px shrink-0 bg-slate-200 ${responsiveClasses.mobile}`}
-          aria-hidden="true"
-        />
-        <span
-          className={`truncate text-sm font-semibold text-slate-600 ${responsiveClasses.mobile}`}
-        >
-          {activeItem?.label ?? "Menu"}
-        </span>
       </div>
 
-      <div className={`${responsiveClasses.desktop} items-center justify-end gap-4`}>
-        <nav aria-label="Navegação principal" className="flex items-center gap-3 text-sm font-medium">
+      <div
+        className={`${responsiveClasses.desktop} items-center justify-end gap-4`}
+      >
+        <nav
+          aria-label="Navegação principal"
+          className="flex items-center gap-3 text-sm font-medium"
+        >
           {primaryItems.map((item) => {
             const isActive = isItemActive(activePath, item.href);
 
@@ -122,7 +141,7 @@ export function Header({ items, activePath = "", onLogout, collapseAt = "md" }: 
                 href={item.href}
                 data-active={isActive}
                 className={`story-link whitespace-nowrap transition-colors duration-300 ${
-                  isActive ? "font-bold text-slate-900" : "text-slate-600 hover:text-primary"
+                  isActive ? "font-bold" : "text-slate-600 hover:text-primary"
                 }`}
               >
                 {item.label}
@@ -140,7 +159,7 @@ export function Header({ items, activePath = "", onLogout, collapseAt = "md" }: 
                   hasActiveOverflowItem ? "text-primary" : "text-slate-700"
                 }`}
               >
-                <span className="flex size-7 items-center justify-center rounded-full bg-blue-50 text-primary">
+                <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Ellipsis className="size-4" />
                 </span>
                 Mais
@@ -199,11 +218,13 @@ export function Header({ items, activePath = "", onLogout, collapseAt = "md" }: 
       </div>
 
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <div className={`${responsiveClasses.mobile} shrink-0 items-center gap-2`}>
+        <div
+          className={`${responsiveClasses.mobile} shrink-0 items-center gap-2`}
+        >
           {accountItem && (
             <a
               href={accountItem.href}
-              className="hidden h-10 items-center gap-2 rounded-xl px-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 sm:flex"
+              className="flex h-10 items-center gap-2 rounded-xl px-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
             >
               <span className="flex size-8 items-center justify-center rounded-full bg-slate-100">
                 <UserRound className="size-4" />
@@ -215,10 +236,10 @@ export function Header({ items, activePath = "", onLogout, collapseAt = "md" }: 
             <button
               type="button"
               disabled={isLoggingOut}
-              className="flex h-10 items-center gap-2 rounded-xl bg-blue-50 px-3 text-sm font-bold text-primary transition-colors hover:bg-blue-100 disabled:pointer-events-none disabled:opacity-50"
+              className="flex h-10 items-center gap-2 rounded-xl bg-primary/5 px-3 text-sm font-bold text-primary transition-colors hover:bg-primary/10 disabled:pointer-events-none disabled:opacity-50"
             >
-              <Menu className="size-4" />
-              <span className="hidden sm:inline">Menu</span>
+              <Menu className="size-4 text-primary" />
+              <span>Menu</span>
             </button>
           </SheetTrigger>
         </div>
@@ -257,11 +278,15 @@ export function Header({ items, activePath = "", onLogout, collapseAt = "md" }: 
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
                             isActive
-                              ? "bg-blue-50 text-primary"
-                              : "text-slate-700 hover:bg-slate-50 hover:text-primary"
+                              ? "bg-primary/10 text-slate-900"
+                              : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                           }`}
                         >
-                          {Icon ? <Icon className="size-4.5 shrink-0" /> : null}
+                          {Icon ? (
+                            <Icon
+                              className={`size-4.5 shrink-0 ${isActive ? "text-primary" : ""}`}
+                            />
+                          ) : null}
                           <span>{item.label}</span>
                         </a>
                       );

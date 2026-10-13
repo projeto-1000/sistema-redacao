@@ -38,11 +38,11 @@ export function SheetContent({
 }: React.ComponentProps<typeof SheetPrimitive.Content>) {
   return (
     <SheetPrimitive.Portal>
-      <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+      <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-slate-950/30 backdrop-blur-[1px] data-[state=open]:animate-in data-[state=open]:duration-300 data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:duration-200 data-[state=closed]:fade-out-0" />
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "fixed inset-y-0 right-0 z-50 flex h-dvh w-full flex-col border-l bg-white p-6 shadow-xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-2xl",
+          "fixed inset-y-0 right-0 z-50 flex h-dvh w-full flex-col border-l bg-white p-6 shadow-xl outline-none data-[state=open]:animate-in data-[state=open]:duration-300 data-[state=open]:ease-out data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-right data-[state=closed]:animate-out data-[state=closed]:duration-200 data-[state=closed]:ease-in data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-right sm:max-w-2xl",
           className,
         )}
         {...props}

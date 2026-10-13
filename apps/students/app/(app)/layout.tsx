@@ -16,19 +16,19 @@ const NAV_ITEMS = [
     label: "Início",
     href: "/inicio",
     icon: Home,
-    group: "Navegação",
+    group: "Área do aluno",
   },
   {
     label: "Temas",
     href: "/temas",
     icon: BookOpen,
-    group: "Navegação",
+    group: "Área do aluno",
   },
   {
     label: "Minhas Redações",
     href: "/minhas-redacoes",
     icon: FileText,
-    group: "Navegação",
+    group: "Área do aluno",
   },
   {
     label: "Meu perfil",
@@ -92,6 +92,7 @@ function AppLayoutContent({
         items={NAV_ITEMS}
         activePath={pathname}
         onLogout={handleLogout}
+        collapseAt="lg"
       />
 
       {!isLoading && profile && (

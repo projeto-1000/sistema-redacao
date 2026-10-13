@@ -30,18 +30,18 @@ export default function AppLayout({
   }, [router, supabase]);
 
   const navItems = [
-    { label: "Início", href: "/inicio", icon: Home, group: "Navegação" },
+    { label: "Início", href: "/inicio", icon: Home, group: "Área do professor" },
     {
       label: "Redações Pendentes",
       href: "/redacoes-pendentes",
       icon: FileClock,
-      group: "Navegação",
+      group: "Área do professor",
     },
     {
       label: "Redações Corrigidas",
       href: "/redacoes-corrigidas",
       icon: CircleCheckBig,
-      group: "Navegação",
+      group: "Área do professor",
     },
     {
       label: "Meu perfil",
@@ -68,6 +68,7 @@ export default function AppLayout({
         items={navItems}
         activePath={pathname}
         onLogout={handleLogout}
+        collapseAt="lg"
       />
       <main className="flex-1 w-full p-6 md:p-8 bg-slate-50">
         {children}
