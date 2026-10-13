@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
@@ -37,7 +37,7 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
   });
 
   const { isValid, isDirty, isSubmitting } = form.formState;
-  const password = form.watch("password");
+  const password = useWatch({ control: form.control, name: "password" });
 
   const onSubmit = async (data: UpdatePasswordSchema) => {
     try {

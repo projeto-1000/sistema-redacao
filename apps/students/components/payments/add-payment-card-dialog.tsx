@@ -94,7 +94,7 @@ export function AddPaymentCardDialog({
         {compact ? "Adicionar cartão" : "Adicionar novo cartão"}
       </Button>
 
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[680px]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-170">
         <DialogHeader>
           <DialogTitle className="text-2xl font-extrabold">Adicionar novo cartão</DialogTitle>
 

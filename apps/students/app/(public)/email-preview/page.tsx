@@ -285,12 +285,12 @@ export default async function EmailPreviewPage({ searchParams }: EmailPreviewPag
 
           {/* Preview */}
           <div className="min-h-0 flex-1 overflow-auto p-6">
-            <div className="mx-auto max-w-[900px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="mx-auto max-w-225 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <iframe
                 key={selectedEmail.slug}
                 title={`Preview: ${selectedEmail.name}`}
                 srcDoc={html}
-                className="block h-[1000px] w-full bg-white"
+                className="block h-250 w-full bg-white"
               />
             </div>
           </div>

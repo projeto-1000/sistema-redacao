@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { DateRange } from "react-day-picker";
-import { Activity, Layers } from "lucide-react";
+import { Activity } from "lucide-react";
 import { useUrlFilters } from "@repo/hooks";
 import { TransactionType } from "@repo/types";
 

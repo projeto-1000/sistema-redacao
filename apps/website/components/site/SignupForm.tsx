@@ -32,7 +32,7 @@ import {
 import { ArrowRight, Check, CircleAlert, LogIn, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { getStudentsUrl, SUPPORT_URL } from "@/lib/site-links";
 
 const countryCodeOptions = getPhoneCountryCodeOptions();
@@ -67,7 +67,10 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
     },
   });
 
-  const selectedCountryCode = form.watch("phoneCountryCode");
+  const selectedCountryCode = useWatch({
+    control: form.control,
+    name: "phoneCountryCode",
+  });
   const isBrazil = selectedCountryCode === DEFAULT_PHONE_COUNTRY_CODE;
   async function onSubmit(registration: RegistrationDetailsSchema) {
     form.clearErrors("root");

@@ -18,7 +18,7 @@ export function SectionCard({
   children,
 }: SectionCardProps) {
   return (
-    <div className="border-border flex min-h-[300px] flex-col rounded-3xl border bg-white p-6 shadow-sm">
+    <div className="border-border flex min-h-75 flex-col rounded-3xl border bg-white p-6 shadow-sm">
       <div className="mb-6 flex items-center gap-2">
         <div className="border-primary size-2 rounded-full border-2" />
         <h3 className="text-foreground font-bold">{title}</h3>
@@ -28,7 +28,7 @@ export function SectionCard({
         {hasData ? (
           children
         ) : (
-          <div className="flex max-w-[250px] flex-col items-center">
+          <div className="flex max-w-62.5 flex-col items-center">
             {Icon && (
               <div className="mb-4 text-slate-200">
                 <Icon className="size-12" />

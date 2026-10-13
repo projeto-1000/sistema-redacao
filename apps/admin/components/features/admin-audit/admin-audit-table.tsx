@@ -380,11 +380,10 @@ export function AdminAuditTable({
                   type="button"
                   aria-pressed={isSelected}
                   onClick={() => handleSelectEvent(event.id)}
-                  className={`grid w-full gap-3 border-l-4 px-5 py-4 text-left transition-colors lg:grid-cols-[minmax(220px,1.35fr)_minmax(130px,0.75fr)_minmax(150px,0.9fr)_120px_100px_20px] lg:items-center lg:gap-4 ${
-                    isSelected
+                  className={`grid w-full gap-3 border-l-4 px-5 py-4 text-left transition-colors lg:grid-cols-[minmax(220px,1.35fr)_minmax(130px,0.75fr)_minmax(150px,0.9fr)_120px_100px_20px] lg:items-center lg:gap-4 ${isSelected
                       ? "border-l-blue-600 bg-blue-50/70"
                       : "border-l-transparent bg-white hover:bg-slate-50"
-                  }`}
+                    }`}
                 >
                   <span className="flex min-w-0 items-start gap-3">
                     <span
@@ -548,14 +547,14 @@ function AuditDetailsContent({
                   <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_20px_minmax(0,1fr)] sm:items-start">
                     <div className="min-w-0 rounded-xl bg-slate-50 p-3">
                       <p className="text-[9px] font-black text-slate-400 uppercase">Antes</p>
-                      <p className="mt-1 text-xs font-medium break-words whitespace-pre-wrap text-slate-600">
+                      <p className="mt-1 text-xs font-medium wrap-break-wordword whitespace-pre-wrap text-slate-600">
                         {detail.before}
                       </p>
                     </div>
                     <ChevronRight className="mx-auto size-4 rotate-90 text-slate-300 sm:mt-5 sm:rotate-0" />
                     <div className="min-w-0 rounded-xl bg-blue-50 p-3">
                       <p className="text-[9px] font-black text-blue-500 uppercase">Depois</p>
-                      <p className="mt-1 text-xs font-bold break-words whitespace-pre-wrap text-slate-800">
+                      <p className="mt-1 text-xs font-bold wrap-break-word whitespace-pre-wrap text-slate-800">
                         {detail.after}
                       </p>
                     </div>
@@ -612,7 +611,7 @@ function DetailRow({
     <div className="grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-4">
       <dt className="text-xs font-bold text-slate-400">{label}</dt>
       <dd
-        className={`text-sm font-bold text-slate-800 ${breakValue ? "break-all" : "break-words"}`}
+        className={`text-sm font-bold text-slate-800 ${breakValue ? "break-all" : "wrap-break-word"}`}
       >
         {value}
         {supportingValue && (

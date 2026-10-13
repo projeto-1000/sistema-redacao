@@ -236,7 +236,7 @@ export function PaymentMethodsManager({ cards }: PaymentMethodsManagerProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-9 w-[122px] rounded-lg px-3 text-xs font-bold"
+                        className="h-9 w-30.5 rounded-lg px-3 text-xs font-bold"
                         disabled={isPending}
                         onClick={() => handleSetDefault(card.id)}
                       >

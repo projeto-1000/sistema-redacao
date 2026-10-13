@@ -16,10 +16,29 @@ interface CustomTooltipProps {
   }[];
 }
 
+function CustomBarTooltip({ active, payload }: CustomTooltipProps) {
+  if (active && payload && payload.length > 0) {
+    const currentItem = payload[0];
+    if (!currentItem) return null;
+
+    return (
+      <div className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-xs font-bold text-white shadow-xl">
+        <p className="mb-1 text-[10px] tracking-wider text-slate-400 uppercase">Faixa de Nota</p>
+        <p className="text-base">{currentItem.payload.range} pontos</p>
+        <div className="mt-2 border-t border-slate-700 pt-2">
+          <p className="text-emerald-400">{currentItem.value} redações</p>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export default function ScoreDistributionChart({ data }: ScoreDistributionChartProps) {
   if (!data) {
     return (
-      <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-4xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center shadow-sm md:p-8">
+      <div className="flex h-full min-h-75 flex-col items-center justify-center rounded-4xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center shadow-sm md:p-8">
         <div className="mb-4 flex size-10 items-center justify-center rounded-full bg-red-100/50 text-red-600">
           <AlertCircle className="size-6" />
         </div>
@@ -35,7 +54,7 @@ export default function ScoreDistributionChart({ data }: ScoreDistributionChartP
 
   if (data.length === 0) {
     return (
-      <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-4xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center md:p-8">
+      <div className="flex h-full min-h-75 flex-col items-center justify-center rounded-4xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center md:p-8">
         <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-slate-200 text-slate-500">
           <BarChart2 className="size-6" />
         </div>
@@ -48,24 +67,6 @@ export default function ScoreDistributionChart({ data }: ScoreDistributionChartP
       </div>
     );
   }
-
-  const CustomBarTooltip = ({ active, payload }: CustomTooltipProps) => {
-    if (active && payload && payload.length > 0) {
-      const currentItem = payload[0];
-      if (!currentItem) return null;
-
-      return (
-        <div className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-xs font-bold text-white shadow-xl">
-          <p className="mb-1 text-[10px] tracking-wider text-slate-400 uppercase">Faixa de Nota</p>
-          <p className="text-base">{currentItem.payload.range} pontos</p>
-          <div className="mt-2 border-t border-slate-700 pt-2">
-            <p className="text-emerald-400">{currentItem.value} redações</p>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="flex flex-col rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">

@@ -49,7 +49,7 @@ export function TopicFiltersBar() {
           subtitle="Navegue por nossa biblioteca completa de propostas."
         />
 
-        <div className="relative w-full lg:w-[450px]">
+        <div className="relative w-full lg:w-112.5">
           <Search className="absolute top-1/2 left-5 size-5 -translate-y-1/2 text-slate-400" />
           <input
             suppressHydrationWarning
@@ -77,11 +77,10 @@ export function TopicFiltersBar() {
                 suppressHydrationWarning
                 key={axis}
                 onClick={() => setFilter("axis", axis)}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${isActive
                     ? "border-[#1E3A8A] bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20"
                     : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                } `}
+                  } `}
               >
                 {Icon && (
                   <Icon className={`size-4 ${isActive ? "text-white" : "text-slate-500"}`} />

@@ -83,7 +83,7 @@ export function CreateTeacherDialog({ onCreate }: CreateTeacherDialogProps) {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:max-w-[620px]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:max-w-155">
         <DialogHeader>
           <DialogTitle className="text-xl font-black">Cadastrar professor</DialogTitle>
         </DialogHeader>

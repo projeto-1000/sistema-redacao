@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { registerSchema, type RegisterSchema } from "@repo/validators";
@@ -99,8 +99,11 @@ export function SignUpForm({
 
   const isLoading = isSubmitting || isPending;
 
-  const selectedPhoneCountryCode = form.watch("phoneCountryCode");
-  const password = form.watch("password");
+  const selectedPhoneCountryCode = useWatch({
+    control: form.control,
+    name: "phoneCountryCode",
+  });
+  const password = useWatch({ control: form.control, name: "password" });
   const isBrazilianPhone = selectedPhoneCountryCode === DEFAULT_PHONE_COUNTRY_CODE;
 
   const handleSubmit = async (values: RegisterSchema) => {

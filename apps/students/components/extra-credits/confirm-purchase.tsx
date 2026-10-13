@@ -49,12 +49,12 @@ export function ConfirmPurchase({ packageData, savedCards }: ConfirmPurchaseProp
   const [paymentSelection, setPaymentSelection] = useState<ExtraCreditsPaymentSelection>(
     defaultCard
       ? {
-          type: "saved_card",
-          paymentCardId: defaultCard.id,
-        }
+        type: "saved_card",
+        paymentCardId: defaultCard.id,
+      }
       : {
-          type: "new_card",
-        }
+        type: "new_card",
+      }
   );
   const [lastSavedCardId, setLastSavedCardId] = useState<string | null>(defaultCard?.id ?? null);
 
@@ -82,12 +82,12 @@ export function ConfirmPurchase({ packageData, savedCards }: ConfirmPurchaseProp
       setPaymentSelection(
         defaultCard
           ? {
-              type: "saved_card",
-              paymentCardId: defaultCard.id,
-            }
+            type: "saved_card",
+            paymentCardId: defaultCard.id,
+          }
           : {
-              type: "new_card",
-            }
+            type: "new_card",
+          }
       );
     }, 300);
   };
@@ -209,7 +209,7 @@ export function ConfirmPurchase({ packageData, savedCards }: ConfirmPurchaseProp
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-none p-0 shadow-2xl sm:max-w-[620px]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-none p-0 shadow-2xl sm:max-w-155">
         {step !== "success" && (
           <div className={step === "processing" ? "hidden" : "p-8"}>
             <DialogHeader className="mb-8">
@@ -332,14 +332,12 @@ export function ConfirmPurchase({ packageData, savedCards }: ConfirmPurchaseProp
         {step === "success" && (
           <div className="flex flex-col items-center p-10 text-center">
             <div
-              className={`mb-6 flex size-20 items-center justify-center rounded-full ${
-                purchaseStatus === "paid" ? "bg-green-50" : "bg-blue-50"
-              }`}
+              className={`mb-6 flex size-20 items-center justify-center rounded-full ${purchaseStatus === "paid" ? "bg-green-50" : "bg-blue-50"
+                }`}
             >
               <CheckCircle2
-                className={`size-12 ${
-                  purchaseStatus === "paid" ? "text-green-500" : "text-blue-500"
-                }`}
+                className={`size-12 ${purchaseStatus === "paid" ? "text-green-500" : "text-blue-500"
+                  }`}
               />
             </div>
 

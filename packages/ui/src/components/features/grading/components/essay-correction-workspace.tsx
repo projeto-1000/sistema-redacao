@@ -19,7 +19,7 @@ import { CorrectionSummaryFields } from "./correction-summary-fields";
 import { queuePostRedirectSuccessToast } from "../../../post-redirect-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { finalCorrectionSchema, type FinalCorrectionInput } from "@repo/validators";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch, type FieldErrors } from "react-hook-form";
 interface EssayCorrectionWorkspaceProps {
   essay: {
     id: string;
@@ -116,7 +116,7 @@ export function EssayCorrectionWorkspace({
   const router = useRouter();
 
   const {
-    watch,
+    control,
     setValue,
     getValues,
     handleSubmit,
@@ -127,12 +127,18 @@ export function EssayCorrectionWorkspace({
     defaultValues: normalizeInitialFormValues(initialDraft),
   });
 
-  const scores = watch("scores");
-  const comments = watch("comments");
-  const generalComment = watch("general_comment");
-  const mainBottleneck = watch("main_bottleneck");
-  const nextEssayPriorities = watch("next_essay_priorities");
-  const rewriteTasks = watch("rewrite_tasks");
+  const [scores, comments, generalComment, mainBottleneck, nextEssayPriorities, rewriteTasks] =
+    useWatch({
+      control,
+      name: [
+        "scores",
+        "comments",
+        "general_comment",
+        "main_bottleneck",
+        "next_essay_priorities",
+        "rewrite_tasks",
+      ],
+    });
 
   const [highlights, setHighlights] = useState<Highlight[]>(
     (initialDraft?.highlights as Highlight[]) || []
@@ -209,50 +215,49 @@ export function EssayCorrectionWorkspace({
     setActiveHighlightComp((prev) => (prev === compId ? null : compId));
   };
 
-  const submitCorrection = handleSubmit(
-    async (payload) => {
-      try {
-        if (!onSaveCorrection) {
-          finalizationStartedRef.current = false;
-          toast.error("A finalização não está disponível neste modo.");
-          return;
-        }
-
-        await pendingAutoSaveRef.current;
-
-        const result = await onSaveCorrection(serializeCorrectionPayload(payload));
-
-        if (result.success) {
-          const destinationPath = result.reviewRequired ? "/redacoes-pendentes" : redirectPath;
-          const confirmationMessage = result.reviewRequired
-            ? (result.message ?? "Correção enviada para revisão.")
-            : successMessage;
-
-          queuePostRedirectSuccessToast(confirmationMessage, destinationPath);
-          setIsRedirecting(true);
-          router.push(destinationPath);
-          return;
-        }
-
+  const submitValidCorrection = async (payload: FinalCorrectionInput) => {
+    try {
+      if (!onSaveCorrection) {
         finalizationStartedRef.current = false;
-
-        toast.error(result.error ?? "Não foi possível salvar a correção.");
-      } catch (error) {
-        finalizationStartedRef.current = false;
-
-        console.error("Erro ao salvar correção:", error);
-
-        toast.error("Não foi possível salvar a correção.");
+        toast.error("A finalização não está disponível neste modo.");
+        return;
       }
-    },
-    (errors) => {
+
+      await pendingAutoSaveRef.current;
+
+      const result = await onSaveCorrection(serializeCorrectionPayload(payload));
+
+      if (result.success) {
+        const destinationPath = result.reviewRequired ? "/redacoes-pendentes" : redirectPath;
+        const confirmationMessage = result.reviewRequired
+          ? (result.message ?? "Correção enviada para revisão.")
+          : successMessage;
+
+        queuePostRedirectSuccessToast(confirmationMessage, destinationPath);
+        setIsRedirecting(true);
+        router.push(destinationPath);
+        return;
+      }
+
       finalizationStartedRef.current = false;
 
-      console.error("Correção inválida:", errors);
+      toast.error(result.error ?? "Não foi possível salvar a correção.");
+    } catch (error) {
+      finalizationStartedRef.current = false;
 
-      toast.error("Preencha todos os campos obrigatórios antes de finalizar.");
+      console.error("Erro ao salvar correção:", error);
+
+      toast.error("Não foi possível salvar a correção.");
     }
-  );
+  };
+
+  const handleInvalidCorrection = (validationErrors: FieldErrors<FinalCorrectionInput>) => {
+    finalizationStartedRef.current = false;
+
+    console.error("Correção inválida:", validationErrors);
+
+    toast.error("Preencha todos os campos obrigatórios antes de finalizar.");
+  };
 
   const handleSave = () => {
     if (readOnly || finalizationStartedRef.current) {
@@ -266,7 +271,7 @@ export function EssayCorrectionWorkspace({
       autoSaveTimerRef.current = null;
     }
 
-    void submitCorrection();
+    void handleSubmit(submitValidCorrection, handleInvalidCorrection)();
   };
 
   return (

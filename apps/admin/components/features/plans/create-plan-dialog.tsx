@@ -84,7 +84,7 @@ export function CreatePlanDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:max-w-[600px]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:max-w-150">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-xl font-black">Cadastrar Novo Plano</DialogTitle>
         </DialogHeader>

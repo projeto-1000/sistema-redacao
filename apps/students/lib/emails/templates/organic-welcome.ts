@@ -14,12 +14,10 @@ export const organicWelcomeEmail = {
 };
 
 export function buildOrganicWelcomeEmailHtml({
-  firstName,
   dashboardUrl,
   freeCredits,
   creditsExpireAt,
 }: BuildOrganicWelcomeEmailParams) {
-  const safeFirstName = escapeHtml(firstName);
   const safeCreditsExpireAt = escapeHtml(creditsExpireAt);
 
   return buildEmailLayout({

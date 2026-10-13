@@ -30,7 +30,7 @@ export async function RecentEssaysList() {
           ))}
         </div>
       ) : (
-        <div className="border-border flex min-h-[250px] flex-col items-center justify-center rounded-3xl border-2 border-dashed bg-white/50 p-12 text-center">
+        <div className="border-border flex min-h-62.5 flex-col items-center justify-center rounded-3xl border-2 border-dashed bg-white/50 p-12 text-center">
           <FilePenLine className="mb-4 size-10 rounded-full bg-amber-100 p-2.5" />
           <h4 className="mb-2 font-bold">
             Você ainda não enviou nenhuma redação. Que tal começar agora?

@@ -1,4 +1,4 @@
-import { Info, TrendingUp, FileCheck, BadgeCheck } from "lucide-react";
+import { Info, TrendingUp, FileCheck } from "lucide-react";
 
 interface StatCardProps {
   title: string;

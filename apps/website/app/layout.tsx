@@ -46,6 +46,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className={poppins.variable}>
         <noscript>
+          {/* O pixel da Meta precisa permanecer uma imagem direta sem JavaScript. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             height="1"
             width="1"

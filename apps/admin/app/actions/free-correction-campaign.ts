@@ -196,7 +196,6 @@ async function loadFreeCorrectionCampaignAudience(
 
   if (error || !data) {
     // Next.js always provides NODE_ENV; expose RPC diagnostics only during local testing.
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
     if (process.env.NODE_ENV === "development") {
       console.error("[FREE_CORRECTION_CAMPAIGN_AUDIENCE_ERROR]", {
         code: error?.code,
@@ -260,7 +259,7 @@ export async function getFreeCorrectionCampaignAudience(
   }
 
   // Next.js always provides NODE_ENV; keep campaign audience data out of production logs.
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
+
   if (process.env.NODE_ENV === "development") {
     console.log(
       "[FREE_CORRECTION_CAMPAIGN_AUDIENCE]",

@@ -42,7 +42,7 @@ function getSaoPauloDateParts(date: Date) {
   };
 }
 
-function getLegacyFreeCreditExpiration(startAt: string | null | undefined) {
+function getLegacyFreeCreditExpiration(startAt: string | null | undefined, referenceTime: number) {
   if (!startAt) return null;
 
   const startDate = new Date(startAt);
@@ -56,7 +56,7 @@ function getLegacyFreeCreditExpiration(startAt: string | null | undefined) {
     month: expirationDate.getUTCMonth() + 1,
     day: expirationDate.getUTCDate(),
   };
-  const today = getSaoPauloDateParts(new Date());
+  const today = getSaoPauloDateParts(new Date(referenceTime));
   const expirationKey = expiration.year * 10_000 + expiration.month * 100 + expiration.day;
   const todayKey = today.year * 10_000 + today.month * 100 + today.day;
 
@@ -69,7 +69,13 @@ function getLegacyFreeCreditExpiration(startAt: string | null | undefined) {
   };
 }
 
-export function StudentsTableRow({ student }: { student: StudentsListItem }) {
+export function StudentsTableRow({
+  student,
+  referenceTime,
+}: {
+  student: StudentsListItem;
+  referenceTime: number;
+}) {
   const { entity: studentItem, toggleStatus } = useToggleUserStatus(student, updateStudentStatus);
   const [isIdCopied, setIsIdCopied] = useState(false);
 
@@ -111,12 +117,13 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
   const hasValidFreeCreditExpiration =
     freeCreditExpirationTime !== null && !Number.isNaN(freeCreditExpirationTime);
   const legacyFreeCreditExpiration = getLegacyFreeCreditExpiration(
-    studentItem.subscription?.current_period_start
+    studentItem.subscription?.current_period_start,
+    referenceTime
   );
 
   const validityLabel = isFreePlan
     ? hasValidFreeCreditExpiration
-      ? `${freeCreditExpirationTime <= Date.now() ? "Expirou" : "Expira"} em ${formatDate(
+      ? `${freeCreditExpirationTime <= referenceTime ? "Expirou" : "Expira"} em ${formatDate(
           freeCreditExpiresAt,
           "compact"
         )}`

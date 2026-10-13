@@ -2,7 +2,13 @@
 
 import * as React from "react";
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { DayPicker, getDefaultClassNames, type DayButton } from "react-day-picker";
+import {
+  DayPicker,
+  getDefaultClassNames,
+  type ChevronProps,
+  type DayButton,
+  type RootProps,
+} from "react-day-picker";
 
 import { cn } from "@repo/ui/lib/utils";
 import { Button, buttonVariants } from "@repo/ui/components/button";
@@ -114,10 +120,10 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Root: ({ className, rootRef, ...props }) => {
+        Root: ({ className, rootRef, ...props }: RootProps) => {
           return <div data-slot="calendar" ref={rootRef} className={cn(className)} {...props} />;
         },
-        Chevron: ({ className, orientation, ...props }) => {
+        Chevron: ({ className, orientation, ...props }: ChevronProps) => {
           if (orientation === "left") {
             return <ChevronLeftIcon className={cn("size-4", className)} {...props} />;
           }

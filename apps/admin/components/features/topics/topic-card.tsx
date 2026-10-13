@@ -41,8 +41,7 @@ export default function TopicCard({ topic }: TopicCardProps) {
     startTransition(async () => {
       try {
         await deleteEssayTopic(id);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
+      } catch {
         toast.error("Erro ao excluir essa tema", { description: "Tente novamente mais tarde." });
       } finally {
         toast.success("Tema removido", {
@@ -64,7 +63,7 @@ export default function TopicCard({ topic }: TopicCardProps) {
             description: "A visibilidade do tema foi atualizada na plataforma.",
           });
         }
-      } catch (error) {
+      } catch {
         toast.error("Erro de conexão", { description: "Tente novamente mais tarde." });
       }
     });

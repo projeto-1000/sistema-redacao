@@ -25,7 +25,7 @@ import {
 import { step1Schema, step2Schema, type OnboardingSchema } from "@repo/validators";
 import { ArrowRight, ChevronLeft } from "lucide-react";
 import { useState } from "react";
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm, useWatch, type SubmitHandler } from "react-hook-form";
 import { toast } from "sonner";
 
 export type OnboardingCompletionResult =
@@ -76,9 +76,9 @@ export function OnboardingModal({ open, onCompleted }: OnboardingModalProps) {
 
   const { isSubmitting } = form.formState;
 
-  const knowsCourse = form.watch("knowsCourse");
-  const selectedUF = form.watch("state");
-  const currentValues = form.watch();
+  const knowsCourse = useWatch({ control: form.control, name: "knowsCourse" });
+  const selectedUF = useWatch({ control: form.control, name: "state" });
+  const currentValues = useWatch({ control: form.control });
 
   const isStep1Valid = step1Schema.safeParse(currentValues).success;
 

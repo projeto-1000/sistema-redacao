@@ -57,7 +57,7 @@ export function CancellationRequestDetails({ entry }: { entry: CancellationHisto
           )}
           {events.map((event, index) => (
             <li key={`${event.at}-${index}`} className="relative text-sm">
-              <span className="absolute top-1 -left-[25px] size-2 rounded-full bg-blue-500" />
+              <span className="absolute top-1 -left-6.25 size-2 rounded-full bg-blue-500" />
               <p className="font-semibold text-slate-700">{event.label}</p>
               <p className="mt-1 text-xs text-slate-500">{formatCancellationDate(event.at)}</p>
               {event.detail && (

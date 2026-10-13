@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Undo } from "lucide-react";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
@@ -84,7 +84,7 @@ export function ReturnEssayDialog({ essayId, onReturnEssay }: ReturnEssayDialogP
     },
   });
 
-  const selectedReason = form.watch("reason");
+  const selectedReason = useWatch({ control: form.control, name: "reason" });
   const { isSubmitting, isValid } = form.formState;
 
   const onSubmit = async (values: FormValues) => {

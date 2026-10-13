@@ -36,7 +36,7 @@ export async function PaymentHistoryTable({ teacherId, page }: PaymentHistoryTab
 
   if (error) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-4xl border border-red-100 bg-white p-6 shadow-sm md:p-8">
+      <div className="flex min-h-100 flex-col items-center justify-center rounded-4xl border border-red-100 bg-white p-6 shadow-sm md:p-8">
         <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-red-50 text-red-500">
           <AlertTriangle className="size-8" />
         </div>

@@ -28,7 +28,7 @@ export function FreeCreditReminderModal({
   return (
     <Dialog open={open}>
       <DialogContent
-        className="w-[calc(100%-4rem)] max-w-[560px] overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-2xl"
+        className="w-[calc(100%-4rem)] max-w-140 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-2xl"
         showCloseButton={false}
         onInteractOutside={(event) => event.preventDefault()}
         onEscapeKeyDown={(event) => event.preventDefault()}

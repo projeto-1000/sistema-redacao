@@ -104,7 +104,7 @@ export function StudentLoginPage({ signupHref }: StudentLoginPageProps) {
         <section className="flex w-full justify-center lg:justify-end">
           <Suspense
             fallback={
-              <div className="h-[520px] w-full max-w-[520px] animate-pulse rounded-[28px] bg-white/60" />
+              <div className="h-130 w-full max-w-130 animate-pulse rounded-[28px] bg-white/60" />
             }
           >
             <LoginContent signupHref={signupHref} />

@@ -47,14 +47,14 @@ export default function AverageTimeCard({ teacherId }: AverageTimeCardProps) {
 
     if (avgTime === 0) {
       return (
-        <div className="flex h-full min-h-[220px] w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 text-center transition-all">
+        <div className="flex h-full min-h-55 w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 text-center transition-all">
           <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-slate-100">
             <History className="size-6 text-slate-400" />
           </div>
           <h3 className="mb-2 text-[11px] font-black tracking-widest text-slate-500 uppercase">
             Sem atividade no período
           </h3>
-          <p className="max-w-[180px] text-xs leading-relaxed font-medium text-slate-400">
+          <p className="max-w-45 text-xs leading-relaxed font-medium text-slate-400">
             Não identificamos correções finalizadas para o período selecionado.
           </p>
         </div>
@@ -87,7 +87,7 @@ export default function AverageTimeCard({ teacherId }: AverageTimeCardProps) {
   const isError = avgTime === null && !loading;
 
   return (
-    <div className="flex h-full min-h-[380px] flex-col rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+    <div className="flex h-full min-h-95 flex-col rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h3 className="text-sm font-black tracking-wide uppercase">Tempo médio</h3>
@@ -100,11 +100,10 @@ export default function AverageTimeCard({ teacherId }: AverageTimeCardProps) {
               key={val}
               disabled={loading || isError}
               onClick={() => setTimeRange(val as AverageTimeRange)}
-              className={`rounded-full px-3 py-1.5 text-[10px] font-black tracking-wider uppercase transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50 ${
-                timeRange === val
+              className={`rounded-full px-3 py-1.5 text-[10px] font-black tracking-wider uppercase transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50 ${timeRange === val
                   ? "bg-white text-blue-600 shadow-md"
                   : "text-slate-500 hover:text-slate-700"
-              }`}
+                }`}
             >
               {val === "current_month" ? "Mês Atual" : val}
             </button>

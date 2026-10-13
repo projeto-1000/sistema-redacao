@@ -42,6 +42,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
         <noscript>
+          {/* O pixel da Meta precisa permanecer uma imagem direta sem JavaScript. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             height="1"
             width="1"

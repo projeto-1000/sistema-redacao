@@ -2,15 +2,12 @@ import { History } from "lucide-react";
 import { CreditTransaction } from "@repo/types";
 import { CreditTableRow } from "./credits-transactions-row";
 import { TablePagination } from "../../table-pagination";
-interface GenericError {
-  message: string;
-  [key: string]: any;
-}
+
 interface CreditsHistoryListProps {
   data: {
     transactions: CreditTransaction[];
     totalPages: number;
-    error: GenericError | Error | null;
+    error: { message: string } | null;
   };
 }
 

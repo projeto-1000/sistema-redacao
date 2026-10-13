@@ -1,3 +1,5 @@
+import process from "node:process";
+
 const VERCEL_BYPASS_SECRET = process.env.VERCEL_BYPASS_SECRET;
 const HOTMART_WEBHOOK_TOKEN = process.env.HOTMART_WEBHOOK_TOKEN;
 

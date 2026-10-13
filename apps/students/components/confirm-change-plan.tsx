@@ -183,7 +183,7 @@ export function ConfirmChangePlan({
         <Button className="h-12 w-full rounded-xl font-bold">Selecionar Plano</Button>
       </DialogTrigger>
 
-      <DialogContent className="overflow-hidden border-none p-0 shadow-2xl sm:max-w-[520px]">
+      <DialogContent className="overflow-hidden border-none p-0 shadow-2xl sm:max-w-130">
         {step === "confirm" && (
           <div className="p-8">
             <DialogHeader className="mb-8">

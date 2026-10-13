@@ -17,7 +17,7 @@ import { PasswordRequirements } from "@repo/ui/components/password-requirements"
 import { type SetPasswordSchema, setPasswordSchema } from "@repo/validators";
 import { EyeOff, Eye, LockKeyhole } from "lucide-react";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 interface SetPasswordFormProps {
   title?: string;
@@ -48,7 +48,7 @@ export function SetPasswordForm({
   });
 
   const { isValid, isSubmitting } = form.formState;
-  const password = form.watch("password");
+  const password = useWatch({ control: form.control, name: "password" });
 
   const handleSubmit = async (values: SetPasswordSchema) => {
     await onSubmitAction(values);

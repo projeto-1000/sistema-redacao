@@ -3,7 +3,7 @@
 import { useRef, ChangeEvent, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Camera, Save, Loader2, ZoomIn, ZoomOut } from "lucide-react";
-import AvatarEditor, { useAvatarEditor } from "react-avatar-editor";
+import AvatarEditor, { type AvatarEditorRef } from "react-avatar-editor";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Avatar } from "@repo/ui/components/avatar";
@@ -33,7 +33,7 @@ export function ProfileForm({
   onUpload,
   onDirtyStateChange,
 }: ProfileFormProps) {
-  const editor = useAvatarEditor();
+  const avatarEditorRef = useRef<AvatarEditorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -77,7 +77,7 @@ export function ProfileForm({
   };
 
   const handleSaveAvatar = async () => {
-    const canvas = editor.getImageScaledToCanvas();
+    const canvas = avatarEditorRef.current?.getImageScaledToCanvas();
     if (!canvas) return;
 
     setIsUploading(true);
@@ -202,7 +202,7 @@ export function ProfileForm({
           <div className="my-4 flex flex-col items-center justify-center">
             {imageSrc && (
               <AvatarEditor
-                ref={editor.ref}
+                ref={avatarEditorRef}
                 image={imageSrc}
                 width={250}
                 height={250}

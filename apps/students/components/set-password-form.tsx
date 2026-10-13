@@ -51,7 +51,7 @@ export function SetPasswordForm() {
       await setNewPassword(values);
 
       router.push("/inicio");
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { title, description } = getErrorMessage(error);
 
       toast.error(title, {

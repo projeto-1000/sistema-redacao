@@ -17,7 +17,7 @@ import { passwordSetupSchema, type PasswordSetupSchema } from "@repo/validators"
 import { LockKeyhole } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 type PasswordSetupResult =
   { success: true; redirectTo: string } | { success: false; error: string };
@@ -34,7 +34,7 @@ export function PasswordSetupForm({ onSubmitAction, loginHref }: PasswordSetupFo
     mode: "onChange",
     defaultValues: { password: "", confirmPassword: "" },
   });
-  const password = form.watch("password");
+  const password = useWatch({ control: form.control, name: "password" });
 
   const handleSubmit = async (values: PasswordSetupSchema) => {
     form.clearErrors("root");

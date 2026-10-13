@@ -498,9 +498,10 @@ export interface CreditTransaction {
   description: string;
   metadata?: {
     price?: number;
+    price_in_cents?: number;
     essay_id?: string;
     transaction_id?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   } | null;
   created_at: string;
 }

@@ -170,6 +170,10 @@ export function LoginForm({
     });
   };
 
+  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    void form.handleSubmit(submitValidCredentials)(event);
+  };
+
   const inputFocusClass =
     "focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1";
 
@@ -192,7 +196,7 @@ export function LoginForm({
         <form
           ref={formElementRef}
           autoComplete="on"
-          onSubmit={form.handleSubmit(submitValidCredentials)}
+          onSubmit={handleFormSubmit}
           className="space-y-5"
         >
           <FormField

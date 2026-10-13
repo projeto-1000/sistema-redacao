@@ -7,7 +7,6 @@ export const metadata: Metadata = {
 };
 
 export default function EmailPreviewPage() {
-  // eslint-disable-next-line turbo/no-undeclared-env-vars -- This development-only route must explicitly reject production.
   if (process.env.NODE_ENV === "production") {
     notFound();
   }
