@@ -24,4 +24,4 @@ jobs:
           version: 2.112.0
 
       - name: Apply migrations
-        run: supabase db push --db-url "${{ secrets.SUPABASE_PROD_DB_URL }}"
+        run: supabase db push --include-all --db-url "${{ secrets.SUPABASE_PROD_DB_URL }}"

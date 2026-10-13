@@ -4,14 +4,7 @@ import { Container } from "@/components/site/Container";
 import { CTAButton } from "@/components/site/CTAButton";
 import { Reveal } from "@/components/site/Reveal";
 import { ScrollTimeline } from "@/components/site/ScrollTimeline";
-import {
-  BookOpen,
-  PenLine,
-  ClipboardCheck,
-  Target,
-  RefreshCcw,
-  LineChart,
-} from "lucide-react";
+import { BookOpen, PenLine, ClipboardCheck, Target, RefreshCcw, LineChart } from "lucide-react";
 
 const steps = [
   {
@@ -52,15 +45,15 @@ export function ComoFuncionaContent() {
       <section className="relative overflow-hidden">
         <div
           aria-hidden
-          className="float-blob pointer-events-none absolute -right-32 -top-28 -z-10 h-80 w-80 rounded-full bg-pastel-blue blur-3xl"
+          className="float-blob bg-pastel-blue pointer-events-none absolute -top-28 -right-32 -z-10 h-80 w-80 rounded-full blur-3xl"
         />
         <Container className="py-16 sm:py-20">
-          <h1 className="max-w-3xl font-display text-4xl font-extrabold text-foreground sm:text-6xl">
+          <h1 className="font-display text-foreground max-w-3xl text-4xl font-extrabold sm:text-6xl">
             Da escolha do tema ao caminho dos seus estudos.
           </h1>
-          <p className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            Em seis etapas, veja o que você faz, o que o professor entrega e
-            como a correção orienta sua prática.
+          <p className="text-muted-foreground mt-6 max-w-2xl text-base sm:text-lg">
+            Em seis etapas, veja o que você faz, o que o professor entrega e como a correção orienta
+            sua prática.
           </p>
           <div className="mt-8">
             <CTAButton href="/cadastro" dataCta="signup-como-funciona">
@@ -80,17 +73,12 @@ export function ComoFuncionaContent() {
         <Container className="py-20">
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
-              <h2 className="font-display text-3xl font-extrabold text-foreground sm:text-4xl">
+              <h2 className="font-display text-foreground text-3xl font-extrabold sm:text-4xl">
                 Pronto para começar pela primeira correção?
               </h2>
-              <p className="mt-4 text-muted-foreground">
-                1 crédito grátis, sem cartão de crédito.
-              </p>
+              <p className="text-muted-foreground mt-4">1 crédito grátis, sem cartão de crédito.</p>
               <div className="mt-8 flex justify-center">
-                <CTAButton
-                  href="/cadastro"
-                  dataCta="signup-como-funciona-final"
-                >
+                <CTAButton href="/cadastro" dataCta="signup-como-funciona-final">
                   Fazer minha correção gratuita
                 </CTAButton>
               </div>

@@ -1,7 +1,4 @@
-import type {
-  SubscriptionHistoryEvent,
-  SubscriptionHistoryRpcRow,
-} from "@repo/types";
+import type { SubscriptionHistoryEvent, SubscriptionHistoryRpcRow } from "@repo/types";
 
 export function mapSubscriptionHistoryRpcRow(
   row: SubscriptionHistoryRpcRow

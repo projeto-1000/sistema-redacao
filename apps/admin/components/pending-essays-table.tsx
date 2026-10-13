@@ -2,74 +2,70 @@ import { getEssaysByStatus } from "@/app/actions/essays";
 import PendingEssaysRow from "./pending-essays-row";
 import { PendingEssaysFilter } from "@repo/types";
 import { CircleAlert, FileText, Search } from "lucide-react";
+import { PendingEssaysTable as SharedPendingEssaysTable } from "@repo/ui/components/features/essays/pending-essays-table";
 import { TablePagination } from "@repo/ui/components/table-pagination";
 interface PendingEssaysTableProps {
-  showHeader?: boolean
+  showHeader?: boolean;
   filters?: PendingEssaysFilter;
-  page: number
+  page: number;
 }
 
-export default async function PendingEssaysTable({ showHeader = false, filters, page }: PendingEssaysTableProps) {
-  const { essays, totalPages, error } = await getEssaysByStatus({ status: ['pending', 'correcting'], filters, page });
+export default async function PendingEssaysTable({
+  showHeader = false,
+  filters,
+  page,
+}: PendingEssaysTableProps) {
+  const { essays, totalPages, error } = await getEssaysByStatus({
+    status: ["pending", "correcting"],
+    filters,
+    page,
+  });
 
-  const searchTerm = filters?.search
-
+  const searchTerm = filters?.search;
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-100 rounded-3xl border-2 border-dashed border-slate-200 text-center animate-in fade-in duration-500">
-        <CircleAlert className="size-14 bg-white rounded-full text-red-500 p-1 shadow-sm mb-4" />
-        <h3 className="text-lg font-bold text-red-600 mb-1">
-          Ocorreu um erro.
-        </h3>
-        <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
-          Não conseguimos carregar as redações. Por favor, recarregue a página ou tente novamente em instantes.
+      <div className="animate-in fade-in flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-100 px-6 py-24 text-center duration-500">
+        <CircleAlert className="mb-4 size-14 rounded-full bg-white p-1 text-red-500 shadow-sm" />
+        <h3 className="mb-1 text-lg font-bold text-red-600">Ocorreu um erro.</h3>
+        <p className="max-w-sm text-sm leading-relaxed text-slate-600">
+          Não conseguimos carregar as redações. Por favor, recarregue a página ou tente novamente em
+          instantes.
         </p>
       </div>
-    )
+    );
   }
 
-  return (
-    essays.length > 0 ? (
-      <>
-        <div className="rounded-4xl border border-slate-200 overflow-hidden shadow-sm mt-8 bg-white">
-          {showHeader && (
-            <div className="flex justify-between items-center p-8">
-              <h3 className="text-lg font-bold">Fila de Correção</h3>
-              <button className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
-                Ver fila completa
-              </button>
-            </div>
-          )}
+  return essays.length > 0 ? (
+    <>
+      <SharedPendingEssaysTable
+        heading={showHeader ? "Fila de Correção" : undefined}
+        viewAllHref={showHeader ? "/redacoes-pendentes" : undefined}
+      >
+        {essays.map((essay) => (
+          <PendingEssaysRow key={essay.id} essay={essay} />
+        ))}
+      </SharedPendingEssaysTable>
 
-          <div className={`hidden xl:grid grid-cols-[minmax(0,3fr)_minmax(0,5fr)_max-content_max-content] gap-4 px-8 pb-5 border-b border-slate-100 ${showHeader === true ? 'bg-transparent pb-5' : 'bg-slate-50/50 py-5'}`}>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aluno</div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tema da Redação</div>
-            <div className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Prazo</div>
-            <div className="text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ação</div>
-          </div>
-
-          {essays.map((essay) => (
-            <PendingEssaysRow key={essay.id} essay={essay} />
-          ))}
-        </div>
-
-        <TablePagination totalPages={totalPages} />
-      </>
-    ) : (
-      <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-100 rounded-3xl border-2 border-dashed border-slate-200 text-center animate-in fade-in duration-500">
-        <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-          {searchTerm ? <Search className="size-8 text-slate-300" /> : <FileText className="size-8 text-slate-300" />}
-        </div>
-        <h3 className="text-lg font-bold text-slate-800 mb-1">
-          {searchTerm ? "Nenhum resultado encontrado" : "Nenhuma redação por aqui"}
-        </h3>
-        <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
-          {searchTerm
-            ? `Não encontramos nada para "${searchTerm}". Tente buscar por outro título ou eixo temático.`
-            : "Não há redações na fila para correção."}
-        </p>
+      <TablePagination totalPages={totalPages} />
+    </>
+  ) : (
+    <div className="animate-in fade-in flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-100 px-6 py-24 text-center duration-500">
+      <div className="mb-4 rounded-full bg-white p-4 shadow-sm">
+        {searchTerm ? (
+          <Search className="size-8 text-slate-300" />
+        ) : (
+          <FileText className="size-8 text-slate-300" />
+        )}
       </div>
-    )
-  )
+      <h3 className="mb-1 text-lg font-bold text-slate-800">
+        {searchTerm ? "Nenhum resultado encontrado" : "Nenhuma redação por aqui"}
+      </h3>
+      <p className="max-w-sm text-sm leading-relaxed text-slate-600">
+        {searchTerm
+          ? `Não encontramos nada para "${searchTerm}". Tente buscar por outro título ou eixo temático.`
+          : "Não há redações na fila para correção."}
+      </p>
+    </div>
+  );
 }

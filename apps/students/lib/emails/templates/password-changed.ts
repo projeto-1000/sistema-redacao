@@ -1,5 +1,4 @@
 import { buildEmailLayout } from "../components/email-layout";
-import { escapeHtml } from "../utils";
 
 interface BuildPasswordChangedEmailParams {
   loginUrl: string;

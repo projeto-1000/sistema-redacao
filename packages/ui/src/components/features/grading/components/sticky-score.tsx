@@ -6,36 +6,43 @@ interface StickyScoreProps {
   canSave: boolean;
   isSaving: boolean;
   onSave: () => void;
+  readOnly?: boolean;
+  saveButtonLabel?: string;
+  savingLabel?: string;
 }
 
 export function StickyScore({
   totalScore,
   canSave,
   isSaving,
-  onSave
+  onSave,
+  readOnly = false,
+  saveButtonLabel = "Enviar Correção",
+  savingLabel = "Salvando...",
 }: StickyScoreProps) {
-
   return (
-    <div className="fixed bottom-6 left-4 right-4 md:left-auto md:right-6 lg:sticky lg:bottom-auto lg:top-6 lg:right-auto lg:mt-[-120px] bg-white p-5 rounded-3xl shadow-2xl border border-slate-200 flex items-center justify-between gap-6 z-50 animate-in slide-in-from-bottom-10 lg:slide-in-from-right-10">
+    <div className="animate-in slide-in-from-bottom-10 lg:slide-in-from-right-10 fixed right-4 bottom-6 left-4 z-50 flex items-center justify-between gap-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl md:right-6 md:left-auto lg:sticky lg:top-6 lg:right-auto lg:bottom-auto lg:mt-[-120px]">
       <div>
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+        <span className="mb-1 block text-[10px] font-bold tracking-widest text-slate-400 uppercase">
           Nota Total
         </span>
         <div className="flex items-baseline gap-1">
-          <span className="text-3xl md:text-4xl font-black tracking-tight">{totalScore}</span>
+          <span className="text-3xl font-black tracking-tight md:text-4xl">{totalScore}</span>
           <span className="text-[18px] font-bold text-slate-300">/ 1000</span>
         </div>
       </div>
 
-      <Button
-        onClick={onSave}
-        disabled={!canSave || isSaving}
-        className="font-bold rounded-2xl px-6 h-12 transition-all shadow-lg"
-        isLoading={isSaving}
-        loadingText="Salvando..."
-      >
-        Enviar Correção
-      </Button>
+      {!readOnly && (
+        <Button
+          onClick={onSave}
+          disabled={!canSave || isSaving}
+          className="h-12 rounded-2xl px-6 font-bold shadow-lg transition-all"
+          isLoading={isSaving}
+          loadingText={savingLabel}
+        >
+          {saveButtonLabel}
+        </Button>
+      )}
     </div>
   );
 }

@@ -5,6 +5,13 @@ import { createClient } from "@/lib/server";
 import { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { CreditTransaction } from "@repo/types";
+import { updateStudentProfileSchema, type UpdateStudentProfileInput } from "@repo/validators";
+import { onlyDigits } from "@repo/utils";
+import { updatePagarmeCustomer } from "@repo/payments";
+import { sendStudentPasswordRecoveryEmail } from "@repo/email";
+import { createAdminClient } from "@/lib/admin";
+import { recordAdminAuditEvent } from "@/lib/admin-audit";
+import { randomUUID } from "node:crypto";
 interface GetStudentsFiltersParams {
   filters?: GetStudentsFilters;
   page?: number;
@@ -78,6 +85,8 @@ export async function getStudents({
         created_at,
         subscriptions!subscriptions_user_id_fkey (
           status,
+          cancel_at_period_end,
+          cancellation_mode,
           plan_id,
           current_period_start,
           current_period_end,
@@ -112,11 +121,12 @@ export async function getStudents({
       query = query.neq("status", "blocked").is("subscriptions", null);
     } else if (
       filters.status === "plan_active" ||
+      filters.status === "cancellation_scheduled" ||
       filters.status === "past_due" ||
       filters.status === "canceled"
     ) {
       const subscriptionStatuses =
-        filters.status === "plan_active"
+        filters.status === "plan_active" || filters.status === "cancellation_scheduled"
           ? ["active", "trial"]
           : filters.status === "past_due"
             ? ["past_due", "unpaid"]
@@ -126,6 +136,13 @@ export async function getStudents({
         .neq("status", "blocked")
         .in("subscriptions.status", subscriptionStatuses)
         .not("subscriptions", "is", null);
+      if (filters.status === "cancellation_scheduled") {
+        query = query
+          .eq("subscriptions.cancel_at_period_end", true)
+          .eq("subscriptions.cancellation_mode", "end_of_period");
+      } else if (filters.status === "plan_active") {
+        query = query.eq("subscriptions.cancel_at_period_end", false);
+      }
     }
   }
 
@@ -185,7 +202,7 @@ export async function getStudents({
   const studentIds = profiles.map((student) => student.id);
   const now = new Date().toISOString();
 
-  const [creditsRes, mentorshipCreditsRes, activityRes] = await Promise.all([
+  const [creditsRes, freeCreditsRes, mentorshipCreditsRes, activityRes] = await Promise.all([
     supabase
       .from("student_credits")
       .select(
@@ -196,6 +213,11 @@ export async function getStudents({
         free_credits
       `
       )
+      .in("user_id", studentIds),
+
+    supabase
+      .from("free_credit_allocations")
+      .select("user_id, expires_at")
       .in("user_id", studentIds),
 
     supabase
@@ -234,7 +256,8 @@ export async function getStudents({
       .limit(1, { referencedTable: "latest_correction" }),
   ]);
 
-  const relatedError = creditsRes.error || mentorshipCreditsRes.error || activityRes.error;
+  const relatedError =
+    creditsRes.error || freeCreditsRes.error || mentorshipCreditsRes.error || activityRes.error;
 
   if (relatedError) {
     console.error("Erro ao buscar dados complementares dos alunos:", relatedError);
@@ -248,6 +271,10 @@ export async function getStudents({
 
   const creditsByUser = new Map(
     (creditsRes.data ?? []).map((credits) => [credits.user_id, credits])
+  );
+
+  const freeCreditExpirationByUser = new Map(
+    (freeCreditsRes.data ?? []).map((allocation) => [allocation.user_id, allocation.expires_at])
   );
 
   const mentorshipCreditsByUser = new Map<string, number>();
@@ -307,6 +334,8 @@ export async function getStudents({
       subscription: subscription
         ? {
             status: subscription.status,
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            cancellation_mode: subscription.cancellation_mode,
             current_period_start: subscription.current_period_start,
             current_period_end: subscription.current_period_end,
           }
@@ -316,6 +345,7 @@ export async function getStudents({
         plan: credits?.plan_credits ?? 0,
         extra: credits?.extra_credits ?? 0,
         free: credits?.free_credits ?? 0,
+        freeExpiresAt: freeCreditExpirationByUser.get(profile.id) ?? null,
         mentorship: mentorshipCreditsByUser.get(profile.id) ?? 0,
       },
 
@@ -525,23 +555,252 @@ export async function updateStudentStatus(studentId: string, currentStatus: stri
   const supabase = await createClient();
   const newStatus = currentStatus === "active" ? "blocked" : "active";
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .update({ status: newStatus })
-    .eq("id", studentId)
-    .select();
+  const { data, error } = await supabase.rpc("set_student_status_by_admin", {
+    p_operation_id: randomUUID(),
+    p_student_id: studentId,
+    p_status: newStatus,
+  });
 
   if (error) {
     console.error("❌ ERRO DO SUPABASE:", error.message, error.details);
     throw new Error(error.message);
   }
 
-  if (!data || data.length === 0) {
-    console.error("❌ ERRO RLS: Nenhuma linha foi atualizada. Verifique as políticas do Supabase!");
-    throw new Error("Bloqueado por RLS ou aluno não encontrado.");
+  if (!data) {
+    throw new Error("Aluno não encontrado.");
   }
 
   revalidatePath("/alunos");
+  revalidatePath(`/alunos/${studentId}`);
+}
+
+export async function updateStudentProfile(
+  studentId: string,
+  input: UpdateStudentProfileInput
+): Promise<{ success: boolean; error?: string }> {
+  const parsed = updateStudentProfileSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { success: false, error: "Revise os dados informados antes de salvar." };
+  }
+
+  const supabase = await createClient();
+  const { data: role, error: roleError } = await supabase.rpc("get_my_role");
+
+  if (roleError || role !== "ADMIN") {
+    return { success: false, error: "Apenas administradores podem editar alunos." };
+  }
+
+  const { data: student, error: studentError } = await supabase
+    .from("profiles")
+    .select("id,full_name,phone,phone_country_code,pagarme_customer_id")
+    .eq("id", studentId)
+    .eq("role", "STUDENT")
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: "Aluno não encontrado." };
+  }
+
+  const fullName = parsed.data.full_name.trim();
+  const phone = onlyDigits(parsed.data.phone);
+  const operationId = randomUUID();
+  const changed = student.full_name !== fullName || student.phone !== phone;
+
+  if (!changed) return { success: true };
+
+  if (student.pagarme_customer_id) {
+    try {
+      await updatePagarmeCustomer({
+        customerId: student.pagarme_customer_id,
+        name: fullName,
+        phoneCountryCode: student.phone_country_code || "55",
+        phone,
+      });
+    } catch (error) {
+      console.error("Erro ao sincronizar aluno com a Pagar.me:", error);
+
+      try {
+        await recordAdminAuditEvent({
+          operationId,
+          action: "student.profile_update_failed",
+          resourceType: "student_profile",
+          resourceId: studentId,
+          subjectId: studentId,
+          status: "failure",
+          summary: "Atualização do aluno não concluída por falha de sincronização",
+          metadata: { provider: "pagarme" },
+        });
+      } catch (auditError) {
+        console.error("Erro ao registrar falha administrativa:", auditError);
+      }
+
+      return {
+        success: false,
+        error: "A Pagar.me não confirmou a atualização. Nenhum dado local foi alterado.",
+      };
+    }
+  }
+
+  const { error: updateError } = await supabase.rpc("update_student_profile_by_admin", {
+    p_operation_id: operationId,
+    p_student_id: studentId,
+    p_full_name: fullName,
+    p_phone: phone,
+  });
+
+  if (updateError) {
+    console.error("Erro ao atualizar aluno após sincronização:", updateError);
+
+    if (student.pagarme_customer_id) {
+      try {
+        await recordAdminAuditEvent({
+          operationId,
+          action: "student.profile_update_operational_issue",
+          resourceType: "student_profile",
+          resourceId: studentId,
+          subjectId: studentId,
+          status: "operational_issue",
+          summary: "Cadastro externo atualizado, mas atualização local não concluída",
+          metadata: { provider: "pagarme", provider_synced: true },
+        });
+      } catch (auditError) {
+        console.error("Erro ao registrar divergência cadastral:", auditError);
+      }
+    }
+
+    return {
+      success: false,
+      error: student.pagarme_customer_id
+        ? "A Pagar.me foi atualizada, mas o cadastro local não. Tente salvar novamente."
+        : "Não foi possível atualizar o aluno.",
+    };
+  }
+
+  revalidatePath("/alunos");
+  revalidatePath(`/alunos/${studentId}`);
+  revalidatePath("/atividades-administrativas");
+
+  return { success: true };
+}
+
+function getStudentsAppOrigin() {
+  const configured = process.env.NEXT_PUBLIC_STUDENTS_APP_URL;
+  if (!configured) return null;
+
+  try {
+    const url = new URL(configured);
+    const isLocal = url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname);
+    if (url.protocol !== "https:" && !isLocal) return null;
+    if (url.username || url.password || url.search || url.hash || url.pathname !== "/") return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+export async function sendStudentPasswordReset(studentId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const supabase = await createClient();
+  const { data: role, error: roleError } = await supabase.rpc("get_my_role");
+
+  if (roleError || role !== "ADMIN") {
+    return { success: false, error: "Apenas administradores podem enviar esta solicitação." };
+  }
+
+  const { data: student, error: studentError } = await supabase
+    .from("profiles")
+    .select("id,email,full_name")
+    .eq("id", studentId)
+    .eq("role", "STUDENT")
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: "Aluno não encontrado." };
+  }
+
+  const cooldownStart = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  const { count: recentResetCount, error: cooldownError } = await supabase
+    .from("admin_audit_events")
+    .select("id", { count: "exact", head: true })
+    .eq("subject_id", studentId)
+    .eq("action", "student.password_reset_requested")
+    .gte("created_at", cooldownStart);
+
+  if (cooldownError) {
+    return {
+      success: false,
+      error: "Não foi possível verificar os envios recentes. Tente novamente.",
+    };
+  }
+
+  if ((recentResetCount ?? 0) > 0) {
+    return {
+      success: false,
+      error: "Um e-mail de redefinição já foi enviado nos últimos 5 minutos.",
+    };
+  }
+
+  const studentsOrigin = getStudentsAppOrigin();
+  if (!studentsOrigin) {
+    return { success: false, error: "A URL do aplicativo de alunos não está configurada." };
+  }
+
+  let tokenHash: string | undefined;
+
+  try {
+    const { data: recoveryLink, error: linkError } =
+      await createAdminClient().auth.admin.generateLink({
+        type: "recovery",
+        email: student.email,
+      });
+
+    if (linkError) throw linkError;
+    tokenHash = recoveryLink?.properties?.hashed_token;
+  } catch (linkError) {
+    console.error("Erro ao gerar link de reset do aluno:", linkError);
+  }
+
+  if (!tokenHash) {
+    return { success: false, error: "Não foi possível enviar o e-mail de redefinição." };
+  }
+
+  const resetPasswordUrl = new URL("/api/auth/confirm", studentsOrigin);
+  resetPasswordUrl.searchParams.set("token_hash", tokenHash);
+  resetPasswordUrl.searchParams.set("type", "recovery");
+  resetPasswordUrl.searchParams.set("next", "/nova-senha?flow=reset");
+
+  try {
+    await sendStudentPasswordRecoveryEmail({
+      to: student.email,
+      studentName: student.full_name,
+      resetPasswordUrl: resetPasswordUrl.toString(),
+    });
+  } catch (emailError) {
+    console.error("Erro ao enviar reset de senha do aluno:", emailError);
+    return { success: false, error: "Não foi possível enviar o e-mail de redefinição." };
+  }
+
+  try {
+    await recordAdminAuditEvent({
+      action: "student.password_reset_requested",
+      resourceType: "student_profile",
+      resourceId: studentId,
+      subjectId: studentId,
+      summary: "E-mail de redefinição de senha enviado ao aluno",
+    });
+  } catch (error) {
+    console.error("Reset enviado sem registro administrativo:", error);
+    return {
+      success: false,
+      error: "O e-mail foi enviado, mas o registro administrativo falhou.",
+    };
+  }
+
+  revalidatePath("/atividades-administrativas");
+  return { success: true };
 }
 
 export async function getStudentsCount(): Promise<number> {
@@ -565,11 +824,11 @@ export async function getStudentStats(studentId: string) {
 
   const { data: essays, error } = await supabase
     .from("essays")
-    .select("total_score, status, created_at")
+    .select("total_score, status, created_at, submission_date, correction_date")
     .eq("student_id", studentId)
+    .in("status", ["corrected", "correcting", "pending", "returned"])
     .order("created_at", { ascending: false });
 
-  //TODO: melhorar aqui
   const defaultStats = {
     totalEssays: 0,
     averageScore: 0,
@@ -579,14 +838,87 @@ export async function getStudentStats(studentId: string) {
     averageTrend: "0% vs mês passado",
     submittedThisMonth: 0,
     percentChange: 0,
+    averageCorrectionTime: "--",
+    averageCorrectionTimeDetail: "Sem correções",
+    lastLoginValue: "Sem acesso",
+    lastLoginDetail: "—",
+    lastActivityValue: "Sem atividade",
+    lastActivityDetail: "—",
   };
 
+  let lastSignInAt: string | null = null;
+
+  try {
+    const { data } = await createAdminClient().auth.admin.getUserById(studentId);
+    lastSignInAt = data.user?.last_sign_in_at ?? null;
+  } catch (loginError) {
+    console.error("Erro ao buscar último login do aluno:", loginError);
+  }
+
+  const formatDateTime = (value: string) => {
+    const date = new Date(value);
+    const now = new Date();
+    const dateKey = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(date);
+    const todayKey = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(now);
+    const time = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+
+    if (dateKey === todayKey) return `Hoje, ${time}`;
+
+    return new Intl.DateTimeFormat("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
+
+  const formatRelative = (value: string) => {
+    const diffMinutes = Math.round((new Date(value).getTime() - Date.now()) / 60000);
+    const rtf = new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" });
+    if (Math.abs(diffMinutes) < 60) return rtf.format(diffMinutes, "minute");
+    const diffHours = Math.round(diffMinutes / 60);
+    if (Math.abs(diffHours) < 24) return rtf.format(diffHours, "hour");
+    return rtf.format(Math.round(diffHours / 24), "day");
+  };
+
+  const loginStats = lastSignInAt
+    ? {
+        lastLoginValue: formatDateTime(lastSignInAt),
+        lastLoginDetail: formatRelative(lastSignInAt),
+      }
+    : {
+        lastLoginValue: "Sem acesso",
+        lastLoginDetail: "—",
+      };
+
   if (error || !essays || essays.length === 0) {
-    return defaultStats;
+    return { ...defaultStats, ...loginStats };
   }
 
   const totalEssays = essays.length;
-  const gradedEssays = essays.filter((e) => e.status === "done");
+  const gradedEssays = essays
+    .filter((essay) => essay.status === "corrected")
+    .sort(
+      (first, second) =>
+        new Date(second.correction_date ?? second.created_at).getTime() -
+        new Date(first.correction_date ?? first.created_at).getTime()
+    );
 
   let averageScore = 0;
   let lastScore: string | number = "--";
@@ -599,9 +931,9 @@ export async function getStudentStats(studentId: string) {
     const lastGraded = gradedEssays[0];
     lastScore = lastGraded?.total_score || "--";
 
-    if (lastGraded?.created_at) {
+    if (lastGraded?.correction_date) {
       const rtf = new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" });
-      const diffInMs = new Date(lastGraded.created_at).getTime() - new Date().getTime();
+      const diffInMs = new Date(lastGraded.correction_date).getTime() - new Date().getTime();
       const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
 
       lastScoreTime = diffInDays === 0 ? "Hoje" : rtf.format(diffInDays, "day");
@@ -620,8 +952,8 @@ export async function getStudentStats(studentId: string) {
   }
 
   const submittedThisMonth = essays.filter((e) => {
-    if (!e.created_at) return false;
-    const d = new Date(e.created_at);
+    if (!e.submission_date) return false;
+    const d = new Date(e.submission_date);
     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
   }).length;
 
@@ -629,8 +961,8 @@ export async function getStudentStats(studentId: string) {
 
   const getAverageForMonth = (month: number, year: number) => {
     const monthGraded = gradedEssays.filter((e) => {
-      if (!e.created_at) return false;
-      const d = new Date(e.created_at);
+      if (!e.correction_date) return false;
+      const d = new Date(e.correction_date);
       return d.getMonth() === month && d.getFullYear() === year;
     });
 
@@ -662,6 +994,60 @@ export async function getStudentStats(studentId: string) {
     }
   }
 
+  const correctionDurations = gradedEssays
+    .filter((essay) => essay.submission_date && essay.correction_date)
+    .slice(0, 5)
+    .map(
+      (essay) =>
+        new Date(essay.correction_date as string).getTime() -
+        new Date(essay.submission_date as string).getTime()
+    )
+    .filter((duration) => duration >= 0);
+
+  let averageCorrectionTime = "--";
+  let averageCorrectionTimeDetail = "Sem correções";
+
+  if (correctionDurations.length > 0) {
+    const averageMinutes = Math.round(
+      correctionDurations.reduce((total, duration) => total + duration, 0) /
+        correctionDurations.length /
+        60000
+    );
+    const hours = Math.floor(averageMinutes / 60);
+    const minutes = averageMinutes % 60;
+    averageCorrectionTime = hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
+    averageCorrectionTimeDetail = `últimas ${correctionDurations.length} correções`;
+  }
+
+  const latestSubmission = essays
+    .filter((essay) => essay.submission_date)
+    .sort(
+      (first, second) =>
+        new Date(second.submission_date as string).getTime() -
+        new Date(first.submission_date as string).getTime()
+    )[0]?.submission_date;
+  const latestCorrection = essays
+    .filter((essay) => essay.correction_date)
+    .sort(
+      (first, second) =>
+        new Date(second.correction_date as string).getTime() -
+        new Date(first.correction_date as string).getTime()
+    )[0]?.correction_date;
+  const correctionIsLatest =
+    Boolean(latestCorrection) &&
+    (!latestSubmission ||
+      new Date(latestCorrection as string).getTime() > new Date(latestSubmission).getTime());
+  const lastActivityAt = correctionIsLatest ? latestCorrection : latestSubmission;
+  const activityStats = lastActivityAt
+    ? {
+        lastActivityValue: correctionIsLatest ? "Correção recebida" : "Redação enviada",
+        lastActivityDetail: formatDateTime(lastActivityAt),
+      }
+    : {
+        lastActivityValue: "Sem atividade",
+        lastActivityDetail: "—",
+      };
+
   return {
     totalEssays,
     averageScore,
@@ -671,6 +1057,10 @@ export async function getStudentStats(studentId: string) {
     totalTrend,
     percentChange,
     averageTrend,
+    averageCorrectionTime,
+    averageCorrectionTimeDetail,
+    ...loginStats,
+    ...activityStats,
   };
 }
 interface GetStudentCreditsHistoryParams {

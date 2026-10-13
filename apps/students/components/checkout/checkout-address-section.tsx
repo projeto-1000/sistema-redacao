@@ -2,11 +2,7 @@
 
 import { getAddressByCep } from "@/lib/cep";
 import { formatZipCode } from "@/utils/format-zipcode";
-import {
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@repo/ui/components/accordion"
+import { AccordionContent, AccordionItem, AccordionTrigger } from "@repo/ui/components/accordion";
 import {
   FormControl,
   FormDescription,
@@ -25,12 +21,12 @@ interface CheckoutAddressSectionProps {
   onAddressChange: () => void;
 }
 
-export function CheckoutAddressSection({
-  onAddressChange,
-}: CheckoutAddressSectionProps) {
-  const [isFetchingCep, setIsFetchingCep] = useState(false);
-  const [isCepResolved, setIsCepResolved] = useState(false);
-  const [cepLookupError, setCepLookupError] = useState<string | null>(null);
+export function CheckoutAddressSection({ onAddressChange }: CheckoutAddressSectionProps) {
+  const [cepLookup, setCepLookup] = useState<{
+    zipCode: string;
+    status: "idle" | "fetching" | "resolved" | "error";
+    error: string | null;
+  }>({ zipCode: "", status: "idle", error: null });
 
   const { control, setValue } = useFormContext<CheckoutFormInput>();
 
@@ -40,6 +36,10 @@ export function CheckoutAddressSection({
   });
 
   const sanitizedZipCode = zipCode.replace(/\D/g, "");
+  const isCurrentLookup = cepLookup.zipCode === sanitizedZipCode;
+  const isFetchingCep = isCurrentLookup && cepLookup.status === "fetching";
+  const isCepResolved = isCurrentLookup && cepLookup.status === "resolved";
+  const cepLookupError = isCurrentLookup ? cepLookup.error : null;
 
   const clearAddressFields = useCallback(() => {
     setValue("address.street", "", {
@@ -82,8 +82,6 @@ export function CheckoutAddressSection({
   useEffect(() => {
     if (sanitizedZipCode.length !== 8) {
       clearAddressFields();
-      setIsCepResolved(false);
-      setCepLookupError(null);
       return;
     }
 
@@ -91,14 +89,13 @@ export function CheckoutAddressSection({
 
     async function fetchCep() {
       try {
-        setIsFetchingCep(true);
-        setIsCepResolved(false);
-        setCepLookupError(null);
+        setCepLookup({
+          zipCode: sanitizedZipCode,
+          status: "fetching",
+          error: null,
+        });
 
-        const address = await getAddressByCep(
-          sanitizedZipCode,
-          abortController.signal
-        );
+        const address = await getAddressByCep(sanitizedZipCode, abortController.signal);
 
         setValue("address.zipCode", formatZipCode(address.zipCode), {
           shouldDirty: true,
@@ -130,24 +127,22 @@ export function CheckoutAddressSection({
           shouldValidate: false,
         });
 
-        setIsCepResolved(true);
+        setCepLookup({
+          zipCode: sanitizedZipCode,
+          status: "resolved",
+          error: null,
+        });
       } catch (error) {
         if (abortController.signal.aborted) {
           return;
         }
 
         clearAddressFields();
-        setIsCepResolved(false);
-
-        setCepLookupError(
-          error instanceof Error
-            ? error.message
-            : "Não foi possível buscar o CEP."
-        );
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsFetchingCep(false);
-        }
+        setCepLookup({
+          zipCode: sanitizedZipCode,
+          status: "error",
+          error: error instanceof Error ? error.message : "Não foi possível buscar o CEP.",
+        });
       }
     }
 
@@ -173,11 +168,9 @@ export function CheckoutAddressSection({
           </div>
 
           <div className="space-y-1">
-            <h2 className="text-xl font-extrabold tracking-tight">
-              Endereço de cobrança
-            </h2>
+            <h2 className="text-xl font-extrabold tracking-tight">Endereço de cobrança</h2>
 
-            <p className="text-sm font-medium leading-relaxed text-slate-500">
+            <p className="text-sm leading-relaxed font-medium text-slate-500">
               Digite o CEP para preencher automaticamente o endereço.
             </p>
           </div>
@@ -209,26 +202,22 @@ export function CheckoutAddressSection({
                     />
 
                     {isFetchingCep && (
-                      <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-slate-400" />
+                      <Loader2 className="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-slate-400" />
                     )}
                   </div>
                 </FormControl>
 
                 {cepLookupError ? (
-                  <p className="text-sm font-medium text-destructive">
-                    {cepLookupError}
-                  </p>
+                  <p className="text-destructive text-sm font-medium">{cepLookupError}</p>
                 ) : isCepResolved ? (
                   <FormDescription className="font-semibold text-emerald-600">
                     CEP encontrado. Complete o número.
                   </FormDescription>
-                )
-                  : (
-                    <FormDescription>
-                      Os demais campos serão liberados após a busca do CEP.
-                    </FormDescription>
-                  )
-                }
+                ) : (
+                  <FormDescription>
+                    Os demais campos serão liberados após a busca do CEP.
+                  </FormDescription>
+                )}
 
                 <FormMessage />
               </FormItem>
@@ -379,7 +368,7 @@ export function CheckoutAddressSection({
                     autoComplete="address-level1"
                     maxLength={2}
                     placeholder="UF"
-                    className="h-12 rounded-xl border-slate-200 bg-slate-50 text-center font-semibold uppercase text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="h-12 rounded-xl border-slate-200 bg-slate-50 text-center font-semibold text-slate-700 uppercase disabled:cursor-not-allowed disabled:opacity-60"
                     onChange={(event) => {
                       field.onChange(event.target.value.toUpperCase());
                       onAddressChange();

@@ -14,46 +14,29 @@ interface SignupPageProps {
   }>;
 }
 
-function SignupPageContainer({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function SignupPageContainer({ children }: { children: React.ReactNode }) {
   return (
-    <main className="bg-gradient-soft min-h-dvh flex items-center justify-center p-4">
+    <main className="bg-gradient-soft flex min-h-dvh items-center justify-center p-4">
       {children}
     </main>
   );
 }
 
-function SignupAccessMessage({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
+function SignupAccessMessage({ title, description }: { title: string; description: string }) {
   return (
-    <div className="w-full max-w-[500px] rounded-xl border border-slate-100 bg-white p-8 text-center shadow-xl">
-      <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
+    <div className="w-full max-w-125 rounded-xl border border-slate-100 bg-white p-8 text-center shadow-xl">
+      <h1 className="text-2xl font-bold">{title}</h1>
 
-      <p className="mt-3 text-sm leading-relaxed text-slate-500">
-        {description}
-      </p>
+      <p className="mt-3 text-sm leading-relaxed text-slate-500">{description}</p>
 
-      <Link
-        href="/login"
-        className="mt-6 inline-flex font-semibold text-primary hover:underline"
-      >
+      <Link href="/login" className="text-primary mt-6 inline-flex font-semibold hover:underline">
         Ir para o login
       </Link>
     </div>
   );
 }
 
-export default async function SignupPage({
-  searchParams,
-}: SignupPageProps) {
+export default async function SignupPage({ searchParams }: SignupPageProps) {
   const params = await searchParams;
   const rawToken = params.token;
 
@@ -115,13 +98,9 @@ export default async function SignupPage({
           initialValues: {
             name: mentorshipData.buyerName ?? "",
             email: mentorshipData.buyerEmail,
-            document: mentorshipData.buyerDocument
-              ? formatCPF(mentorshipData.buyerDocument)
-              : "",
+            document: mentorshipData.buyerDocument ? formatCPF(mentorshipData.buyerDocument) : "",
             phoneCountryCode: mentorshipData.phoneCountryCode,
-            phone: mentorshipData.phone
-              ? formatPhone(mentorshipData.phone)
-              : "",
+            phone: mentorshipData.phone ? formatPhone(mentorshipData.phone) : "",
           },
         }}
       />

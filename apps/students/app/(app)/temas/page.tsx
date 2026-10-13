@@ -21,14 +21,13 @@ export default async function TopicsPage({
   const suspenseKey = JSON.stringify(resolvedParams);
 
   return (
-    <div className="space-y-8 min-h-dvh px-2 md:px-10 lg:px-12 py-4">
-
+    <div className="min-h-dvh space-y-8 px-2 py-4 md:px-10 lg:px-12">
       <div className="space-y-8">
         <TopicFiltersBar />
 
         <Suspense
           key={suspenseKey}
-          fallback={<Skeleton className="rounded-4xl min-h-[400px] w-full bg-slate-200 mt-8" />}
+          fallback={<Skeleton className="mt-8 min-h-[400px] w-full rounded-4xl bg-slate-200" />}
         >
           <TopicsTable filters={filters} page={page} />
         </Suspense>

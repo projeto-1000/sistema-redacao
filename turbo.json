@@ -2,21 +2,27 @@
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
   "globalEnv": [
+    "NODE_ENV",
     "PAGARME_SECRET_KEY",
     "NEXT_PUBLIC_PAGARME_PUBLIC_KEY",
     "SUPABASE_SECRET_KEY",
     "CRON_SECRET",
+    "VERCEL_ENV",
+    "RECONCILIATION_DRY_RUN_ENABLED",
     "HOTMART_WEBHOOK_TOKEN",
     "VERCEL_BYPASS_SECRET",
     "HOTMART_MENTORSHIP_PRODUCT_UCODE",
     "RESEND_API_KEY",
     "RESEND_FROM_EMAIL",
     "NEXT_PUBLIC_STUDENTS_APP_URL",
-    "DATACRAZY_WEBHOOK_URL", 
+    "TEACHERS_APP_URL",
+    "DATACRAZY_SYNC_ENABLED",
+    "DATACRAZY_WEBHOOK_URL",
     "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT",
     "AZURE_DOCUMENT_INTELLIGENCE_KEY",
     "OPENAI_API_KEY"
   ],
+  "globalPassThroughEnv": ["TEST_EMAIL_TO"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

@@ -2,7 +2,7 @@ import { cn } from "@repo/ui/lib/utils";
 import { formatDate } from "@repo/utils";
 import { Calendar, User, UserPen, UserX } from "lucide-react";
 
-export type EssayStatus = 'draft' | 'pending' | 'correcting' | 'corrected' | 'returned';
+export type EssayStatus = "draft" | "pending" | "correcting" | "corrected" | "returned";
 
 interface EssayHeaderProps {
   title: string;
@@ -21,10 +21,8 @@ export default function EssayHeader({
   studentName,
   status,
   children,
-  className
+  className,
 }: EssayHeaderProps) {
-
-
   const getDateLabel = () => {
     switch (status) {
       case "returned":
@@ -40,34 +38,36 @@ export default function EssayHeader({
   };
 
   return (
-    <div className={cn("flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-10", className)}>
+    <div
+      className={cn(
+        "mb-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-start",
+        className
+      )}
+    >
       <div className="space-y-4">
-        <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">
-          {title}
-        </h1>
+        <h1 className="text-3xl leading-tight font-black tracking-tight md:text-4xl">{title}</h1>
 
         <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-slate-600">
-          <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full">
+          <div className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5">
             <Calendar className="size-3.5 text-slate-400" />
             {getDateLabel()}: {formatDate(date, "short")}
           </div>
 
           {studentName && (
-            <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full">
+            <div className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5">
               <User className="size-3.5 text-slate-400" />
               Enviada por: {studentName}
             </div>
           )}
         </div>
 
-
         {teacherName && (
-          <div className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 w-fit rounded-full text-sm font-medium",
-            status === "returned"
-              ? "bg-red-50 text-red-700"
-              : "bg-indigo-50 text-indigo-700"
-          )}>
+          <div
+            className={cn(
+              "flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium",
+              status === "returned" ? "bg-red-50 text-red-700" : "bg-indigo-50 text-indigo-700"
+            )}
+          >
             {status === "returned" ? (
               <UserX className="size-3.5" />
             ) : (
@@ -79,9 +79,7 @@ export default function EssayHeader({
         )}
       </div>
 
-      <div className="flex items-center gap-3 self-end lg:self-start">
-        {children}
-      </div>
+      <div className="flex items-center gap-3 self-end lg:self-start">{children}</div>
     </div>
   );
 }

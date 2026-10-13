@@ -2,7 +2,6 @@
 
 import { createAdminClient } from "@/lib/admin";
 import { createClient } from "@/lib/server";
-import { createPagarmeCustomer } from "@repo/payments";
 import { registerSchema, type RegisterSchema } from "@repo/validators";
 import { isValidMentorshipSignupToken } from "@/lib/hotmart/mentorship-signup";
 
@@ -114,23 +113,9 @@ export async function completeHotmartMentorshipSignup({
 
   const userId = authData.user.id;
 
-  const pagarmeCustomer = await createPagarmeCustomer({
-    id: userId,
-    name: parsedValues.name.trim(),
-    email: submittedEmail,
-    document: cleanDocument,
-    phoneCountryCode: cleanPhoneCountryCode,
-    phone: cleanPhone,
-  });
-
-  if (!pagarmeCustomer?.id) {
-    throw new Error("A Pagar.me não retornou um cliente válido.");
-  }
-
   const { error: profileUpdateError } = await supabaseAdmin
     .from("profiles")
     .update({
-      pagarme_customer_id: pagarmeCustomer.id,
       acquisition_channel: "HOTMART_MENTORIA",
     })
     .eq("id", userId);

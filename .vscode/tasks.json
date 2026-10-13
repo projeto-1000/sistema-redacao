@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Tailwind: audit monorepo",
+      "type": "shell",
+      "command": "pnpm lint:tailwind",
+      "problemMatcher": ["$eslint-stylish"],
+      "group": "test",
+      "presentation": {
+        "clear": true,
+        "reveal": "always"
+      }
+    }
+  ]
+}

@@ -10,10 +10,8 @@ export const metadata: Metadata = {
 export default function TermosPage() {
   return (
     <Container className="py-24">
-      <h1 className="font-display text-4xl font-bold text-foreground">
-        Termos de Uso
-      </h1>
-      <p className="mt-4 text-muted-foreground">Conteúdo em elaboração.</p>
+      <h1 className="font-display text-foreground text-4xl font-bold">Termos de Uso</h1>
+      <p className="text-muted-foreground mt-4">Conteúdo em elaboração.</p>
     </Container>
   );
 }

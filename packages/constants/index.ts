@@ -1,4 +1,32 @@
-import { SubscriptionStatus } from '@repo/types';
+import { SubscriptionStatus } from "@repo/types";
+
+export const subscriptionCancellationReasons = [
+  {
+    value: "price",
+    label: "O valor do plano",
+    adminDescription: "O aluno indicou que o valor do plano motivou o cancelamento.",
+  },
+  {
+    value: "not_using",
+    label: "Não estou utilizando a plataforma",
+    adminDescription: "O aluno informou que não está utilizando a plataforma no momento.",
+  },
+  {
+    value: "technical_issues",
+    label: "Tive problemas com a plataforma",
+    adminDescription: "O aluno relatou dificuldades técnicas durante o uso da plataforma.",
+  },
+  {
+    value: "changing_plan",
+    label: "Quero trocar de plano",
+    adminDescription: "O aluno pretende cancelar esta assinatura para mudar de plano.",
+  },
+  {
+    value: "other",
+    label: "Outro motivo",
+    adminDescription: "O aluno informou um motivo diferente das opções disponíveis.",
+  },
+] as const;
 
 export const USER_STATUS_MAP = {
   active: { label: "Ativo", colors: "bg-emerald-50 text-emerald-600" },
@@ -7,39 +35,39 @@ export const USER_STATUS_MAP = {
 };
 
 export const DELIVERY_STATUS_MAP = {
-  corrected: { label: "Corrigida", colors: 'text-emerald-600 bg-emerald-50' },
-  returned: { label: "Devolvida", colors: 'text-amber-600 bg-amber-50' },
-  correcting: { label: "Em correção", colors: 'text-blue-600 bg-blue-50' },
-}
+  corrected: { label: "Corrigida", colors: "text-emerald-600 bg-emerald-50" },
+  returned: { label: "Devolvida", colors: "text-amber-600 bg-amber-50" },
+  correcting: { label: "Em correção", colors: "text-blue-600 bg-blue-50" },
+};
 
- export const ESSAY_STATUS_MAP = {
-    pending: { label: 'Pendente', textColor: 'text-primary' },
-    draft: { label: 'Rascunho', textColor: 'text-slate-500' },
-    corrected: { label: 'Corrigida', textColor: 'text-success' },
-    correcting: { label: 'Em correção', textColor: 'text-secondary' },
-    returned: { label: 'Devolvida', textColor: 'text-amber-700' },
-  }
+export const ESSAY_STATUS_MAP = {
+  pending: { label: "Pendente", textColor: "text-primary" },
+  draft: { label: "Rascunho", textColor: "text-slate-500" },
+  corrected: { label: "Corrigida", textColor: "text-success" },
+  correcting: { label: "Em correção", textColor: "text-secondary" },
+  returned: { label: "Devolvida", textColor: "text-amber-700" },
+};
 
 export const statusBadgeConfig: Record<SubscriptionStatus, { label: string; classes: string }> = {
   active: {
     label: "Ativo",
-    classes: "bg-emerald-50! text-emerald-600!"
+    classes: "bg-emerald-50! text-emerald-600!",
   },
   trial: {
     label: "Período de Teste",
-    classes: "bg-blue-50 text-blue-600"
+    classes: "bg-blue-50 text-blue-600",
   },
   past_due: {
     label: "Atrasado",
-    classes: "bg-amber-50 text-amber-600"
+    classes: "bg-amber-50 text-amber-600",
   },
   unpaid: {
     label: "Bloqueado",
-    classes: "bg-red-50 text-red-600"
+    classes: "bg-red-50 text-red-600",
   },
   canceled: {
     label: "Cancelado",
-    classes: "bg-slate-100 text-slate-500"
+    classes: "bg-slate-100 text-slate-500",
   },
 };
 
@@ -185,19 +213,19 @@ export const AVAILABLE_COURSES = [
   "Terapia Ocupacional",
   "Turismo",
   "Zootecnia",
-  "Outro"
+  "Outro",
 ];
 
 export const transactionLabels: Record<string, string> = {
-  new_subscription: 'Nova Assinatura',
-  mentorship_bonus: 'Bônus de Mentoria',
-  plan_renewal: 'Renovação de Assinatura',
-  standalone_purchase: 'Compra de Crédito Avulso',
-  essay_usage: 'Envio de Redação',
-  plan_change: 'Mudança de Plano',
-  administrative_adjustment: 'Ajuste Administrativo',
-  essay_refund: 'Devolução de Redação',
-  free_trial_grant: 'Crédito Gratuito', 
+  new_subscription: "Nova Assinatura",
+  mentorship_bonus: "Bônus de Mentoria",
+  plan_renewal: "Renovação de Assinatura",
+  standalone_purchase: "Compra de Crédito Avulso",
+  essay_usage: "Envio de Redação",
+  plan_change: "Mudança de Plano",
+  administrative_adjustment: "Ajuste Administrativo",
+  essay_refund: "Devolução de Redação",
+  free_trial_grant: "Crédito Gratuito",
   subscription_reactivation: "Reativação da assinatura",
   mentorship_expiration: "Vencimento da mentoria",
   plan_expiration: "Expiração de créditos do plano",
@@ -205,9 +233,33 @@ export const transactionLabels: Record<string, string> = {
 };
 
 export const COMPETENCIES = [
-  { id: "C1", title: "Linguagem", description: "Demonstrar domínio da modalidade escrita formal da língua portuguesa" },
-  { id: "C2", title: "Tema e Repertórios", description: "Compreender a proposta de redação e aplicar conceitos das várias áreas do conhecimento para desenvolver o tema dentro dos limites estruturais do texto dissertativo-argumentativo em prosa" },
-  { id: "C3", title: "Argumentação", description: "Selecionar, relacionar, organizar e interpretar informações, fatos, opiniões e argumentos em defesa de um ponto de vista" },
-  { id: "C4", title: "Coesão textual", description: "Demonstrar conhecimento dos mecanismos linguísticos necessários para a construção da argumentação" },
-  { id: "C5", title: "Proposta de intervenção", description: "Elaborar proposta de intervenção para o problema abordado, respeitando os direitos humanos" },
+  {
+    id: "C1",
+    title: "Linguagem",
+    description: "Demonstrar domínio da modalidade escrita formal da língua portuguesa",
+  },
+  {
+    id: "C2",
+    title: "Tema e Repertórios",
+    description:
+      "Compreender a proposta de redação e aplicar conceitos das várias áreas do conhecimento para desenvolver o tema dentro dos limites estruturais do texto dissertativo-argumentativo em prosa",
+  },
+  {
+    id: "C3",
+    title: "Argumentação",
+    description:
+      "Selecionar, relacionar, organizar e interpretar informações, fatos, opiniões e argumentos em defesa de um ponto de vista",
+  },
+  {
+    id: "C4",
+    title: "Coesão textual",
+    description:
+      "Demonstrar conhecimento dos mecanismos linguísticos necessários para a construção da argumentação",
+  },
+  {
+    id: "C5",
+    title: "Proposta de intervenção",
+    description:
+      "Elaborar proposta de intervenção para o problema abordado, respeitando os direitos humanos",
+  },
 ] as const;

@@ -6,29 +6,21 @@ interface PageHeaderProps {
   children?: ReactNode;
 }
 
-export function PageHeader({
-  title,
-  subtitle,
-  className = "",
-  children
-}: PageHeaderProps) {
-
+export function PageHeader({ title, subtitle, className = "", children }: PageHeaderProps) {
   return (
-    <div className={`flex flex-col gap-4 md:flex-row md:items-center md:justify-between ${className}`}>
+    <div
+      className={`flex flex-col gap-4 md:flex-row md:items-center md:justify-between ${className}`}
+    >
       <div>
-        <h2 className="text-3xl font-extrabold tracking-tight mb-2">
-          {title}
-        </h2>
-        <p className="text-slate-500">
-          {subtitle}
-        </p>
+        <h2 className="mb-2 text-3xl font-extrabold tracking-tight">{title}</h2>
+        <p className="text-slate-500">{subtitle}</p>
       </div>
 
       {children && (
-        <div className="flex flex-wrap items-center gap-3 justify-between sm:justify-end">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end">
           {children}
         </div>
       )}
     </div>
-  )
+  );
 }

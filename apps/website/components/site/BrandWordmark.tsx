@@ -11,11 +11,7 @@ export function BrandWordmark({
 
   return (
     <Image
-      src={
-        onDark
-          ? "/images/projeto1000-logo-transparent.png"
-          : "/images/logo-saas.png"
-      }
+      src={onDark ? "/images/projeto1000-logo-transparent.png" : "/images/logo-saas.png"}
       alt="Projeto 1000"
       width={onDark ? 760 : 1506}
       height={onDark ? 332 : 658}

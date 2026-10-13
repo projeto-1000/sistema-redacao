@@ -13,9 +13,7 @@ interface CheckoutSuccessPageProps {
   }>;
 }
 
-export default async function CheckoutSuccessPage({
-  searchParams,
-}: CheckoutSuccessPageProps) {
+export default async function CheckoutSuccessPage({ searchParams }: CheckoutSuccessPageProps) {
   const params = await searchParams;
   const subscriptionId = Array.isArray(params.subscriptionId)
     ? params.subscriptionId[0]

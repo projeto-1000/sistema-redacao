@@ -16,9 +16,8 @@ export function ActionCard({
   description,
   icon: Icon,
   bgIcon: BgIcon,
-  variant
+  variant,
 }: ActionCardProps) {
-
   const styles = {
     primary: {
       wrapper: "bg-primary hover:bg-primary/90 shadow-amber-200",
@@ -33,20 +32,18 @@ export function ActionCard({
   const activeStyle = styles[variant];
 
   return (
-    <Link href={href} className="block group">
-      <div className={`${activeStyle.wrapper} transition-all p-6 rounded-3xl relative overflow-hidden h-32 flex flex-col justify-between shadow-lg`}>
+    <Link href={href} prefetch={false} className="group block">
+      <div
+        className={`${activeStyle.wrapper} relative flex h-32 flex-col justify-between overflow-hidden rounded-3xl p-6 shadow-lg transition-all`}
+      >
         <div className="relative z-10">
-          <div className="bg-white/20 w-fit p-1.5 rounded-full mb-2">
-            <Icon className="text-white size-5" />
+          <div className="mb-2 w-fit rounded-full bg-white/20 p-1.5">
+            <Icon className="size-5 text-white" />
           </div>
-          <h3 className="text-white font-bold text-xl flex items-center gap-2">
-            {title}
-          </h3>
-          <p className={`${activeStyle.description} text-sm mt-1`}>
-            {description}
-          </p>
+          <h3 className="flex items-center gap-2 text-xl font-bold text-white">{title}</h3>
+          <p className={`${activeStyle.description} mt-1 text-sm`}>{description}</p>
         </div>
-        <BgIcon className="absolute right-2 top-1/2 -translate-y-1/2 size-28 text-white opacity-15 group-hover:scale-105 transition-transform" />
+        <BgIcon className="absolute top-1/2 right-2 size-28 -translate-y-1/2 text-white opacity-15 transition-transform group-hover:scale-105" />
       </div>
     </Link>
   );

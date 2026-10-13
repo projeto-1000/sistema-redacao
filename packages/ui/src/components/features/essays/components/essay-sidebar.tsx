@@ -12,16 +12,16 @@ import { ExpandableText } from "./expandable-text";
 
 export function EssayScoreCard({ totalScore }: { totalScore: number }) {
   return (
-    <div className="bg-[#0F172A] rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
+    <div className="relative overflow-hidden rounded-3xl bg-[#0F172A] p-8 text-white shadow-lg">
       <div className="absolute top-0 right-0 p-6 opacity-10">
         <Star className="size-20" />
       </div>
-      <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+      <p className="mb-1 text-[12px] font-bold tracking-widest text-slate-400 uppercase">
         Nota total
       </p>
       <div className="flex items-baseline gap-1">
         <span className="text-5xl font-extrabold text-[#EBC84C]">{totalScore}</span>
-        <span className="text-xl text-slate-400 font-medium">/ 1000</span>
+        <span className="text-xl font-medium text-slate-400">/ 1000</span>
       </div>
     </div>
   );
@@ -50,9 +50,9 @@ export function EssayCompetencies({
   };
 
   return (
-    <div className="bg-white rounded-4xl p-8 shadow-sm border border-slate-200">
-      <h3 className="font-bold mb-6 flex items-center gap-2">
-        <ChartNoAxesColumn className="size-5 text-primary" />
+    <div className="rounded-4xl border border-slate-200 bg-white p-8 shadow-sm">
+      <h3 className="mb-6 flex items-center gap-2 font-bold">
+        <ChartNoAxesColumn className="text-primary size-5" />
         Desempenho por Competência
       </h3>
 
@@ -61,8 +61,7 @@ export function EssayCompetencies({
           const score = scores[comp.id as keyof typeof scores];
           const comment = comments[comp.id as keyof typeof comments];
           const specificComments = highlights.filter(
-            (highlight) =>
-              highlight.compId === comp.id && highlight.comment.trim().length > 0
+            (highlight) => highlight.compId === comp.id && highlight.comment.trim().length > 0
           );
           const isActiveCompetency = specificComments.some(
             (highlight) => highlight.id === activeHighlightId
@@ -71,33 +70,34 @@ export function EssayCompetencies({
           return (
             <div
               key={comp.id}
-              className={`group rounded-2xl transition-colors ${isActiveCompetency ? "bg-indigo-50/60 p-3 -m-3" : ""
-                }`}
+              className={`group rounded-2xl transition-colors ${
+                isActiveCompetency ? "-m-3 bg-indigo-50/60 p-3" : ""
+              }`}
             >
               <div>
-                <div className="flex items-end justify-between mb-2">
-                  <h4 className="font-bold text-sm">{comp.title}</h4>
-                  <div className={`font-black text-sm px-2 py-1 rounded-md ${comp.bg} ${comp.text}`}>
-                    {score}<span className="opacity-50 font-bold">/200</span>
+                <div className="mb-2 flex items-end justify-between">
+                  <h4 className="text-sm font-bold">{comp.title}</h4>
+                  <div
+                    className={`rounded-md px-2 py-1 text-sm font-black ${comp.bg} ${comp.text}`}
+                  >
+                    {score}
+                    <span className="font-bold opacity-50">/200</span>
                   </div>
                 </div>
 
-                <p className="text-[12px] text-slate-500 mt-0.5">{comp.desc}</p>
-
+                <p className="mt-0.5 text-[12px] text-slate-500">{comp.desc}</p>
               </div>
 
-              <div className={`mt-3 border-l-3 ${comp.border} pl-4 py-1`}>
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className={`mt-3 border-l-3 ${comp.border} py-1 pl-4`}>
+                <p className="mb-1 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                   Comentário geral
                 </p>
-                <div className="whitespace-pre-line text-sm italic text-slate-700">
-                  {comment}
-                </div>
+                <div className="text-sm whitespace-pre-line text-slate-700 italic">{comment}</div>
               </div>
 
               {specificComments.length > 0 && (
                 <div className="mt-5 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <div className="flex items-center gap-2 text-xs font-bold tracking-wider text-slate-600 uppercase">
                     <MessageSquareText className="size-4 text-indigo-500" />
                     Apontamentos no texto
                   </div>
@@ -119,23 +119,24 @@ export function EssayCompetencies({
                           handleSpecificCommentClick(highlight);
                         }}
                         aria-pressed={isActive}
-                        className={`scroll-mt-24 w-full cursor-pointer rounded-2xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${isActive
-                          ? "border-indigo-400 bg-indigo-50/80 shadow-md ring-2 ring-indigo-200"
-                          : "border-slate-200 bg-slate-50/80 shadow-sm hover:border-indigo-200 hover:bg-white hover:shadow-md"
-                          }`}
+                        className={`w-full cursor-pointer scroll-mt-24 rounded-2xl border p-4 text-left transition-all focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:outline-none ${
+                          isActive
+                            ? "border-indigo-400 bg-indigo-50/80 shadow-md ring-2 ring-indigo-200"
+                            : "border-slate-200 bg-slate-50/80 shadow-sm hover:border-indigo-200 hover:bg-white hover:shadow-md"
+                        }`}
                       >
                         <div className={`border-l-2 ${comp.border} pl-3`}>
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                             <Quote className="size-3.5" />
                             Trecho destacado
                           </div>
-                          <blockquote className="mt-1 line-clamp-3 text-sm font-semibold leading-relaxed text-slate-700">
+                          <blockquote className="mt-1 line-clamp-3 text-sm leading-relaxed font-semibold text-slate-700">
                             “{highlight.text}”
                           </blockquote>
                         </div>
 
                         <div className="mt-3 border-t border-slate-200/80 pt-3">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500">
+                          <p className="text-[10px] font-bold tracking-wider text-indigo-500 uppercase">
                             Comentário do professor
                           </p>
                           <ExpandableText
@@ -148,7 +149,7 @@ export function EssayCompetencies({
                   })}
                 </div>
               )}
-              {comp.id !== "c5" && <div className="h-px w-full bg-slate-100 mt-6"></div>}
+              {comp.id !== "c5" && <div className="mt-6 h-px w-full bg-slate-100"></div>}
             </div>
           );
         })}

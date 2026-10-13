@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { TeacherEssayListItem } from "@/types";
 import { DELIVERY_STATUS_MAP } from "@repo/constants";
@@ -22,9 +22,11 @@ export default function TeacherEssaysRow({ essay, onViewDetails }: TeacherEssays
 
   const updatedHref = `?${params.toString()}`;
 
-  const essayStatus = DELIVERY_STATUS_MAP[essay.status as keyof typeof DELIVERY_STATUS_MAP] || DELIVERY_STATUS_MAP.correcting
+  const essayStatus =
+    DELIVERY_STATUS_MAP[essay.status as keyof typeof DELIVERY_STATUS_MAP] ||
+    DELIVERY_STATUS_MAP.correcting;
 
-  const isCorrecting = essay.status === 'correcting';
+  const isCorrecting = essay.status === "correcting";
 
   const buttonContent = (
     <>
@@ -34,62 +36,67 @@ export default function TeacherEssaysRow({ essay, onViewDetails }: TeacherEssays
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 py-4 lg:px-4 items-center hover:bg-slate-50/50 transition-colors group">
-
-      <div className="col-span-1 lg:col-span-3 flex items-center gap-3">
+    <div className="group grid grid-cols-1 items-center gap-4 py-4 transition-colors hover:bg-slate-50/50 lg:grid-cols-12 lg:px-4">
+      <div className="col-span-1 flex items-center gap-3 lg:col-span-3">
         <Avatar src={essay.student_avatar} name={essay.student_name} className="size-10" />
         <div>
-          <p className="font-bold text-sm text-blue-600 hover:underline cursor-pointer leading-tight">
+          <p className="cursor-pointer text-sm leading-tight font-bold text-blue-600 hover:underline">
             {essay.student_name}
           </p>
-          <p className="text-[11px] font-medium text-slate-400">
-            {essay.student_email}
-          </p>
+          <p className="text-[11px] font-medium text-slate-400">{essay.student_email}</p>
         </div>
       </div>
 
       <div className="col-span-1 lg:col-span-3">
-        <p className="font-bold text-sm leading-snug truncate" title={essay.title}>
+        <p className="truncate text-sm leading-snug font-bold" title={essay.title}>
           {essay.title}
         </p>
-        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">
+        <p className="mt-0.5 text-[10px] font-medium tracking-widest text-slate-400 uppercase">
           {essay.thematic_axis}
         </p>
       </div>
 
-      <div className="col-span-1 lg:col-span-1 flex justify-between lg:justify-center items-center">
-        <span className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nota</span>
-        <span className="text-base font-black">
-          {essay.total_score}
+      <div className="col-span-1 flex items-center justify-between lg:col-span-1 lg:justify-center">
+        <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
+          Nota
         </span>
+        <span className="text-base font-black">{essay.total_score}</span>
       </div>
 
-      <div className="col-span-1 lg:col-span-2 flex justify-between lg:justify-center items-center">
-        <span className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
-        <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${essayStatus.colors}`}>
+      <div className="col-span-1 flex items-center justify-between lg:col-span-2 lg:justify-center">
+        <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
+          Status
+        </span>
+        <span
+          className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold tracking-wider uppercase ${essayStatus.colors}`}
+        >
           {essayStatus.label}
         </span>
       </div>
 
-      <div className="col-span-1 lg:col-span-1 flex justify-between lg:justify-center items-center">
-        <span className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest">Entrega</span>
+      <div className="col-span-1 flex items-center justify-between lg:col-span-1 lg:justify-center">
+        <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
+          Entrega
+        </span>
         {essay.status === "corrected" ? (
           essay.is_on_late ? (
-            <AlertCircle className="size-6 text-red-500 bg-red-50 p-1 rounded-full" />
+            <AlertCircle className="size-6 rounded-full bg-red-50 p-1 text-red-500" />
           ) : (
-            <CheckCircle2 className="size-6 rounded-full p-1 bg-emerald-50 text-emerald-600" />
+            <CheckCircle2 className="size-6 rounded-full bg-emerald-50 p-1 text-emerald-600" />
           )
         ) : essay.status === "correcting" ? (
-          <Clock className="size-6 text-slate-300 bg-slate-50 p-1 rounded-full animate-pulse" />
+          <Clock className="size-6 animate-pulse rounded-full bg-slate-50 p-1 text-slate-300" />
         ) : (
-          <div className="size-6 bg-slate-50 rounded-full border border-dashed border-slate-200" />
+          <div className="size-6 rounded-full border border-dashed border-slate-200 bg-slate-50" />
         )}
       </div>
 
-      <div className="col-span-1 lg:col-span-1 flex justify-between lg:block">
-        <span className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data</span>
+      <div className="col-span-1 flex justify-between lg:col-span-1 lg:block">
+        <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
+          Data
+        </span>
         <span className="text-sm leading-tight font-medium">
-          {formatDate(essay.correction_date, 'numeric')}
+          {formatDate(essay.correction_date, "numeric")}
         </span>
       </div>
 
@@ -100,8 +107,7 @@ export default function TeacherEssaysRow({ essay, onViewDetails }: TeacherEssays
               onClick={() => onViewDetails && onViewDetails(essay.id)}
               asChild={!isCorrecting}
               disabled={isCorrecting}
-              className="flex items-center justify-center border border-slate-200 bg-slate-50/80 text-blue-600 hover:bg-blue-100/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full h-10 px-4 rounded-xl sm:w-auto lg:w-8 lg:h-8 lg:p-0 lg:rounded-full 
-        "
+              className="flex h-10 w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50/80 px-4 text-blue-600 transition-colors hover:bg-blue-100/50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto lg:h-8 lg:w-8 lg:rounded-full lg:p-0"
             >
               {isCorrecting ? (
                 buttonContent
@@ -113,12 +119,11 @@ export default function TeacherEssaysRow({ essay, onViewDetails }: TeacherEssays
             </Button>
           </TooltipTrigger>
 
-          <TooltipContent className="hidden lg:block bg-slate-900 text-white font-medium text-xs rounded-lg border-none">
-            {isCorrecting ? 'Correção em andamento' : 'Ver Detalhes'}
+          <TooltipContent className="hidden rounded-lg border-none bg-slate-900 text-xs font-medium text-white lg:block">
+            {isCorrecting ? "Correção em andamento" : "Ver Detalhes"}
           </TooltipContent>
         </Tooltip>
       </div>
-
     </div>
-  )
+  );
 }

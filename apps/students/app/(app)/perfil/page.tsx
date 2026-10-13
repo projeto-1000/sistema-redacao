@@ -21,29 +21,27 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const { user, credits, globalStats, competencies, evolution, hasData } = data
+  const { user, credits, globalStats, competencies, evolution, hasData } = data;
 
   return (
-    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-6">
-
+    <div className="min-h-dvh space-y-6 px-4 py-4 md:px-10 lg:px-12">
       <ProfileHeader
         user={user}
-        creditBalanceComponent={
-          <CreditsCard credits={credits} />
-        }
+        creditBalanceComponent={<CreditsCard credits={credits} />}
         secondaryAction={{
           label: "Gerenciar assinatura",
-          href: "/assinatura"
-        }} />
+          href: "/assinatura",
+        }}
+      />
 
       <PageHeader
-        title='Meu perfil'
-        subtitle='Acompanhe seu progresso e gerencie suas informações.'
+        title="Meu perfil"
+        subtitle="Acompanhe seu progresso e gerencie suas informações."
       />
 
       <UserStats stats={globalStats} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+      <div className="my-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         <SectionCard
           title="Média por Competência"
           icon={FileText}

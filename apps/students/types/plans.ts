@@ -12,7 +12,4 @@ export interface PlanData {
 }
 
 export type PlanSelectionMode =
-  | "new_subscription"
-  | "change_plan"
-  | "canceled_subscription"
-  | "payment_issue";
+  "new_subscription" | "change_plan" | "canceled_subscription" | "payment_issue";

@@ -1,12 +1,12 @@
 export type ThematicAxis =
-  | 'Meio Ambiente'
-  | 'Questões Sociais'
-  | 'Saúde'
-  | 'Cultura'
-  | 'Direitos e Cidadania'
-  | 'Educação'
-  | 'Tecnologia'
-  | 'Economia';
+  | "Meio Ambiente"
+  | "Questões Sociais"
+  | "Saúde"
+  | "Cultura"
+  | "Direitos e Cidadania"
+  | "Educação"
+  | "Tecnologia"
+  | "Economia";
 export interface MotivationalText {
   id: string;
   topic_id: string;
@@ -19,10 +19,7 @@ export interface EssayTopic {
   id: string;
   title: string;
   axis: ThematicAxis;
-  source_type:
-  | 'ENEM'
-  | 'AUTORAL'
-  | 'ENEM PPL/Reaplicação';
+  source_type: "ENEM" | "AUTORAL" | "ENEM PPL/Reaplicação";
   source_year: number | null;
   active: boolean;
   created_at: string;
@@ -40,8 +37,8 @@ export interface UserData {
   email: string;
   credits: number;
   avatarUrl: string | null;
-  role: UserRole
-  onboarding_completed: boolean
+  role: UserRole;
+  onboarding_completed: boolean;
 }
 
 export type EssayStatus = "draft" | "pending" | "correcting" | "corrected" | "returned" | "draft";
@@ -75,7 +72,7 @@ export interface Essay {
 }
 
 export interface Competencies {
-  id: number
+  id: number;
   name: string;
   description: string;
   score: number;
@@ -92,12 +89,7 @@ export interface Competencies {
 //   }[];
 // }
 
-export type CorrectionCompetencyId =
-  | "c1"
-  | "c2"
-  | "c3"
-  | "c4"
-  | "c5";
+export type CorrectionCompetencyId = "c1" | "c2" | "c3" | "c4" | "c5";
 
 export interface CorrectionHighlight {
   id: string;
@@ -118,6 +110,28 @@ export interface CorrectionPayload {
   next_essay_priorities: string[];
   rewrite_tasks: string[];
   highlights: CorrectionHighlight[];
+}
+
+export type CorrectionReviewSubmissionStatus =
+  "pending_review" | "returned_to_teacher" | "approved" | "approved_with_changes";
+
+export type CorrectionReviewActionType =
+  "approved" | "approved_with_changes" | "returned_to_teacher";
+
+export interface CorrectionReviewHistoryAction {
+  action: CorrectionReviewActionType;
+  feedback: string | null;
+  createdAt: string;
+  adminName: string;
+}
+
+export interface CorrectionReviewHistoryRound {
+  id: string;
+  roundNumber: number;
+  submittedAt: string;
+  status: CorrectionReviewSubmissionStatus;
+  payload: CorrectionPayload;
+  action: CorrectionReviewHistoryAction | null;
 }
 
 export type EssayType = {
@@ -151,28 +165,40 @@ export interface GradedEssaysFilter {
   to?: string;
 }
 export interface PendingEssayListItem {
-  id: string,
-  title: string
-  created_at: string
-  due_date: string
+  id: string;
+  title: string;
+  created_at: string;
+  due_date: string;
   essay_remaining_business_seconds: number;
-  submission_date: string
-  student_name: string
-  avatar_url: string
-  email?: string
-  status?: string
-  teacher_name?: string
-  teacher_avatar?: string
+  submission_date: string;
+  student_name: string;
+  avatar_url: string;
+  email?: string;
+  status?: string;
+  teacher_name?: string;
+  teacher_avatar?: string;
+  correction_review_status?: "pending_review" | "returned_to_teacher" | null;
+}
+
+export interface CorrectionReviewListItem {
+  id: string;
+  essayTitle: string;
+  studentName: string;
+  studentAvatarUrl: string | null;
+  teacherName?: string;
+  dueDate: string;
+  remainingBusinessSeconds: number;
+  submittedAt: string;
 }
 
 export interface GradedEssayListItem {
-  id: string,
-  title: string
-  correction_date: string
-  total_score: number
-  student_name: string
-  avatar_url: string
-  teacher_name?: string
+  id: string;
+  title: string;
+  correction_date: string;
+  total_score: number;
+  student_name: string;
+  avatar_url: string;
+  teacher_name?: string;
 }
 
 export interface StudentsFilter {
@@ -183,38 +209,16 @@ export interface StudentsFilter {
   to?: string;
 }
 
-export type SubscriptionStatus =
-  | "active"
-  | "trial"
-  | "past_due"
-  | "canceled"
-  | "unpaid";
+export type SubscriptionStatus = "active" | "trial" | "past_due" | "canceled" | "unpaid";
 
-export type SubscriptionContractStatus =
-  | "active"
-  | "pending"
-  | "superseded"
-  | "canceled";
+export type SubscriptionContractStatus = "active" | "pending" | "superseded" | "canceled";
 
 export type SubscriptionContractSource =
-  | "checkout"
-  | "upgrade"
-  | "downgrade"
-  | "backfill"
-  | "free_trial"
-  | "mentorship";
+  "checkout" | "upgrade" | "downgrade" | "backfill" | "free_trial" | "mentorship";
 
-export type SubscriptionContractBillingMode =
-  | "recurring"
-  | "one_time"
-  | "free";
+export type SubscriptionContractBillingMode = "recurring" | "one_time" | "free";
 
-export type SubscriptionContractInterval =
-  | "day"
-  | "week"
-  | "month"
-  | "year"
-  | "lifetime";
+export type SubscriptionContractInterval = "day" | "week" | "month" | "year" | "lifetime";
 
 export interface SubscriptionContract {
   id: string;
@@ -252,6 +256,12 @@ export interface StudentSubscription {
   current_period_end: string | null;
   cancel_at_period_end: boolean;
   next_billing_at: string | null;
+  cancellation_mode: "end_of_period" | "withdrawal" | null;
+  withdrawal_status: "under_review" | "refund_processing" | "refunded" | "operational_issue" | null;
+  active_withdrawal_request_id: string | null;
+  withdrawal_eligible: boolean;
+  withdrawal_processing_mode: "automatic" | "manual" | null;
+  withdrawal_eligibility_deadline_at: string | null;
 
   pending_plan_id: string | null;
   pending_change_type: "downgrade" | null;
@@ -271,12 +281,7 @@ export interface StudentSubscription {
   plan_name: string;
   plan_external_id: string | null;
 
-  interval:
-    | "day"
-    | "week"
-    | "month"
-    | "year"
-    | "lifetime";
+  interval: "day" | "week" | "month" | "year" | "lifetime";
 
   interval_count: number | null;
 
@@ -306,6 +311,10 @@ export interface StudentProfile {
   id: string;
   email: string;
   full_name: string;
+  document: string | null;
+  phone: string | null;
+  phone_country_code: string | null;
+  pagarme_customer_id: string | null;
   role: UserRole;
   created_at: string;
   status: UserStatus;
@@ -314,13 +323,102 @@ export interface StudentProfile {
   credits: StudentCredits;
 }
 
+export type ManualCreditGrantType = "mentorship" | "plan" | "extra";
+
+export type ManualCreditGrantReason =
+  | "mentorship_bonus"
+  | "administrative_adjustment"
+  | "technical_issue_compensation"
+  | "credit_replacement"
+  | "courtesy"
+  | "promotional_campaign"
+  | "other";
+
+export interface ManualCreditGrantContext {
+  studentId: string;
+  studentName: string;
+  blocked: boolean;
+  balances: {
+    mentorship: number;
+    plan: number;
+    extra: number;
+  };
+  options: Record<
+    ManualCreditGrantType,
+    {
+      available: boolean;
+      expiresAt: string | null;
+      unavailableReason: string | null;
+    }
+  >;
+}
+
 export interface TeacherProfile {
   id: string;
   full_name: string;
   status: string;
   created_at: string;
   email: string;
-  avatar_url: string;
+  avatar_url: string | null;
+  document: string | null;
+  phone: string | null;
+  correction_review_required: boolean;
+}
+
+export type TeacherPaymentStatus = "paid" | "pending" | "processing" | "cancelled" | "refunded";
+
+export interface TeacherPaymentMetrics {
+  totalEssays: number;
+  onTime: number;
+  delayed: number;
+  valuePerCorrection: number;
+  dailyAverage: number;
+  totalAmount: number;
+  status: TeacherPaymentStatus | null;
+  receiptUrl?: string;
+}
+
+export type TeacherPaymentAccountType = "pix" | "bank_account";
+export type TeacherPaymentPixType = "cpf" | "cnpj" | "phone" | "email" | "random";
+export type TeacherBankAccountVariant = "corrente" | "poupanca";
+
+export interface TeacherPaymentAccount {
+  id: string;
+  teacher_id: string;
+  type: TeacherPaymentAccountType;
+  owner_name: string;
+  owner_document: string;
+  is_default: boolean;
+  pix_type: TeacherPaymentPixType | null;
+  pix_key: string | null;
+  bank_name: string | null;
+  agency: string | null;
+  account_number: string | null;
+  account_variant: TeacherBankAccountVariant | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TeacherPaymentHistoryItem {
+  id: string;
+  processed_at: string | null;
+  billing_month: string;
+  essays_count: number;
+  unit_value: number;
+  total_amount: number;
+  status: TeacherPaymentStatus;
+  receipt_url?: string | null;
+}
+
+export interface TeacherCorrectionRate {
+  id: string;
+  teacher_id: string | null;
+  amount: number;
+  effective_from: string;
+  effective_to: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface TopicsFilter {
@@ -337,8 +435,8 @@ export interface Plans {
   credits_expiration_days: number;
   trial_days: number;
   interval: "day" | "week" | "month" | "year" | "lifetime";
-  interval_count: number | null; 
-  price: number; 
+  interval_count: number | null;
+  price: number;
   payment_methods: string[];
   statement_descriptor: string | null;
   is_active: boolean;
@@ -349,7 +447,35 @@ export interface Plans {
   updated_at: string;
 }
 
-export type TransactionType = 
+export interface ExtraCreditPackage {
+  id: string;
+  name: string;
+  description: string | null;
+  credits_amount: number;
+  price_cents: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ExtraCreditPurchaseStatus = "processing" | "pending" | "paid" | "failed";
+
+export type ExtraCreditPurchaseResult =
+  | {
+      success: true;
+      paymentId: string;
+      status: "pending" | "paid";
+      creditsAmount: number;
+    }
+  | {
+      success: false;
+      paymentId: string | null;
+      status: "processing" | "failed";
+      creditsAmount: number | null;
+      message: string;
+    };
+
+export type TransactionType =
   | "plan_renewal"
   | "standalone_purchase"
   | "essay_usage"
@@ -364,7 +490,7 @@ export type TransactionType =
   | "plan_expiration"
   | "free_credit_expiration";
 
-  export interface CreditTransaction {
+export interface CreditTransaction {
   id: string;
   user_id: string;
   type: TransactionType;
@@ -372,16 +498,16 @@ export type TransactionType =
   description: string;
   metadata?: {
     price?: number;
+    price_in_cents?: number;
     essay_id?: string;
     transaction_id?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   } | null;
   created_at: string;
 }
 
 export type SubscriptionHistoryEvent =
-  | SubscriptionHistoryCreditEvent
-  | SubscriptionHistoryPaymentEvent;
+  SubscriptionHistoryCreditEvent | SubscriptionHistoryPaymentEvent;
 
 export interface SubscriptionHistoryCreditEvent {
   kind: "credit_transaction";
@@ -424,18 +550,9 @@ export interface SubscriptionHistoryPaymentEvent {
 }
 
 export type HistoryItemCategory =
-  | "credit_grant"
-  | "credit_usage"
-  | "credit_expiration"
-  | "payment"
-  | "refund"
-  | "adjustment";
+  "credit_grant" | "credit_usage" | "credit_expiration" | "payment" | "refund" | "adjustment";
 
-export type HistoryValueTone =
-  | "positive"
-  | "negative"
-  | "neutral"
-  | "warning";
+export type HistoryValueTone = "positive" | "negative" | "neutral" | "warning";
 
 export interface HistoryDisplayItem {
   id: string;
@@ -450,6 +567,18 @@ export interface HistoryDisplayItem {
 
   category: HistoryItemCategory;
   valueTone: HistoryValueTone;
+
+  details?: {
+    label: string;
+    title: string | null;
+    description: string | null;
+    reasonLabel: string;
+    reason: string;
+    occurredAt: string | null;
+    startedAt?: string | null;
+    completedAt?: string | null;
+    summary?: { label: string; value: string }[];
+  };
 }
 
 export interface CreditsFilters {
@@ -457,13 +586,12 @@ export interface CreditsFilters {
   from?: string;
   to?: string;
 }
-
 export interface CreditPackage {
   id: string;
   name: string;
+  description?: string;
   credits: number;
   price: number;
-  popular?: boolean;
 }
 export interface SubscriptionHistoryRpcRow {
   kind: "credit_transaction" | "payment";
@@ -495,3 +623,4 @@ export interface SubscriptionHistoryRpcRow {
    */
   total_count: number | string | null;
 }
+export * from "./subscription-support";

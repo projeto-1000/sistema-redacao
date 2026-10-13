@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import React from "react";
 import { HIGHLIGHT_STYLES } from "../../constants";
@@ -18,10 +18,7 @@ interface HighlightedTextProps {
   text: string;
   highlights: Highlight[];
   activeHighlightId?: string | null;
-  onHighlightClick?: (
-    event: React.MouseEvent | React.KeyboardEvent,
-    highlight: Highlight
-  ) => void;
+  onHighlightClick?: (event: React.MouseEvent | React.KeyboardEvent, highlight: Highlight) => void;
 }
 
 export function HighlightedText({
@@ -46,11 +43,7 @@ export function HighlightedText({
       : HIGHLIGHT_STYLES[hl.compId];
 
     if (hl.startIndex > lastIndex) {
-      elements.push(
-        <span key={`text-${lastIndex}`}>
-          {text.slice(lastIndex, hl.startIndex)}
-        </span>
-      );
+      elements.push(<span key={`text-${lastIndex}`}>{text.slice(lastIndex, hl.startIndex)}</span>);
     }
 
     elements.push(
@@ -70,7 +63,7 @@ export function HighlightedText({
           event.preventDefault();
           onHighlightClick?.(event, hl);
         }}
-        className={`${highlightStyle} box-decoration-clone scroll-mt-28 rounded-sm pb-0.5 transition-colors ${isInteractive ? "cursor-pointer hover:brightness-95 focus-visible:outline-none focus-visible:shadow-[inset_0_0_0_2px_rgba(99,102,241,0.55)]" : ""} ${isActive ? "shadow-[inset_0_0_0_1px_rgba(15,23,42,0.24)]" : ""}`}
+        className={`${highlightStyle} scroll-mt-28 rounded-sm box-decoration-clone pb-0.5 transition-colors ${isInteractive ? "cursor-pointer hover:brightness-95 focus-visible:shadow-[inset_0_0_0_2px_rgba(99,102,241,0.55)] focus-visible:outline-none" : ""} ${isActive ? "shadow-[inset_0_0_0_1px_rgba(15,23,42,0.24)]" : ""}`}
       >
         {text.slice(hl.startIndex, hl.endIndex)}
       </mark>
@@ -84,7 +77,7 @@ export function HighlightedText({
   }
 
   return (
-    <div className="p-5 text-justify text-sm md:text-lg leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word md:p-10">
+    <div className="p-5 text-justify text-sm leading-relaxed wrap-break-word whitespace-pre-wrap text-slate-800 md:p-10 md:text-lg">
       {elements}
     </div>
   );

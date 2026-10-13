@@ -1,12 +1,18 @@
 import "server-only";
 
-const DATACRAZY_REQUEST_TIMEOUT_MS = 5_000;
+export { buildDataCrazyTokensExpirationField, formatDataCrazyDateInSaoPaulo } from "./date";
+export {
+  DATA_CRAZY_FREE_PLAN_EXTERNAL_ID,
+  DATA_CRAZY_MENTORSHIP_PLAN_EXTERNAL_ID,
+  getDataCrazyEligibility,
+  getDataCrazyPaymentStatus,
+  type DataCrazyEligibilityDecision,
+  type DataCrazyEligibilityReason,
+  type DataCrazyEvent,
+  type DataCrazySyncContext,
+} from "./eligibility";
 
-export type DataCrazyEvent =
-  | "user_signup"
-  | "essay_status_updated"
-  | "subscription_updated"
-  | "payment_status_updated";
+const DATACRAZY_REQUEST_TIMEOUT_MS = 5_000;
 
 interface DataCrazyStudentPayloadBase {
   lead: {
@@ -38,8 +44,7 @@ export type DataCrazyDeliveryErrorCode =
   | "WEBHOOK_RESPONSE_FAILED";
 
 export type DataCrazyDeliveryResult =
-  | { ok: true }
-  | { ok: false; errorCode: DataCrazyDeliveryErrorCode };
+  { ok: true } | { ok: false; errorCode: DataCrazyDeliveryErrorCode };
 
 export async function sendDataCrazyStudentPayload(
   payload: DataCrazyStudentPayload
@@ -51,6 +56,11 @@ export async function sendDataCrazyStudentPayload(
   }
 
   let response: Response;
+
+  console.info("[DATACRAZY_DEBUG]", {
+    stage: "webhook_post_start",
+    event: payload.event,
+  });
 
   try {
     response = await fetch(webhookUrl.url, {
@@ -65,6 +75,13 @@ export async function sendDataCrazyStudentPayload(
     return { ok: false, errorCode: "WEBHOOK_REQUEST_FAILED" };
   }
 
+  console.info("[DATACRAZY_DEBUG]", {
+    stage: "webhook_post_response",
+    event: payload.event,
+    http_status: response.status,
+    success: response.ok,
+  });
+
   if (!response.ok) {
     return { ok: false, errorCode: "WEBHOOK_RESPONSE_FAILED" };
   }
@@ -73,8 +90,7 @@ export async function sendDataCrazyStudentPayload(
 }
 
 function getWebhookUrl():
-  | { ok: true; url: string }
-  | { ok: false; errorCode: DataCrazyDeliveryErrorCode } {
+  { ok: true; url: string } | { ok: false; errorCode: DataCrazyDeliveryErrorCode } {
   const configuredUrl = process.env.DATACRAZY_WEBHOOK_URL;
 
   if (!configuredUrl) {

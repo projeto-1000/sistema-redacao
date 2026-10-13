@@ -1,9 +1,7 @@
 import { getGradedEssay } from "@/app/actions/essays";
 import EssayHeader from "@repo/ui/components/features/essays/components/essay-header";
-import EssayContent from "@repo/ui/components/features/essays/components/essay-content";
-import { EssayScoreCard, EssayCompetencies } from "@repo/ui/components/features/essays/components/essay-sidebar";
-import EssayImprovementPlan from "@repo/ui/components/features/essays/components/essay-improvement-plan";
-import { EssayHighlightNavigationProvider } from "@repo/ui/components/features/essays/components/essay-highlight-navigation";
+import { CorrectionReviewHistory } from "@repo/ui/components/features/essays/components/correction-review-history";
+import type { CorrectionPayload } from "@repo/types";
 
 export async function GradedEssayView({ essayId }: { essayId: string }) {
   const essay = await getGradedEssay(essayId);
@@ -12,9 +10,21 @@ export async function GradedEssayView({ essayId }: { essayId: string }) {
     return <div className="p-8 text-center text-slate-500">Redação não encontrada.</div>;
   }
 
-  const bestScores = Object.keys(essay.scores).filter(
-    (key) => essay.scores[key as keyof typeof essay.scores] === 200
-  );
+  const publishedPayload: CorrectionPayload = {
+    scores: essay.scores,
+    comments: {
+      c1: essay.comments.c1 ?? "",
+      c2: essay.comments.c2 ?? "",
+      c3: essay.comments.c3 ?? "",
+      c4: essay.comments.c4 ?? "",
+      c5: essay.comments.c5 ?? "",
+    },
+    general_comment: essay.general_comment ?? "",
+    main_bottleneck: essay.main_bottleneck ?? "",
+    next_essay_priorities: essay.next_essay_priorities ?? [],
+    rewrite_tasks: essay.rewrite_tasks ?? [],
+    highlights: essay.highlights ?? [],
+  };
 
   return (
     <>
@@ -25,40 +35,12 @@ export async function GradedEssayView({ essayId }: { essayId: string }) {
         teacherName={essay.teacher_name}
       />
 
-      <EssayHighlightNavigationProvider>
-        <div className="mt-8 grid grid-cols-1 items-start gap-8 lg:grid-cols-5">
-          <div className="space-y-8 lg:col-span-3">
-            <EssayContent
-              text={essay.content}
-              highlights={essay.highlights ?? []}
-              generalComment={essay.general_comment}
-              bestScores={bestScores}
-            />
-          </div>
-
-          <div className="space-y-6 lg:col-span-2">
-            <EssayScoreCard
-              totalScore={essay.total_score}
-            />
-
-            <EssayCompetencies
-              scores={essay.scores}
-              comments={essay.comments}
-              highlights={essay.highlights ?? []}
-            />
-
-            <EssayImprovementPlan
-              mainBottleneck={essay.main_bottleneck}
-              nextEssayPriorities={
-                essay.next_essay_priorities ?? []
-              }
-              rewriteTasks={
-                essay.rewrite_tasks ?? []
-              }
-            />
-          </div>
-        </div>
-      </EssayHighlightNavigationProvider>
+      <CorrectionReviewHistory
+        audience="admin"
+        essayText={essay.content}
+        publishedPayload={publishedPayload}
+        rounds={essay.reviewHistory}
+      />
     </>
   );
 }

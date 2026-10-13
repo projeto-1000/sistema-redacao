@@ -5,3 +5,4 @@ export * from "./hotmart";
 export * from "./signup";
 export * from "./subscription-cancellation";
 export * from "./credits";
+export * from "./payment-methods";

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
@@ -19,7 +19,7 @@ import { UserData } from "@repo/types";
 export type ActionResponse = {
   success: boolean;
   error?: string;
-  avatarUrl?: string
+  avatarUrl?: string;
 };
 interface EditProfileViewProps {
   initialData: UserData;
@@ -28,7 +28,12 @@ interface EditProfileViewProps {
   onUpdatePassword: (password: string) => Promise<ActionResponse>;
 }
 
-export function EditProfileView({ initialData, onSaveProfile, onUploadAvatar, onUpdatePassword }: EditProfileViewProps) {
+export function EditProfileView({
+  initialData,
+  onSaveProfile,
+  onUploadAvatar,
+  onUpdatePassword,
+}: EditProfileViewProps) {
   const [activeTab, setActiveTab] = useState("profile");
   const [isFormDirty, setIsFormDirty] = useState(false);
 
@@ -59,32 +64,39 @@ export function EditProfileView({ initialData, onSaveProfile, onUploadAvatar, on
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <Tabs
         defaultValue="profile"
         value={activeTab}
         onValueChange={handleTabChange}
-        className="w-full bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        className="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+      >
         <TabsList
-          className="w-full flex group-data-[orientation=horizontal]/tabs:h-12"
-          variant='line'>
-          <TabsTrigger value="profile"
-            className={`text-[16px] md:text-[18px] font-medium ${initialData.role !== 'TEACHER' ?
-              'text-slate-400 hover:text-slate-600 data-[state=active]:text-primary after:bg-primary' :
-              'text-slate-400 hover:text-slate-600 data-[state=active]:text-primary after:bg-primary'
-              }`}>
+          className="flex w-full group-data-[orientation=horizontal]/tabs:h-12"
+          variant="line"
+        >
+          <TabsTrigger
+            value="profile"
+            className={`text-[16px] font-medium md:text-[18px] ${
+              initialData.role !== "TEACHER"
+                ? "data-[state=active]:text-primary after:bg-primary text-slate-400 hover:text-slate-600"
+                : "data-[state=active]:text-primary after:bg-primary text-slate-400 hover:text-slate-600"
+            }`}
+          >
             Perfil
           </TabsTrigger>
-          <TabsTrigger value="password"
-            className={`text-[16px] md:text-[18px] font-medium ${initialData.role !== 'TEACHER' ?
-              'text-slate-400 hover:text-slate-600 data-[state=active]:text-primary after:bg-primary' :
-              ' hover:bg-secondary/70 after:bg-secondary'
-              }`}>
+          <TabsTrigger
+            value="password"
+            className="hover:text-primary data-[state=active]:text-primary after:bg-primary text-[16px] font-medium text-slate-400 transition-colors md:text-[18px]"
+          >
             Senha
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile" className="text-[16px] md:text-[18px] font-bold text-slate-400 hover:text-slate-600 bg-transparent data-[state=active]:text-yellow-600 data-[state=active]:border-yellow-600">
+        <TabsContent
+          value="profile"
+          className="bg-transparent text-[16px] font-bold text-slate-400 hover:text-slate-600 data-[state=active]:border-yellow-600 data-[state=active]:text-yellow-600 md:text-[18px]"
+        >
           <ProfileForm
             initialData={initialData}
             onSave={onSaveProfile}
@@ -104,26 +116,27 @@ export function EditProfileView({ initialData, onSaveProfile, onUploadAvatar, on
             <AlertDialogTitle className="text-xl font-extrabold">
               Descartar alterações?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-500 font-medium leading-relaxed">
-              Você tem alterações não salvas no seu perfil. Se mudar de aba agora, todos os dados preenchidos serão perdidos. Deseja continuar?
+            <AlertDialogDescription className="leading-relaxed font-medium text-slate-500">
+              Você tem alterações não salvas no seu perfil. Se mudar de aba agora, todos os dados
+              preenchidos serão perdidos. Deseja continuar?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0 mt-4">
+          <AlertDialogFooter className="mt-4 gap-2 sm:gap-0">
             <AlertDialogCancel
               onClick={cancelTabChange}
-              className="h-12 rounded-xl font-bold border-slate-200 text-slate-600 hover:bg-slate-50 mt-0"
+              className="mt-0 h-12 rounded-xl border-slate-200 font-bold text-slate-600 hover:bg-slate-50"
             >
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmTabChange}
-              className="h-12 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20"
+              className="h-12 rounded-xl bg-red-600 font-bold text-white shadow-lg shadow-red-500/20 hover:bg-red-700"
             >
               Sim, descartar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div >
+    </div>
   );
 }

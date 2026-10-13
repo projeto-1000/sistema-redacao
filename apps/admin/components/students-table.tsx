@@ -120,10 +120,12 @@ async function StudentsTableRows({
     );
   }
 
+  const referenceTime = new Date().getTime();
+
   return (
     <div className="divide-y divide-slate-100">
       {students.map((student) => (
-        <StudentsTableRow key={student.id} student={student} />
+        <StudentsTableRow key={student.id} student={student} referenceTime={referenceTime} />
       ))}
     </div>
   );

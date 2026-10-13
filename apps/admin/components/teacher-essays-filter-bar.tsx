@@ -1,16 +1,11 @@
-"use client"
+"use client";
 
 import { useTeachersEssayFilter } from "@/hooks/use-teacher-essays-filter";
 import { TableFilterBar } from "@repo/ui/components/table-filter-bar";
 
 export default function TeacherEssaysFilterBar() {
-  const {
-    searchTerm,
-    setSearchTerm,
-    dateRange,
-    setDateRange,
-    filterOptions
-  } = useTeachersEssayFilter();
+  const { searchTerm, setSearchTerm, dateRange, setDateRange, filterOptions } =
+    useTeachersEssayFilter();
 
   return (
     <TableFilterBar
@@ -22,5 +17,5 @@ export default function TeacherEssaysFilterBar() {
       onDateRangeChange={setDateRange}
       theme="admin"
     />
-  )
+  );
 }

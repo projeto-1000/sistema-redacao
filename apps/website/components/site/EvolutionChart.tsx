@@ -22,10 +22,9 @@ export function EvolutionChart() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => entry?.isIntersecting && setInView(true),
-      { threshold: 0.4 },
-    );
+    const io = new IntersectionObserver(([entry]) => entry?.isIntersecting && setInView(true), {
+      threshold: 0.4,
+    });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -37,9 +36,7 @@ export function EvolutionChart() {
     const y = PAD_Y + ((max - n) / (max - min)) * (H - PAD_Y * 2);
     return { x, y, n };
   });
-  const linePath = pts
-    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`)
-    .join(" ");
+  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
   const firstPoint = pts[0]!;
   const lastPoint = pts[pts.length - 1]!;
   const areaPath = `${linePath} L${lastPoint.x},${H - PAD_Y} L${firstPoint.x},${H - PAD_Y} Z`;
@@ -47,23 +44,21 @@ export function EvolutionChart() {
   return (
     <div
       ref={ref}
-      className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]"
+      className="border-border bg-card relative overflow-hidden rounded-2xl border p-6 shadow-[var(--shadow-card)]"
     >
       {/* Header do dashboard */}
-      <div className="flex items-center justify-between border-b border-border pb-4">
+      <div className="border-border flex items-center justify-between border-b pb-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <p className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
             Dashboard · Evolução
           </p>
-          <p className="mt-1 font-display text-lg font-bold text-foreground">
+          <p className="font-display text-foreground mt-1 text-lg font-bold">
             Evolução da nota geral
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-primary" />
-          <span className="text-xs font-semibold text-foreground">
-            Nota geral
-          </span>
+          <span className="bg-primary h-2 w-2 rounded-full" />
+          <span className="text-foreground text-xs font-semibold">Nota geral</span>
         </div>
       </div>
 
@@ -120,8 +115,7 @@ export function EvolutionChart() {
             strokeDasharray: 1,
             strokeDashoffset: inView ? 0 : 1,
             transition: "stroke-dashoffset 1400ms cubic-bezier(0.22,1,0.36,1)",
-            filter:
-              "drop-shadow(0 0 8px color-mix(in oklab, var(--primary) 40%, transparent))",
+            filter: "drop-shadow(0 0 8px color-mix(in oklab, var(--primary) 40%, transparent))",
           }}
         />
 
@@ -137,13 +131,7 @@ export function EvolutionChart() {
             }}
           >
             <circle cx={p.x} cy={p.y} r={5} fill="var(--primary)" />
-            <circle
-              cx={p.x}
-              cy={p.y}
-              r={9}
-              fill="var(--primary)"
-              fillOpacity={0.25}
-            />
+            <circle cx={p.x} cy={p.y} r={9} fill="var(--primary)" fillOpacity={0.25} />
             <text
               x={p.x}
               y={p.y - 14}
@@ -177,7 +165,7 @@ export function EvolutionChart() {
       {/* Seletor de competências (mockup) */}
       <div
         aria-hidden
-        className="mt-4 flex flex-wrap items-center gap-1.5 rounded-full border border-border bg-secondary p-1.5"
+        className="border-border bg-secondary mt-4 flex flex-wrap items-center gap-1.5 rounded-full border p-1.5"
       >
         {seletor.map((s, i) => (
           <span
@@ -194,22 +182,18 @@ export function EvolutionChart() {
       </div>
 
       {/* Resumo */}
-      <div className="mt-4 grid grid-cols-2 gap-3 border-t border-border pt-4">
+      <div className="border-border mt-4 grid grid-cols-2 gap-3 border-t pt-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <p className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
             Última
           </p>
-          <p className="mt-1 font-display text-2xl font-black text-primary">
-            960
-          </p>
+          <p className="font-display text-primary mt-1 text-2xl font-black">960</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <p className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
             Média geral
           </p>
-          <p className="mt-1 font-display text-2xl font-black text-foreground">
-            720
-          </p>
+          <p className="font-display text-foreground mt-1 text-2xl font-black">720</p>
         </div>
       </div>
     </div>

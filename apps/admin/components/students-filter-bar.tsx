@@ -1,20 +1,15 @@
-"use client"
+"use client";
 
 import { useStudentFilters } from "@/hooks/use-student-filters";
-import { TableFilterBar } from "@repo/ui/components/table-filter-bar"
+import { TableFilterBar } from "@repo/ui/components/table-filter-bar";
 
 interface StudentsFilterBarProps {
   planOptions: { label: string; value: string }[];
 }
 
 export default function StudentsFilterBar({ planOptions }: StudentsFilterBarProps) {
-  const {
-    searchTerm,
-    setSearchTerm,
-    dateRange,
-    setDateRange,
-    filterOptions
-  } = useStudentFilters(planOptions);
+  const { searchTerm, setSearchTerm, dateRange, setDateRange, filterOptions } =
+    useStudentFilters(planOptions);
 
   return (
     <TableFilterBar
@@ -27,5 +22,5 @@ export default function StudentsFilterBar({ planOptions }: StudentsFilterBarProp
       dateFilterLabel="Data de cadastro"
       theme="admin"
     />
-  )
+  );
 }

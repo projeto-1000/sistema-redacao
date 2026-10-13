@@ -1,43 +1,20 @@
-import {
-  isValidCardCvv,
-  isValidCardExpiration,
-  isValidCardNumber,
-  isValidCPF,
-} from "@repo/utils";
+import { isValidCardCvv, isValidCardExpiration, isValidCardNumber, isValidCPF } from "@repo/utils";
 import { z } from "zod";
 
 export const checkoutAddressSchema = z.object({
-  zipCode: z.string().refine(
-    (value) => value.replace(/\D/g, "").length === 8,
-    "Digite um CEP válido."
-  ),
-
-  street: z
+  zipCode: z
     .string()
-    .trim()
-    .min(3, "A rua deve ter pelo menos 3 caracteres."),
+    .refine((value) => value.replace(/\D/g, "").length === 8, "Digite um CEP válido."),
 
-  number: z
-    .string()
-    .trim()
-    .min(1, "O número é obrigatório.")
-    .max(20, "O número é muito longo."),
+  street: z.string().trim().min(3, "A rua deve ter pelo menos 3 caracteres."),
 
-  complement: z
-    .string()
-    .trim()
-    .max(100, "O complemento é muito longo.")
-    .optional(),
+  number: z.string().trim().min(1, "O número é obrigatório.").max(20, "O número é muito longo."),
 
-  neighborhood: z
-    .string()
-    .trim()
-    .min(2, "O bairro é obrigatório."),
+  complement: z.string().trim().max(100, "O complemento é muito longo.").optional(),
 
-  city: z
-    .string()
-    .trim()
-    .min(2, "A cidade é obrigatória."),
+  neighborhood: z.string().trim().min(2, "O bairro é obrigatório."),
+
+  city: z.string().trim().min(2, "A cidade é obrigatória."),
 
   state: z
     .string()
@@ -46,29 +23,46 @@ export const checkoutAddressSchema = z.object({
     .transform((value) => value.toUpperCase()),
 });
 
-
-export const checkoutPaymentMethodSchema = z.enum([
-  "credit_card",
-  "debit_card",
-  "boleto",
-]);
+export const checkoutPaymentMethodSchema = z.enum(["credit_card", "debit_card", "boleto"]);
 
 export const checkoutPaymentSchema = z
   .object({
     method: checkoutPaymentMethodSchema,
 
     installments: z.number().int().min(1).max(1).default(1),
-    
+
+    paymentSource: z.enum(["saved_card", "new_card"]),
+    paymentCardId: z.string().uuid("Cartão inválido.").nullable().optional(),
+
     cardNumber: z.string().optional(),
     holderName: z.string().optional(),
     holderDocument: z.string().optional(),
     expirationDate: z.string().optional(),
     cvv: z.string().optional(),
-    saveCard: z.boolean().default(false)
   })
   .superRefine((value, context) => {
     if (value.method === "boleto") {
       return;
+    }
+
+    if (value.paymentSource === "saved_card") {
+      if (!value.paymentCardId) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["paymentCardId"],
+          message: "Selecione um cartão.",
+        });
+      }
+
+      return;
+    }
+
+    if (value.paymentCardId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["paymentCardId"],
+        message: "A fonte do cartão é inválida.",
+      });
     }
 
     if (!value.cardNumber) {
@@ -98,23 +92,20 @@ export const checkoutPaymentSchema = z
     }
 
     if (value.holderName && value.holderName.trim().length > 64) {
-    context.addIssue({
-    code: z.ZodIssueCode.custom,
-    path: ["holderName"],
-    message: "O nome deve ter no máximo 64 caracteres.",
-  });
-}
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["holderName"],
+        message: "O nome deve ter no máximo 64 caracteres.",
+      });
+    }
 
-    if (
-    value.holderName &&
-    !/^[A-Za-zÀ-ÿ\s]+$/.test(value.holderName.trim())
-    ) {
-    context.addIssue({
-    code: z.ZodIssueCode.custom,
-    path: ["holderName"],
-    message: "O nome deve conter apenas letras e espaços.",
-  });
-}
+    if (value.holderName && !/^[A-Za-zÀ-ÿ\s]+$/.test(value.holderName.trim())) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["holderName"],
+        message: "O nome deve conter apenas letras e espaços.",
+      });
+    }
 
     if (!value.holderDocument) {
       context.addIssue({
@@ -176,6 +167,30 @@ export const checkoutSchema = z.object({
   payment: checkoutPaymentSchema,
 });
 
+export const extraCreditsPaymentSchema = z.discriminatedUnion("paymentSource", [
+  z.object({
+    paymentSource: z.literal("saved_card"),
+    paymentCardId: z.string().uuid("Cartão inválido."),
+  }),
+
+  z.object({
+    paymentSource: z.literal("new_card"),
+    paymentCardId: z.null().optional(),
+
+    cardNumber: z.string().refine(isValidCardNumber, "Digite um número de cartão válido."),
+
+    holderName: z.string().trim().min(3, "Digite o nome impresso no cartão."),
+
+    holderDocument: z.string().refine(isValidCPF, "Digite um CPF válido."),
+
+    expirationDate: z.string().refine(isValidCardExpiration, "Digite uma validade válida."),
+
+    cvv: z.string().refine(isValidCardCvv, "Digite um CVV válido."),
+
+    address: checkoutAddressSchema,
+  }),
+]);
+
 export type CheckoutAddressFormInput = z.input<typeof checkoutAddressSchema>;
 export type CheckoutAddressFormValues = z.infer<typeof checkoutAddressSchema>;
 
@@ -184,3 +199,5 @@ export type CheckoutPaymentFormValues = z.infer<typeof checkoutPaymentSchema>;
 
 export type CheckoutFormInput = z.input<typeof checkoutSchema>;
 export type CheckoutFormValues = z.infer<typeof checkoutSchema>;
+
+export type ExtraCreditsPaymentInput = z.input<typeof extraCreditsPaymentSchema>;

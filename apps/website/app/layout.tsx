@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Poppins } from "next/font/google";
 import { Footer } from "@/components/site/Footer";
 import { Navbar } from "@/components/site/Navbar";
+import { STUDENTS_LOGIN_URL } from "@/lib/students-app.server";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -24,9 +25,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
       <head>
@@ -47,6 +46,8 @@ export default function RootLayout({
       </head>
       <body className={poppins.variable}>
         <noscript>
+          {/* O pixel da Meta precisa permanecer uma imagem direta sem JavaScript. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             height="1"
             width="1"
@@ -55,7 +56,7 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
-        <Navbar />
+        <Navbar loginUrl={STUDENTS_LOGIN_URL} />
         <main>{children}</main>
         <Footer />
       </body>

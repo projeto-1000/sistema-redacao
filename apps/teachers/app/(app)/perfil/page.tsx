@@ -13,19 +13,19 @@ export default async function ProfileProfilePage() {
   if (!data) return null;
 
   return (
-    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-4">
-
+    <div className="min-h-dvh space-y-4 px-4 py-4 md:px-10 lg:px-12">
       <PageHeader
-        title='Meu perfil'
-        subtitle='Acompanhe seu progresso e gerencie suas informações.'
+        title="Meu perfil"
+        subtitle="Acompanhe seu progresso e gerencie suas informações."
       />
 
       <ProfileHeader
         user={data.user}
         secondaryAction={{
           label: "Gerenciar pagamentos",
-          href: "/checkout/upgrade"
-        }} />
+          href: "/pagamentos",
+        }}
+      />
     </div>
   );
 }

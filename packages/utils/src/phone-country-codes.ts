@@ -1,8 +1,4 @@
-import {
-  getCountries,
-  getCountryCallingCode,
-  type CountryCode,
-} from "libphonenumber-js";
+import { getCountries, getCountryCallingCode, type CountryCode } from "libphonenumber-js";
 
 export const DEFAULT_PHONE_COUNTRY_CODE = "55";
 
@@ -13,9 +9,7 @@ export interface PhoneCountryCodeOption {
   countryCodes: CountryCode[];
 }
 
-export function getPhoneCountryCodeOptions(
-  locale = "pt-BR"
-): PhoneCountryCodeOption[] {
+export function getPhoneCountryCodeOptions(locale = "pt-BR"): PhoneCountryCodeOption[] {
   const displayNames =
     typeof Intl !== "undefined" && "DisplayNames" in Intl
       ? new Intl.DisplayNames([locale], { type: "region" })
@@ -30,21 +24,19 @@ export function getPhoneCountryCodeOptions(
     groupedByCallingCode.set(callingCode, [...existingCountries, countryCode]);
   }
 
-  const options = Array.from(groupedByCallingCode.entries()).map(
-    ([callingCode, countryCodes]) => {
-      const countryNames = countryCodes
-        .map((countryCode) => getCountryLabel(countryCode, displayNames))
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, locale));
+  const options = Array.from(groupedByCallingCode.entries()).map(([callingCode, countryCodes]) => {
+    const countryNames = countryCodes
+      .map((countryCode) => getCountryLabel(countryCode, displayNames))
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, locale));
 
-      return {
-        value: callingCode,
-        display: `+${callingCode}`,
-        label: countryNames.join(" / "),
-        countryCodes,
-      };
-    }
-  );
+    return {
+      value: callingCode,
+      display: `+${callingCode}`,
+      label: countryNames.join(" / "),
+      countryCodes,
+    };
+  });
 
   return options.sort((a, b) => {
     if (a.value === DEFAULT_PHONE_COUNTRY_CODE) return -1;
@@ -54,10 +46,7 @@ export function getPhoneCountryCodeOptions(
   });
 }
 
-function getCountryLabel(
-  countryCode: CountryCode,
-  displayNames: Intl.DisplayNames | null
-) {
+function getCountryLabel(countryCode: CountryCode, displayNames: Intl.DisplayNames | null) {
   try {
     return displayNames?.of(countryCode) ?? countryCode;
   } catch {

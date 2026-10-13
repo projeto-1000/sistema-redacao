@@ -17,7 +17,6 @@ export const essayCorrectedEmail = {
 export function buildEssayCorrectedEmailHtml({
   firstName,
   essayTitle,
-  score,
   correctionUrl,
 }: BuildEssayCorrectedEmailParams) {
   const safeFirstName = escapeHtml(firstName);

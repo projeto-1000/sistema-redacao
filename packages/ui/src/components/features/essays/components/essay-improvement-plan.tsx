@@ -1,8 +1,4 @@
-import {
-  ListChecks,
-  PenLine,
-  Target,
-} from "lucide-react";
+import { ListChecks, PenLine, Target } from "lucide-react";
 import type { ReactNode } from "react";
 
 interface EssayImprovementPlanProps {
@@ -17,11 +13,7 @@ interface ImprovementSectionProps {
   children: ReactNode;
 }
 
-function ImprovementSection({
-  title,
-  icon,
-  children,
-}: ImprovementSectionProps) {
+function ImprovementSection({ title, icon, children }: ImprovementSectionProps) {
   return (
     <section>
       <div className="mb-3 flex items-center gap-3">
@@ -29,9 +21,7 @@ function ImprovementSection({
           {icon}
         </div>
 
-        <h3 className="text-sm font-bold text-slate-900">
-          {title}
-        </h3>
+        <h3 className="text-sm font-bold">{title}</h3>
       </div>
 
       {children}
@@ -44,18 +34,13 @@ export default function EssayImprovementPlan({
   nextEssayPriorities,
   rewriteTasks,
 }: EssayImprovementPlanProps) {
-  const normalizedMainBottleneck =
-    mainBottleneck?.trim() ?? "";
+  const normalizedMainBottleneck = mainBottleneck?.trim() ?? "";
 
-  const normalizedPriorities =
-    nextEssayPriorities
-      .map((priority) => priority.trim())
-      .filter(Boolean);
+  const normalizedPriorities = nextEssayPriorities
+    .map((priority) => priority.trim())
+    .filter(Boolean);
 
-  const normalizedRewriteTasks =
-    rewriteTasks
-      .map((task) => task.trim())
-      .filter(Boolean);
+  const normalizedRewriteTasks = rewriteTasks.map((task) => task.trim()).filter(Boolean);
 
   const hasImprovementPlan =
     normalizedMainBottleneck.length > 0 ||
@@ -69,13 +54,11 @@ export default function EssayImprovementPlan({
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-6">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
           Orientações do corretor
         </span>
 
-        <h2 className="mt-2 text-lg font-black text-slate-900">
-          Plano de melhoria
-        </h2>
+        <h2 className="mt-2 text-lg font-black">Plano de melhoria</h2>
 
         <p className="mt-1 text-sm leading-relaxed text-slate-500">
           Pontos para revisar e aplicar nas próximas redações.
@@ -85,12 +68,9 @@ export default function EssayImprovementPlan({
       <div className="divide-y divide-slate-100">
         {normalizedMainBottleneck && (
           <div className="pb-5">
-            <ImprovementSection
-              title="Principal gargalo"
-              icon={<Target className="size-4" />}
-            >
+            <ImprovementSection title="Principal gargalo" icon={<Target className="size-4" />}>
               <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-4">
-                <p className="break-words whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-slate-700">
                   {normalizedMainBottleneck}
                 </p>
               </div>
@@ -105,22 +85,20 @@ export default function EssayImprovementPlan({
               icon={<ListChecks className="size-4" />}
             >
               <ol className="space-y-2">
-                {normalizedPriorities.map(
-                  (priority, index) => (
-                    <li
-                      key={`${priority}-${index}`}
-                      className="flex items-start gap-3 rounded-xl bg-slate-50 p-3"
-                    >
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-bold text-amber-700 shadow-sm">
-                        {index + 1}
-                      </span>
+                {normalizedPriorities.map((priority, index) => (
+                  <li
+                    key={`${priority}-${index}`}
+                    className="flex items-start gap-3 rounded-xl bg-slate-50 p-3"
+                  >
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-bold text-amber-700 shadow-sm">
+                      {index + 1}
+                    </span>
 
-                      <p className="min-w-0 break-words text-sm leading-relaxed text-slate-700">
-                        {priority}
-                      </p>
-                    </li>
-                  )
-                )}
+                    <p className="min-w-0 text-sm leading-relaxed break-words text-slate-700">
+                      {priority}
+                    </p>
+                  </li>
+                ))}
               </ol>
             </ImprovementSection>
           </div>
@@ -128,27 +106,22 @@ export default function EssayImprovementPlan({
 
         {normalizedRewriteTasks.length > 0 && (
           <div className="pt-5">
-            <ImprovementSection
-              title="Tarefas de reescrita"
-              icon={<PenLine className="size-4" />}
-            >
+            <ImprovementSection title="Tarefas de reescrita" icon={<PenLine className="size-4" />}>
               <ol className="space-y-2">
-                {normalizedRewriteTasks.map(
-                  (task, index) => (
-                    <li
-                      key={`${task}-${index}`}
-                      className="flex items-start gap-3 rounded-xl bg-slate-50 p-3"
-                    >
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-bold text-amber-700 shadow-sm">
-                        {index + 1}
-                      </span>
+                {normalizedRewriteTasks.map((task, index) => (
+                  <li
+                    key={`${task}-${index}`}
+                    className="flex items-start gap-3 rounded-xl bg-slate-50 p-3"
+                  >
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-bold text-amber-700 shadow-sm">
+                      {index + 1}
+                    </span>
 
-                      <p className="min-w-0 break-words text-sm leading-relaxed text-slate-700">
-                        {task}
-                      </p>
-                    </li>
-                  )
-                )}
+                    <p className="min-w-0 text-sm leading-relaxed break-words text-slate-700">
+                      {task}
+                    </p>
+                  </li>
+                ))}
               </ol>
             </ImprovementSection>
           </div>

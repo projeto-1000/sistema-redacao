@@ -12,6 +12,10 @@ import { formatDate, formatShortId } from "@repo/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { STUDENTS_TABLE_GRID } from "./students-table-layout";
+import {
+  isStudentCancellationScheduled,
+  SCHEDULED_CANCELLATION_BADGE,
+} from "@/utils/student-subscription-status";
 
 const CREDIT_STYLES: Record<string, string> = {
   Plano: "border-blue-100 bg-blue-50/60 text-blue-700",
@@ -20,7 +24,58 @@ const CREDIT_STYLES: Record<string, string> = {
   Mentoria: "border-amber-100 bg-amber-50/60 text-amber-700",
 };
 
-export function StudentsTableRow({ student }: { student: StudentsListItem }) {
+const SAO_PAULO_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/Sao_Paulo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function getSaoPauloDateParts(date: Date) {
+  const parts = SAO_PAULO_DATE_FORMATTER.formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return {
+    year: Number(values.year),
+    month: Number(values.month),
+    day: Number(values.day),
+  };
+}
+
+function getLegacyFreeCreditExpiration(startAt: string | null | undefined, referenceTime: number) {
+  if (!startAt) return null;
+
+  const startDate = new Date(startAt);
+
+  if (Number.isNaN(startDate.getTime())) return null;
+
+  const start = getSaoPauloDateParts(startDate);
+  const expirationDate = new Date(Date.UTC(start.year, start.month - 1, start.day + 15));
+  const expiration = {
+    year: expirationDate.getUTCFullYear(),
+    month: expirationDate.getUTCMonth() + 1,
+    day: expirationDate.getUTCDate(),
+  };
+  const today = getSaoPauloDateParts(new Date(referenceTime));
+  const expirationKey = expiration.year * 10_000 + expiration.month * 100 + expiration.day;
+  const todayKey = today.year * 10_000 + today.month * 100 + today.day;
+
+  return {
+    hasExpired: expirationKey < todayKey,
+    label: `${String(expiration.day).padStart(2, "0")}/${String(expiration.month).padStart(
+      2,
+      "0"
+    )}/${String(expiration.year).slice(-2)}`,
+  };
+}
+
+export function StudentsTableRow({
+  student,
+  referenceTime,
+}: {
+  student: StudentsListItem;
+  referenceTime: number;
+}) {
   const { entity: studentItem, toggleStatus } = useToggleUserStatus(student, updateStudentStatus);
   const [isIdCopied, setIsIdCopied] = useState(false);
 
@@ -38,8 +93,9 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
     }
 
     if (studentItem.plan.interval === "day" && studentItem.plan.interval_count) {
-      return `${studentItem.plan.interval_count} dia${studentItem.plan.interval_count > 1 ? "s" : ""
-        }`;
+      return `${studentItem.plan.interval_count} dia${
+        studentItem.plan.interval_count > 1 ? "s" : ""
+      }`;
     }
 
     return null;
@@ -54,9 +110,28 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
   const hasValidity = Boolean(
     studentItem.subscription?.current_period_start && studentItem.subscription?.current_period_end
   );
+  const freeCreditExpiresAt = studentItem.credits.freeExpiresAt;
+  const freeCreditExpirationTime = freeCreditExpiresAt
+    ? new Date(freeCreditExpiresAt).getTime()
+    : null;
+  const hasValidFreeCreditExpiration =
+    freeCreditExpirationTime !== null && !Number.isNaN(freeCreditExpirationTime);
+  const legacyFreeCreditExpiration = getLegacyFreeCreditExpiration(
+    studentItem.subscription?.current_period_start,
+    referenceTime
+  );
 
   const validityLabel = isFreePlan
-    ? "Sem vencimento"
+    ? hasValidFreeCreditExpiration
+      ? `${freeCreditExpirationTime <= referenceTime ? "Expirou" : "Expira"} em ${formatDate(
+          freeCreditExpiresAt,
+          "compact"
+        )}`
+      : legacyFreeCreditExpiration
+        ? `${legacyFreeCreditExpiration.hasExpired ? "Expirou" : "Expira"} em ${
+            legacyFreeCreditExpiration.label
+          }`
+        : "Validade indisponível"
     : hasValidity
       ? `${periodStart} – ${periodEnd}`
       : "Sem vigência";
@@ -78,6 +153,13 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
       return {
         label: "Bloqueado",
         colors: "bg-red-50 text-red-600",
+      };
+    }
+
+    if (isStudentCancellationScheduled(studentItem.subscription)) {
+      return {
+        label: SCHEDULED_CANCELLATION_BADGE.label,
+        colors: SCHEDULED_CANCELLATION_BADGE.classes,
       };
     }
 
@@ -140,7 +222,7 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
                 <button
                   type="button"
                   onClick={handleCopyId}
-                  className="rounded p-0.5 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                  className="rounded-sm p-0.5 transition-colors hover:bg-slate-100 hover:text-slate-600"
                   aria-label={isIdCopied ? "ID copiado" : "Copiar ID"}
                 >
                   {isIdCopied ? (
@@ -183,9 +265,7 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
                   aria-hidden="true"
                 />
 
-                <span className="shrink-0 text-xs font-semibold text-blue-600">
-                  {periodLabel}
-                </span>
+                <span className="shrink-0 text-xs font-semibold text-blue-600">{periodLabel}</span>
               </>
             )}
           </div>
@@ -250,7 +330,7 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
           Status
         </span>
         <span
-          className={`inline-flex h-7 min-w-24 items-center justify-center rounded-md px-2 text-center text-[10px] font-bold tracking-wider whitespace-nowrap uppercase xl:px-3 ${situation.colors}`}
+          className={`inline-flex min-h-7 max-w-full items-center justify-center rounded-md px-2 py-1 text-center text-[10px] leading-tight font-bold tracking-wider whitespace-normal uppercase xl:px-3 ${situation.colors}`}
         >
           {situation.label}
         </span>

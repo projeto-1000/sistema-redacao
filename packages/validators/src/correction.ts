@@ -5,10 +5,7 @@ const correctionScoreSchema = z
   .int("A nota deve ser um número inteiro.")
   .min(0, "A nota mínima é 0.")
   .max(200, "A nota máxima é 200.")
-  .refine(
-    (score) => score % 40 === 0,
-    "A nota deve seguir os intervalos de 40 pontos."
-  );
+  .refine((score) => score % 40 === 0, "A nota deve seguir os intervalos de 40 pontos.");
 
 export const CORRECTION_COMPETENCY_COMMENT_MAX_LENGTH = 1000;
 
@@ -48,9 +45,7 @@ export const correctionHighlightSchema = z
   .object({
     id: z.string().min(1, "O destaque precisa ter um identificador."),
 
-    text: z
-      .string()
-      .min(1, "O texto destacado não pode estar vazio."),
+    text: z.string().min(1, "O texto destacado não pode estar vazio."),
 
     compId: z.enum(["c1", "c2", "c3", "c4", "c5"], {
       message: "O destaque precisa estar associado a uma competência válida.",
@@ -58,25 +53,14 @@ export const correctionHighlightSchema = z
 
     comment: correctionHighlightCommentSchema.default(""),
 
-    startIndex: z
-      .number()
-      .int()
-      .min(0, "A posição inicial do destaque é inválida."),
+    startIndex: z.number().int().min(0, "A posição inicial do destaque é inválida."),
 
-    endIndex: z
-      .number()
-      .int()
-      .min(0, "A posição final do destaque é inválida."),
+    endIndex: z.number().int().min(0, "A posição final do destaque é inválida."),
   })
-  .refine(
-    (highlight) =>
-      highlight.endIndex > highlight.startIndex,
-    {
-      path: ["endIndex"],
-      message:
-        "A posição final do destaque deve ser maior ou igual à inicial.",
-    }
-  );
+  .refine((highlight) => highlight.endIndex > highlight.startIndex, {
+    path: ["endIndex"],
+    message: "A posição final do destaque deve ser maior ou igual à inicial.",
+  });
 
 export const correctionHighlightsSchema = z.array(correctionHighlightSchema);
 
@@ -124,43 +108,27 @@ export const finalCorrectionSchema = z.object({
     .string()
     .trim()
     .min(1, "O comentário geral é obrigatório.")
-    .max(
-      3000,
-      "O comentário geral deve ter no máximo 3.000 caracteres."
-    ),
+    .max(3000, "O comentário geral deve ter no máximo 3.000 caracteres."),
 
   main_bottleneck: z
     .string()
     .trim()
     .min(1, "O principal gargalo é obrigatório.")
-    .max(
-      500,
-      "O principal gargalo deve ter no máximo 500 caracteres."
-    ),
+    .max(500, "O principal gargalo deve ter no máximo 500 caracteres."),
 
-next_essay_priorities: z
-  .array(requiredListItemSchema)
-  .min(1, "Informe pelo menos uma prioridade para a próxima redação.")
-  .max(3, "Informe no máximo três prioridades para a próxima redação."),
+  next_essay_priorities: z
+    .array(requiredListItemSchema)
+    .min(1, "Informe pelo menos uma prioridade para a próxima redação.")
+    .max(3, "Informe no máximo três prioridades para a próxima redação."),
 
   rewrite_tasks: z
     .array(requiredListItemSchema)
-    .min(
-      1,
-      "Informe pelo menos uma tarefa de reescrita."
-    )
-    .max(
-      3,
-      "Informe no máximo três tarefas de reescrita."
-    ),
+    .min(1, "Informe pelo menos uma tarefa de reescrita.")
+    .max(3, "Informe no máximo três tarefas de reescrita."),
 
   highlights: finalCorrectionHighlightsSchema,
 });
 
-export type FinalCorrectionInput = z.input<
-  typeof finalCorrectionSchema
->;
+export type FinalCorrectionInput = z.input<typeof finalCorrectionSchema>;
 
-export type FinalCorrectionValues = z.infer<
-  typeof finalCorrectionSchema
->;
+export type FinalCorrectionValues = z.infer<typeof finalCorrectionSchema>;

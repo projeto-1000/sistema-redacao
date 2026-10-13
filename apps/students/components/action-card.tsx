@@ -38,32 +38,30 @@ export function ActionCard({
   const style = variants[variant];
 
   return (
-    <div className="relative flex flex-col p-4 sm:p-6 md:p-4 lg:p-6 bg-white border border-slate-100 rounded-4xl shadow-sm transition-all hover:shadow-md h-full">
-      <div className="flex md:block items-center gap-2 mb-4 md:mb-0">
-        <div className={cn("w-8 h-8 md:w-14 md:h-14 rounded-full flex items-center justify-center md:mb-4", style.iconBg)}>
+    <div className="relative flex h-full flex-col rounded-4xl border border-slate-100 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:p-6 md:p-4 lg:p-6">
+      <div className="mb-4 flex items-center gap-2 md:mb-0 md:block">
+        <div
+          className={cn(
+            "flex h-8 w-8 items-center justify-center rounded-full md:mb-4 md:h-14 md:w-14",
+            style.iconBg
+          )}
+        >
           <Icon className={cn("size-4.5 md:size-6", style.iconColor)} />
         </div>
 
-        <h3 className="text-[18px] lg:text-xl font-bold md:mb-3 tracking-tight md:tracking-tighter lg:tracking-tight">
+        <h3 className="text-[18px] font-bold tracking-tight md:mb-3 md:tracking-tighter lg:text-xl lg:tracking-tight">
           {title}
         </h3>
-
       </div>
 
-      <p className="text-sm text-slate-500 leading-relaxed mb-6 md:mb-4">
-        {description}
-      </p>
+      <p className="mb-6 text-sm leading-relaxed text-slate-500 md:mb-4">{description}</p>
 
       <Button
         asChild
         variant={variant}
-        className={cn(
-          "w-full h-12 rounded-2xl font-bold shadow-lg",
-        )}
+        className={cn("h-12 w-full rounded-2xl font-bold shadow-lg")}
       >
-        <Link href={href}>
-          {buttonText}
-        </Link>
+        <Link href={href}>{buttonText}</Link>
       </Button>
     </div>
   );

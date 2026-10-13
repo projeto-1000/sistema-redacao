@@ -3,21 +3,21 @@ import { Button } from "@repo/ui/components/button";
 import { NotebookPen } from "lucide-react";
 import { EssayTopic } from "@repo/types";
 import Link from "next/link";
-import { TopicDetailsDialog } from "@repo/ui/components/topic-details-dialog"
+import { TopicDetailsDialog } from "@repo/ui/components/topic-details-dialog";
 import { getTopicDetails } from "@/app/actions/get-topics";
 
 interface TopicsRowProps {
-  topic: EssayTopic
+  topic: EssayTopic;
 }
 
 export default function TopicsRow({ topic }: TopicsRowProps) {
   return (
     <div
       key={topic.id}
-      className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 md:px-8 py-5 items-center hover:bg-slate-50 transition-colors group"
+      className="group grid grid-cols-1 items-center gap-4 px-6 py-5 transition-colors hover:bg-slate-50 md:px-8 lg:grid-cols-12"
     >
       <div className="lg:col-span-5 xl:col-span-6">
-        <h4 className="font-bold leading-snug group-hover:text-[#1E3A8A] transition-colors wrap-break-word">
+        <h4 className="leading-snug font-bold wrap-break-word transition-colors group-hover:text-[#1E3A8A]">
           {topic.title}
         </h4>
 
@@ -32,27 +32,27 @@ export default function TopicsRow({ topic }: TopicsRowProps) {
           )}
         </div>
 
-        <div className="lg:hidden mt-3">
+        <div className="mt-3 lg:hidden">
           <ThemeBadge
-            className="inline-flex px-3 py-1 text-[10px] font-bold uppercase rounded-full border"
+            className="inline-flex rounded-full border px-3 py-1 text-[10px] font-bold uppercase"
             value={topic.axis}
           />
         </div>
       </div>
 
-      <div className="hidden lg:flex lg:col-span-3 justify-center px-2">
+      <div className="hidden justify-center px-2 lg:col-span-3 lg:flex">
         <ThemeBadge
-          className="w-full max-w-40 md:max-w-30 lg:max-w-40 px-2 py-1.5 text-[10px] font-bold uppercase rounded-full border tracking-wide h-auto whitespace-normal text-center flex items-center justify-center min-h-7 leading-tight"
+          className="flex h-auto min-h-7 w-full max-w-40 items-center justify-center rounded-full border px-2 py-1.5 text-center text-[10px] leading-tight font-bold tracking-wide whitespace-normal uppercase md:max-w-30 lg:max-w-40"
           value={topic.axis}
         />
       </div>
 
-      <div className="lg:col-span-4 xl:col-span-3 flex flex-row gap-2 justify-between md:justify-end mt-4 lg:mt-0">
+      <div className="mt-4 flex flex-row justify-between gap-2 md:justify-end lg:col-span-4 lg:mt-0 xl:col-span-3">
         <TopicDetailsDialog topic={topic} getTopicDetailsAction={getTopicDetails} />
 
         <Button
           asChild
-          className="rounded-2xl text-xs font-bold bg-primary shadow-sm min-h-10 whitespace-nowrap  w-1/2 md:w-fit shrink-0"
+          className="bg-primary min-h-10 w-1/2 shrink-0 rounded-2xl text-xs font-bold whitespace-nowrap shadow-sm md:w-fit"
         >
           <Link href={`/minhas-redacoes/nova-redacao?id=${topic.id}`}>
             Iniciar Redação
@@ -61,6 +61,5 @@ export default function TopicsRow({ topic }: TopicsRowProps) {
         </Button>
       </div>
     </div>
-
-  )
+  );
 }

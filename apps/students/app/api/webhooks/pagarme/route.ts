@@ -6,11 +6,22 @@ import {
 } from "@/lib/integrations/datacrazy/sync-student";
 
 import {
+  getPagarmeOrder,
+  getPagarmeCharge,
+  getConfirmedRefundTotal,
   getPagarmeSubscription,
   getPagarmeWebhook,
   PagarmeApiError,
+  type PagarmeOrder,
   type PagarmeWebhook,
 } from "@repo/payments";
+import {
+  resolveExtraCreditPaymentForOrder,
+  reconcileExtraCreditPaymentCard,
+  validateExtraCreditOrderForPayment,
+} from "@/services/extra-credit-purchase/webhook";
+import { reconcileInitialCheckoutPaymentCard } from "@/services/payments/payment-cards";
+import { isConfirmedRefundCharge } from "@/services/payments/refund-confirmation-policy";
 
 import { NextResponse } from "next/server";
 
@@ -90,7 +101,30 @@ interface PagarmeSubscriptionWebhookData {
   };
 }
 
-type PagarmeWebhookData = PagarmeInvoiceWebhookData | PagarmeSubscriptionWebhookData;
+interface PagarmeChargeWebhookData {
+  id?: string;
+  status?: string;
+  amount?: number;
+  canceled_amount?: number;
+  paid_amount?: number;
+  refunded_amount?: number;
+  paid_at?: string | null;
+  refunded_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  last_transaction?: {
+    id?: string;
+    status?: string;
+    success?: boolean;
+    amount?: number;
+  };
+}
+
+type PagarmeWebhookData =
+  | PagarmeInvoiceWebhookData
+  | PagarmeSubscriptionWebhookData
+  | PagarmeChargeWebhookData
+  | PagarmeOrder;
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -268,11 +302,85 @@ function buildStoredSubscriptionPayload(webhook: PagarmeWebhook<PagarmeSubscript
   };
 }
 
+function buildStoredOrderPayload(webhook: PagarmeWebhook<PagarmeOrder>) {
+  const order = webhook.data;
+
+  return {
+    id: webhook.id,
+    event: webhook.event,
+    status: webhook.status,
+    data: {
+      id: order.id ?? null,
+      code: order.code ?? null,
+      status: order.status ?? null,
+      amount: order.amount ?? null,
+      closed: order.closed ?? null,
+      created_at: order.created_at ?? null,
+      updated_at: order.updated_at ?? null,
+      metadata: {
+        source: order.metadata?.source ?? null,
+        user_id: order.metadata?.user_id ?? null,
+        extra_credit_package_id: order.metadata?.extra_credit_package_id ?? null,
+        credits_amount: order.metadata?.credits_amount ?? null,
+        local_payment_id: order.metadata?.local_payment_id ?? null,
+      },
+      charges: (order.charges ?? []).map((charge) => ({
+        id: charge.id ?? null,
+        status: charge.status ?? null,
+        amount: charge.amount ?? null,
+        paid_amount: charge.paid_amount ?? null,
+        payment_method: charge.payment_method ?? null,
+        paid_at: charge.paid_at ?? null,
+        created_at: charge.created_at ?? null,
+        last_transaction: {
+          id: charge.last_transaction?.id ?? null,
+          status: charge.last_transaction?.status ?? null,
+          success: charge.last_transaction?.success ?? null,
+        },
+      })),
+    },
+  };
+}
+
+function buildStoredChargePayload(webhook: PagarmeWebhook<PagarmeChargeWebhookData>) {
+  const charge = webhook.data;
+
+  return {
+    id: webhook.id,
+    event: webhook.event,
+    status: webhook.status,
+    data: {
+      id: charge.id ?? null,
+      status: charge.status ?? null,
+      amount: charge.amount ?? null,
+      paid_amount: charge.paid_amount ?? null,
+      refunded_amount: charge.refunded_amount ?? null,
+      paid_at: charge.paid_at ?? null,
+      refunded_at: charge.refunded_at ?? null,
+      created_at: charge.created_at ?? null,
+      updated_at: charge.updated_at ?? null,
+      last_transaction: {
+        id: charge.last_transaction?.id ?? null,
+        status: charge.last_transaction?.status ?? null,
+        success: charge.last_transaction?.success ?? null,
+      },
+    },
+  };
+}
+
 function buildStoredWebhookPayload(webhook: PagarmeWebhook<PagarmeWebhookData>) {
+  if (webhook.event === "charge.refunded") {
+    return buildStoredChargePayload(webhook as PagarmeWebhook<PagarmeChargeWebhookData>);
+  }
+
   if (webhook.event === "subscription.canceled") {
     return buildStoredSubscriptionPayload(
       webhook as PagarmeWebhook<PagarmeSubscriptionWebhookData>
     );
+  }
+
+  if (webhook.event === "order.paid" || webhook.event === "order.payment_failed") {
+    return buildStoredOrderPayload(webhook as PagarmeWebhook<PagarmeOrder>);
   }
 
   return buildStoredInvoicePayload(webhook as PagarmeWebhook<PagarmeInvoiceWebhookData>);
@@ -301,6 +409,196 @@ async function markWebhookFailed(admin: AdminClient, webhookEventId: string, err
       updated_at: new Date().toISOString(),
     })
     .eq("id", webhookEventId);
+}
+
+async function handleExtraCreditOrderWebhook({
+  supabaseAdmin,
+  webhookEventId,
+  webhook,
+}: {
+  supabaseAdmin: AdminClient;
+  webhookEventId: string;
+  webhook: PagarmeWebhook<PagarmeOrder>;
+}) {
+  const eventOrderId = webhook.data.id;
+
+  if (!eventOrderId || !/^or_[A-Za-z0-9]+$/.test(eventOrderId)) {
+    const errorMessage = "O evento não possui um pedido válido.";
+    await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 422 });
+  }
+
+  let order: PagarmeOrder;
+
+  try {
+    order = await getPagarmeOrder({ orderId: eventOrderId });
+  } catch (error) {
+    console.error("[GET_PAGARME_EXTRA_CREDIT_ORDER_ERROR]", error);
+    const errorMessage = "Não foi possível consultar o pedido na Pagar.me.";
+    await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+    return NextResponse.json(
+      { error: errorMessage },
+      {
+        status: 503,
+        headers: { "Retry-After": "2" },
+      }
+    );
+  }
+
+  if (order.id !== eventOrderId) {
+    const errorMessage = "O pedido consultado não corresponde ao evento.";
+    await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 422 });
+  }
+
+  const { error: refreshWebhookPayloadError } = await supabaseAdmin
+    .from("pagarme_webhook_events")
+    .update({
+      payload: buildStoredOrderPayload({
+        ...webhook,
+        data: order,
+      }),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", webhookEventId);
+
+  if (refreshWebhookPayloadError) {
+    console.error("[REFRESH_EXTRA_CREDIT_ORDER_WEBHOOK_ERROR]", refreshWebhookPayloadError);
+    return NextResponse.json(
+      { error: "Não foi possível registrar os dados validados do pedido." },
+      { status: 500 }
+    );
+  }
+
+  let payment: Awaited<ReturnType<typeof resolveExtraCreditPaymentForOrder>>;
+  let decision: ReturnType<typeof validateExtraCreditOrderForPayment>;
+
+  try {
+    payment = await resolveExtraCreditPaymentForOrder(order);
+    decision = validateExtraCreditOrderForPayment({ order, payment });
+  } catch (error) {
+    console.error("[VALIDATE_EXTRA_CREDIT_ORDER_WEBHOOK_ERROR]", error);
+    const errorMessage = "O pedido não corresponde a uma compra válida de créditos extras.";
+    await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 422 });
+  }
+
+  if (webhook.event === "order.paid") {
+    if (decision.localStatus !== "paid" || !decision.paidAt) {
+      const errorMessage = "O pedido informado pelo evento não está pago.";
+      await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+      return NextResponse.json({ error: errorMessage }, { status: 422 });
+    }
+
+    const { data, error } = await supabaseAdmin.rpc("finalize_extra_credit_purchase", {
+      p_webhook_event_id: webhookEventId,
+      p_payment_id: payment.id,
+      p_user_id: payment.user_id,
+      p_order_external_id: order.id,
+      p_order_amount: order.amount,
+      p_order_status: order.status,
+      p_charge_external_id: decision.chargeId,
+      p_charge_status: decision.providerStatus,
+      p_paid_at: decision.paidAt,
+    });
+
+    if (error) {
+      console.error("[FINALIZE_EXTRA_CREDIT_PURCHASE_RPC_ERROR]", error);
+      return NextResponse.json(
+        { error: "Não foi possível finalizar a compra de créditos extras." },
+        { status: 500 }
+      );
+    }
+
+    const result = data as {
+      success?: boolean;
+      message?: string;
+      duplicate?: boolean;
+      grant_created?: boolean;
+      granted_credits?: number;
+    } | null;
+
+    if (!result?.success) {
+      console.error("[FINALIZE_EXTRA_CREDIT_PURCHASE_ERROR]", result);
+      return NextResponse.json(
+        { error: result?.message ?? "Não foi possível finalizar a compra de créditos extras." },
+        { status: 500 }
+      );
+    }
+
+    try {
+      await reconcileExtraCreditPaymentCard({ payment, status: "paid" });
+    } catch (error) {
+      console.error("[FINALIZE_EXTRA_CREDIT_PAYMENT_CARD_ERROR]", error);
+      return NextResponse.json(
+        { error: "O pagamento foi finalizado, mas o cartão não pôde ser confirmado." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      received: true,
+      processed: true,
+      duplicate: result.duplicate ?? false,
+      creditsGranted: result.granted_credits ?? 0,
+      webhookEventId,
+    });
+  }
+
+  const { data, error } = await supabaseAdmin.rpc("process_extra_credit_purchase_failure", {
+    p_webhook_event_id: webhookEventId,
+    p_payment_id: payment.id,
+    p_user_id: payment.user_id,
+    p_order_external_id: order.id,
+    p_order_amount: order.amount,
+    p_order_status: order.status,
+    p_failed_at: order.updated_at ?? order.created_at ?? new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error("[PROCESS_EXTRA_CREDIT_PURCHASE_FAILURE_RPC_ERROR]", error);
+    return NextResponse.json(
+      { error: "Não foi possível processar a falha da compra de créditos extras." },
+      { status: 500 }
+    );
+  }
+
+  const result = data as {
+    success?: boolean;
+    message?: string;
+    duplicate?: boolean;
+    ignored?: boolean;
+    reason?: string;
+  } | null;
+
+  if (!result?.success) {
+    console.error("[PROCESS_EXTRA_CREDIT_PURCHASE_FAILURE_ERROR]", result);
+    return NextResponse.json(
+      { error: result?.message ?? "Não foi possível processar a falha da compra." },
+      { status: 500 }
+    );
+  }
+
+  if (!result.ignored) {
+    try {
+      await reconcileExtraCreditPaymentCard({ payment, status: "failed" });
+    } catch (cleanupError) {
+      console.error("[PROCESS_EXTRA_CREDIT_PAYMENT_CARD_FAILURE_ERROR]", cleanupError);
+      return NextResponse.json(
+        { error: "A falha foi registrada, mas o cartão recusado não pôde ser removido." },
+        { status: 500 }
+      );
+    }
+  }
+
+  return NextResponse.json({
+    received: true,
+    processed: true,
+    duplicate: result.duplicate ?? false,
+    ignored: result.ignored ?? false,
+    reason: result.reason ?? null,
+    webhookEventId,
+  });
 }
 
 export async function POST(request: Request) {
@@ -402,7 +700,10 @@ export async function POST(request: Request) {
       );
     }
 
-    if (existingWebhookEvent.status === "processed" || existingWebhookEvent.status === "ignored") {
+    const isExtraCreditOrderEvent =
+      verifiedWebhook.event === "order.paid" || verifiedWebhook.event === "order.payment_failed";
+
+    if (existingWebhookEvent.status === "ignored" && !isExtraCreditOrderEvent) {
       return NextResponse.json({
         received: true,
         duplicate: true,
@@ -410,6 +711,28 @@ export async function POST(request: Request) {
     }
 
     webhookEventId = existingWebhookEvent.id;
+
+    if (existingWebhookEvent.status === "ignored" && isExtraCreditOrderEvent) {
+      const { error: reopenEventError } = await supabaseAdmin
+        .from("pagarme_webhook_events")
+        .update({
+          status: "received",
+          payload: buildStoredWebhookPayload(verifiedWebhook),
+          processed_at: null,
+          error_message: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", webhookEventId)
+        .eq("status", "ignored");
+
+      if (reopenEventError) {
+        console.error("[REOPEN_EXTRA_CREDIT_ORDER_WEBHOOK_ERROR]", reopenEventError);
+        return NextResponse.json(
+          { error: "Não foi possível reabrir o evento de compra." },
+          { status: 500 }
+        );
+      }
+    }
   } else {
     if (insertWebhookError || !insertedWebhookEvent) {
       console.error("[STORE_PAGARME_WEBHOOK_ERROR]", insertWebhookError);
@@ -424,6 +747,9 @@ export async function POST(request: Request) {
     "invoice.paid",
     "invoice.payment_failed",
     "subscription.canceled",
+    "charge.refunded",
+    "order.paid",
+    "order.payment_failed",
   ]);
 
   if (!supportedEvents.has(verifiedWebhook.event)) {
@@ -442,6 +768,133 @@ export async function POST(request: Request) {
       received: true,
       ignored: true,
       reason: "unsupported_event",
+      webhookEventId,
+    });
+  }
+
+  if (verifiedWebhook.event === "charge.refunded") {
+    const charge = verifiedWebhook.data as PagarmeChargeWebhookData;
+    const chargeId = charge.id;
+
+    // Support refunds can be partial and must not enter the withdrawal
+    // confirmation RPC, which also ends access and invalidates plan credits.
+    if (chargeId && /^ch_[A-Za-z0-9]+$/.test(chargeId)) {
+      const { data: support, error: supportError } = await supabaseAdmin
+        .from("subscription_support_operations")
+        .select("id")
+        .eq("provider_charge_id", chargeId)
+        .neq("status", "completed")
+        .maybeSingle();
+      // During staged rollout, absence of the new table must not break the
+      // established withdrawal webhook. Other failures need a retry.
+      if (supportError && !["42P01", "PGRST205"].includes(supportError.code)) {
+        await markWebhookFailed(
+          supabaseAdmin,
+          webhookEventId,
+          "Falha ao consultar atendimento de suporte."
+        );
+        return NextResponse.json(
+          { error: "Falha ao consultar atendimento de suporte." },
+          { status: 500 }
+        );
+      }
+      if (support) {
+        try {
+          const verifiedCharge = await getPagarmeCharge({ chargeId });
+          const total = getConfirmedRefundTotal(verifiedCharge);
+          if (total === null) throw new Error("Valor cumulativo do estorno ainda não confirmado.");
+          const confirmation = await supabaseAdmin.rpc("advance_subscription_support_operation", {
+            p_id: support.id,
+            p_refunded_total: total,
+          });
+          if (confirmation.error) throw new Error("Falha ao registrar confirmação do atendimento.");
+          const finish = await supabaseAdmin
+            .from("pagarme_webhook_events")
+            .update({
+              status: "processed",
+              processed_at: new Date().toISOString(),
+              error_message: null,
+            })
+            .eq("id", webhookEventId);
+          if (finish.error) throw new Error("Falha ao finalizar evento do atendimento.");
+          return NextResponse.json({
+            received: true,
+            processed: true,
+            supportOperationId: support.id,
+          });
+        } catch {
+          await markWebhookFailed(
+            supabaseAdmin,
+            webhookEventId,
+            "Confirmação do reembolso de suporte pendente."
+          );
+          return NextResponse.json(
+            { error: "Confirmação do reembolso de suporte pendente." },
+            { status: 500 }
+          );
+        }
+      }
+    }
+
+    if (!chargeId || !/^ch_[A-Za-z0-9]+$/.test(chargeId) || !isConfirmedRefundCharge(charge)) {
+      const errorMessage = "Os dados da cobrança reembolsada estão incompletos.";
+      await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+      return NextResponse.json({ error: errorMessage }, { status: 422 });
+    }
+
+    const { data, error } = await supabaseAdmin.rpc(
+      "process_subscription_withdrawal_refund_confirmation",
+      {
+        p_provider_charge_id: chargeId,
+        p_refunded_at: charge.refunded_at ?? charge.updated_at ?? new Date().toISOString(),
+        p_provider_refund_id: charge.last_transaction?.id ?? null,
+      }
+    );
+
+    if (error) {
+      console.error("[PROCESS_WITHDRAWAL_REFUND_CONFIRMATION_ERROR]", error);
+      await markWebhookFailed(
+        supabaseAdmin,
+        webhookEventId,
+        "Não foi possível confirmar o reembolso da assinatura."
+      );
+      return NextResponse.json(
+        { error: "Não foi possível confirmar o reembolso da assinatura." },
+        { status: 500 }
+      );
+    }
+
+    const result = data as {
+      matched?: boolean;
+      completed?: boolean;
+      request_id?: string;
+      invalidated_plan_credits?: number;
+    } | null;
+
+    const { error: finishEventError } = await supabaseAdmin
+      .from("pagarme_webhook_events")
+      .update({
+        status: result?.matched ? "processed" : "ignored",
+        processed_at: new Date().toISOString(),
+        error_message: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", webhookEventId);
+
+    if (finishEventError) {
+      console.error("[FINISH_WITHDRAWAL_REFUND_WEBHOOK_ERROR]", finishEventError);
+      return NextResponse.json(
+        { error: "O reembolso foi processado, mas o evento não pôde ser finalizado." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      received: true,
+      processed: result?.matched ?? false,
+      completed: result?.completed ?? false,
+      withdrawalRequestId: result?.request_id ?? null,
+      creditsInvalidated: result?.invalidated_plan_credits ?? 0,
       webhookEventId,
     });
   }
@@ -544,6 +997,14 @@ export async function POST(request: Request) {
     });
   }
 
+  if (verifiedWebhook.event === "order.paid" || verifiedWebhook.event === "order.payment_failed") {
+    return handleExtraCreditOrderWebhook({
+      supabaseAdmin,
+      webhookEventId,
+      webhook: verifiedWebhook as PagarmeWebhook<PagarmeOrder>,
+    });
+  }
+
   /*
    * A partir daqui, o evento é relacionado a uma
    * fatura.
@@ -554,10 +1015,104 @@ export async function POST(request: Request) {
 
   const recurrenceCycle = invoice.charge?.recurrence_cycle;
 
+  let isScheduledReactivation = false;
+
+  if (recurrenceCycle === "first" && subscriptionExternalId) {
+    const { data: localSubscription, error: localSubscriptionError } = await supabaseAdmin
+      .from("subscriptions")
+      .select("metadata")
+      .eq("external_id", subscriptionExternalId)
+      .maybeSingle();
+
+    if (localSubscriptionError) {
+      console.error("[SCHEDULED_REACTIVATION_LOOKUP_ERROR]", localSubscriptionError);
+
+      const errorMessage = "Não foi possível identificar o tipo da primeira cobrança.";
+
+      await markWebhookFailed(supabaseAdmin, webhookEventId, errorMessage);
+
+      return NextResponse.json(
+        { error: errorMessage },
+        {
+          status: 503,
+          headers: {
+            "Retry-After": "2",
+          },
+        }
+      );
+    }
+
+    const metadata =
+      localSubscription?.metadata &&
+      typeof localSubscription.metadata === "object" &&
+      !Array.isArray(localSubscription.metadata)
+        ? localSubscription.metadata
+        : null;
+
+    isScheduledReactivation = metadata?.scheduled_reactivation === true;
+  }
+
   /*
-   * A primeira cobrança é tratada pelo checkout.
+   * A primeira cobrança original é tratada pelo checkout. Quando o aluno
+   * desfaz um cancelamento, a primeira cobrança da nova recorrência acontece
+   * somente no fim do acesso atual e precisa ser processada como renovação.
    */
-  if (recurrenceCycle === "first") {
+  if (recurrenceCycle === "first" && !isScheduledReactivation) {
+    if (subscriptionExternalId) {
+      try {
+        await reconcileInitialCheckoutPaymentCard({
+          subscriptionExternalId,
+          status: verifiedWebhook.event === "invoice.paid" ? "paid" : "failed",
+        });
+
+        if (verifiedWebhook.event === "invoice.paid" && invoice.charge?.paid_at) {
+          const { data: initialPayment, error: initialPaymentError } = await supabaseAdmin
+            .from("student_payments")
+            .select("id, metadata")
+            .eq("external_id", subscriptionExternalId)
+            .eq("kind", "subscription")
+            .in("status", ["paid", "active"])
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+          if (initialPaymentError || !initialPayment) {
+            throw initialPaymentError ?? new Error("Pagamento inicial não encontrado.");
+          }
+
+          const { error: paymentTimestampError } = await supabaseAdmin
+            .from("student_payments")
+            .update({
+              paid_at: invoice.charge.paid_at,
+              metadata: {
+                ...(initialPayment.metadata as Record<string, unknown>),
+                pagarme_subscription_id: subscriptionExternalId,
+                pagarme_invoice_id: invoice.id ?? null,
+                pagarme_charge_id: invoice.charge.id ?? null,
+                pagarme_charge_paid_at: invoice.charge.paid_at,
+              },
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", initialPayment.id);
+
+          if (paymentTimestampError) {
+            throw paymentTimestampError;
+          }
+        }
+      } catch (error) {
+        console.error("[RECONCILE_INITIAL_CHECKOUT_PAYMENT_CARD_ERROR]", error);
+        await markWebhookFailed(
+          supabaseAdmin,
+          webhookEventId,
+          "Não foi possível reconciliar o cartão da cobrança inicial."
+        );
+        return NextResponse.json(
+          { error: "Não foi possível reconciliar o cartão da cobrança inicial." },
+          { status: 500 }
+        );
+      }
+    }
+
     const { error: ignoreFirstInvoiceError } = await markWebhookIgnored(
       supabaseAdmin,
       webhookEventId

@@ -15,30 +15,28 @@ export function SectionCard({
   emptyMessage = "Sem dados ainda",
   emptyDescription,
   hasData = false,
-  children
+  children,
 }: SectionCardProps) {
   return (
-    <div className="flex flex-col p-6 rounded-3xl border border-border bg-white shadow-sm min-h-[300px]">
-      <div className="flex items-center gap-2 mb-6">
-        <div className="size-2 rounded-full border-2 border-primary" />
-        <h3 className="font-bold text-foreground">{title}</h3>
+    <div className="border-border flex min-h-75 flex-col rounded-3xl border bg-white p-6 shadow-sm">
+      <div className="mb-6 flex items-center gap-2">
+        <div className="border-primary size-2 rounded-full border-2" />
+        <h3 className="text-foreground font-bold">{title}</h3>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center text-center">
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
         {hasData ? (
           children
         ) : (
-          <div className="flex flex-col items-center max-w-[250px]">
+          <div className="flex max-w-62.5 flex-col items-center">
             {Icon && (
               <div className="mb-4 text-slate-200">
                 <Icon className="size-12" />
               </div>
             )}
-            <p className="text-foreground font-bold mb-1">{emptyMessage}</p>
+            <p className="text-foreground mb-1 font-bold">{emptyMessage}</p>
             {emptyDescription && (
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {emptyDescription}
-              </p>
+              <p className="text-muted-foreground text-xs leading-relaxed">{emptyDescription}</p>
             )}
           </div>
         )}

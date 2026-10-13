@@ -1,4 +1,3 @@
-
 import { FileText, Search, CircleAlert } from "lucide-react";
 import TeacherEssaysRow from "./teacher-essays-row";
 import { TablePagination } from "@repo/ui/components/table-pagination";
@@ -11,39 +10,41 @@ import { ExportCsvButton } from "@/components/export-csv-button";
 interface TeacherEssayProps {
   teacherData: {
     teacherName: string;
-    teacherId: string
-  },
-  filters?: TeacherEssayFilters
+    teacherId: string;
+  };
+  filters?: TeacherEssayFilters;
   page: number;
 }
 
-export default async function TeacherEssaysTable({ teacherData, filters, page }: TeacherEssayProps) {
-  const { teacherName, teacherId } = teacherData
+export default async function TeacherEssaysTable({
+  teacherData,
+  filters,
+  page,
+}: TeacherEssayProps) {
+  const { teacherName, teacherId } = teacherData;
 
-  const { essays, totalPages, error } = await getTeacherEssays({ teacherId, filters, page })
+  const { essays, totalPages, error } = await getTeacherEssays({ teacherId, filters, page });
 
-  const searchTerm = filters?.search
+  const searchTerm = filters?.search;
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center animate-in fade-in duration-500">
-        <CircleAlert className="size-14 bg-white rounded-full text-red-500 p-1 shadow-sm mb-4" />
-        <h3 className="text-lg font-bold text-red-600 mb-1">
-          Ocorreu um erro.
-        </h3>
-        <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
-          Não conseguimos carregar as redações. Por favor, recarregue a página ou tente novamente em instantes.
+      <div className="animate-in fade-in flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 px-6 py-24 text-center duration-500">
+        <CircleAlert className="mb-4 size-14 rounded-full bg-white p-1 text-red-500 shadow-sm" />
+        <h3 className="mb-1 text-lg font-bold text-red-600">Ocorreu um erro.</h3>
+        <p className="max-w-sm text-sm leading-relaxed text-slate-600">
+          Não conseguimos carregar as redações. Por favor, recarregue a página ou tente novamente em
+          instantes.
         </p>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-4xl p-6 md:p-8 shadow-sm overflow-hidden">
-
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div className="overflow-hidden rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+      <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div className="flex items-center gap-4">
-          <div className="size-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
             <FileText className="size-5" />
           </div>
           <div>
@@ -60,21 +61,34 @@ export default async function TeacherEssaysTable({ teacherData, filters, page }:
           fileName={`historico_redacoes_${teacherName}`}
           className="w-full sm:w-fit"
         />
-
       </div>
 
       <TeacherEssaysFilterBar />
 
       {essays.length > 0 ? (
         <div className="w-full">
-          <div className="hidden lg:grid grid-cols-12 gap-4 px-4 py-5 border-b border-slate-100">
-            <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aluno</div>
-            <div className="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tema / Eixo</div>
-            <div className="col-span-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Nota</div>
-            <div className="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Status</div>
-            <div className="col-span-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Prazo</div>
-            <div className="col-span-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Correção</div>
-            <div className="col-span-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Detalhes</div>
+          <div className="hidden grid-cols-12 gap-4 border-b border-slate-100 px-4 py-5 lg:grid">
+            <div className="col-span-3 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Aluno
+            </div>
+            <div className="col-span-3 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Tema / Eixo
+            </div>
+            <div className="col-span-1 text-center text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Nota
+            </div>
+            <div className="col-span-2 text-center text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Status
+            </div>
+            <div className="col-span-1 text-center text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Prazo
+            </div>
+            <div className="col-span-1 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Correção
+            </div>
+            <div className="col-span-1 text-right text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Detalhes
+            </div>
           </div>
 
           <div className="divide-y divide-slate-100 pb-6">
@@ -83,27 +97,31 @@ export default async function TeacherEssaysTable({ teacherData, filters, page }:
             ))}
           </div>
 
-          <div className={`pt-6 border-t border-slate-200 ${totalPages === 1 ? 'hidden' : 'block'}`}>
+          <div
+            className={`border-t border-slate-200 pt-6 ${totalPages === 1 ? "hidden" : "block"}`}
+          >
             <TablePagination totalPages={totalPages} />
           </div>
-
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center animate-in fade-in duration-500">
-          <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-            {searchTerm ? <Search className="size-8 text-slate-300" /> : <FileText className="size-8 text-slate-300" />}
+        <div className="animate-in fade-in flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 px-6 py-24 text-center duration-500">
+          <div className="mb-4 rounded-full bg-white p-4 shadow-sm">
+            {searchTerm ? (
+              <Search className="size-8 text-slate-300" />
+            ) : (
+              <FileText className="size-8 text-slate-300" />
+            )}
           </div>
-          <h3 className="text-lg font-bold text-slate-800 mb-1">
+          <h3 className="mb-1 text-lg font-bold text-slate-800">
             {searchTerm ? "Nenhum resultado encontrado" : "Nenhuma redação por aqui"}
           </h3>
-          <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
+          <p className="max-w-sm text-sm leading-relaxed text-slate-600">
             {searchTerm
               ? `Não encontramos nada para "${searchTerm}". Tente buscar por outro título ou eixo temático.`
               : "Você ainda não corrigiu nenhuma redação para correção."}
           </p>
         </div>
       )}
-
     </div>
-  )
+  );
 }

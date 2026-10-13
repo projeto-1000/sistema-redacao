@@ -1,4 +1,3 @@
-
 import { getStudentEssays } from "@/app/actions/get-essays";
 
 import { Search, FileText, CircleAlert } from "lucide-react";
@@ -14,39 +13,42 @@ interface EssayGridProps {
 export async function EssayGrid({ filters, page }: EssayGridProps) {
   const { essays, totalPages, error } = await getStudentEssays({ filters, page });
 
-  const searchTerm = filters?.search
+  const searchTerm = filters?.search;
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center animate-in fade-in duration-500">
-        <CircleAlert className="size-14 bg-white rounded-full text-red-500 p-1 shadow-sm mb-4" />
-        <h3 className="text-lg font-bold text-red-600 mb-1">
-          Ocorreu um erro.
-        </h3>
-        <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
-          Não conseguimos carregar suas redações. Por favor, recarregue a página ou tente novamente em instantes.
+      <div className="animate-in fade-in flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 px-6 py-24 text-center duration-500">
+        <CircleAlert className="mb-4 size-14 rounded-full bg-white p-1 text-red-500 shadow-sm" />
+        <h3 className="mb-1 text-lg font-bold text-red-600">Ocorreu um erro.</h3>
+        <p className="max-w-sm text-sm leading-relaxed text-slate-600">
+          Não conseguimos carregar suas redações. Por favor, recarregue a página ou tente novamente
+          em instantes.
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <>
       {essays.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {essays?.map((essay) => (
             <EssayCard key={essay.id} essay={essay} />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center animate-in fade-in duration-500">
-          <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-            {searchTerm ? <Search className="size-8 text-slate-300" /> : <FileText className="size-8 text-slate-300" />}
+        <div className="animate-in fade-in flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 px-6 py-24 text-center duration-500">
+          <div className="mb-4 rounded-full bg-white p-4 shadow-sm">
+            {searchTerm ? (
+              <Search className="size-8 text-slate-300" />
+            ) : (
+              <FileText className="size-8 text-slate-300" />
+            )}
           </div>
-          <h3 className="text-lg font-bold text-slate-800 mb-1">
+          <h3 className="mb-1 text-lg font-bold text-slate-800">
             {searchTerm ? "Nenhum resultado encontrado" : "Nenhuma redação por aqui"}
           </h3>
-          <p className="text-slate-600 text-sm max-w-sm leading-relaxed">
+          <p className="max-w-sm text-sm leading-relaxed text-slate-600">
             {searchTerm
               ? `Não encontramos nada para "${searchTerm}". Tente buscar por outro título ou eixo temático.`
               : "Você ainda não enviou nenhuma redação para correção."}

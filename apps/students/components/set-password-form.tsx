@@ -1,20 +1,33 @@
-'use client'
+"use client";
 
-import { setNewPassword } from '@/app/actions/profile'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Button } from '@repo/ui/components/button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@repo/ui/components/card'
-import { Checkbox } from '@repo/ui/components/checkbox'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@repo/ui/components/form'
-import { Input } from '@repo/ui/components/input'
-import { Logo } from '@repo/ui/components/logo'
-import { getErrorMessage } from '@repo/utils'
-import { type SetPasswordSchema, setPasswordSchema } from '@repo/validators'
-import { EyeOff, Eye } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
+import { setNewPassword } from "@/app/actions/profile";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@repo/ui/components/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@repo/ui/components/card";
+import { Checkbox } from "@repo/ui/components/checkbox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@repo/ui/components/form";
+import { Input } from "@repo/ui/components/input";
+import { Logo } from "@repo/ui/components/logo";
+import { getErrorMessage } from "@repo/utils";
+import { type SetPasswordSchema, setPasswordSchema } from "@repo/validators";
+import { EyeOff, Eye } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export function SetPasswordForm() {
   const router = useRouter();
@@ -25,40 +38,37 @@ export function SetPasswordForm() {
     resolver: zodResolver(setPasswordSchema),
     mode: "onChange",
     defaultValues: {
-      password: '',
-      confirmPassword: '',
+      password: "",
+      confirmPassword: "",
       terms: false,
-    }
-  })
+    },
+  });
 
   const { isValid, isSubmitting } = form.formState;
-
 
   const handleSubmit = async (values: SetPasswordSchema) => {
     try {
       await setNewPassword(values);
 
       router.push("/inicio");
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { title, description } = getErrorMessage(error);
 
       toast.error(title, {
         description: description,
-        duration: 5000
+        duration: 5000,
       });
-
     }
   };
 
   return (
-    <div className="w-full max-w-[500px] flex flex-col items-center">
+    <div className="flex w-full max-w-[500px] flex-col items-center">
+      <Logo className="mt-4 mb-8 h-20 md:h-24" />
 
-      <Logo className="h-20 md:h-24 mb-8 mt-4" />
-
-      <Card className="w-full max-w-[500px] bg-white rounded-xl shadow-xl border border-slate-100 px-5 py-6 md:py-8 md:px-6">
-        <CardHeader className="text-center gap-2">
-          <CardTitle className="text-2xl font-bold leading-tight">Defina sua senha</CardTitle>
-          <CardDescription className="text-slate-500 text-sm sm:text-base md:text-[16px]">
+      <Card className="w-full max-w-[500px] rounded-xl border border-slate-100 bg-white px-5 py-6 shadow-xl md:px-6 md:py-8">
+        <CardHeader className="gap-2 text-center">
+          <CardTitle className="text-2xl leading-tight font-bold">Defina sua senha</CardTitle>
+          <CardDescription className="text-sm text-slate-500 sm:text-base md:text-[16px]">
             Crie uma senha segura para acessar a área de aluno.
           </CardDescription>
         </CardHeader>
@@ -71,11 +81,13 @@ export function SetPasswordForm() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">Senha</FormLabel>
+                    <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
+                      Senha
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
-                          className="w-full rounded-2xl h-12 p-3.5 focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1"
+                          className="focus-visible:ring-primary focus-visible:border-primary h-12 w-full rounded-2xl p-3.5 focus-visible:ring-1"
                           type={showPassword ? "text" : "password"}
                           placeholder="Crie uma senha segura"
                           {...field}
@@ -84,13 +96,13 @@ export function SetPasswordForm() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            <EyeOff className="text-muted-foreground h-4 w-4" />
                           ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
+                            <Eye className="text-muted-foreground h-4 w-4" />
                           )}
                         </Button>
                       </div>
@@ -100,17 +112,18 @@ export function SetPasswordForm() {
                 )}
               />
 
-
               <FormField
                 control={form.control}
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">Confirmar Senha</FormLabel>
+                    <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
+                      Confirmar Senha
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
-                          className="w-full rounded-2xl h-12 p-3.5 focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1"
+                          className="focus-visible:ring-primary focus-visible:border-primary h-12 w-full rounded-2xl p-3.5 focus-visible:ring-1"
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="Confirme sua senha"
                           {...field}
@@ -119,13 +132,13 @@ export function SetPasswordForm() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         >
                           {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            <EyeOff className="text-muted-foreground h-4 w-4" />
                           ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
+                            <Eye className="text-muted-foreground h-4 w-4" />
                           )}
                         </Button>
                       </div>
@@ -139,16 +152,16 @@ export function SetPasswordForm() {
                 control={form.control}
                 name="terms"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start my-6">
+                  <FormItem className="my-6 flex flex-row items-start">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5"
                       />
                     </FormControl>
                     <div className="space-y-2 leading-none">
-                      <FormLabel className="text-slate-600 font-medium leading-relaxed">
+                      <FormLabel className="leading-relaxed font-medium text-slate-600">
                         Eu concordo com os Termos de Uso e Políticas de Privacidade da plataforma.
                       </FormLabel>
                       <FormMessage />
@@ -158,10 +171,10 @@ export function SetPasswordForm() {
               />
               <Button
                 type="submit"
-                className="w-full font-medium h-12 rounded-2xl text-[16px]"
+                className="h-12 w-full rounded-2xl text-[16px] font-medium"
                 disabled={isSubmitting || !isValid}
                 isLoading={isSubmitting}
-                loadingText='Salvando...'
+                loadingText="Salvando..."
               >
                 Salvar e Acessar Plataforma
               </Button>
@@ -170,5 +183,5 @@ export function SetPasswordForm() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

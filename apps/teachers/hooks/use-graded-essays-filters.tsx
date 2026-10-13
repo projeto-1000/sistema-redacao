@@ -22,16 +22,13 @@ export function useGradedEssayFilters() {
     });
   };
 
-
   const dateRange: DateRange | undefined =
     searchParams.get("from") || searchParams.get("to")
       ? {
-        from: searchParams.get("from") ? new Date(searchParams.get("from") as string) : undefined,
-        to: searchParams.get("to") ? new Date(searchParams.get("to") as string) : undefined,
-      }
+          from: searchParams.get("from") ? new Date(searchParams.get("from") as string) : undefined,
+          to: searchParams.get("to") ? new Date(searchParams.get("to") as string) : undefined,
+        }
       : undefined;
-
-
 
   return { searchTerm, setSearchTerm, dateRange, setDateRange };
 }

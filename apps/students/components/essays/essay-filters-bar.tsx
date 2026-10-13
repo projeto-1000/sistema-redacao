@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { TableFilterBar } from "@repo/ui/components/table-filter-bar";
 import { useEssayFilters } from "@/hooks/use-essays-filter";

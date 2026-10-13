@@ -35,9 +35,12 @@ export async function getStudentEssays({
 
   let query = supabase
     .from("essays")
-    .select("id, title, created_at, submission_date, correction_date, updated_at, status, total_score, thematic_axis, topic_id, due_date", {
-      count: "exact",
-    })
+    .select(
+      "id, title, created_at, submission_date, correction_date, updated_at, status, total_score, thematic_axis, topic_id, due_date",
+      {
+        count: "exact",
+      }
+    )
     .eq("student_id", user.id);
 
   if (filters?.search) {
@@ -106,7 +109,13 @@ export async function getEssayById(essayId: string) {
     return null;
   }
 
+  const showFreeCorrectionConversionBanners =
+    essay.status === "corrected" &&
+    (await getFreeCorrectionConversionBannerEligibility(supabase, essay.id));
+
   return {
+    id: essay.id,
+    topicId: essay.topic_id,
     correctedAt: essay.correction_date,
     updatedAt: essay.updated_at,
     title: essay.title,
@@ -134,5 +143,42 @@ export async function getEssayById(essayId: string) {
     returnReason: essay.return_reason,
     returnDescription: essay.return_description,
     status: essay.status,
+    showFreeCorrectionConversionBanners,
   };
+}
+
+async function getFreeCorrectionConversionBannerEligibility(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  essayId: string
+) {
+  const { data, error } = await supabase.rpc("can_view_post_free_correction_campaign", {
+    p_essay_id: essayId,
+  });
+
+  return error === null && data === true;
+}
+
+export async function getReturnedEssayReuseSource(essayId: string, topicId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("essays")
+    .select("content, updated_at")
+    .eq("id", essayId)
+    .eq("topic_id", topicId)
+    .eq("student_id", user.id)
+    .eq("status", "returned")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Erro ao carregar redação devolvida para reenvio:", error);
+    return null;
+  }
+
+  return data;
 }

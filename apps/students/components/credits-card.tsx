@@ -30,12 +30,8 @@ const CREDIT_TYPES = [
   },
 ] as const;
 
-export function CreditsCard({
-  credits,
-}: CreditsCardProps) {
-  const availableCredits = CREDIT_TYPES.filter(
-    ({ key }) => credits[key] > 0
-  );
+export function CreditsCard({ credits }: CreditsCardProps) {
+  const availableCredits = CREDIT_TYPES.filter(({ key }) => credits[key] > 0);
 
   const hasCredits = credits.total > 0;
 
@@ -48,43 +44,32 @@ export function CreditsCard({
 
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-2xl leading-none font-extrabold tracking-tight text-slate-900">
+            <span className="text-2xl leading-none font-extrabold tracking-tight">
               {credits.total}
             </span>
 
             <div className="flex flex-col justify-center">
               <span className="text-[10px] leading-none font-bold tracking-wider text-slate-400 uppercase">
-                {credits.total === 1
-                  ? "Crédito"
-                  : "Créditos"}
+                {credits.total === 1 ? "Crédito" : "Créditos"}
               </span>
 
               <span className="mt-1 text-[10px] leading-none font-bold tracking-wider text-slate-400 uppercase">
-                {credits.total === 1
-                  ? "Disponível"
-                  : "Disponíveis"}
+                {credits.total === 1 ? "Disponível" : "Disponíveis"}
               </span>
             </div>
           </div>
 
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
             {hasCredits ? (
-              availableCredits.map(
-                ({ key, label, dotClassName }) => (
-                  <div
-                    key={key}
-                    className="flex items-center gap-1.5"
-                  >
-                    <span
-                      className={`size-2 shrink-0 rounded-full ${dotClassName}`}
-                    />
+              availableCredits.map(({ key, label, dotClassName }) => (
+                <div key={key} className="flex items-center gap-1.5">
+                  <span className={`size-2 shrink-0 rounded-full ${dotClassName}`} />
 
-                    <span className="text-xs font-medium whitespace-nowrap text-slate-500">
-                      {label}: {credits[key]}
-                    </span>
-                  </div>
-                )
-              )
+                  <span className="text-xs font-medium whitespace-nowrap text-slate-500">
+                    {label}: {credits[key]}
+                  </span>
+                </div>
+              ))
             ) : (
               <div className="flex items-center gap-1.5">
                 <span className="size-2 rounded-full bg-slate-200" />
@@ -104,7 +89,7 @@ export function CreditsCard({
           variant="ghost"
           className="h-8 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900"
         >
-          <Link href="/assinatura/comprar-creditos">
+          <Link href="/assinatura/comprar-creditos" prefetch={false}>
             Adicionar
             <Plus className="ml-1 size-3.5" />
           </Link>

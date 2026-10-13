@@ -1,30 +1,12 @@
-export const subscriptionCancellationReasons = [
-  {
-    value: "price",
-    label: "O valor do plano",
-  },
-  {
-    value: "not_using",
-    label: "Não estou utilizando a plataforma",
-  },
-  {
-    value: "technical_issues",
-    label: "Tive problemas com a plataforma",
-  },
-  {
-    value: "changing_plan",
-    label: "Quero trocar de plano",
-  },
-  {
-    value: "other",
-    label: "Outro motivo",
-  },
-] as const;
+import { subscriptionCancellationReasons } from "@repo/constants";
+
+export { subscriptionCancellationReasons };
 
 export type SubscriptionCancellationReason =
   (typeof subscriptionCancellationReasons)[number]["value"];
 
 export interface RequestSubscriptionCancellationInput {
+  operationId: string;
   reason: SubscriptionCancellationReason | null;
   details?: string;
 }
@@ -32,8 +14,11 @@ export interface RequestSubscriptionCancellationInput {
 export type RequestSubscriptionCancellationResult =
   | {
       success: true;
-      effectiveAt: string;
+      kind:
+        "ordinary" | "withdrawal_automatic" | "withdrawal_manual" | "withdrawal_operational_issue";
+      effectiveAt: string | null;
       alreadyScheduled: boolean;
+      withdrawalStatus?: "under_review" | "refund_processing" | "refunded" | "operational_issue";
     }
   | {
       success: false;

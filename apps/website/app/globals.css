@@ -90,10 +90,8 @@
   --paper: oklch(0.99 0.005 95);
   --paper-ink: oklch(0.21 0.045 266);
 
-  --shadow-soft:
-    0 1px 2px rgba(11, 17, 35, 0.04), 0 8px 24px -12px rgba(11, 17, 35, 0.12);
-  --shadow-card:
-    0 1px 3px rgba(11, 17, 35, 0.05), 0 18px 40px -24px rgba(11, 17, 35, 0.22);
+  --shadow-soft: 0 1px 2px rgba(11, 17, 35, 0.04), 0 8px 24px -12px rgba(11, 17, 35, 0.12);
+  --shadow-card: 0 1px 3px rgba(11, 17, 35, 0.05), 0 18px 40px -24px rgba(11, 17, 35, 0.22);
 }
 
 @layer base {
@@ -305,29 +303,6 @@
   .arrow-slide:hover > svg {
     transform: translateX(4px);
   }
-}
-
-.story-link {
-  position: relative;
-  display: inline-block;
-}
-.story-link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -8px;
-  height: 3px;
-  border-radius: 999px;
-  width: 100%;
-  background-color: var(--primary);
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.story-link:hover::after,
-.story-link[data-active="true"]::after {
-  transform: scaleX(1);
-  transform-origin: left;
 }
 
 /* Accordion (+ que vira ×) */

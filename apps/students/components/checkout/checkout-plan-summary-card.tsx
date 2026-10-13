@@ -1,28 +1,16 @@
 import { getPlanCreditSummary } from "@/utils/plan-credit-summary";
 import type { CheckoutPlanData } from "@/types";
 import { Badge } from "@repo/ui/components/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@repo/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/components/card";
 import { Separator } from "@repo/ui/components/separator";
 import { formatCurrency, getCycleInfo } from "@repo/utils";
-import {
-  CalendarClock,
-  CheckCircle2,
-  Clock3,
-  Sparkles,
-} from "lucide-react";
+import { CalendarClock, CheckCircle2, Clock3, Sparkles } from "lucide-react";
 
 interface CheckoutPlanSummaryCardProps {
   plan: CheckoutPlanData;
 }
 
-export function CheckoutPlanSummaryCard({
-  plan,
-}: CheckoutPlanSummaryCardProps) {
+export function CheckoutPlanSummaryCard({ plan }: CheckoutPlanSummaryCardProps) {
   const cycle = getCycleInfo(plan.interval, plan.intervalCount);
 
   const creditSummary = getPlanCreditSummary({
@@ -32,35 +20,27 @@ export function CheckoutPlanSummaryCard({
     intervalCount: plan.intervalCount,
   });
 
-  const includedFeatures = plan.features.filter((feature) => feature.included);
-
   return (
     <Card className="overflow-hidden rounded-3xl border-slate-100 bg-white p-0 shadow-sm">
       <CardHeader className="space-y-6 bg-slate-950 p-8 text-white">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-white/20 text-primary">
+          <div className="text-primary flex size-12 items-center justify-center rounded-2xl bg-white/20">
             <Sparkles className="size-6" />
           </div>
 
-          <Badge className="rounded-full bg-primary px-4 py-1.5 text-sm font-bold text-amber-950 hover:bg-primary">
+          <Badge className="bg-primary hover:bg-primary rounded-full px-4 py-1.5 text-sm font-bold text-amber-950">
             Plano selecionado
           </Badge>
         </div>
 
         <div>
-          <CardTitle className="text-2xl font-black tracking-tight">
-            {plan.name}
-          </CardTitle>
+          <CardTitle className="text-2xl font-black tracking-tight">{plan.name}</CardTitle>
 
           <div className="mt-4 flex items-end gap-2">
-            <span className="text-4xl font-black tracking-tight">
-              {formatCurrency(plan.price)}
-            </span>
+            <span className="text-4xl font-black tracking-tight">{formatCurrency(plan.price)}</span>
 
             {cycle.suffix && (
-              <span className="text-md font-bold text-slate-300">
-                {cycle.suffix}
-              </span>
+              <span className="text-base font-bold text-slate-300">{cycle.suffix}</span>
             )}
           </div>
 
@@ -71,7 +51,6 @@ export function CheckoutPlanSummaryCard({
       </CardHeader>
 
       <CardContent className="space-y-6 px-6 pb-6 md:px-8 md:pb-8">
-
         <PlanBenefits
           creditsLabel={creditSummary.creditsLabel}
           validityLabel={creditSummary.validityLabel}
@@ -107,14 +86,10 @@ interface PlanBenefitsProps {
   bonusLabel: string | null;
 }
 
-function PlanBenefits({
-  creditsLabel,
-  validityLabel,
-  bonusLabel,
-}: PlanBenefitsProps) {
+function PlanBenefits({ creditsLabel, validityLabel, bonusLabel }: PlanBenefitsProps) {
   return (
-    <div >
-      <p className="mb-4 text-xs font-black uppercase tracking-widest text-slate-500">
+    <div>
+      <p className="mb-4 text-xs font-black tracking-widest text-slate-500 uppercase">
         Benefícios do plano
       </p>
 
@@ -151,34 +126,25 @@ interface BenefitRowProps {
   highlighted?: boolean;
 }
 
-function BenefitRow({
-  icon: Icon,
-  title,
-  description,
-  highlighted = false,
-}: BenefitRowProps) {
+function BenefitRow({ icon: Icon, title, description, highlighted = false }: BenefitRowProps) {
   return (
     <div className="flex gap-3 border-b border-slate-200/70 pb-4 last:border-b-0 last:pb-0">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
+      <div className="text-primary flex size-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
         <Icon className="size-4" />
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-black leading-snug">
-            {title}
-          </p>
+          <p className="text-sm leading-snug font-black">{title}</p>
 
           {highlighted && (
-            <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-amber-950">
+            <span className="bg-primary rounded-full px-2.5 py-1 text-[10px] font-black tracking-wide text-amber-950 uppercase">
               Extra
             </span>
           )}
         </div>
 
-        <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-500">
-          {description}
-        </p>
+        <p className="mt-1 text-xs leading-relaxed font-semibold text-slate-500">{description}</p>
       </div>
     </div>
   );

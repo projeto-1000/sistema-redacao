@@ -10,18 +10,19 @@ interface AvatarProps {
 
 export function Avatar({ src, name, className, textClassName }: AvatarProps) {
   const initials = name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
     .substring(0, 2)
     .toUpperCase();
 
   return (
-    <div className={cn(
-      "relative overflow-hidden rounded-full shrink-0 flex items-center justify-center font-bold bg-slate-100 text-[#1E3A8A] border border-slate-200",
-      "size-11 text-sm md:size-12 md:text-base",
-      className
-    )}
+    <div
+      className={cn(
+        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 font-bold text-[#1E3A8A]",
+        "size-11 text-sm md:size-12 md:text-base",
+        className
+      )}
     >
       {src ? (
         <Image
@@ -32,7 +33,7 @@ export function Avatar({ src, name, className, textClassName }: AvatarProps) {
           className="object-cover"
         />
       ) : (
-        <span className={cn("font-bold text-sm md:text-base leading-none", textClassName)}>
+        <span className={cn("text-sm leading-none font-bold md:text-base", textClassName)}>
           {initials}
         </span>
       )}

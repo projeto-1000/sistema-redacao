@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ElementType,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type ElementType, type ReactNode } from "react";
 
 type Props = {
   children: ReactNode;
@@ -15,12 +9,7 @@ type Props = {
   className?: string;
 };
 
-export function Reveal({
-  children,
-  delay = 0,
-  as = "div",
-  className = "",
-}: Props) {
+export function Reveal({ children, delay = 0, as = "div", className = "" }: Props) {
   const ref = useRef<HTMLElement | null>(null);
   const [inView, setInView] = useState(false);
 
@@ -28,8 +17,8 @@ export function Reveal({
     const el = ref.current;
     if (!el) return;
     if (typeof IntersectionObserver === "undefined") {
-      setInView(true);
-      return;
+      const frame = window.requestAnimationFrame(() => setInView(true));
+      return () => window.cancelAnimationFrame(frame);
     }
     const io = new IntersectionObserver(
       (entries) => {
@@ -40,7 +29,7 @@ export function Reveal({
           }
         });
       },
-      { rootMargin: "-40px 0px -80px 0px", threshold: 0.05 },
+      { rootMargin: "-40px 0px -80px 0px", threshold: 0.05 }
     );
     io.observe(el);
     return () => io.disconnect();

@@ -1,4 +1,3 @@
-
 import { Button } from "@repo/ui/components/button";
 import { Headphones, ShoppingCart } from "lucide-react";
 import Image from "next/image";
@@ -6,14 +5,12 @@ import Link from "next/link";
 
 export function PlanHelpCallout() {
   return (
-    <div className="w-full bg-[#F4F7FC] border border-blue-100/50 rounded-3xl p-8 md:p-10 flex flex-col lg:flex-row items-center justify-between mt-8">
-
-      <div className="max-w-2xl flex flex-col items-start text-left">
-        <h3 className="text-2xl font-extrabold text-slate-800 mb-4">
-          Precisa de algo diferente?
-        </h3>
-        <p className="text-base font-medium text-slate-600 leading-relaxed mb-8">
-          Se você precisa de um plano personalizado para sua escola ou cursinho, ou deseja comprar créditos avulsos para revisões extras, entre em contato com nosso suporte.
+    <div className="mt-8 flex w-full flex-col items-center justify-between rounded-3xl border border-blue-100/50 bg-[#F4F7FC] p-8 md:p-10 lg:flex-row">
+      <div className="flex max-w-2xl flex-col items-start text-left">
+        <h3 className="mb-4 text-2xl font-extrabold text-slate-800">Precisa de algo diferente?</h3>
+        <p className="mb-8 text-base leading-relaxed font-medium text-slate-600">
+          Se você precisa de um plano personalizado para sua escola ou cursinho, ou deseja comprar
+          créditos avulsos para revisões extras, entre em contato com nosso suporte.
         </p>
 
         <div className="flex flex-wrap gap-4">
@@ -23,7 +20,11 @@ export function PlanHelpCallout() {
             </Link>
           </Button>
 
-          <Button asChild variant="outline" className="h-12 rounded-xl hover:text-primary hover:bg-primary-5 font-bold hover:text-amber-400 hover:font-extrabold">
+          <Button
+            asChild
+            variant="outline"
+            className="hover:text-primary hover:bg-primary/5 h-12 rounded-xl font-bold hover:font-extrabold"
+          >
             <Link href="/assinaturas/comprar-creditos">
               <ShoppingCart className="mr-2 size-4" /> Comprar Créditos
             </Link>
@@ -31,7 +32,7 @@ export function PlanHelpCallout() {
         </div>
       </div>
 
-      <div className="relative w-full max-w-[350px] h-[300px] shrink-0 flex items-center justify-center">
+      <div className="relative flex h-75 w-full max-w-87.5 shrink-0 items-center justify-center">
         <Image
           src="/contact-us.svg"
           alt="Ilustração de Contato e Suporte"
@@ -40,7 +41,6 @@ export function PlanHelpCallout() {
           className="object-contain"
         />
       </div>
-
     </div>
   );
 }

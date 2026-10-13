@@ -26,13 +26,9 @@ export function CheckoutPendingSectionCard({
         </div>
 
         <div className="space-y-1">
-          <CardTitle className="text-xl font-extrabold tracking-tight">
-            {title}
-          </CardTitle>
+          <CardTitle className="text-xl font-extrabold tracking-tight">{title}</CardTitle>
 
-          <CardDescription className="font-medium leading-relaxed">
-            {description}
-          </CardDescription>
+          <CardDescription className="leading-relaxed font-medium">{description}</CardDescription>
         </div>
       </CardHeader>
 

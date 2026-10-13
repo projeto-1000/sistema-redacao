@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { AlertCircle, Undo } from "lucide-react";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
@@ -40,7 +40,6 @@ export interface ReturnEssayParams {
   essayId: string;
   reason: string;
   description: string;
-  redirectPath: string;
 }
 
 interface ReturnEssayDialogProps {
@@ -56,24 +55,26 @@ const RETURN_REASONS = [
   { value: "other", label: "Outros motivos" },
 ];
 
-const formSchema = z.object({
-  reason: z.string().min(1, "Por favor, selecione um motivo."),
-  description: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (data.reason === "other" && (!data.description || data.description.trim().length < 10)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "A descrição detalhada é obrigatória (mínimo 10 caracteres).",
-      path: ["description"],
-    });
-  }
-});
+const formSchema = z
+  .object({
+    reason: z.string().min(1, "Por favor, selecione um motivo."),
+    description: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.reason === "other" && (!data.description || data.description.trim().length < 10)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A descrição detalhada é obrigatória (mínimo 10 caracteres).",
+        path: ["description"],
+      });
+    }
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export function ReturnEssayDialog({ essayId, onReturnEssay }: ReturnEssayDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
+  const router = useRouter();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -83,50 +84,73 @@ export function ReturnEssayDialog({ essayId, onReturnEssay }: ReturnEssayDialogP
     },
   });
 
-  const selectedReason = form.watch("reason");
+  const selectedReason = useWatch({ control: form.control, name: "reason" });
   const { isSubmitting, isValid } = form.formState;
 
   const onSubmit = async (values: FormValues) => {
-    const result = await onReturnEssay({
-      essayId,
-      reason: values.reason,
-      description: values.reason === "other" ? values.description! : "",
-      redirectPath: pathname,
-    });
+    setIsOpen(false);
+    const toastId = toast.loading("Devolvendo redação...");
 
-    if (result.success) {
-      toast.success("Redação devolvida e crédito estornado ao aluno.");
-      setIsOpen(false);
-      form.reset();
-    } else {
-      toast.error(result.error || "Erro ao tentar devolver a redação.");
+    try {
+      const result = await onReturnEssay({
+        essayId,
+        reason: values.reason,
+        description: values.reason === "other" ? values.description! : "",
+      });
+
+      if (result.success) {
+        router.replace("/redacoes-pendentes");
+        toast.success("Redação devolvida e crédito estornado ao aluno.", {
+          id: toastId,
+        });
+        form.reset();
+      } else {
+        toast.error(result.error || "Erro ao tentar devolver a redação.", {
+          id: toastId,
+        });
+        setIsOpen(true);
+      }
+    } catch {
+      toast.error("Erro ao tentar devolver a redação.", { id: toastId });
+      setIsOpen(true);
     }
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      if (!open) form.reset();
-    }}>
+    <AlertDialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open) form.reset();
+      }}
+    >
       <AlertDialogTrigger asChild>
-        <Button variant="outline" className="h-12 rounded-xl text-red-600 hover:border-red-200! hover:bg-red-50! hover:text-red-700 bg-slate-300 font-medium">
-          <Undo /> Devolver Redação
+        <Button
+          variant="outline"
+          className="h-12 rounded-xl bg-slate-300 font-medium text-red-600 hover:border-red-200! hover:bg-red-50! hover:text-red-700"
+        >
+          <Undo /> Devolver sem correção
         </Button>
       </AlertDialogTrigger>
 
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2 text-red-600 text-[18px]">
+          <AlertDialogTitle className="flex items-center gap-2 text-[18px] text-red-600">
             <AlertCircle className="size-4.5" />
             Devolver Redação
           </AlertDialogTitle>
           <AlertDialogDescription className="text-[15px]">
-            A ação irá retornar a redação para o aluno e <strong>devolver o crédito</strong> gasto automaticamente. Essa ação não pode ser desfeita.
+            A ação irá retornar a redação para o aluno e <strong>devolver o crédito</strong> gasto
+            automaticamente. Essa ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <Form {...form}>
-          <form id="return-essay-form" onSubmit={form.handleSubmit(onSubmit)} className="py-4 space-y-4">
+          <form
+            id="return-essay-form"
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 py-4"
+          >
             <FormField
               control={form.control}
               name="reason"
@@ -136,10 +160,10 @@ export function ReturnEssayDialog({ essayId, onReturnEssay }: ReturnEssayDialogP
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    disabled={isSubmitting}>
+                    disabled={isSubmitting}
+                  >
                     <FormControl>
-                      <SelectTrigger
-                        className="w-full rounded-lg min-h-12">
+                      <SelectTrigger className="min-h-12 w-full rounded-lg">
                         <SelectValue placeholder="Selecione um motivo..." />
                       </SelectTrigger>
                     </FormControl>
@@ -180,7 +204,9 @@ export function ReturnEssayDialog({ essayId, onReturnEssay }: ReturnEssayDialogP
         </Form>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isSubmitting} className="h-11 rounded-xl">Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={isSubmitting} className="h-11 rounded-xl">
+            Cancelar
+          </AlertDialogCancel>
           <Button
             type="submit"
             form="return-essay-form"

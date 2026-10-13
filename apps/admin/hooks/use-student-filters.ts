@@ -65,6 +65,7 @@ export function useStudentFilters(planOptions: { label: string; value: string }[
       options: [
         { label: "Todos", value: "all" },
         { label: "Plano ativo", value: "plan_active" },
+        { label: "Cancelamento agendado", value: "cancellation_scheduled" },
         { label: "Inadimplente", value: "past_due" },
         { label: "Cancelado", value: "canceled" },
         { label: "Sem plano", value: "no_plan" },

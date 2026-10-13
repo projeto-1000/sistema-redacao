@@ -23,6 +23,7 @@ interface CompetencyCardProps {
   onSelectHighlight: (id: string) => void;
   onScoreChange: (newScore: number) => void;
   onCommentChange: (newComment: string) => void;
+  readOnly?: boolean;
 }
 
 export function CompetencyCard({
@@ -36,34 +37,33 @@ export function CompetencyCard({
   activeHighlightId,
   onSelectHighlight,
   onScoreChange,
-  onCommentChange
+  onCommentChange,
+  readOnly = false,
 }: CompetencyCardProps) {
   const compKey = comp.id.toLowerCase();
   const style = COMPETENCY_STYLES[compKey as keyof typeof COMPETENCY_STYLES];
 
   return (
-    <div className={`
-      bg-white p-6 rounded-3xl shadow-sm border transition-all duration-300
-      ${isActiveForHighlight
-        ? `ring-2 ${style.cardHighlight} shadow-lg scale-[1.02]`
-        : `border-slate-200 border-l-4 ${style.border}`}
-    `}>
-
+    <div
+      className={`rounded-3xl border bg-white p-6 shadow-sm transition-all duration-300 ${
+        isActiveForHighlight
+          ? `ring-2 ${style.cardHighlight} scale-[1.02] shadow-lg`
+          : `border-l-4 border-slate-200 ${style.border}`
+      } `}
+    >
       <div className="flex flex-col justify-between">
-        <div className="flex w-full justify-between items-center mb-2">
-          <h3 className="font-bold text-slate-800 leading-tight">
-            {`${comp.id}: ${comp.title}`}
-          </h3>
+        <div className="mb-2 flex w-full items-center justify-between">
+          <h3 className="leading-tight font-bold text-slate-800">{`${comp.id}: ${comp.title}`}</h3>
           <Button
             variant={isActiveForHighlight ? "default" : "outline"}
             size="sm"
-            className={`
-            ml-2 h-9 text-xs font-bold rounded-xl shrink-0 transition-all
-            ${isActiveForHighlight
-                ? `${style.btnHighlight} border-none shadow-md animate-pulse`
-                : "border-slate-200 text-slate-600 hover:bg-slate-50"}
-          `}
+            className={`ml-2 h-9 shrink-0 rounded-xl text-xs font-bold transition-all ${
+              isActiveForHighlight
+                ? `${style.btnHighlight} animate-pulse border-none shadow-md`
+                : "border-slate-200 text-slate-600 hover:bg-slate-50"
+            } `}
             onClick={() => onActivateHighlightMode(comp.id)}
+            disabled={readOnly}
           >
             {isActiveForHighlight ? (
               <>
@@ -78,22 +78,20 @@ export function CompetencyCard({
             )}
           </Button>
         </div>
-        <p className="text-sm text-slate-500 mb-5 leading-relaxed">
-          {comp.description}
-        </p>
+        <p className="mb-5 text-sm leading-relaxed text-slate-500">{comp.description}</p>
       </div>
 
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-4">
+      <div className="mb-4 grid grid-cols-3 gap-2 md:grid-cols-6">
         {SCORE_LEVELS.map((level) => (
           <Button
             key={level}
             onClick={() => onScoreChange(level)}
-            className={`
-              w-full min-w-0 px-0 h-10 rounded-xl text-sm font-bold transition-all
-              ${score === level
+            disabled={readOnly}
+            className={`h-10 w-full min-w-0 rounded-xl px-0 text-sm font-bold transition-all ${
+              score === level
                 ? "shadow-lg"
-                : "bg-slate-50 text-slate-500 border border-slate-100 hover:bg-slate-100"}
-            `}
+                : "border border-slate-100 bg-slate-50 text-slate-500 hover:bg-slate-100"
+            } `}
           >
             {level}
           </Button>
@@ -108,6 +106,7 @@ export function CompetencyCard({
           commentError ? "border-red-400" : "border-slate-200"
         }`}
         value={comment}
+        readOnly={readOnly}
         onChange={(e) => onCommentChange(e.target.value)}
         maxLength={CORRECTION_COMPETENCY_COMMENT_MAX_LENGTH}
       />

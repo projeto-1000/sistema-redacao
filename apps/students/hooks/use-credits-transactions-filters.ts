@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { DateRange } from "react-day-picker";
-import { Activity, Layers } from "lucide-react";
+import { Activity } from "lucide-react";
 import { useUrlFilters } from "@repo/hooks";
 import { TransactionType } from "@repo/types";
 
@@ -49,7 +49,7 @@ export function useTransactionsFilters() {
         { label: "Compra Avulsa", value: "standalone_purchase" },
         { label: "Envio de Redação", value: "essay_usage" },
         { label: "Mudança de Plano", value: "plan_change" },
-        { label: "Ajuste Admin", value: "administrative_adjustment" },
+        { label: "Ajuste por um administrador", value: "administrative_adjustment" },
       ],
     },
   ];

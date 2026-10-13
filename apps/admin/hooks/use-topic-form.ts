@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { createTopicSchema, type CreateTopicSchema } from "@repo/validators";
+import { createTopicSchema, type CreateTopicSchema, type CreateTopicInput } from "@repo/validators";
 import { createEssayTopic, updateEssayTopic } from "@/app/actions/topics";
 import { toast } from "sonner";
 import type { EssayTopicDetail } from "@repo/types";
@@ -11,7 +11,7 @@ export function useTopicForm(initialData?: EssayTopicDetail) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<CreateTopicSchema>({
+  const form = useForm<CreateTopicInput, unknown, CreateTopicSchema>({
     resolver: zodResolver(createTopicSchema),
     mode: "onChange",
     defaultValues: initialData

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { AUTH_COOKIE_OPTIONS } from "./auth-cookie";
 
 export async function updateSession(request: NextRequest) {
   const ALLOWED_ROLE = "ADMIN";
@@ -15,6 +16,7 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
     {
+      cookieOptions: AUTH_COOKIE_OPTIONS,
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -34,9 +36,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: userRole } = user
-    ? await supabase.rpc("get_my_role")
-    : { data: null };
+  const { data: userRole } = user ? await supabase.rpc("get_my_role") : { data: null };
 
   const publicRoutes = ["/login", "/esqueci-minha-senha", "/"];
   const isPublicRoute = publicRoutes.includes(pathname);

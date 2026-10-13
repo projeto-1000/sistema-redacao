@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { saveTemporaryBackup } from "@/app/actions/essay-drafts";
 
 interface EssayBackup {
@@ -11,46 +11,81 @@ interface EssayBackup {
 export function useEssayEditor(
   themeId: string,
   serverBackup: EssayBackup | null,
-  isDisabled = false
+  isDisabled = false,
+  preferServerBackup = false
 ) {
-  const [content, setContent] = useState<string>(serverBackup?.content || "");
+  const backupKey = `@backup:${themeId}`;
+  const subscribeToLocalBackup = useCallback(
+    (onStoreChange: () => void) => {
+      const handleStorage = (event: StorageEvent) => {
+        if (event.key === backupKey) onStoreChange();
+      };
+
+      window.addEventListener("storage", handleStorage);
+      return () => window.removeEventListener("storage", handleStorage);
+    },
+    [backupKey]
+  );
+  const getLocalBackup = useCallback(() => localStorage.getItem(backupKey), [backupKey]);
+  const getServerSnapshot = useCallback(() => null, []);
+  const localBackup = useSyncExternalStore(
+    subscribeToLocalBackup,
+    getLocalBackup,
+    getServerSnapshot
+  );
+  const [editedContent, setEditedContent] = useState<{
+    themeId: string;
+    value: string;
+  } | null>(null);
+  const initialContent = preferServerBackup
+    ? serverBackup?.content || ""
+    : localBackup || serverBackup?.content || "";
+  const content = editedContent?.themeId === themeId ? editedContent.value : initialContent;
+  const setContent = (value: string) => {
+    setEditedContent({ themeId, value });
+  };
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    const localContent = localStorage.getItem(`@backup:${themeId}`);
-
-    if (localContent) {
-      setContent(localContent);
-    } else if (serverBackup?.content) {
-      setContent(serverBackup.content);
-    }
-  }, [themeId, serverBackup]);
+  const pendingBackupRef = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     if (isDisabled) return;
     if (content === "" || content === serverBackup?.content) return;
 
-    localStorage.setItem(`@backup:${themeId}`, content);
+    localStorage.setItem(backupKey, content);
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     timeoutRef.current = setTimeout(async () => {
-      try {
-        await saveTemporaryBackup(themeId, content);
-      } catch (e) {
-        console.error("Erro no auto-save:", e);
-      }
+      timeoutRef.current = null;
+      pendingBackupRef.current = pendingBackupRef.current
+        .then(() => saveTemporaryBackup(themeId, content))
+        .catch((error) => {
+          console.error("Erro no auto-save:", error);
+        });
     }, 1500);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [content, themeId, serverBackup, isDisabled]);
+  }, [backupKey, content, themeId, serverBackup, isDisabled]);
 
-  const clearAutoSave = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    localStorage.removeItem(`@backup:${themeId}`);
+  const waitForAutoSave = async () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    await pendingBackupRef.current;
   };
 
-  return { content, setContent, clearAutoSave };
+  const clearAutoSave = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    localStorage.removeItem(backupKey);
+  };
+
+  return { content, setContent, clearAutoSave, waitForAutoSave };
 }

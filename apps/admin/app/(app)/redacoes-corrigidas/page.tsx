@@ -16,7 +16,7 @@ export default async function FinishedEssaysPage({
   const filters = parseGradedEssaysFilters(resolvedParams);
 
   return (
-    <div className="min-h-dvh px-2 md:px-10 lg:px-12 py-4 space-y-4">
+    <div className="min-h-dvh space-y-4 px-2 py-4 md:px-10 lg:px-12">
       <PageHeader
         title="Redações Corrigidas"
         subtitle="Acompanhe seu histórico de correções já realizadas."
@@ -26,11 +26,10 @@ export default async function FinishedEssaysPage({
 
       <Suspense
         key={suspenseKey}
-        fallback={<Skeleton className="rounded-3xl min-h-[250px] bg-slate-200 mt-6" />}
+        fallback={<Skeleton className="mt-6 min-h-[250px] rounded-3xl bg-slate-200" />}
       >
         <GradedEssaysGrid filters={filters} page={page} />
       </Suspense>
-
     </div>
   );
 }

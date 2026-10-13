@@ -67,19 +67,23 @@ export function useAuth() {
     const cleanPhone = data.phone.replace(/\D/g, "");
     const termsAcceptedAt = data.terms ? new Date().toISOString() : null;
 
+    setIsRegistering(true);
+
     const { data: documentExists, error: rpcError } = await supabase.rpc("check_document_exists", {
       doc_to_check: cleanDocument,
     });
 
     if (rpcError) {
+      setIsRegistering(false);
       throw new Error("Não foi possível verificar o CPF no momento.");
     }
 
     if (documentExists === true) {
+      setIsRegistering(false);
       throw new Error("Este CPF já está cadastrado.");
     }
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
@@ -94,31 +98,8 @@ export function useAuth() {
     });
 
     if (authError) {
+      setIsRegistering(false);
       throw new Error(authError.message);
-    }
-
-    if (authData.user) {
-      try {
-        setIsRegistering(true);
-        await fetch("/api/payments/customers", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            record: {
-              id: authData.user.id,
-              full_name: data.name,
-              email: data.email,
-              document: cleanDocument,
-              phone_country_code: cleanPhoneCountryCode,
-              phone: cleanPhone,
-            },
-          }),
-        });
-      } catch (err) {
-        console.error("🚨 Falha na comunicação com a API de pagamentos:", err);
-      }
     }
 
     trackCompleteRegistration();

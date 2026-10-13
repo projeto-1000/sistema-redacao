@@ -16,6 +16,7 @@ import {
 import { Container } from "@/components/site/Container";
 import { Reveal } from "@/components/site/Reveal";
 import { SignupForm } from "@/components/site/SignupForm";
+import { STUDENTS_LOGIN_URL } from "@/lib/students-app.server";
 const fernando = "/images/fernando.jpg";
 
 const title = "Corrigir minha redação grátis | Projeto 1000";
@@ -110,9 +111,9 @@ export default function CadastroPage() {
       {/* HERO + FORM */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="float-blob absolute -left-32 -top-24 h-72 w-72 rounded-full bg-pastel-blue blur-3xl" />
+          <div className="float-blob bg-pastel-blue absolute -top-24 -left-32 h-72 w-72 rounded-full blur-3xl" />
           <div
-            className="float-blob absolute -right-24 top-40 h-72 w-72 rounded-full bg-pastel-yellow blur-3xl"
+            className="float-blob bg-pastel-yellow absolute top-40 -right-24 h-72 w-72 rounded-full blur-3xl"
             style={{ animationDelay: "-4s" }}
           />
         </div>
@@ -122,7 +123,7 @@ export default function CadastroPage() {
           <div className="order-1 md:order-2">
             <Reveal>
               <div id="signup" className="scroll-mt-28">
-                <SignupForm />
+                <SignupForm loginUrl={STUDENTS_LOGIN_URL} />
               </div>
             </Reveal>
           </div>
@@ -130,22 +131,21 @@ export default function CadastroPage() {
           <div className="order-2 md:order-1">
             <Reveal>
               <span className="pill bg-pastel-blue text-primary">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                <span className="bg-primary h-1.5 w-1.5 rounded-full" />
                 Sua primeira redação é por nossa conta
               </span>
             </Reveal>
             <Reveal delay={80}>
-              <h1 className="mt-6 font-display text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+              <h1 className="font-display text-foreground mt-6 text-4xl font-extrabold tracking-tight sm:text-5xl">
                 Envie sua redação do Enem e descubra o que precisa mudar no{" "}
                 <span className="text-primary">seu próprio texto</span>
               </h1>
             </Reveal>
             <Reveal delay={140}>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                Você recebe uma correção completa, feita por professor: nota nas
-                cinco competências, comentários sobre sua redação, identificação
-                do principal ponto de melhoria, principais pontos a trabalhar e
-                uma tarefa de reescrita.
+              <p className="text-muted-foreground mt-5 max-w-xl text-base leading-relaxed md:text-lg">
+                Você recebe uma correção completa, feita por professor: nota nas cinco competências,
+                comentários sobre sua redação, identificação do principal ponto de melhoria,
+                principais pontos a trabalhar e uma tarefa de reescrita.
               </p>
             </Reveal>
             <Reveal delay={200}>
@@ -156,12 +156,9 @@ export default function CadastroPage() {
                   "Principal ponto de melhoria e próximos passos",
                   "Tarefa de reescrita para começar a mudança",
                 ].map((t) => (
-                  <li
-                    key={t}
-                    className="flex items-center gap-3 text-sm text-foreground/85"
-                  >
-                    <span className="icon-bubble h-6 w-6 shrink-0 bg-pastel-blue">
-                      <Check className="h-3.5 w-3.5 text-primary" />
+                  <li key={t} className="text-foreground/85 flex items-center gap-3 text-sm">
+                    <span className="icon-bubble bg-pastel-blue h-6 w-6 shrink-0">
+                      <Check className="text-primary h-3.5 w-3.5" />
                     </span>
                     <span className="min-w-0">{t}</span>
                   </li>
@@ -169,7 +166,7 @@ export default function CadastroPage() {
               </ul>
             </Reveal>
             <Reveal delay={260}>
-              <span className="pill mt-7 bg-pastel-yellow font-bold text-accent-foreground">
+              <span className="pill bg-pastel-yellow text-accent-foreground mt-7 font-bold">
                 1 crédito grátis. Sem cartão de crédito.
               </span>
             </Reveal>
@@ -178,10 +175,10 @@ export default function CadastroPage() {
       </section>
 
       {/* 3 PASSOS */}
-      <section className="border-y border-border bg-secondary">
+      <section className="border-border bg-secondary border-y">
         <Container className="py-16 md:py-20">
           <Reveal>
-            <h2 className="max-w-2xl font-display text-2xl font-extrabold text-foreground sm:text-4xl">
+            <h2 className="font-display text-foreground max-w-2xl text-2xl font-extrabold sm:text-4xl">
               Do cadastro à correção em três passos.
             </h2>
           </Reveal>
@@ -190,17 +187,13 @@ export default function CadastroPage() {
               <Reveal key={p.n} delay={i * 100}>
                 <div className="card-soft h-full p-7">
                   <span className="icon-bubble bg-pastel-blue">
-                    <p.icon className="h-5 w-5 text-primary" />
+                    <p.icon className="text-primary h-5 w-5" />
                   </span>
-                  <p className="mt-5 font-display text-4xl font-extrabold text-primary/20">
-                    {p.n}
-                  </p>
-                  <h3 className="mt-2 font-display text-lg font-bold uppercase text-foreground">
+                  <p className="font-display text-primary/20 mt-5 text-4xl font-extrabold">{p.n}</p>
+                  <h3 className="font-display text-foreground mt-2 text-lg font-bold uppercase">
                     {p.title}
                   </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    {p.body}
-                  </p>
+                  <p className="text-muted-foreground mt-3 text-sm leading-relaxed">{p.body}</p>
                 </div>
               </Reveal>
             ))}
@@ -210,7 +203,7 @@ export default function CadastroPage() {
               <a
                 href="#signup"
                 data-cta="signup-passos"
-                className="press-fx arrow-slide inline-flex items-center gap-2 rounded-full bg-primary px-7 py-4 text-sm font-bold uppercase text-primary-foreground"
+                className="press-fx arrow-slide bg-primary text-primary-foreground inline-flex items-center gap-2 rounded-full px-7 py-4 text-sm font-bold uppercase"
               >
                 Criar minha conta gratuita <ArrowRight className="h-4 w-4" />
               </a>
@@ -224,12 +217,12 @@ export default function CadastroPage() {
         <Container className="py-16 md:py-20">
           <Reveal>
             <div className="max-w-2xl">
-              <h2 className="font-display text-2xl font-extrabold text-foreground sm:text-4xl">
+              <h2 className="font-display text-foreground text-2xl font-extrabold sm:text-4xl">
                 Mais que uma nota
               </h2>
-              <p className="mt-4 text-muted-foreground">
-                Uma correção feita por professores para mostrar o que aconteceu
-                no seu texto e onde concentrar seu esforço.
+              <p className="text-muted-foreground mt-4">
+                Uma correção feita por professores para mostrar o que aconteceu no seu texto e onde
+                concentrar seu esforço.
               </p>
             </div>
           </Reveal>
@@ -238,14 +231,12 @@ export default function CadastroPage() {
               <Reveal key={d.title} delay={(i % 3) * 90}>
                 <div className="card-soft h-full p-7">
                   <span className="icon-bubble bg-pastel-yellow">
-                    <d.icon className="h-5 w-5 text-accent-foreground" />
+                    <d.icon className="text-accent-foreground h-5 w-5" />
                   </span>
-                  <h3 className="mt-5 font-display text-lg font-bold uppercase text-foreground">
+                  <h3 className="font-display text-foreground mt-5 text-lg font-bold uppercase">
                     {d.title}
                   </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    {d.body}
-                  </p>
+                  <p className="text-muted-foreground mt-3 text-sm leading-relaxed">{d.body}</p>
                 </div>
               </Reveal>
             ))}
@@ -259,56 +250,49 @@ export default function CadastroPage() {
           <Reveal>
             <div className="on-navy grid items-start gap-8 rounded-[2rem] p-8 shadow-[var(--shadow-card)] sm:p-12 md:grid-cols-[1fr_0.6fr]">
               <div>
-                <span className="pill bg-accent/15 text-accent">
-                  Quem está por trás
-                </span>
-                <h2 className="mt-5 font-display text-2xl font-extrabold sm:text-4xl">
+                <span className="pill bg-accent/15 text-accent">Quem está por trás</span>
+                <h2 className="font-display mt-5 text-2xl font-extrabold sm:text-4xl">
                   O Projeto 1000 nasceu de 14 anos ensinando redação
                 </h2>
-                <div className="mt-5 space-y-4 text-sm leading-relaxed text-foreground/80 sm:text-base">
+                <div className="text-foreground/80 mt-5 space-y-4 text-sm leading-relaxed sm:text-base">
                   <p>
-                    Sou o Fernando Entratice, professor de redação e criador do
-                    Projeto 1000. Há 14 anos ensino redação para o Enem. Também
-                    construí parte importante da minha carreira ensinando
-                    Português e Redação para o concurso de diplomacia, trabalho
+                    Sou o Fernando Entratice, professor de redação e criador do Projeto 1000. Há 14
+                    anos ensino redação para o Enem. Também construí parte importante da minha
+                    carreira ensinando Português e Redação para o concurso de diplomacia, trabalho
                     no qual ajudei a preparar mais de 50 diplomatas.
                   </p>
                   <p>
-                    Essa experiência me levou a estudar não apenas o texto
-                    pronto, mas o processo que existe antes dele: como uma ideia
-                    nasce, transforma-se em argumento e passa a cumprir uma
-                    função dentro da redação.
+                    Essa experiência me levou a estudar não apenas o texto pronto, mas o processo
+                    que existe antes dele: como uma ideia nasce, transforma-se em argumento e passa
+                    a cumprir uma função dentro da redação.
                   </p>
                   <p>
-                    Foi desse trabalho que nasceu o Sistema de Escrita Guiada,
-                    que deu origem à lógica pedagógica do Projeto 1000.
+                    Foi desse trabalho que nasceu o Sistema de Escrita Guiada, que deu origem à
+                    lógica pedagógica do Projeto 1000.
                   </p>
                 </div>
 
-                <h3 className="mt-8 font-display text-lg font-extrabold uppercase text-accent sm:text-xl">
-                  Um método criado por mim. Uma correção realizada por
-                  professores.
+                <h3 className="font-display text-accent mt-8 text-lg font-extrabold uppercase sm:text-xl">
+                  Um método criado por mim. Uma correção realizada por professores.
                 </h3>
-                <div className="mt-4 space-y-4 text-sm leading-relaxed text-foreground/80 sm:text-base">
+                <div className="text-foreground/80 mt-4 space-y-4 text-sm leading-relaxed sm:text-base">
                   <p>
-                    Nem todas as redações são corrigidas pessoalmente por mim.
-                    Elas são avaliadas por professores especializados em redação
-                    do Enem e treinados no sistema de correção da plataforma.
+                    Nem todas as redações são corrigidas pessoalmente por mim. Elas são avaliadas
+                    por professores especializados em redação do Enem e treinados no sistema de
+                    correção da plataforma.
                   </p>
                   <p>
-                    Assim, cada texto recebe uma leitura humana e individual,
-                    com critérios comuns e uma prioridade clara para o próximo
-                    passo.
+                    Assim, cada texto recebe uma leitura humana e individual, com critérios comuns e
+                    uma prioridade clara para o próximo passo.
                   </p>
                 </div>
 
                 <a
                   href="#signup"
                   data-cta="signup-autoridade"
-                  className="press-fx arrow-slide mt-7 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-bold uppercase text-accent-foreground"
+                  className="press-fx arrow-slide bg-accent text-accent-foreground mt-7 inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold uppercase"
                 >
-                  Criar minha conta e receber 1 crédito{" "}
-                  <ArrowRight className="h-4 w-4" />
+                  Criar minha conta e receber 1 crédito <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
               <Image
@@ -324,10 +308,10 @@ export default function CadastroPage() {
       </section>
 
       {/* ANTES DE SE CADASTRAR */}
-      <section className="border-t border-border bg-secondary">
+      <section className="border-border bg-secondary border-t">
         <Container className="py-16 md:py-20">
           <Reveal>
-            <h2 className="font-display text-2xl font-extrabold text-foreground sm:text-4xl">
+            <h2 className="font-display text-foreground text-2xl font-extrabold sm:text-4xl">
               Antes de se cadastrar
             </h2>
           </Reveal>
@@ -335,13 +319,11 @@ export default function CadastroPage() {
             {faq.map((item, i) => (
               <Reveal key={item.q} delay={i * 80}>
                 <details className="card-soft group p-6">
-                  <summary className="flex cursor-pointer items-center justify-between gap-4 font-display text-base font-bold text-foreground">
+                  <summary className="font-display text-foreground flex cursor-pointer items-center justify-between gap-4 text-base font-bold">
                     {item.q}
-                    <ArrowRight className="h-4 w-4 shrink-0 text-primary transition-transform group-open:rotate-90" />
+                    <ArrowRight className="text-primary h-4 w-4 shrink-0 transition-transform group-open:rotate-90" />
                   </summary>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    {item.a}
-                  </p>
+                  <p className="text-muted-foreground mt-3 text-sm leading-relaxed">{item.a}</p>
                 </details>
               </Reveal>
             ))}
@@ -357,21 +339,19 @@ export default function CadastroPage() {
               <h2 className="font-display text-2xl font-extrabold uppercase sm:text-4xl">
                 Saiba por onde começar. Receba sua correção com caminho.
               </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-sm text-foreground/80 sm:text-base">
-                Crie sua conta, envie seu texto e receba uma correção completa.
-                Um professor avalia sua redação, identifica o principal ponto de
-                melhoria, mostra o que deve ser priorizado no próximo texto e
-                traz uma tarefa de reescrita do texto enviado.
+              <p className="text-foreground/80 mx-auto mt-4 max-w-2xl text-sm sm:text-base">
+                Crie sua conta, envie seu texto e receba uma correção completa. Um professor avalia
+                sua redação, identifica o principal ponto de melhoria, mostra o que deve ser
+                priorizado no próximo texto e traz uma tarefa de reescrita do texto enviado.
               </p>
               <a
                 href="#signup"
                 data-cta="signup-final-cadastro"
-                className="press-fx arrow-slide mt-8 inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-sm font-bold uppercase text-accent-foreground"
+                className="press-fx arrow-slide bg-accent text-accent-foreground mt-8 inline-flex items-center gap-2 rounded-full px-7 py-4 text-sm font-bold uppercase"
               >
-                Criar minha conta e receber 1 crédito{" "}
-                <ArrowRight className="h-4 w-4" />
+                Criar minha conta e receber 1 crédito <ArrowRight className="h-4 w-4" />
               </a>
-              <p className="mt-6 text-xs text-foreground/70">
+              <p className="text-foreground/70 mt-6 text-xs">
                 1 crédito grátis. Sem cartão de crédito.
               </p>
             </div>

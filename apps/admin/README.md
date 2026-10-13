@@ -1,5 +1,9 @@
 ## Getting Started
 
+### Convites para professores
+
+Para habilitar o cadastro e o envio de convites pelo admin, configure no servidor do admin `TEACHERS_APP_URL` com a origem pública do app de professores (por exemplo, `http://localhost:3002` no desenvolvimento), além de `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` e `RESEND_FROM_EMAIL`. O link é gerado para a rota `/auth/confirm` do app de professores. Sem essas variáveis, o cadastro não é iniciado. Não use a chave de serviço no navegador.
+
 First, run the development server:
 
 ```bash

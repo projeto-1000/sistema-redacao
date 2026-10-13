@@ -1,44 +1,10 @@
-'use client'
+import { StudentLoginPage } from "@/components/student-login-page";
 
-import { Suspense } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { LoginForm } from "@repo/ui/components/login-form";
-import type { LoginSchema } from "@repo/validators";
-import { useSearchParams } from "next/navigation";
-
-function LoginContent() {
-  const { login, isLoggingIn, authError } = useAuth();
-  const searchParams = useSearchParams();
-  const urlError = searchParams.get("error");
-
-  const error = urlError || authError;
-
-  const handleLogin = async (values: LoginSchema) => {
-    await login(values);
-  };
-
-  return (
-    <>
-      <title>Login - Projeto 1000</title>
-
-      <LoginForm
-        appType="student"
-        onSubmit={handleLogin}
-        isSubmitting={isLoggingIn}
-        error={error}
-      />
-    </>
-  );
-}
+const SIGNUP_URL =
+  process.env.VERCEL_ENV === "production"
+    ? "https://www.projeto1000.com.br/cadastro"
+    : "https://projeto1000-dev.vercel.app/cadastro";
 
 export default function LoginPage() {
-  return (
-    <div className="bg-gradient-soft min-h-dvh flex items-center justify-center p-4">
-      <title>Login - Projeto 1000</title>
-
-      <Suspense fallback={<div>Carregando...</div>}>
-        <LoginContent />
-      </Suspense>
-    </div>
-  )
+  return <StudentLoginPage signupHref={SIGNUP_URL} />;
 }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildEssayCorrectionUrl } from "../src/correction-url.ts";
+import { buildEssayCorrectionUrl } from "../src/essays/correction-url.ts";
 
 test("builds the correction URL from a base URL without a trailing slash", () => {
   assert.equal(

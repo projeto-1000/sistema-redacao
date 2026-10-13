@@ -5,7 +5,7 @@ import { Save, AlertCircle } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import { Alert, AlertDescription } from "@repo/ui/components/alert";
-import { submitEssay } from "@/app/actions/submit-essay";
+import { submitEssay, type ActionState } from "@/app/actions/submit-essay";
 import { SubmitEssayButton } from "./submit-essay-button";
 import { EssayTopicDetail } from "@repo/types";
 import { useEssayEditor } from "@/hooks/use-essay-editor";
@@ -16,31 +16,32 @@ import { EssayDraft } from "@/types";
 import Link from "next/link";
 
 interface EssayEditorFormProps {
-  topic: EssayTopicDetail,
+  topic: EssayTopicDetail;
   backup: EssayDraft | null;
+  preferInitialBackup?: boolean;
   hasAvailableCredits: boolean;
 }
 
 export function EssayEditorForm({
   topic,
   backup,
+  preferInitialBackup = false,
   hasAvailableCredits,
 }: EssayEditorFormProps) {
-  const [isSaving, setIsSaving] = useState(false)
-  const [bestEssayConsent, setBestEssayConsent] = useState(
-    backup?.best_essay_consent ?? false
-  );
-  const router = useRouter()
-  const { content: text, setContent: setText, clearAutoSave } = useEssayEditor(
-    topic.id,
-    backup,
-    !hasAvailableCredits
-  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [bestEssayConsent, setBestEssayConsent] = useState(backup?.best_essay_consent ?? false);
+  const router = useRouter();
+  const {
+    content: text,
+    setContent: setText,
+    clearAutoSave,
+    waitForAutoSave,
+  } = useEssayEditor(topic.id, backup, !hasAvailableCredits, preferInitialBackup);
 
-  const [state, formAction] = useActionState(
-    submitEssay.bind(null, topic.id, topic.title, topic.axis),
-    null
-  );
+  const [state, formAction] = useActionState(async (prevState: ActionState, formData: FormData) => {
+    await waitForAutoSave();
+    return submitEssay(topic.id, topic.title, topic.axis, prevState, formData);
+  }, null);
 
   const MAX_CHARS = 10000;
   const MIN_CHARS = 100;
@@ -52,8 +53,10 @@ export function EssayEditorForm({
   const progressColor = isOverLimit ? "bg-red-500" : "bg-primary";
 
   const handleSaveDraft = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
+      await waitForAutoSave();
+
       const result = await saveDraft(
         topic.id,
         text,
@@ -64,7 +67,7 @@ export function EssayEditorForm({
       );
 
       if (result.success) {
-        clearAutoSave()
+        clearAutoSave();
         toast.success("Rascunho salvo com sucesso!", {
           description: "Você pode continuar editando quando quiser.",
         });
@@ -80,31 +83,23 @@ export function EssayEditorForm({
   };
 
   return (
-    <form suppressHydrationWarning action={formAction} className="flex flex-col h-full gap-4">
-
+    <form suppressHydrationWarning action={formAction} className="flex h-full flex-col gap-4">
       <input type="hidden" name="topicId" value={topic.id} />
       <input type="hidden" name="title" value={topic.title} />
       <input type="hidden" name="thematicAxis" value={topic.axis} />
-      <input
-        type="hidden"
-        name="best_essay_consent"
-        value={String(bestEssayConsent)}
-      />
+      <input type="hidden" name="best_essay_consent" value={String(bestEssayConsent)} />
 
-      <div className="bg-white rounded-3xl border border-slate-200 flex flex-col flex-1 shadow-sm overflow-hidden">
-        <div className="flex flex-row md:items-center justify-between p-5 border-b border-slate-100 gap-4 bg-slate-50/30">
-          <h3 className="font-bold text-lg md:mb-1">
-            Folha de Redação
-          </h3>
+      <div className="flex flex-1 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-row justify-between gap-4 border-b border-slate-100 bg-slate-50/30 p-5 md:items-center">
+          <h3 className="text-lg font-bold md:mb-1">Folha de Redação</h3>
 
-          <span className="bg-[#EBC84C]/20 text-[#8B781F] px-2 md:py-1 rounded-md flex items-center text-[8px] md:text-[10px] font-bold uppercase tracking-wider">
+          <span className="flex items-center rounded-md bg-[#EBC84C]/20 px-2 text-[8px] font-bold tracking-wider text-[#8B781F] uppercase md:py-1 md:text-[10px]">
             Custa 1 crédito
           </span>
         </div>
 
-
         {state?.error && (
-          <div className="mx-6 mt-6 p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-2 text-red-600 text-sm font-medium animate-in slide-in-from-top-2">
+          <div className="animate-in slide-in-from-top-2 mx-6 mt-6 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
             <AlertCircle className="size-4 shrink-0" />
             {state.error}
           </div>
@@ -135,8 +130,11 @@ export function EssayEditorForm({
           </Alert>
         )}
 
-        <div className="flex-1 relative flex flex-col p-6">
-          <label htmlFor="essay-text" className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+        <div className="relative flex flex-1 flex-col p-6">
+          <label
+            htmlFor="essay-text"
+            className="text-xs font-bold tracking-widest text-slate-400 uppercase"
+          >
             Seu texto
           </label>
 
@@ -144,7 +142,7 @@ export function EssayEditorForm({
             suppressHydrationWarning
             id="essay-text"
             name="content"
-            className="flex-1 w-full resize-y outline-none text-slate-700 leading-relaxed placeholder:text-slate-300 text-base font-medium bg-transparent"
+            className="w-full flex-1 resize-y bg-transparent text-base leading-relaxed font-medium text-slate-700 outline-none placeholder:text-slate-300"
             placeholder="Primeiro, escreva sua redação à mão, como no dia da prova. Depois, transcreva-a aqui."
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -152,16 +150,19 @@ export function EssayEditorForm({
             spellCheck={false}
           />
 
-          <div className="flex justify-end mt-4">
-            <div className="bg-slate-50 border border-slate-200 rounded-full px-4 py-1.5 flex items-center gap-3 shadow-sm">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="mt-4 flex justify-end">
+            <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-4 py-1.5 shadow-sm">
+              <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
                 Caracteres
               </span>
               <div className="flex items-center gap-2">
-                <span className={`text-xs font-bold ${isOverLimit ? "text-red-500" : "text-slate-900"}`}>
-                  {charCount.toLocaleString('pt-BR')} <span className="text-slate-300">/</span> {MAX_CHARS.toLocaleString('pt-BR')}
+                <span
+                  className={`text-xs font-bold ${isOverLimit ? "text-red-500" : "text-slate-900"}`}
+                >
+                  {charCount.toLocaleString("pt-BR")} <span className="text-slate-300">/</span>{" "}
+                  {MAX_CHARS.toLocaleString("pt-BR")}
                 </span>
-                <div className="w-12 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-1.5 w-12 overflow-hidden rounded-full bg-slate-200">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${progressColor}`}
                     style={{ width: `${progressPercentage}%` }}
@@ -177,31 +178,25 @@ export function EssayEditorForm({
             <Checkbox
               checked={bestEssayConsent}
               disabled={!hasAvailableCredits}
-              onCheckedChange={(checked) =>
-                setBestEssayConsent(checked === true)
-              }
+              onCheckedChange={(checked) => setBestEssayConsent(checked === true)}
               aria-describedby="best-essay-consent-description"
               className="mt-0.5"
             />
             <span id="best-essay-consent-description">
-              Autorizo a adição da minha redação ao banco de melhores redações do tema, devidamente anonimizada, caso ela seja considerada exemplar
+              Autorizo a adição da minha redação ao banco de melhores redações do tema, devidamente
+              anonimizada, caso ela seja considerada exemplar
             </span>
           </label>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-
-            <SubmitEssayButton
-              disabled={!hasAvailableCredits || isOverLimit || isTooShort}
-            />
+            <SubmitEssayButton disabled={!hasAvailableCredits || isOverLimit || isTooShort} />
 
             <Button
               type="button"
               variant="outline"
-              disabled={
-                !hasAvailableCredits || text === "" || isSaving === true
-              }
+              disabled={!hasAvailableCredits || text === "" || isSaving === true}
               onClick={handleSaveDraft}
-              className="w-full sm:w-auto font-bold rounded-full h-12 px-6 gap-2"
+              className="h-12 w-full gap-2 rounded-full px-6 font-bold sm:w-auto"
               isLoading={isSaving}
               loadingText="Salvando"
             >
@@ -211,6 +206,6 @@ export function EssayEditorForm({
           </div>
         </div>
       </div>
-    </form >
+    </form>
   );
 }

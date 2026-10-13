@@ -7,7 +7,6 @@ import {
 } from "@/lib/integrations/datacrazy/sync-student";
 import { authUserExistsByEmail, hashSignupToken } from "@/lib/organic-signup";
 import { createClient } from "@/lib/server";
-import { createPagarmeCustomer } from "@repo/payments";
 import { passwordSetupSchema } from "@repo/validators";
 
 interface CompleteOrganicSignupInput {
@@ -17,11 +16,7 @@ interface CompleteOrganicSignupInput {
 }
 
 type SignupAttemptErrorCode =
-  | "DOCUMENT_CHECK_FAILED"
-  | "EMAIL_CHECK_FAILED"
-  | "AUTH_SIGNUP_FAILED"
-  | "PAGARME_CUSTOMER_FAILED"
-  | "COMPLETION_FAILED";
+  "DOCUMENT_CHECK_FAILED" | "EMAIL_CHECK_FAILED" | "AUTH_SIGNUP_FAILED" | "COMPLETION_FAILED";
 
 const PROCESSING_LOCK_DURATION_MS = 5 * 60 * 1_000;
 
@@ -62,8 +57,7 @@ async function recordSignupAttemptError({
 }
 
 export type CompleteOrganicSignupResult =
-  | { success: true; redirectTo: string }
-  | { success: false; error: string };
+  { success: true; redirectTo: string } | { success: false; error: string };
 
 export async function completeOrganicSignup(
   input: CompleteOrganicSignupInput
@@ -238,46 +232,6 @@ export async function completeOrganicSignup(
       success: false,
       error: "Não foi possível criar sua conta. Verifique os dados e tente novamente.",
     };
-  }
-
-  try {
-    const pagarmeCustomer = await createPagarmeCustomer({
-      id: authUserId,
-      name: attempt.name,
-      email: attempt.email,
-      document: attempt.document,
-      phoneCountryCode: attempt.phone_country_code,
-      phone: attempt.phone,
-    });
-
-    if (pagarmeCustomer?.id) {
-      const { error: profileUpdateError } = await supabaseAdmin
-        .from("profiles")
-        .update({
-          pagarme_customer_id: pagarmeCustomer.id,
-          phone_country_code: attempt.phone_country_code,
-          phone: attempt.phone,
-        })
-        .eq("id", authUserId);
-
-      if (profileUpdateError) {
-        await recordSignupAttemptError({
-          supabaseAdmin,
-          attemptId: attempt.id,
-          code: "PAGARME_CUSTOMER_FAILED",
-          expectedProcessingAt: processingAt,
-        });
-      }
-    } else {
-      throw new Error("PAGARME_CUSTOMER_FAILED");
-    }
-  } catch {
-    await recordSignupAttemptError({
-      supabaseAdmin,
-      attemptId: attempt.id,
-      code: "PAGARME_CUSTOMER_FAILED",
-      expectedProcessingAt: processingAt,
-    });
   }
 
   const { data: completedAttempt, error: completionError } = await supabaseAdmin

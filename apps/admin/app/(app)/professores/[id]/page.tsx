@@ -19,7 +19,6 @@ export default async function TeacherProfilePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
   const page = Number(resolvedSearchParams?.page) || 1;
@@ -42,10 +41,10 @@ export default async function TeacherProfilePage({
   const essayId = resolvedSearchParams?.essayId as string | undefined;
 
   return (
-    <div className="min-h-dvh px-4 md:px-10 lg:px-12 pb-8 space-y-8">
-      <Button asChild variant='ghost' className="text-slate-500">
+    <div className="min-h-dvh space-y-8 px-4 pb-8 md:px-10 lg:px-12">
+      <Button asChild variant="ghost" className="text-slate-500">
         <Link href="/professores">
-          <ArrowLeft className="size-4 mr-2" />
+          <ArrowLeft className="mr-2 size-4" />
           Voltar para lista de professores
         </Link>
       </Button>
@@ -54,7 +53,7 @@ export default async function TeacherProfilePage({
 
       <TeacherStatsCards teacherId={teacherId} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <ScoreDistributionChart data={chartsData} />
 
         <AverageTimeCard teacherId={teacherId} />
@@ -63,15 +62,10 @@ export default async function TeacherProfilePage({
       <TeacherEssayTable filters={filters} teacherData={teacherData} page={page} />
 
       {essayId && (
-        <ModalWrapper
-          key={essayId}
-          param="essayId"
-          title="Visualizar Redação"
-        >
+        <ModalWrapper key={essayId} param="essayId" title="Visualizar Redação">
           <GradedEssayView essayId={essayId} />
         </ModalWrapper>
       )}
-
     </div>
   );
 }

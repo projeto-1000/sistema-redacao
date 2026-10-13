@@ -10,7 +10,7 @@ import Script from "next/script";
 
 const lexend = Lexend({
   subsets: ["latin"],
-  variable: "--font-lexend"
+  variable: "--font-lexend",
 });
 
 export const metadata: Metadata = {
@@ -42,6 +42,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
         <noscript>
+          {/* O pixel da Meta precisa permanecer uma imagem direta sem JavaScript. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             height="1"
             width="1"
@@ -51,9 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
         </noscript>
         <TooltipProvider>
-          <RouteTransition>
-            {children}
-          </RouteTransition>
+          <RouteTransition>{children}</RouteTransition>
           <Footer />
           <Toaster />
         </TooltipProvider>

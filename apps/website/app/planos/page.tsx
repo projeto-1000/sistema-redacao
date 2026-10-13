@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
-import {
-  PlanosContent,
-  type PublicPlan,
-} from "@/components/site/PlanosContent";
+import { PlanosContent, type PublicPlan } from "@/components/site/PlanosContent";
 
 export const metadata: Metadata = {
   title: "Planos",
@@ -15,13 +12,10 @@ export const revalidate = 60;
 
 async function getPublicPlans(): Promise<PublicPlan[]> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabasePublishableKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+  const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
   if (!supabaseUrl || !supabasePublishableKey) {
-    console.error(
-      "[PUBLIC_PLANS_CONFIG_ERROR] Supabase public configuration is missing.",
-    );
+    console.error("[PUBLIC_PLANS_CONFIG_ERROR] Supabase public configuration is missing.");
     return [];
   }
 
@@ -31,7 +25,7 @@ async function getPublicPlans(): Promise<PublicPlan[]> {
   const { data, error } = await supabase
     .from("plans")
     .select(
-      "id, name, subtitle, description, price, credits_included, interval, interval_count, discount_percentage, is_recommended",
+      "id, name, subtitle, description, price, credits_included, interval, interval_count, discount_percentage, is_recommended"
     )
     .eq("is_active", true)
     .eq("is_public", true)

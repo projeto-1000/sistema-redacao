@@ -57,8 +57,64 @@ export async function getSubscriptionHistory({
       throw error;
     }
 
+    const rows = (data ?? []) as SubscriptionHistoryRpcRow[];
+    const rejectedRequestIds = Array.from(
+      new Set(
+        rows.flatMap((row) => {
+          const metadata = row.metadata;
+
+          return metadata?.adjustment_kind === "withdrawal_hold_release" &&
+            typeof metadata.withdrawal_request_id === "string"
+            ? [metadata.withdrawal_request_id]
+            : [];
+        })
+      )
+    );
+    const rejectionDetails = new Map<
+      string,
+      { reviewed_at: string | null; review_reason: string | null }
+    >();
+
+    if (rejectedRequestIds.length > 0) {
+      const { data: rejectedRequests, error: rejectedRequestsError } = await supabase
+        .from("subscription_withdrawal_requests")
+        .select("id, reviewed_at, review_reason")
+        .eq("student_id", user.id)
+        .eq("status", "rejected")
+        .in("id", rejectedRequestIds);
+
+      if (rejectedRequestsError) {
+        console.error("[GET_WITHDRAWAL_REJECTION_DETAILS_ERROR]", rejectedRequestsError);
+      } else {
+        for (const request of rejectedRequests ?? []) {
+          rejectionDetails.set(request.id, {
+            reviewed_at: request.reviewed_at,
+            review_reason: request.review_reason,
+          });
+        }
+      }
+    }
+
+    const enrichedRows = rows.map((row) => {
+      const requestId = row.metadata?.withdrawal_request_id;
+      const rejection = typeof requestId === "string" ? rejectionDetails.get(requestId) : undefined;
+
+      if (!rejection) {
+        return row;
+      }
+
+      return {
+        ...row,
+        metadata: {
+          ...row.metadata,
+          withdrawal_reviewed_at: rejection.reviewed_at,
+          withdrawal_review_reason: rejection.review_reason,
+        },
+      };
+    });
+
     const { items, totalPages } = buildSubscriptionHistoryResult({
-      rows: (data ?? []) as SubscriptionHistoryRpcRow[],
+      rows: enrichedRows,
       limit,
     });
 
@@ -173,6 +229,52 @@ export async function getSubscriptionData() {
     };
   }
 
+  const [activeWithdrawalResult, initialPaymentResult] = await Promise.all([
+    subscription.active_withdrawal_request_id
+      ? supabase
+          .from("subscription_withdrawal_requests")
+          .select("processing_mode, status, eligibility_deadline_at")
+          .eq("id", subscription.active_withdrawal_request_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    subscription.external_id
+      ? supabase
+          .from("student_payments")
+          .select("paid_at")
+          .eq("user_id", user.id)
+          .eq("subscription_id", subscription.id)
+          .eq("kind", "subscription")
+          .in("status", ["paid", "active"])
+          .not("paid_at", "is", null)
+          .or(
+            `external_id.eq.${subscription.external_id},metadata->>pagarme_subscription_id.eq.${subscription.external_id}`
+          )
+          .order("paid_at", { ascending: true })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+
+  if (activeWithdrawalResult.error) {
+    console.error("[GET_ACTIVE_WITHDRAWAL_ERROR]", activeWithdrawalResult.error);
+  }
+
+  if (initialPaymentResult.error) {
+    console.error("[GET_WITHDRAWAL_INITIAL_PAYMENT_ERROR]", initialPaymentResult.error);
+  }
+
+  const initialPaidAt = initialPaymentResult.data?.paid_at ?? subscription.current_period_start;
+  const withdrawalDeadline = initialPaidAt
+    ? new Date(new Date(initialPaidAt).getTime() + 168 * 60 * 60 * 1000).toISOString()
+    : null;
+  const withdrawalEligible =
+    Boolean(withdrawalDeadline) &&
+    new Date(withdrawalDeadline as string).getTime() >= referenceAt.getTime() &&
+    subscription.status === "active" &&
+    !subscription.active_withdrawal_request_id;
+  const withdrawalProcessingMode =
+    activeWithdrawalResult.data?.processing_mode ?? (withdrawalEligible ? "automatic" : null);
+
   let pendingPlanName: string | null = null;
 
   if (subscription.pending_plan_id) {
@@ -207,6 +309,7 @@ export async function getSubscriptionData() {
     amount: number;
     remaining_amount: number;
     compensatory_refunds: number;
+    administrative_grants: number;
     expires_at: string;
   } | null = null;
 
@@ -218,6 +321,7 @@ export async function getSubscriptionData() {
       amount,
       remaining_amount,
       compensatory_refunds,
+      administrative_grants,
       expires_at
     `
     )
@@ -255,15 +359,20 @@ export async function getSubscriptionData() {
 
       mentorship_cycle_number: mentorshipCycle?.cycle_number ?? null,
 
-      mentorship_cycle_remaining: mentorshipCycle
-        ? mentorshipCycle.remaining_amount + mentorshipCycle.compensatory_refunds
-        : null,
+      mentorship_cycle_remaining: mentorshipCycle ? mentorshipCycle.remaining_amount : null,
 
       mentorship_cycle_total: mentorshipCycle
-        ? mentorshipCycle.amount + mentorshipCycle.compensatory_refunds
+        ? mentorshipCycle.amount +
+          mentorshipCycle.compensatory_refunds +
+          mentorshipCycle.administrative_grants
         : null,
 
       mentorship_cycle_end: mentorshipCycle?.expires_at ?? null,
+
+      withdrawal_eligible: withdrawalEligible,
+      withdrawal_processing_mode: withdrawalProcessingMode,
+      withdrawal_eligibility_deadline_at:
+        activeWithdrawalResult.data?.eligibility_deadline_at ?? withdrawalDeadline,
 
       pending_plan_name: pendingPlanName,
     },

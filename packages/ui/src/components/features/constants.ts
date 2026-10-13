@@ -1,11 +1,11 @@
 import { COMPETENCIES } from "@repo/constants";
 
 export const HIGHLIGHT_STYLES = {
-  c1: "bg-comp-1/15 border-b-2 border-comp-1 text-slate-900",
-  c2: "bg-comp-2/15 border-b-2 border-comp-2 text-slate-900",
-  c3: "bg-comp-3/20 border-b-2 border-comp-3 text-slate-900",
-  c4: "bg-comp-4/15 border-b-2 border-comp-4 text-slate-900",
-  c5: "bg-comp-5/15 border-b-2 border-comp-5 text-slate-900",
+  c1: "bg-comp-1/15 border-b-2 border-comp-1",
+  c2: "bg-comp-2/15 border-b-2 border-comp-2",
+  c3: "bg-comp-3/20 border-b-2 border-comp-3",
+  c4: "bg-comp-4/15 border-b-2 border-comp-4",
+  c5: "bg-comp-5/15 border-b-2 border-comp-5",
 };
 
 const COMPETENCY_DISPLAY_STYLES = {
@@ -26,11 +26,36 @@ export const COMPETENCY_INFO = COMPETENCIES.map((competency) => ({
 export const SCORE_LEVELS = [0, 40, 80, 120, 160, 200];
 
 export const COMPETENCY_STYLES = {
-  c1: { border: "border-l-comp-1", activeBg: "bg-comp-1/5", cardHighlight: 'ring-comp-1 border-comp-1', btnHighlight: 'bg-comp-1 hover:bg-comp-1/70 text-white' },
-  c2: { border: "border-l-comp-2", activeBg: "bg-comp-2/5", cardHighlight: 'ring-comp-2 border-comp-2', btnHighlight: 'bg-comp-2 hover:bg-comp-2/70 text-white' },
-  c3: { border: "border-l-comp-3", activeBg: "bg-comp-3/5", cardHighlight: 'ring-comp-3 border-comp-3', btnHighlight: 'bg-comp-3 hover:bg-comp-3/70 text-white' },
-  c4: { border: "border-l-comp-4", activeBg: "bg-comp-4/5", cardHighlight: 'ring-comp-4 border-comp-4', btnHighlight: 'bg-comp-4 hover:bg-comp-4/70 text-white' },
-  c5: { border: "border-l-comp-5", activeBg: "bg-comp-5/5", cardHighlight: 'ring-comp-5 border-comp-5', btnHighlight: 'bg-comp-5 hover:bg-comp-5/70 text-white' },
+  c1: {
+    border: "border-l-comp-1",
+    activeBg: "bg-comp-1/5",
+    cardHighlight: "ring-comp-1 border-comp-1",
+    btnHighlight: "bg-comp-1 hover:bg-comp-1/70 text-white",
+  },
+  c2: {
+    border: "border-l-comp-2",
+    activeBg: "bg-comp-2/5",
+    cardHighlight: "ring-comp-2 border-comp-2",
+    btnHighlight: "bg-comp-2 hover:bg-comp-2/70 text-white",
+  },
+  c3: {
+    border: "border-l-comp-3",
+    activeBg: "bg-comp-3/5",
+    cardHighlight: "ring-comp-3 border-comp-3",
+    btnHighlight: "bg-comp-3 hover:bg-comp-3/70 text-white",
+  },
+  c4: {
+    border: "border-l-comp-4",
+    activeBg: "bg-comp-4/5",
+    cardHighlight: "ring-comp-4 border-comp-4",
+    btnHighlight: "bg-comp-4 hover:bg-comp-4/70 text-white",
+  },
+  c5: {
+    border: "border-l-comp-5",
+    activeBg: "bg-comp-5/5",
+    cardHighlight: "ring-comp-5 border-comp-5",
+    btnHighlight: "bg-comp-5 hover:bg-comp-5/70 text-white",
+  },
 };
 
 export const DEADLINE_STATUS_STYLES = {
@@ -61,13 +86,13 @@ export const DEADLINE_STATUS_STYLES = {
 };
 
 export const getScoreColor = (score: number) => {
-    if (score >= 900) return "text-green-600";
-    if (score >= 700) return "text-blue-600";
-    if (score >= 500) return "text-amber-500";
-    return "text-red-600";
-  };
+  if (score >= 900) return "text-green-600";
+  if (score >= 700) return "text-blue-600";
+  if (score >= 500) return "text-amber-500";
+  return "text-red-600";
+};
 
-  export const RETURN_REASON_LABELS: Record<string, string> = {
+export const RETURN_REASON_LABELS: Record<string, string> = {
   incomplete: "Redação incompleta",
   off_topic: "Fuga ao tema",
   plagiarism: "Suspeita de plágio/cópia",

@@ -1,4 +1,4 @@
-import { Instagram, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import Link from "next/link";
 import { BrandWordmark } from "./BrandWordmark";
 import { Container } from "./Container";
@@ -16,21 +16,16 @@ export function Footer() {
       <Container className="grid gap-10 py-16 md:grid-cols-4">
         <div>
           <BrandWordmark variant="escuro" height={64} />
-          <p className="mt-4 text-sm font-semibold text-accent">
-            Correção que gera direção.
-          </p>
+          <p className="text-accent mt-4 text-sm font-semibold">Correção que gera direção.</p>
         </div>
         <div>
-          <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          <h4 className="text-muted-foreground mb-3 text-xs font-bold tracking-widest uppercase">
             Navegação
           </h4>
           <ul className="space-y-2 text-sm">
             {navigationLinks.map(([href, label]) => (
               <li key={href}>
-                <Link
-                  href={href}
-                  className="text-foreground/80 hover:text-accent"
-                >
+                <Link href={href} className="text-foreground/80 hover:text-accent">
                   {label}
                 </Link>
               </li>
@@ -38,12 +33,12 @@ export function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          <h4 className="text-muted-foreground mb-3 text-xs font-bold tracking-widest uppercase">
             Contato
           </h4>
           <a
             href="mailto:contato@projeto1000.com.br"
-            className="flex items-center gap-2 text-sm text-foreground/80 hover:text-accent"
+            className="text-foreground/80 hover:text-accent flex items-center gap-2 text-sm"
           >
             <Mail className="h-4 w-4" />
             contato@projeto1000.com.br
@@ -52,41 +47,47 @@ export function Footer() {
             href="https://www.instagram.com/fernandoentratice"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 text-foreground/80 hover:text-accent"
+            className="text-foreground/80 hover:text-accent mt-4 inline-flex items-center gap-2"
           >
-            <Instagram className="h-5 w-5" />
+            <svg
+              aria-hidden="true"
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="2" y="2" width="20" height="20" rx="5" />
+              <circle cx="12" cy="12" r="4" />
+              <circle cx="18" cy="6" r=".5" fill="currentColor" />
+            </svg>
             <span className="text-sm">@fernandoentratice</span>
           </a>
         </div>
         <div>
-          <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          <h4 className="text-muted-foreground mb-3 text-xs font-bold tracking-widest uppercase">
             Legal
           </h4>
           <ul className="space-y-2 text-sm">
             <li>
-              <Link
-                href="/termos"
-                className="text-foreground/80 hover:text-accent"
-              >
+              <Link href="/termos" className="text-foreground/80 hover:text-accent">
                 Termos de Uso
               </Link>
             </li>
             <li>
-              <Link
-                href="/privacidade"
-                className="text-foreground/80 hover:text-accent"
-              >
+              <Link href="/privacidade" className="text-foreground/80 hover:text-accent">
                 Política de Privacidade
               </Link>
             </li>
           </ul>
         </div>
       </Container>
-      <div className="border-t border-border">
-        <Container className="flex flex-col items-start justify-between gap-2 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
+      <div className="border-border border-t">
+        <Container className="text-muted-foreground flex flex-col items-start justify-between gap-2 py-6 text-xs sm:flex-row sm:items-center">
           <p>
-            © {new Date().getFullYear()} Projeto 1000 · Entratice. Todos os
-            direitos reservados.
+            © {new Date().getFullYear()} Projeto 1000 · Entratice. Todos os direitos reservados.
           </p>
           <p>Correção humana e individual de redação para o Enem.</p>
         </Container>

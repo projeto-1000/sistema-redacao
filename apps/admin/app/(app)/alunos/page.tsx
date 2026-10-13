@@ -18,18 +18,12 @@ export default async function StudentsPage({
   const resolvedParams = await searchParams;
   const page = Number(resolvedParams?.page) || 1;
   const filters = parseStudentsFilters(resolvedParams);
-  const sortParam =
-    typeof resolvedParams.sort === "string"
-      ? resolvedParams.sort
-      : "created_at";
+  const sortParam = typeof resolvedParams.sort === "string" ? resolvedParams.sort : "created_at";
 
   const sort: "created_at" | "full_name" | "status" =
-    sortParam === "full_name" || sortParam === "status"
-      ? sortParam
-      : "created_at";
+    sortParam === "full_name" || sortParam === "status" ? sortParam : "created_at";
 
-  const order: "asc" | "desc" =
-    resolvedParams.order === "asc" ? "asc" : "desc";
+  const order: "asc" | "desc" = resolvedParams.order === "asc" ? "asc" : "desc";
 
   const [totalCount, planFilterOptions] = await Promise.all([
     getStudentsCount(),
@@ -37,12 +31,13 @@ export default async function StudentsPage({
   ]);
 
   return (
-    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-8">
+    <div className="min-h-dvh space-y-8 px-4 py-4 md:px-10 lg:px-12">
       <PageHeader
         title=" Gerenciamento de Alunos"
         subtitle={
           <>
-            Base de dados central: <span className="font-bold text-primary">{totalCount} alunos</span> cadastrados
+            Base de dados central:{" "}
+            <span className="text-primary font-bold">{totalCount} alunos</span> cadastrados
           </>
         }
       >
@@ -54,9 +49,9 @@ export default async function StudentsPage({
           variant="outline"
         />
 
-        <Button asChild className="rounded-xl font-bold h-10 w-full sm:w-fit">
+        <Button asChild className="h-10 w-full rounded-xl font-bold sm:w-fit">
           <Link href="/alunos/novo">
-            <Plus className="size-4 mr-2" />
+            <Plus className="mr-2 size-4" />
             Novo Aluno
           </Link>
         </Button>

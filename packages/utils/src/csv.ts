@@ -1,7 +1,7 @@
 type CsvColumn<T> = {
   header: string;
 
-  key: keyof T | ((row: T) => string); 
+  key: keyof T | ((row: T) => string);
 };
 
 export function generateCsv<T>(data: T[], columns: CsvColumn<T>[]): string {

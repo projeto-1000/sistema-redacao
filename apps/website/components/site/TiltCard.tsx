@@ -48,8 +48,7 @@ export function TiltCard({ children, className = "", intensity = 8 }: Props) {
       onPointerLeave={onLeave}
       className={`tilt-card ${className}`}
       style={{
-        transform:
-          "perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))",
+        transform: "perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))",
         transformStyle: "preserve-3d",
         transition: "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)",
       }}
