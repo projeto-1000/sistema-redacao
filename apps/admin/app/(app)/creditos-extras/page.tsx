@@ -14,11 +14,7 @@ export default function ExtraCreditPackagesManagementPage() {
         <CreateExtraCreditPackageDialog />
       </PageHeader>
 
-      <Suspense
-        fallback={
-          <Skeleton className="min-h-[200px] rounded-3xl bg-slate-200" />
-        }
-      >
+      <Suspense fallback={<Skeleton className="min-h-[200px] rounded-3xl bg-slate-200" />}>
         <ExtraCreditPackagesTable />
       </Suspense>
     </div>

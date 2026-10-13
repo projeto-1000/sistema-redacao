@@ -1,22 +1,13 @@
 "use client";
 
-import {
-  useCallback,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type MouseEvent,
-} from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 
 interface ExpandableTextProps {
   text: string;
   className?: string;
 }
 
-export function ExpandableText({
-  text,
-  className = "",
-}: ExpandableTextProps) {
+export function ExpandableText({ text, className = "" }: ExpandableTextProps) {
   const textRef = useRef<HTMLParagraphElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasOverflow, setHasOverflow] = useState(false);
@@ -50,7 +41,7 @@ export function ExpandableText({
     <div className="min-w-0">
       <p
         ref={textRef}
-        className={`${isExpanded ? "" : "line-clamp-3"} whitespace-pre-line [overflow-wrap:anywhere] ${className}`}
+        className={`${isExpanded ? "" : "line-clamp-3"} [overflow-wrap:anywhere] whitespace-pre-line ${className}`}
       >
         {text}
       </p>
@@ -61,7 +52,7 @@ export function ExpandableText({
           aria-expanded={isExpanded}
           onClick={handleToggle}
           onKeyDown={(event) => event.stopPropagation()}
-          className="mt-1.5 text-xs font-bold text-indigo-600 transition-colors hover:text-indigo-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+          className="mt-1.5 text-xs font-bold text-indigo-600 transition-colors hover:text-indigo-800 focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none"
         >
           {isExpanded ? "Ver menos" : "Ver mais"}
         </button>

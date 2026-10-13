@@ -32,10 +32,7 @@ const MANUAL_GRANT_TYPE_LABELS: Record<string, string> = {
   extra: "Extra",
 };
 
-function getMetadataString(
-  metadata: Record<string, unknown> | null,
-  key: string,
-): string | null {
+function getMetadataString(metadata: Record<string, unknown> | null, key: string): string | null {
   const value = metadata?.[key];
 
   return typeof value === "string" && value.trim() ? value : null;
@@ -43,7 +40,7 @@ function getMetadataString(
 
 function getSupportHistorySummary(
   action: string | null,
-  refundAmount: unknown,
+  refundAmount: unknown
 ): { label: string; value: string }[] {
   if (typeof refundAmount !== "number") {
     return [{ label: "Situação", value: "Atendimento solicitado. Aguardando confirmação." }];
@@ -51,7 +48,8 @@ function getSupportHistorySummary(
 
   const refund = {
     label: "Reembolso",
-    value: refundAmount > 0 ? `${formatCurrency(refundAmount)} devolvidos.` : "Sem devolução de valor.",
+    value:
+      refundAmount > 0 ? `${formatCurrency(refundAmount)} devolvidos.` : "Sem devolução de valor.",
   };
 
   switch (action) {
@@ -73,17 +71,36 @@ function getSupportHistorySummary(
       return [
         refund,
         { label: "Renovação", value: "Interrompida. Não haverá novas cobranças de renovação." },
-        { label: "Benefícios do plano", value: "Encerrados com a confirmação do reembolso. Sua conta e seu histórico continuam disponíveis." },
-        { label: "Créditos do plano", value: "Os créditos restantes desta assinatura foram invalidados." },
-        { label: "Outros créditos", value: "Créditos extras, gratuitos e de mentoria não foram alterados." },
+        {
+          label: "Benefícios do plano",
+          value:
+            "Encerrados com a confirmação do reembolso. Sua conta e seu histórico continuam disponíveis.",
+        },
+        {
+          label: "Créditos do plano",
+          value: "Os créditos restantes desta assinatura foram invalidados.",
+        },
+        {
+          label: "Outros créditos",
+          value: "Créditos extras, gratuitos e de mentoria não foram alterados.",
+        },
       ];
     case "refund_courtesy":
       return [
         refund,
         { label: "Renovação", value: "Interrompida. Não haverá novas cobranças de renovação." },
-        { label: "Benefícios do plano", value: "Mantidos pelo período de cortesia concedido pelo suporte." },
-        { label: "Créditos do plano", value: "Disponíveis conforme a cortesia concedida pelo suporte." },
-        { label: "Outros créditos", value: "Créditos extras, gratuitos e de mentoria não foram alterados." },
+        {
+          label: "Benefícios do plano",
+          value: "Mantidos pelo período de cortesia concedido pelo suporte.",
+        },
+        {
+          label: "Créditos do plano",
+          value: "Disponíveis conforme a cortesia concedida pelo suporte.",
+        },
+        {
+          label: "Outros créditos",
+          value: "Créditos extras, gratuitos e de mentoria não foram alterados.",
+        },
       ];
     default:
       return [refund];
@@ -105,9 +122,7 @@ function formatCreditsAmount(amount: number, showPositiveSign = false): string {
   return `${absoluteAmount} ${label}`;
 }
 
-function getCreditSourceDescription(
-  metadata: Record<string, unknown> | null,
-): string {
+function getCreditSourceDescription(metadata: Record<string, unknown> | null): string {
   const creditType = getMetadataString(metadata, "credit_type");
 
   const creditSource = getMetadataString(metadata, "credit_source");
@@ -131,34 +146,25 @@ function getCreditSourceDescription(
   return "crédito disponível";
 }
 
-function getEssayUsageDescription(
-  event: SubscriptionHistoryCreditEvent,
-): string {
+function getEssayUsageDescription(event: SubscriptionHistoryCreditEvent): string {
   const creditSource = getCreditSourceDescription(event.metadata);
 
   const essayTitle = getMetadataString(event.metadata, "title");
 
   if (essayTitle) {
     return `${creditSource[0]?.toUpperCase()}${creditSource.slice(
-      1,
+      1
     )} utilizado na redação “${essayTitle}”.`;
   }
 
-  return `${creditSource[0]?.toUpperCase()}${creditSource.slice(
-    1,
-  )} utilizado no envio da redação.`;
+  return `${creditSource[0]?.toUpperCase()}${creditSource.slice(1)} utilizado no envio da redação.`;
 }
 
-function getExpirationDescription(
-  event: SubscriptionHistoryCreditEvent,
-): string {
+function getExpirationDescription(event: SubscriptionHistoryCreditEvent): string {
   const source = getMetadataString(event.metadata, "source");
   const eventType = getMetadataString(event.metadata, "event_type");
   const grantType = getMetadataString(event.metadata, "grant_type");
-  const expirationReason = getMetadataString(
-    event.metadata,
-    "expiration_reason",
-  );
+  const expirationReason = getMetadataString(event.metadata, "expiration_reason");
 
   const absoluteAmount = Math.abs(event.amount);
   const isSingular = absoluteAmount === 1;
@@ -178,8 +184,7 @@ function getExpirationDescription(
   }
 
   const isCycleExpiration =
-    grantType === "subscription_cycle_expiration" ||
-    expirationReason === "cycle_end";
+    grantType === "subscription_cycle_expiration" || expirationReason === "cycle_end";
 
   if (isCycleExpiration) {
     const unusedLabel = isSingular ? "não utilizado" : "não utilizados";
@@ -203,15 +208,10 @@ function getExpirationDescription(
     return `${subject} da mentoria ${expiredVerb} após o encerramento do benefício.`;
   }
 
-  return (
-    event.description ||
-    `${subject} ${expiredVerb} após o fim do período de validade.`
-  );
+  return event.description || `${subject} ${expiredVerb} após o fim do período de validade.`;
 }
 
-function mapCreditEvent(
-  event: SubscriptionHistoryCreditEvent,
-): HistoryDisplayItem {
+function mapCreditEvent(event: SubscriptionHistoryCreditEvent): HistoryDisplayItem {
   const planName = getMetadataString(event.metadata, "plan_name");
 
   switch (event.transaction_type) {
@@ -322,8 +322,7 @@ function mapCreditEvent(
         id: event.id,
         title: "Crédito devolvido",
         description:
-          event.description ||
-          "Crédito devolvido após o cancelamento do envio da redação.",
+          event.description || "Crédito devolvido após o cancelamento do envio da redação.",
         createdAt: event.created_at,
         primaryValue: formatCreditsAmount(event.amount, true),
         secondaryValue: null,
@@ -346,23 +345,14 @@ function mapCreditEvent(
       };
 
     case "administrative_adjustment":
-      if (
-        getMetadataString(event.metadata, "source") === "manual_credit_grant"
-      ) {
-        const grantCategory = getMetadataString(
-          event.metadata,
-          "grant_category",
-        );
+      if (getMetadataString(event.metadata, "source") === "manual_credit_grant") {
+        const grantCategory = getMetadataString(event.metadata, "grant_category");
         const typeLabel = grantCategory
           ? (MANUAL_GRANT_TYPE_LABELS[grantCategory] ?? "Não identificado")
           : "Não identificado";
-        const reasonLabel =
-          getMetadataString(event.metadata, "reason_label") ?? "Não informado";
+        const reasonLabel = getMetadataString(event.metadata, "reason_label") ?? "Não informado";
         const expiresAt = getMetadataString(event.metadata, "expires_at");
-        const administratorName = getMetadataString(
-          event.metadata,
-          "administrator_name",
-        );
+        const administratorName = getMetadataString(event.metadata, "administrator_name");
         const internalNote = getMetadataString(event.metadata, "internal_note");
         const isSingular = Math.abs(event.amount) === 1;
         const validity = expiresAt
@@ -391,10 +381,7 @@ function mapCreditEvent(
           details: administratorName
             ? {
                 label: "Ver detalhes",
-                title:
-                  grantCategory === "extra"
-                    ? title
-                    : "Créditos adicionados manualmente",
+                title: grantCategory === "extra" ? title : "Créditos adicionados manualmente",
                 description: null,
                 reasonLabel: "Observação interna",
                 reason: internalNote ?? "Nenhuma observação informada.",
@@ -416,25 +403,33 @@ function mapCreditEvent(
         const completed = typeof refundAmount === "number";
         const copy = completed && action ? SUPPORT_HISTORY_COPY[action] : null;
         return {
-          id: event.id, title: copy?.title || event.description || "Atendimento da assinatura",
-          description: copy?.description || "Solicitação registrada pelo suporte.", createdAt: event.created_at,
-          primaryValue: typeof refundAmount === "number" && refundAmount > 0 ? formatCurrency(refundAmount) : event.amount === 0 ? "Registro de atendimento" : formatCreditsAmount(event.amount),
-          secondaryValue: null, category: "adjustment", valueTone: "neutral",
+          id: event.id,
+          title: copy?.title || event.description || "Atendimento da assinatura",
+          description: copy?.description || "Solicitação registrada pelo suporte.",
+          createdAt: event.created_at,
+          primaryValue:
+            typeof refundAmount === "number" && refundAmount > 0
+              ? formatCurrency(refundAmount)
+              : event.amount === 0
+                ? "Registro de atendimento"
+                : formatCreditsAmount(event.amount),
+          secondaryValue: null,
+          category: "adjustment",
+          valueTone: "neutral",
           details: {
-            label: "Ver detalhes do atendimento", title: null,
+            label: "Ver detalhes do atendimento",
+            title: null,
             description: null,
             reasonLabel: "Motivo informado pelo suporte",
-            reason: getMetadataString(event.metadata, "reason") || "Não informado", occurredAt: event.created_at,
+            reason: getMetadataString(event.metadata, "reason") || "Não informado",
+            occurredAt: event.created_at,
             startedAt: getMetadataString(event.metadata, "support_started_at"),
             completedAt: getMetadataString(event.metadata, "support_completed_at"),
             summary: getSupportHistorySummary(action, refundAmount),
           },
         };
       }
-      if (
-        getMetadataString(event.metadata, "adjustment_kind") ===
-        "withdrawal_hold"
-      ) {
+      if (getMetadataString(event.metadata, "adjustment_kind") === "withdrawal_hold") {
         return {
           id: event.id,
           title: "Créditos reservados durante a análise",
@@ -448,18 +443,9 @@ function mapCreditEvent(
         };
       }
 
-      if (
-        getMetadataString(event.metadata, "adjustment_kind") ===
-        "withdrawal_hold_release"
-      ) {
-        const reviewReason = getMetadataString(
-          event.metadata,
-          "withdrawal_review_reason"
-        );
-        const reviewedAt = getMetadataString(
-          event.metadata,
-          "withdrawal_reviewed_at"
-        );
+      if (getMetadataString(event.metadata, "adjustment_kind") === "withdrawal_hold_release") {
+        const reviewReason = getMetadataString(event.metadata, "withdrawal_review_reason");
+        const reviewedAt = getMetadataString(event.metadata, "withdrawal_reviewed_at");
 
         return {
           id: event.id,
@@ -475,8 +461,7 @@ function mapCreditEvent(
             ? {
                 label: "Ver detalhes da decisão",
                 title: "Decisão sobre o pedido de cancelamento",
-                description:
-                  "A solicitação foi analisada pelo suporte e não pôde ser aprovada.",
+                description: "A solicitação foi analisada pelo suporte e não pôde ser aprovada.",
                 reasonLabel: "Motivo informado pelo suporte",
                 reason: reviewReason,
                 occurredAt: reviewedAt,
@@ -488,9 +473,7 @@ function mapCreditEvent(
       return {
         id: event.id,
         title: "Ajuste de créditos",
-        description:
-          event.description ||
-          "Movimentação realizada pelo suporte da plataforma.",
+        description: event.description || "Movimentação realizada pelo suporte da plataforma.",
         createdAt: event.created_at,
         primaryValue: formatCreditsAmount(event.amount, event.amount > 0),
         secondaryValue: null,
@@ -516,24 +499,16 @@ function getPaymentMethodLabel(paymentMethod: string | null): string {
   }
 }
 
-function mapPaymentEvent(
-  event: SubscriptionHistoryPaymentEvent,
-): HistoryDisplayItem {
+function mapPaymentEvent(event: SubscriptionHistoryPaymentEvent): HistoryDisplayItem {
   const normalizedStatus = event.status.toLowerCase();
 
   const paymentMethod = getPaymentMethodLabel(event.payment_method);
 
-  const isApproved = ["active", "paid", "approved", "succeeded"].includes(
-    normalizedStatus,
-  );
+  const isApproved = ["active", "paid", "approved", "succeeded"].includes(normalizedStatus);
 
-  const isFailed = [
-    "failed",
-    "payment_failed",
-    "refused",
-    "declined",
-    "unpaid",
-  ].includes(normalizedStatus);
+  const isFailed = ["failed", "payment_failed", "refused", "declined", "unpaid"].includes(
+    normalizedStatus
+  );
 
   let description = `Pagamento realizado via ${paymentMethod}.`;
   let valueTone: HistoryDisplayItem["valueTone"] = "neutral";
@@ -554,9 +529,7 @@ function mapPaymentEvent(
 
   return {
     id: event.id,
-    title: event.plan_name
-      ? `Cobrança do plano ${event.plan_name}`
-      : "Cobrança da assinatura",
+    title: event.plan_name ? `Cobrança do plano ${event.plan_name}` : "Cobrança da assinatura",
     description,
     createdAt: event.paid_at ?? event.created_at,
     primaryValue: formatCurrency(event.amount_in_cents),
@@ -566,9 +539,7 @@ function mapPaymentEvent(
   };
 }
 
-export function mapSubscriptionHistoryItem(
-  event: SubscriptionHistoryEvent,
-): HistoryDisplayItem {
+export function mapSubscriptionHistoryItem(event: SubscriptionHistoryEvent): HistoryDisplayItem {
   if (event.kind === "payment") {
     return mapPaymentEvent(event);
   }

@@ -52,11 +52,7 @@ export function StartEssayCorrectionButton({
     <Button
       type="button"
       variant={
-        reviewStatus === "returned_to_teacher"
-          ? "outline"
-          : isPending
-            ? "dark"
-            : "secondary"
+        reviewStatus === "returned_to_teacher" ? "outline" : isPending ? "dark" : "secondary"
       }
       className="h-10 rounded-full text-sm font-bold"
       onClick={handleStartCorrection}

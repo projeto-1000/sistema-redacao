@@ -13,7 +13,6 @@ const LOGO_PATHS: Record<LogoVariant, string> = {
 };
 
 export function Logo({ variant = "default", className = "", ...props }: LogoProps) {
-
   return (
     <img
       src={LOGO_PATHS[variant]}

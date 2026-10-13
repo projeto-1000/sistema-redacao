@@ -15,20 +15,16 @@ export default async function ThemesPage({
 }) {
   const resolvedParams = await searchParams;
 
-  const filters = parseTopicsFilters(resolvedParams)
+  const filters = parseTopicsFilters(resolvedParams);
   const page = Number(resolvedParams?.page) || 1;
   const suspenseKey = JSON.stringify(resolvedParams);
 
   return (
-    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-8">
-
-      <PageHeader
-        title="Catálogo de Temas"
-        subtitle="Gestão dos temas cadastrados na plataforma"
-      >
-        <Button asChild className="rounded-xl font-bold h-10 w-full sm:w-fit">
+    <div className="min-h-dvh space-y-8 px-4 py-4 md:px-10 lg:px-12">
+      <PageHeader title="Catálogo de Temas" subtitle="Gestão dos temas cadastrados na plataforma">
+        <Button asChild className="h-10 w-full rounded-xl font-bold sm:w-fit">
           <Link href="/temas/novo-tema">
-            <Plus className="size-4 mr-2" />
+            <Plus className="mr-2 size-4" />
             Adicionar Tema
           </Link>
         </Button>
@@ -38,7 +34,7 @@ export default async function ThemesPage({
 
       <Suspense
         key={suspenseKey}
-        fallback={<Skeleton className="rounded-3xl min-h-[250px] bg-slate-200 mt-6" />}
+        fallback={<Skeleton className="mt-6 min-h-[250px] rounded-3xl bg-slate-200" />}
       >
         <TopicsGrid filters={filters} page={page} />
       </Suspense>

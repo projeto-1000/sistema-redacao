@@ -8,9 +8,7 @@ import {
   evaluateExtraCreditOrder,
 } from "./policy";
 import { getExtraCreditPaymentCardLifecycleAction } from "@/services/payments/payment-card-policy";
-import {
-  deactivatePaymentCardCreatedForOperation,
-} from "@/services/payments/payment-cards";
+import { deactivatePaymentCardCreatedForOperation } from "@/services/payments/payment-cards";
 
 export interface ExtraCreditPaymentForWebhook {
   id: string;
@@ -37,7 +35,7 @@ const PAYMENT_COLUMNS = `
 function isUuid(value: string | undefined): value is string {
   return Boolean(
     value &&
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
   );
 }
 

@@ -34,7 +34,7 @@ function activeRate(rates: TeacherCorrectionRate[], teacherId: string | null, mo
       (rate) =>
         rate.teacher_id === teacherId &&
         rate.effective_from <= month &&
-        (!rate.effective_to || rate.effective_to >= month),
+        (!rate.effective_to || rate.effective_to >= month)
     )
     .sort((a, b) => b.effective_from.localeCompare(a.effective_from))[0];
 }

@@ -12,13 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "./dropdown-menu";
 import { Logo } from "./logo";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetTitle,
-  SheetTrigger,
-} from "./sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "./sheet";
 
 export interface HeaderNavItem {
   label: string;
@@ -64,28 +58,17 @@ function isItemActive(activePath: string, href: string) {
   return activePath === href || activePath.startsWith(`${href}/`);
 }
 
-export function Header({
-  items,
-  activePath = "",
-  onLogout,
-  collapseAt = "md",
-}: HeaderProps) {
+export function Header({ items, activePath = "", onLogout, collapseAt = "md" }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const responsiveClasses = RESPONSIVE_CLASSES[collapseAt];
   const primaryItems = items.filter(
-    (item) => !item.desktopPlacement || item.desktopPlacement === "primary",
+    (item) => !item.desktopPlacement || item.desktopPlacement === "primary"
   );
-  const overflowItems = items.filter(
-    (item) => item.desktopPlacement === "overflow",
-  );
+  const overflowItems = items.filter((item) => item.desktopPlacement === "overflow");
   const accountItem = items.find((item) => item.desktopPlacement === "account");
-  const isAccountActive = accountItem
-    ? isItemActive(activePath, accountItem.href)
-    : false;
-  const hasActiveOverflowItem = overflowItems.some((item) =>
-    isItemActive(activePath, item.href),
-  );
+  const isAccountActive = accountItem ? isItemActive(activePath, accountItem.href) : false;
+  const hasActiveOverflowItem = overflowItems.some((item) => isItemActive(activePath, item.href));
 
   const mobileGroups = useMemo(() => {
     const groups = new Map<string, HeaderNavItem[]>();
@@ -128,9 +111,7 @@ export function Header({
         </a>
       </div>
 
-      <div
-        className={`${responsiveClasses.desktop} items-center justify-end gap-4`}
-      >
+      <div className={`${responsiveClasses.desktop} items-center justify-end gap-4`}>
         <nav
           aria-label="Navegação principal"
           className="flex items-center gap-3 text-sm font-medium"
@@ -144,7 +125,7 @@ export function Header({
                 href={item.href}
                 data-active={isActive}
                 className={`story-link whitespace-nowrap transition-colors duration-300 ${
-                  isActive ? "font-bold" : "text-slate-600 hover:text-primary"
+                  isActive ? "font-bold" : "hover:text-primary text-slate-600"
                 }`}
               >
                 {item.label}
@@ -158,11 +139,11 @@ export function Header({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className={`flex h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold outline-none transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                className={`focus-visible:ring-primary/40 flex h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold transition-colors outline-none hover:bg-slate-100 focus-visible:ring-2 ${
                   hasActiveOverflowItem ? "text-primary" : "text-slate-700"
                 }`}
               >
-                <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <span className="bg-primary/10 text-primary flex size-7 items-center justify-center rounded-full">
                   <Ellipsis className="size-4" />
                 </span>
                 Mais
@@ -180,7 +161,7 @@ export function Header({
                   asChild
                   className={`rounded-lg px-3 py-2.5 font-medium ${
                     isItemActive(activePath, item.href)
-                      ? "bg-blue-50 text-primary focus:bg-blue-50 focus:text-primary"
+                      ? "text-primary focus:text-primary bg-blue-50 focus:bg-blue-50"
                       : "text-slate-700"
                   }`}
                 >
@@ -194,17 +175,15 @@ export function Header({
         {accountItem && (
           <a
             href={accountItem.href}
-            className={`flex h-10 items-center gap-2 whitespace-nowrap rounded-xl px-2.5 text-sm font-semibold transition-colors hover:bg-slate-100 ${
+            className={`flex h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold whitespace-nowrap transition-colors hover:bg-slate-100 ${
               isAccountActive
-                ? "bg-primary/10 text-slate-900 ring-1 ring-primary/20 hover:bg-primary/10"
+                ? "bg-primary/10 ring-primary/20 hover:bg-primary/10 text-slate-900 ring-1"
                 : "text-slate-700"
             }`}
           >
             <span
               className={`flex size-8 items-center justify-center rounded-full ${
-                isAccountActive
-                  ? "bg-white text-primary shadow-sm"
-                  : "bg-slate-100"
+                isAccountActive ? "text-primary bg-white shadow-sm" : "bg-slate-100"
               }`}
             >
               <UserRound className="size-4" />
@@ -229,23 +208,19 @@ export function Header({
       </div>
 
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <div
-          className={`${responsiveClasses.mobile} shrink-0 items-center gap-2`}
-        >
+        <div className={`${responsiveClasses.mobile} shrink-0 items-center gap-2`}>
           {accountItem && (
             <a
               href={accountItem.href}
               className={`flex h-10 items-center gap-2 rounded-xl px-2 text-sm font-semibold transition-colors ${
                 isAccountActive
-                  ? "bg-primary/10 text-slate-900 ring-1 ring-primary/20"
+                  ? "bg-primary/10 ring-primary/20 text-slate-900 ring-1"
                   : "text-slate-700 hover:bg-slate-100"
               }`}
             >
               <span
                 className={`flex size-8 items-center justify-center rounded-full ${
-                  isAccountActive
-                    ? "bg-white text-primary shadow-sm"
-                    : "bg-slate-100"
+                  isAccountActive ? "text-primary bg-white shadow-sm" : "bg-slate-100"
                 }`}
               >
                 <UserRound className="size-4" />
@@ -257,9 +232,9 @@ export function Header({
             <button
               type="button"
               disabled={isLoggingOut}
-              className="flex h-10 items-center gap-2 rounded-xl bg-primary/5 px-3 text-sm font-bold text-primary transition-colors hover:bg-primary/10 disabled:pointer-events-none disabled:opacity-50"
+              className="bg-primary/5 text-primary hover:bg-primary/10 flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-bold transition-colors disabled:pointer-events-none disabled:opacity-50"
             >
-              <Menu className="size-4 text-primary" />
+              <Menu className="text-primary size-4" />
               <span>Menu</span>
             </button>
           </SheetTrigger>

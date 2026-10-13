@@ -16,8 +16,7 @@ interface CorrectionReviewTableProps {
   actionLabel?: string;
 }
 
-const TEACHER_GRID =
-  "lg:grid-cols-[minmax(0,2.2fr)_minmax(0,3.8fr)_minmax(0,1fr)_minmax(0,2.5fr)]";
+const TEACHER_GRID = "lg:grid-cols-[minmax(0,2.2fr)_minmax(0,3.8fr)_minmax(0,1fr)_minmax(0,2.5fr)]";
 const ADMIN_GRID =
   "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)_minmax(0,1.2fr)_4.5rem_10.5rem_7rem] xl:grid-cols-[minmax(0,1.3fr)_minmax(0,2fr)_minmax(0,1.3fr)_minmax(0,0.8fr)_minmax(0,2.25fr)_minmax(0,2.25fr)]";
 
@@ -28,34 +27,30 @@ export function CorrectionReviewTable({
 }: CorrectionReviewTableProps) {
   const grid = showTeacher ? ADMIN_GRID : TEACHER_GRID;
   const showAction = reviews.some((review) => Boolean(review.actionHref));
-  const tableSpacing = showTeacher
-    ? "lg:gap-3 lg:px-5 xl:gap-4 xl:px-8"
-    : "lg:gap-4 lg:px-8";
+  const tableSpacing = showTeacher ? "lg:gap-3 lg:px-5 xl:gap-4 xl:px-8" : "lg:gap-4 lg:px-8";
 
   return (
     <div className="overflow-hidden rounded-4xl border border-slate-200 bg-white shadow-sm">
       <div
         className={`hidden ${grid} ${tableSpacing} border-b border-slate-100 bg-slate-50/50 py-5 lg:grid`}
       >
-        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          Aluno
-        </div>
-        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <div className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Aluno</div>
+        <div className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
           Tema da redação
         </div>
         {showTeacher && (
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <div className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
             Professor
           </div>
         )}
-        <div className="text-center text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-slate-400">
+        <div className="text-center text-[10px] font-bold tracking-widest whitespace-nowrap text-slate-400 uppercase">
           Prazo
         </div>
-        <div className="text-right text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-slate-400">
+        <div className="text-right text-[10px] font-bold tracking-widest whitespace-nowrap text-slate-400 uppercase">
           Status
         </div>
         {showAction && (
-          <div className="text-right text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <div className="text-right text-[10px] font-bold tracking-widest text-slate-400 uppercase">
             Ação
           </div>
         )}
@@ -73,9 +68,7 @@ export function CorrectionReviewTable({
               className={`size-9 shrink-0 rounded-full border border-slate-200 ${showTeacher ? "lg:hidden xl:block" : ""}`}
             />
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-slate-800">
-                {review.studentName}
-              </p>
+              <p className="truncate text-sm font-bold text-slate-800">{review.studentName}</p>
               <p className="text-xs text-slate-500">
                 Data de envio: {formatDate(review.submittedAt, "numeric")}
               </p>
@@ -83,7 +76,7 @@ export function CorrectionReviewTable({
           </div>
 
           <div className="col-span-2 min-w-0 lg:col-span-1">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 lg:hidden">
+            <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
               Tema
             </span>
             <p
@@ -96,12 +89,10 @@ export function CorrectionReviewTable({
 
           {showTeacher && (
             <div className="col-span-2 min-w-0 lg:col-span-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 lg:hidden">
+              <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
                 Professor
               </span>
-              <p className="truncate text-sm font-medium text-slate-700">
-                {review.teacherName}
-              </p>
+              <p className="truncate text-sm font-medium text-slate-700">{review.teacherName}</p>
             </div>
           )}
 
@@ -113,10 +104,10 @@ export function CorrectionReviewTable({
           </div>
 
           <div className="col-span-2 lg:col-span-1 lg:justify-self-end">
-            <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400 lg:hidden">
+            <span className="mb-1 block text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
               Status
             </span>
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide whitespace-nowrap text-violet-700">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[10px] font-bold tracking-wide whitespace-nowrap text-violet-700 uppercase">
               <Hourglass className="size-3" />
               Aguardando revisão
             </div>
@@ -124,11 +115,7 @@ export function CorrectionReviewTable({
 
           {review.actionHref && (
             <div className="col-span-2 flex justify-end lg:col-span-1">
-              <Button
-                asChild
-                variant="secondary"
-                className="rounded-2xl font-bold"
-              >
+              <Button asChild variant="secondary" className="rounded-2xl font-bold">
                 <Link href={review.actionHref}>
                   <span className="lg:hidden">{actionLabel}</span>
                   <span className="hidden lg:inline xl:hidden">Revisar</span>

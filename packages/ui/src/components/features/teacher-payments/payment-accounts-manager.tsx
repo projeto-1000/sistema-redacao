@@ -6,12 +6,7 @@ import type { AccountFormValues } from "@repo/validators";
 import { CheckCircle2, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@repo/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@repo/ui/components/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/components/dialog";
 import { PaymentAccountForm } from "./payment-account-form";
 import { PaymentAccountsList } from "./payment-accounts-list";
 
@@ -23,10 +18,7 @@ interface ActionResult {
 interface PaymentAccountsManagerProps {
   accounts: TeacherPaymentAccount[];
   createAccount: (values: AccountFormValues) => Promise<ActionResult>;
-  updateAccount: (
-    accountId: string,
-    values: AccountFormValues,
-  ) => Promise<ActionResult>;
+  updateAccount: (accountId: string, values: AccountFormValues) => Promise<ActionResult>;
   deleteAccount: (accountId: string) => Promise<ActionResult>;
   setDefaultAccount: (accountId: string) => Promise<ActionResult>;
 }
@@ -38,9 +30,7 @@ export function PaymentAccountsManager({
   deleteAccount,
   setDefaultAccount,
 }: PaymentAccountsManagerProps) {
-  const [editing, setEditing] = useState<TeacherPaymentAccount | "new" | null>(
-    null,
-  );
+  const [editing, setEditing] = useState<TeacherPaymentAccount | "new" | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const submit = async (values: AccountFormValues) => {
@@ -54,11 +44,7 @@ export function PaymentAccountsManager({
       : await updateAccount(editing.id, values);
 
     if (result.success) {
-      toast.success(
-        isCreating
-          ? "Conta cadastrada com sucesso."
-          : "Conta atualizada com sucesso.",
-      );
+      toast.success(isCreating ? "Conta cadastrada com sucesso." : "Conta atualizada com sucesso.");
       setEditing(null);
     }
 
@@ -87,10 +73,7 @@ export function PaymentAccountsManager({
       <PaymentAccountsList
         accounts={accounts}
         createAction={
-          <Button
-            onClick={() => setEditing("new")}
-            className="rounded-xl font-bold"
-          >
+          <Button onClick={() => setEditing("new")} className="rounded-xl font-bold">
             <Plus className="size-4" /> Adicionar conta
           </Button>
         }
@@ -130,10 +113,7 @@ export function PaymentAccountsManager({
         )}
       />
 
-      <Dialog
-        open={editing !== null}
-        onOpenChange={(open) => !open && setEditing(null)}
-      >
+      <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="no-scrollbar max-h-[90dvh] max-w-2xl overflow-y-auto rounded-4xl border-none p-6 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black">

@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  ResponsiveContainer,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
+import { LineChart, Line, XAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 import { useState } from "react";
 
 interface EvolutionData {
@@ -25,9 +18,8 @@ export function EvolutionGraph({ data }: EvolutionGraphProps) {
   const displayData = timeRange === "3M" ? data.slice(-3) : data;
 
   return (
-    <div className="w-full h-full flex flex-col">
-
-      <div className="flex justify-end gap-2 mb-4">
+    <div className="flex h-full w-full flex-col">
+      <div className="mb-4 flex justify-end gap-2">
         {["3 Meses", "6 Meses"].map((label) => {
           const value = label.startsWith("3") ? "3M" : "6M";
           const isActive = timeRange === value;
@@ -35,13 +27,11 @@ export function EvolutionGraph({ data }: EvolutionGraphProps) {
             <button
               key={value}
               onClick={() => setTimeRange(value as "3M" | "6M")}
-              className={`
-                px-3 py-1 rounded-full text-xs font-bold transition-colors
-                ${isActive
+              className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
+                isActive
                   ? "bg-secondary text-secondary-foreground"
                   : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-                }
-              `}
+              } `}
             >
               {label}
             </button>
@@ -49,7 +39,7 @@ export function EvolutionGraph({ data }: EvolutionGraphProps) {
         })}
       </div>
 
-      <div className="w-full h-[200px] -ml-4 min-w-0">
+      <div className="-ml-4 h-[200px] w-full min-w-0">
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={displayData}>
             <CartesianGrid
@@ -69,12 +59,12 @@ export function EvolutionGraph({ data }: EvolutionGraphProps) {
             />
 
             <Tooltip
-              cursor={{ stroke: 'var(--color-muted)', strokeWidth: 2 }}
+              cursor={{ stroke: "var(--color-muted)", strokeWidth: 2 }}
               contentStyle={{
-                backgroundColor: '#fff',
-                borderRadius: '12px',
-                border: 'none',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                backgroundColor: "#fff",
+                borderRadius: "12px",
+                border: "none",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
               }}
             />
 

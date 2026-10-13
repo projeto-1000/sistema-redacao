@@ -19,7 +19,7 @@ export default async function Dashboard({
   const weeklyData = await getWeeklyVolumeData(0);
 
   return (
-    <div className="space-y-8 px-4 md:px-10 lg:px-12 py-4">
+    <div className="space-y-8 px-4 py-4 md:px-10 lg:px-12">
       <QuickServices />
 
       <GeneralMetrics />
@@ -28,11 +28,10 @@ export default async function Dashboard({
 
       <Suspense
         key={suspenseKey}
-        fallback={<Skeleton className="rounded-3xl min-h-[250px] bg-slate-200 mt-6" />}
+        fallback={<Skeleton className="mt-6 min-h-[250px] rounded-3xl bg-slate-200" />}
       >
         <PendingEssaysTable showHeader={true} page={page} />
       </Suspense>
-
     </div>
-  )
+  );
 }

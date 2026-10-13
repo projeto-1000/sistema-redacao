@@ -18,10 +18,7 @@ import { ReturnEssayDialog, ReturnEssayParams } from "./return-essay-dialog";
 import { CorrectionSummaryFields } from "./correction-summary-fields";
 import { queuePostRedirectSuccessToast } from "../../../post-redirect-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  finalCorrectionSchema,
-  type FinalCorrectionInput,
-} from "@repo/validators";
+import { finalCorrectionSchema, type FinalCorrectionInput } from "@repo/validators";
 import { useForm } from "react-hook-form";
 interface EssayCorrectionWorkspaceProps {
   essay: {
@@ -50,14 +47,10 @@ interface EssayCorrectionWorkspaceProps {
   successMessage?: string;
 }
 
-function normalizeInitialFormValues(
-  initialDraft?: CorrectionPayload | null
-): FinalCorrectionInput {
-  const priorities =
-    initialDraft?.next_essay_priorities ?? [];
+function normalizeInitialFormValues(initialDraft?: CorrectionPayload | null): FinalCorrectionInput {
+  const priorities = initialDraft?.next_essay_priorities ?? [];
 
-  const rewriteTasks =
-    initialDraft?.rewrite_tasks ?? [];
+  const rewriteTasks = initialDraft?.rewrite_tasks ?? [];
 
   return {
     scores: initialDraft?.scores ?? {
@@ -80,15 +73,9 @@ function normalizeInitialFormValues(
 
     main_bottleneck: initialDraft?.main_bottleneck ?? "",
 
-    next_essay_priorities:
-      priorities.length > 0
-        ? priorities.slice(0, 3)
-        : [""],
+    next_essay_priorities: priorities.length > 0 ? priorities.slice(0, 3) : [""],
 
-    rewrite_tasks:
-      rewriteTasks.length > 0
-        ? rewriteTasks.slice(0, 3)
-        : [""],
+    rewrite_tasks: rewriteTasks.length > 0 ? rewriteTasks.slice(0, 3) : [""],
 
     highlights: initialDraft?.highlights ?? [],
   };
@@ -107,9 +94,7 @@ function serializeHighlights(
   }));
 }
 
-function serializeCorrectionPayload(
-  payload: FinalCorrectionInput
-): CorrectionPayload {
+function serializeCorrectionPayload(payload: FinalCorrectionInput): CorrectionPayload {
   return {
     ...payload,
     highlights: serializeHighlights(payload.highlights),
@@ -135,11 +120,7 @@ export function EssayCorrectionWorkspace({
     setValue,
     getValues,
     handleSubmit,
-    formState: {
-      errors,
-      isValid,
-      isSubmitting,
-    },
+    formState: { errors, isValid, isSubmitting },
   } = useForm<FinalCorrectionInput>({
     resolver: zodResolver(finalCorrectionSchema),
     mode: "onChange",
@@ -150,11 +131,8 @@ export function EssayCorrectionWorkspace({
   const comments = watch("comments");
   const generalComment = watch("general_comment");
   const mainBottleneck = watch("main_bottleneck");
-  const nextEssayPriorities = watch(
-    "next_essay_priorities"
-  );
+  const nextEssayPriorities = watch("next_essay_priorities");
   const rewriteTasks = watch("rewrite_tasks");
-
 
   const [highlights, setHighlights] = useState<Highlight[]>(
     (initialDraft?.highlights as Highlight[]) || []
@@ -172,13 +150,9 @@ export function EssayCorrectionWorkspace({
   const finalizationStartedRef = useRef(false);
 
   useEffect(() => {
-    setValue(
-      "highlights",
-      serializeHighlights(highlights),
-      {
-        shouldValidate: true,
-      }
-    );
+    setValue("highlights", serializeHighlights(highlights), {
+      shouldValidate: true,
+    });
   }, [highlights, setValue]);
 
   useEffect(() => {
@@ -232,7 +206,7 @@ export function EssayCorrectionWorkspace({
   const handleActivateHighlightMode = (compId: string) => {
     if (readOnly) return;
 
-    setActiveHighlightComp(prev => prev === compId ? null : compId);
+    setActiveHighlightComp((prev) => (prev === compId ? null : compId));
   };
 
   const submitCorrection = handleSubmit(
@@ -246,15 +220,12 @@ export function EssayCorrectionWorkspace({
 
         await pendingAutoSaveRef.current;
 
-        const result =
-          await onSaveCorrection(serializeCorrectionPayload(payload));
+        const result = await onSaveCorrection(serializeCorrectionPayload(payload));
 
         if (result.success) {
-          const destinationPath = result.reviewRequired
-            ? "/redacoes-pendentes"
-            : redirectPath;
+          const destinationPath = result.reviewRequired ? "/redacoes-pendentes" : redirectPath;
           const confirmationMessage = result.reviewRequired
-            ? result.message ?? "Correção enviada para revisão."
+            ? (result.message ?? "Correção enviada para revisão.")
             : successMessage;
 
           queuePostRedirectSuccessToast(confirmationMessage, destinationPath);
@@ -265,34 +236,21 @@ export function EssayCorrectionWorkspace({
 
         finalizationStartedRef.current = false;
 
-        toast.error(
-          result.error ??
-          "Não foi possível salvar a correção."
-        );
+        toast.error(result.error ?? "Não foi possível salvar a correção.");
       } catch (error) {
         finalizationStartedRef.current = false;
 
-        console.error(
-          "Erro ao salvar correção:",
-          error
-        );
+        console.error("Erro ao salvar correção:", error);
 
-        toast.error(
-          "Não foi possível salvar a correção."
-        );
+        toast.error("Não foi possível salvar a correção.");
       }
     },
     (errors) => {
       finalizationStartedRef.current = false;
 
-      console.error(
-        "Correção inválida:",
-        errors
-      );
+      console.error("Correção inválida:", errors);
 
-      toast.error(
-        "Preencha todos os campos obrigatórios antes de finalizar."
-      );
+      toast.error("Preencha todos os campos obrigatórios antes de finalizar.");
     }
   );
 
@@ -311,9 +269,8 @@ export function EssayCorrectionWorkspace({
     void submitCorrection();
   };
 
-
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="flex min-h-dvh flex-col">
       <EssayHeader
         title={"Espaço de Correção"}
         date={essay.created_at}
@@ -322,10 +279,7 @@ export function EssayCorrectionWorkspace({
         className="mb-4 md:mb-6"
       >
         {!readOnly && onReturnEssay && (
-          <ReturnEssayDialog
-            essayId={essay.id}
-            onReturnEssay={onReturnEssay}
-          />
+          <ReturnEssayDialog essayId={essay.id} onReturnEssay={onReturnEssay} />
         )}
       </EssayHeader>
 
@@ -345,27 +299,15 @@ export function EssayCorrectionWorkspace({
           <CorrectionSummaryFields
             mainBottleneck={mainBottleneck}
             onMainBottleneckChange={(value) =>
-              setValue(
-                "main_bottleneck",
-                value,
-                { shouldDirty: true, shouldValidate: true }
-              )
+              setValue("main_bottleneck", value, { shouldDirty: true, shouldValidate: true })
             }
             nextEssayPriorities={nextEssayPriorities}
             onNextEssayPrioritiesChange={(value) =>
-              setValue(
-                "next_essay_priorities",
-                value,
-                { shouldDirty: true, shouldValidate: true }
-              )
+              setValue("next_essay_priorities", value, { shouldDirty: true, shouldValidate: true })
             }
             rewriteTasks={rewriteTasks}
             onRewriteTasksChange={(value) =>
-              setValue(
-                "rewrite_tasks",
-                value,
-                { shouldDirty: true, shouldValidate: true }
-              )
+              setValue("rewrite_tasks", value, { shouldDirty: true, shouldValidate: true })
             }
             readOnly={readOnly}
           />
@@ -384,24 +326,17 @@ export function EssayCorrectionWorkspace({
                 score={scores[compKey]}
                 comment={comments[compKey]}
                 commentError={errors.comments?.[compKey]?.message}
-                highlights={highlights.filter(
-                  (highlight) => highlight.compId === compKey
-                )}
+                highlights={highlights.filter((highlight) => highlight.compId === compKey)}
                 activeHighlightId={activeHighlightId}
                 onSelectHighlight={setActiveHighlightId}
                 onScoreChange={(value) =>
-                  setValue(
-                    `scores.${compKey}`,
-                    value,
-                    { shouldDirty: true, shouldValidate: true }
-                  )
+                  setValue(`scores.${compKey}`, value, { shouldDirty: true, shouldValidate: true })
                 }
                 onCommentChange={(value) =>
-                  setValue(
-                    `comments.${compKey}`,
-                    value,
-                    { shouldDirty: true, shouldValidate: true }
-                  )
+                  setValue(`comments.${compKey}`, value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
                 }
                 readOnly={readOnly}
               />
@@ -418,11 +353,10 @@ export function EssayCorrectionWorkspace({
               value={generalComment}
               readOnly={readOnly}
               onChange={(event) =>
-                setValue(
-                  "general_comment",
-                  event.target.value,
-                  { shouldDirty: true, shouldValidate: true }
-                )
+                setValue("general_comment", event.target.value, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
               }
             />
           </div>

@@ -37,15 +37,11 @@ function getCardBrandLabel(brand: string | null) {
   return labels[normalizedBrand] ?? brand;
 }
 
-export function PaymentCardSelector({
-  cards,
-  value,
-  onChange,
-}: PaymentCardSelectorProps) {
+export function PaymentCardSelector({ cards, value, onChange }: PaymentCardSelectorProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">
+        <h4 className="text-xs font-bold tracking-widest text-slate-400 uppercase">
           Forma de pagamento
         </h4>
       </div>
@@ -72,8 +68,7 @@ export function PaymentCardSelector({
         className="grid grid-cols-1 gap-3"
       >
         {cards.map((card) => {
-          const isSelected =
-            value?.type === "saved_card" && value.paymentCardId === card.id;
+          const isSelected = value?.type === "saved_card" && value.paymentCardId === card.id;
 
           return (
             <label
@@ -89,9 +84,7 @@ export function PaymentCardSelector({
               <div
                 className={cn(
                   "flex size-8 shrink-0 items-center justify-center rounded-lg",
-                  isSelected
-                    ? "bg-primary text-amber-950"
-                    : "bg-slate-100 text-slate-600"
+                  isSelected ? "bg-primary text-amber-950" : "bg-slate-100 text-slate-600"
                 )}
               >
                 <CreditCard className="size-4" />
@@ -104,7 +97,7 @@ export function PaymentCardSelector({
                   </p>
 
                   {card.isDefault ? (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-slate-500 uppercase">
                       Padrão
                     </span>
                   ) : null}
@@ -125,9 +118,7 @@ export function PaymentCardSelector({
           className={cn(
             "flex cursor-pointer items-center gap-4 rounded-2xl border bg-white px-4 py-2.5 transition",
             "hover:border-primary/50 hover:bg-primary/5",
-            value?.type === "new_card"
-              ? "border-primary bg-primary/10"
-              : "border-slate-200"
+            value?.type === "new_card" ? "border-primary bg-primary/10" : "border-slate-200"
           )}
         >
           <RadioGroupItem value="new_card" className="sr-only" />
@@ -148,9 +139,7 @@ export function PaymentCardSelector({
       </RadioGroup>
 
       {cards.length === 0 && value?.type !== "new_card" ? (
-        <p className="text-sm font-medium text-slate-500">
-          Você ainda não possui cartões salvos.
-        </p>
+        <p className="text-sm font-medium text-slate-500">Você ainda não possui cartões salvos.</p>
       ) : null}
     </div>
   );

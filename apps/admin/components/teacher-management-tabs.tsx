@@ -8,7 +8,9 @@ export function TeacherManagementTabs({ active }: { active: "teachers" | "rates"
         href="/professores"
         className={cn(
           "border-b-2 px-5 py-3 text-sm font-bold transition-colors",
-          active === "teachers" ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-900",
+          active === "teachers"
+            ? "border-blue-600 text-blue-600"
+            : "border-transparent text-slate-500 hover:text-slate-900"
         )}
       >
         Professores
@@ -17,7 +19,9 @@ export function TeacherManagementTabs({ active }: { active: "teachers" | "rates"
         href="/professores/valores-correcao"
         className={cn(
           "border-b-2 px-5 py-3 text-sm font-bold transition-colors",
-          active === "rates" ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-900",
+          active === "rates"
+            ? "border-blue-600 text-blue-600"
+            : "border-transparent text-slate-500 hover:text-slate-900"
         )}
       >
         Valores de correção

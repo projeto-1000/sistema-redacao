@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@repo/ui/components/page-header";
-import { PaymentDashboardNav, type TeacherPaymentsTab } from "@repo/ui/components/features/teacher-payments/payment-dashboard-nav";
+import {
+  PaymentDashboardNav,
+  type TeacherPaymentsTab,
+} from "@repo/ui/components/features/teacher-payments/payment-dashboard-nav";
 import { PaymentOverview } from "@repo/ui/components/features/teacher-payments/payment-overview";
 import { PaymentHistory } from "@repo/ui/components/features/teacher-payments/payment-history";
 import { PaymentMonthFilter } from "@repo/ui/components/features/teacher-payments/payment-month-filter";
@@ -17,9 +20,11 @@ function currentMonth() {
 }
 
 function formatMonth(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" }).format(
-    new Date(`${value}-01T12:00:00Z`),
-  );
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${value}-01T12:00:00Z`));
 }
 
 function parseTab(value?: string): TeacherPaymentsTab {
@@ -41,7 +46,10 @@ export default async function TeacherPaymentsPage({
 
   return (
     <div className="min-h-dvh space-y-6 px-4 py-4 md:px-10 lg:px-12">
-      <PageHeader title="Gerenciar pagamentos" subtitle="Acompanhe seus ganhos, pagamentos e dados bancários." />
+      <PageHeader
+        title="Gerenciar pagamentos"
+        subtitle="Acompanhe seus ganhos, pagamentos e dados bancários."
+      />
       <PaymentDashboardNav activeTab={activeTab} baseHref={baseHref} />
       {activeTab === "overview" && <PaymentMonthFilter />}
 

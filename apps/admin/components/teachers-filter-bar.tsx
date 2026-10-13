@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
 import { useTeachersFilters } from "@/hooks/use-teachers-filter";
 import { TableFilterBar } from "@repo/ui/components/table-filter-bar";
 
 export default function TeachersFilterBar() {
-  const { searchTerm, setSearchTerm, filterOptions } = useTeachersFilters()
+  const { searchTerm, setSearchTerm, filterOptions } = useTeachersFilters();
 
   return (
     <TableFilterBar
@@ -14,5 +14,5 @@ export default function TeachersFilterBar() {
       filters={filterOptions}
       theme="admin"
     />
-  )
+  );
 }

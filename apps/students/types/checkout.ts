@@ -71,8 +71,7 @@ interface CreateCheckoutSubscriptionBaseInput {
 
 type CreateCheckoutCardSubscriptionInput = CreateCheckoutSubscriptionBaseInput & {
   paymentMethod: Extract<PagarmePaymentMethod, "credit_card" | "debit_card">;
-} &
-  (
+} & (
     | {
         paymentCardId: string;
         cardToken?: never;
@@ -90,8 +89,7 @@ type CreateCheckoutBoletoSubscriptionInput = CreateCheckoutSubscriptionBaseInput
 };
 
 export type CreateCheckoutSubscriptionInput =
-  | CreateCheckoutCardSubscriptionInput
-  | CreateCheckoutBoletoSubscriptionInput;
+  CreateCheckoutCardSubscriptionInput | CreateCheckoutBoletoSubscriptionInput;
 
 export interface CreateCheckoutSubscriptionResult {
   success: true;

@@ -1,8 +1,5 @@
 export type SubscriptionSupportAction =
-  | "cancel_only"
-  | "cancel_refund"
-  | "refund_courtesy"
-  | "refund_only";
+  "cancel_only" | "cancel_refund" | "refund_courtesy" | "refund_only";
 
 export interface SubscriptionSupportInput {
   operationId: string;

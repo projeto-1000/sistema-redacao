@@ -8,11 +8,7 @@ interface PendingEssaysTableProps {
   viewAllHref?: string;
 }
 
-export function PendingEssaysTable({
-  children,
-  heading,
-  viewAllHref,
-}: PendingEssaysTableProps) {
+export function PendingEssaysTable({ children, heading, viewAllHref }: PendingEssaysTableProps) {
   const hasHeading = Boolean(heading && viewAllHref);
 
   return (
@@ -34,16 +30,14 @@ export function PendingEssaysTable({
           hasHeading ? "bg-transparent pb-5" : "bg-slate-50/50 py-5"
         }`}
       >
-        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          Aluno
-        </div>
-        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <div className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Aluno</div>
+        <div className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
           Tema da redação
         </div>
-        <div className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <div className="text-center text-[10px] font-bold tracking-widest text-slate-400 uppercase">
           Prazo
         </div>
-        <div className="text-right text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <div className="text-right text-[10px] font-bold tracking-widest text-slate-400 uppercase">
           Ação
         </div>
       </div>

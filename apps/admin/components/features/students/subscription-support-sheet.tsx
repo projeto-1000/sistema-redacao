@@ -26,7 +26,14 @@ import { Label } from "@repo/ui/components/label";
 import { Textarea } from "@repo/ui/components/textarea";
 import { Alert, AlertDescription } from "@repo/ui/components/alert";
 import { formatCurrency, formatDate } from "@repo/utils";
-import { CalendarClock, CircleDollarSign, Gift, Loader2, RefreshCcw, BanknoteX } from "lucide-react";
+import {
+  CalendarClock,
+  CircleDollarSign,
+  Gift,
+  Loader2,
+  RefreshCcw,
+  BanknoteX,
+} from "lucide-react";
 import { SubscriptionSupportSummary } from "./subscription-support-summary";
 import { SubscriptionSupportStepper } from "./subscription-support-stepper";
 import { SubscriptionSupportContextCard } from "./subscription-support-context-card";
@@ -38,7 +45,13 @@ const actionIcons = {
   refund_only: RefreshCcw,
 };
 
-export function SubscriptionSupportSheet({ studentId, disabled = false }: { studentId: string; disabled?: boolean }) {
+export function SubscriptionSupportSheet({
+  studentId,
+  disabled = false,
+}: {
+  studentId: string;
+  disabled?: boolean;
+}) {
   const form = useSubscriptionSupport(studentId);
   const context = form.context;
   const summary = context && (
@@ -307,11 +320,7 @@ export function SubscriptionSupportSheet({ studentId, disabled = false }: { stud
               }
             >
               {form.pending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {form.step === 1
-                ? "Continuar"
-                : form.step === 2
-                  ? "Revisar"
-                  : "Confirmar"}
+              {form.step === 1 ? "Continuar" : form.step === 2 ? "Revisar" : "Confirmar"}
             </Button>
           </footer>
         )}

@@ -21,7 +21,7 @@ export function CancellationStudentRow({ group }: { group: CancellationHistoryGr
       value={group.studentId}
       className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm last:border-b"
     >
-      <AccordionTrigger className="items-center rounded-none  px-6 py-5 hover:no-underline [&>svg]:text-blue-600">
+      <AccordionTrigger className="items-center rounded-none px-6 py-5 hover:no-underline [&>svg]:text-blue-600">
         <span className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-4">
           <span className="min-w-0">
             <span className="block text-lg font-bold text-slate-800">

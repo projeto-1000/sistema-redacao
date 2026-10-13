@@ -19,8 +19,7 @@ export default async function TeachersManagementPage({
   const filters = parseTeachersFilters(resolvedParams);
 
   return (
-    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-8">
-
+    <div className="min-h-dvh space-y-8 px-4 py-4 md:px-10 lg:px-12">
       <PageHeader
         title="Gestão de Professores"
         subtitle="Gerencie o acesso e desempenho da sua equipe docente."
@@ -34,14 +33,10 @@ export default async function TeachersManagementPage({
 
       <Suspense
         key={suspenseKey}
-        fallback={<Skeleton className="rounded-3xl min-h-[250px] bg-slate-200 mt-6" />}
+        fallback={<Skeleton className="mt-6 min-h-[250px] rounded-3xl bg-slate-200" />}
       >
-
-        <TeachersTable
-          filters={filters}
-          page={page}
-        />
-      </Suspense >
+        <TeachersTable filters={filters} page={page} />
+      </Suspense>
     </div>
   );
 }

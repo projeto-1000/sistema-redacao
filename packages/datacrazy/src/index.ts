@@ -1,9 +1,6 @@
 import "server-only";
 
-export {
-  buildDataCrazyTokensExpirationField,
-  formatDataCrazyDateInSaoPaulo,
-} from "./date";
+export { buildDataCrazyTokensExpirationField, formatDataCrazyDateInSaoPaulo } from "./date";
 export {
   DATA_CRAZY_FREE_PLAN_EXTERNAL_ID,
   DATA_CRAZY_MENTORSHIP_PLAN_EXTERNAL_ID,
@@ -47,8 +44,7 @@ export type DataCrazyDeliveryErrorCode =
   | "WEBHOOK_RESPONSE_FAILED";
 
 export type DataCrazyDeliveryResult =
-  | { ok: true }
-  | { ok: false; errorCode: DataCrazyDeliveryErrorCode };
+  { ok: true } | { ok: false; errorCode: DataCrazyDeliveryErrorCode };
 
 export async function sendDataCrazyStudentPayload(
   payload: DataCrazyStudentPayload
@@ -94,8 +90,7 @@ export async function sendDataCrazyStudentPayload(
 }
 
 function getWebhookUrl():
-  | { ok: true; url: string }
-  | { ok: false; errorCode: DataCrazyDeliveryErrorCode } {
+  { ok: true; url: string } | { ok: false; errorCode: DataCrazyDeliveryErrorCode } {
   const configuredUrl = process.env.DATACRAZY_WEBHOOK_URL;
 
   if (!configuredUrl) {

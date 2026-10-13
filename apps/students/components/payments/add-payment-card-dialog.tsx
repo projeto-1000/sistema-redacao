@@ -6,10 +6,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { addPaymentCard } from "@/app/actions/payment-methods";
-import {
-  NewCardForm,
-  type NewCardFormRef,
-} from "@/components/extra-credits/new-card-form";
+import { NewCardForm, type NewCardFormRef } from "@/components/extra-credits/new-card-form";
 import { tokenizePagarmeCard } from "@/lib/checkout/tokenize-card";
 
 import { Button } from "@repo/ui/components/button";
@@ -80,11 +77,7 @@ export function AddPaymentCardDialog({
         router.refresh();
       });
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível adicionar o cartão."
-      );
+      toast.error(error instanceof Error ? error.message : "Não foi possível adicionar o cartão.");
     } finally {
       submissionLockRef.current = false;
       setIsAdding(false);
@@ -94,11 +87,7 @@ export function AddPaymentCardDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button
-        className={
-          compact
-            ? "rounded-xl font-bold"
-            : "h-11 rounded-xl px-5 font-bold"
-        }
+        className={compact ? "rounded-xl font-bold" : "h-11 rounded-xl px-5 font-bold"}
         onClick={() => setOpen(true)}
       >
         <Plus className="mr-2 size-4" />
@@ -107,9 +96,7 @@ export function AddPaymentCardDialog({
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[680px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-extrabold">
-            Adicionar novo cartão
-          </DialogTitle>
+          <DialogTitle className="text-2xl font-extrabold">Adicionar novo cartão</DialogTitle>
 
           <DialogDescription>
             {hasActiveCardSubscription

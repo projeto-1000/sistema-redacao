@@ -8,18 +8,13 @@ interface EssayHighlightNavigationContextValue {
   setActiveHighlightId: (id: string | null) => void;
 }
 
-const EssayHighlightNavigationContext =
-  createContext<EssayHighlightNavigationContextValue>({
-    activeHighlightId: null,
-    isEnabled: false,
-    setActiveHighlightId: () => undefined,
-  });
+const EssayHighlightNavigationContext = createContext<EssayHighlightNavigationContextValue>({
+  activeHighlightId: null,
+  isEnabled: false,
+  setActiveHighlightId: () => undefined,
+});
 
-export function EssayHighlightNavigationProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function EssayHighlightNavigationProvider({ children }: { children: React.ReactNode }) {
   const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
 
   return (

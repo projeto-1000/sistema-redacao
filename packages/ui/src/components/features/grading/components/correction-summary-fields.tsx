@@ -27,19 +27,12 @@ export function CorrectionSummaryFields({
   onRewriteTasksChange,
   readOnly = false,
 }: CorrectionSummaryFieldsProps) {
-  const updatePriority = (
-    index: number,
-    value: string
-  ) => {
-    const updatedPriorities = [
-      ...nextEssayPriorities,
-    ];
+  const updatePriority = (index: number, value: string) => {
+    const updatedPriorities = [...nextEssayPriorities];
 
     updatedPriorities[index] = value;
 
-    onNextEssayPrioritiesChange(
-      updatedPriorities
-    );
+    onNextEssayPrioritiesChange(updatedPriorities);
   };
 
   const addPriority = () => {
@@ -47,10 +40,7 @@ export function CorrectionSummaryFields({
       return;
     }
 
-    onNextEssayPrioritiesChange([
-      ...nextEssayPriorities,
-      "",
-    ]);
+    onNextEssayPrioritiesChange([...nextEssayPriorities, ""]);
   };
 
   const removePriority = (index: number) => {
@@ -59,17 +49,11 @@ export function CorrectionSummaryFields({
     }
 
     onNextEssayPrioritiesChange(
-      nextEssayPriorities.filter(
-        (_, priorityIndex) =>
-          priorityIndex !== index
-      )
+      nextEssayPriorities.filter((_, priorityIndex) => priorityIndex !== index)
     );
   };
 
-  const updateRewriteTask = (
-    index: number,
-    value: string
-  ) => {
+  const updateRewriteTask = (index: number, value: string) => {
     const updatedTasks = [...rewriteTasks];
 
     updatedTasks[index] = value;
@@ -82,108 +66,74 @@ export function CorrectionSummaryFields({
       return;
     }
 
-    onRewriteTasksChange([
-      ...rewriteTasks,
-      "",
-    ]);
+    onRewriteTasksChange([...rewriteTasks, ""]);
   };
 
-  const removeRewriteTask = (
-    index: number
-  ) => {
+  const removeRewriteTask = (index: number) => {
     if (rewriteTasks.length <= 1) {
       return;
     }
 
-    onRewriteTasksChange(
-      rewriteTasks.filter(
-        (_, taskIndex) => taskIndex !== index
-      )
-    );
+    onRewriteTasksChange(rewriteTasks.filter((_, taskIndex) => taskIndex !== index));
   };
 
   return (
     <div className="flex flex-col gap-6">
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-2 font-bold ">
-          Principal gargalo
-        </h3>
+        <h3 className="mb-2 font-bold">Principal gargalo</h3>
 
         <p className="mb-4 text-sm text-slate-500">
-          Descreva brevemente o principal
-          problema identificado na redação.
+          Descreva brevemente o principal problema identificado na redação.
         </p>
 
         <textarea
           value={mainBottleneck}
           readOnly={readOnly}
-          onChange={(event) =>
-            onMainBottleneckChange(
-              event.target.value
-            )
-          }
+          onChange={(event) => onMainBottleneckChange(event.target.value)}
           placeholder="Ex.: O principal problema está na falta de aprofundamento dos argumentos."
           className={`${textareaClassName} h-28`}
           maxLength={500}
         />
 
-        <p className="mt-2 text-right text-xs text-slate-400">
-          {mainBottleneck.length}/500
-        </p>
+        <p className="mt-2 text-right text-xs text-slate-400">{mainBottleneck.length}/500</p>
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-2 font-bold ">
-          Prioridades para a próxima redação
-        </h3>
+        <h3 className="mb-2 font-bold">Prioridades para a próxima redação</h3>
 
         <p className="mb-4 text-sm text-slate-500">
-          Adicione de uma a três prioridades
-          que o aluno deve seguir para melhorar.
+          Adicione de uma a três prioridades que o aluno deve seguir para melhorar.
         </p>
 
         <div className="flex flex-col gap-3">
-          {nextEssayPriorities.map(
-            (priority, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-3"
-              >
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
-                  {index + 1}
-                </span>
+          {nextEssayPriorities.map((priority, index) => (
+            <div key={index} className="flex items-center gap-3">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
+                {index + 1}
+              </span>
 
-                <input
-                  type="text"
-                  value={priority}
-                  readOnly={readOnly}
-                  onChange={(event) =>
-                    updatePriority(
-                      index,
-                      event.target.value
-                    )
-                  }
-                  placeholder={`Prioridade ${index + 1}`}
-                  className={inputClassName}
-                  maxLength={250}
-                />
+              <input
+                type="text"
+                value={priority}
+                readOnly={readOnly}
+                onChange={(event) => updatePriority(index, event.target.value)}
+                placeholder={`Prioridade ${index + 1}`}
+                className={inputClassName}
+                maxLength={250}
+              />
 
-                {!readOnly && nextEssayPriorities.length >
-                  1 && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removePriority(index)
-                      }
-                      className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                      aria-label={`Remover prioridade ${index + 1}`}
-                    >
-                      Remover
-                    </button>
-                  )}
-              </div>
-            )
-          )}
+              {!readOnly && nextEssayPriorities.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removePriority(index)}
+                  className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                  aria-label={`Remover prioridade ${index + 1}`}
+                >
+                  Remover
+                </button>
+              )}
+            </div>
+          ))}
         </div>
 
         {!readOnly && nextEssayPriorities.length < 3 && (
@@ -198,21 +148,15 @@ export function CorrectionSummaryFields({
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-2 font-bold ">
-          Tarefas de reescrita desta redação
-        </h3>
+        <h3 className="mb-2 font-bold">Tarefas de reescrita desta redação</h3>
 
         <p className="mb-4 text-sm text-slate-500">
-          Proponha de uma a três tarefas
-          práticas para o aluno treinar.
+          Proponha de uma a três tarefas práticas para o aluno treinar.
         </p>
 
         <div className="flex flex-col gap-3">
           {rewriteTasks.map((task, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3"
-            >
+            <div key={index} className="flex items-center gap-3">
               <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
                 {index + 1}
               </span>
@@ -221,12 +165,7 @@ export function CorrectionSummaryFields({
                 type="text"
                 value={task}
                 readOnly={readOnly}
-                onChange={(event) =>
-                  updateRewriteTask(
-                    index,
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateRewriteTask(index, event.target.value)}
                 placeholder={`Tarefa de reescrita ${index + 1}`}
                 className={inputClassName}
                 maxLength={250}
@@ -235,9 +174,7 @@ export function CorrectionSummaryFields({
               {!readOnly && rewriteTasks.length > 1 && (
                 <button
                   type="button"
-                  onClick={() =>
-                    removeRewriteTask(index)
-                  }
+                  onClick={() => removeRewriteTask(index)}
                   className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
                   aria-label={`Remover tarefa ${index + 1}`}
                 >

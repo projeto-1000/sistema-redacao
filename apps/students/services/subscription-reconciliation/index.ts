@@ -178,13 +178,11 @@ async function upsertReconciliationEvent({
 
 function getFailureDetails(invoice: PagarmeInvoice) {
   const transaction = invoice.charge?.last_transaction;
-  const rawCode =
-    transaction?.acquirer_return_code ?? transaction?.gateway_response?.code ?? null;
+  const rawCode = transaction?.acquirer_return_code ?? transaction?.gateway_response?.code ?? null;
 
   return {
     code: rawCode === null ? null : String(rawCode),
-    message:
-      transaction?.acquirer_message ?? transaction?.gateway_response?.message ?? null,
+    message: transaction?.acquirer_message ?? transaction?.gateway_response?.message ?? null,
     failedAt:
       transaction?.updated_at ??
       transaction?.created_at ??
@@ -236,20 +234,17 @@ async function applyPaymentFailure({
   }
 
   const failure = getFailureDetails(invoice);
-  const { data, error } = await supabaseAdmin.rpc(
-    "process_pagarme_subscription_payment_failure",
-    {
-      p_webhook_event_id: event.id,
-      p_subscription_external_id: remoteSubscriptionId,
-      p_invoice_external_id: invoice.id,
-      p_invoice_amount: invoice.amount,
-      p_invoice_status: invoice.status,
-      p_payment_method: invoice.payment_method ?? null,
-      p_failure_code: failure.code,
-      p_failure_message: failure.message,
-      p_failed_at: failure.failedAt,
-    }
-  );
+  const { data, error } = await supabaseAdmin.rpc("process_pagarme_subscription_payment_failure", {
+    p_webhook_event_id: event.id,
+    p_subscription_external_id: remoteSubscriptionId,
+    p_invoice_external_id: invoice.id,
+    p_invoice_amount: invoice.amount,
+    p_invoice_status: invoice.status,
+    p_payment_method: invoice.payment_method ?? null,
+    p_failure_code: failure.code,
+    p_failure_message: failure.message,
+    p_failed_at: failure.failedAt,
+  });
 
   if (error || !(data as { success?: boolean } | null)?.success) {
     throw new Error("A reconciliação da falha de pagamento falhou.");
@@ -318,18 +313,15 @@ export async function reconcilePagarmeSubscription(
         return { status: "cancellation_applied", subscriptionId: localSubscription.id };
       }
 
-      const { data, error } = await supabaseAdmin.rpc(
-        "process_pagarme_subscription_cancellation",
-        {
-          p_webhook_event_id: event.id,
-          p_subscription_external_id: remoteSubscription.id,
-          p_subscription_status: "canceled",
-          p_canceled_at:
-            remoteSubscription.canceled_at ??
-            remoteSubscription.updated_at ??
-            new Date().toISOString(),
-        }
-      );
+      const { data, error } = await supabaseAdmin.rpc("process_pagarme_subscription_cancellation", {
+        p_webhook_event_id: event.id,
+        p_subscription_external_id: remoteSubscription.id,
+        p_subscription_status: "canceled",
+        p_canceled_at:
+          remoteSubscription.canceled_at ??
+          remoteSubscription.updated_at ??
+          new Date().toISOString(),
+      });
 
       if (error || !(data as { success?: boolean } | null)?.success) {
         throw new Error("A reconciliação do cancelamento falhou.");
@@ -386,26 +378,23 @@ export async function reconcilePagarmeSubscription(
         continue;
       }
 
-      const { data, error } = await supabaseAdmin.rpc(
-        "process_pagarme_subscription_renewal",
-        {
-          p_webhook_event_id: event.id,
-          p_subscription_external_id: remoteSubscription.id,
-          p_invoice_external_id: invoice.id,
-          p_invoice_amount: invoice.amount,
-          p_invoice_status: invoice.status,
-          p_payment_method: invoice.payment_method ?? null,
-          p_period_start: period.start_at,
-          p_period_end: period.end_at,
-          p_next_billing_at: remoteSubscription.next_billing_at,
-          p_paid_at:
-            invoice.charge?.paid_at ??
-            invoice.charge?.updated_at ??
-            invoice.updated_at ??
-            invoice.created_at ??
-            new Date().toISOString(),
-        }
-      );
+      const { data, error } = await supabaseAdmin.rpc("process_pagarme_subscription_renewal", {
+        p_webhook_event_id: event.id,
+        p_subscription_external_id: remoteSubscription.id,
+        p_invoice_external_id: invoice.id,
+        p_invoice_amount: invoice.amount,
+        p_invoice_status: invoice.status,
+        p_payment_method: invoice.payment_method ?? null,
+        p_period_start: period.start_at,
+        p_period_end: period.end_at,
+        p_next_billing_at: remoteSubscription.next_billing_at,
+        p_paid_at:
+          invoice.charge?.paid_at ??
+          invoice.charge?.updated_at ??
+          invoice.updated_at ??
+          invoice.created_at ??
+          new Date().toISOString(),
+      });
 
       if (error || !(data as { success?: boolean } | null)?.success) {
         const message = (data as { message?: string } | null)?.message;

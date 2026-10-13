@@ -22,8 +22,7 @@ import {
 } from "@repo/validators";
 
 type PaymentMethodActionResult =
-  | { success: true; message: string }
-  | { success: false; message: string };
+  { success: true; message: string } | { success: false; message: string };
 
 interface ActiveCardSubscription {
   id: string;
@@ -79,8 +78,8 @@ export async function getPaymentMethodsPageData(): Promise<PaymentMethodsPageDat
     })),
     hasActiveCardSubscription: Boolean(
       subscription &&
-        (subscription.payment_method === "credit_card" ||
-          subscription.payment_method === "debit_card")
+      (subscription.payment_method === "credit_card" ||
+        subscription.payment_method === "debit_card")
     ),
   };
 }

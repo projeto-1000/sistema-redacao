@@ -15,7 +15,10 @@ export async function completeTeacherInvitation(input: CompleteInvitationInput) 
   }
 
   const supabase = await createClient();
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
   if (userError || !user || user.user_metadata?.teacher_invitation_pending !== true) {
     return { success: false as const, error: "Este convite é inválido ou já foi utilizado." };
   }

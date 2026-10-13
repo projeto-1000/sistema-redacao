@@ -701,8 +701,7 @@ export async function POST(request: Request) {
     }
 
     const isExtraCreditOrderEvent =
-      verifiedWebhook.event === "order.paid" ||
-      verifiedWebhook.event === "order.payment_failed";
+      verifiedWebhook.event === "order.paid" || verifiedWebhook.event === "order.payment_failed";
 
     if (existingWebhookEvent.status === "ignored" && !isExtraCreditOrderEvent) {
       return NextResponse.json({
@@ -781,13 +780,23 @@ export async function POST(request: Request) {
     // confirmation RPC, which also ends access and invalidates plan credits.
     if (chargeId && /^ch_[A-Za-z0-9]+$/.test(chargeId)) {
       const { data: support, error: supportError } = await supabaseAdmin
-        .from("subscription_support_operations").select("id")
-        .eq("provider_charge_id", chargeId).neq("status", "completed").maybeSingle();
+        .from("subscription_support_operations")
+        .select("id")
+        .eq("provider_charge_id", chargeId)
+        .neq("status", "completed")
+        .maybeSingle();
       // During staged rollout, absence of the new table must not break the
       // established withdrawal webhook. Other failures need a retry.
       if (supportError && !["42P01", "PGRST205"].includes(supportError.code)) {
-        await markWebhookFailed(supabaseAdmin, webhookEventId, "Falha ao consultar atendimento de suporte.");
-        return NextResponse.json({ error: "Falha ao consultar atendimento de suporte." }, { status: 500 });
+        await markWebhookFailed(
+          supabaseAdmin,
+          webhookEventId,
+          "Falha ao consultar atendimento de suporte."
+        );
+        return NextResponse.json(
+          { error: "Falha ao consultar atendimento de suporte." },
+          { status: 500 }
+        );
       }
       if (support) {
         try {
@@ -795,17 +804,34 @@ export async function POST(request: Request) {
           const total = getConfirmedRefundTotal(verifiedCharge);
           if (total === null) throw new Error("Valor cumulativo do estorno ainda não confirmado.");
           const confirmation = await supabaseAdmin.rpc("advance_subscription_support_operation", {
-            p_id: support.id, p_refunded_total: total,
+            p_id: support.id,
+            p_refunded_total: total,
           });
           if (confirmation.error) throw new Error("Falha ao registrar confirmação do atendimento.");
-          const finish = await supabaseAdmin.from("pagarme_webhook_events").update({
-            status: "processed", processed_at: new Date().toISOString(), error_message: null,
-          }).eq("id", webhookEventId);
+          const finish = await supabaseAdmin
+            .from("pagarme_webhook_events")
+            .update({
+              status: "processed",
+              processed_at: new Date().toISOString(),
+              error_message: null,
+            })
+            .eq("id", webhookEventId);
           if (finish.error) throw new Error("Falha ao finalizar evento do atendimento.");
-          return NextResponse.json({ received: true, processed: true, supportOperationId: support.id });
+          return NextResponse.json({
+            received: true,
+            processed: true,
+            supportOperationId: support.id,
+          });
         } catch {
-          await markWebhookFailed(supabaseAdmin, webhookEventId, "Confirmação do reembolso de suporte pendente.");
-          return NextResponse.json({ error: "Confirmação do reembolso de suporte pendente." }, { status: 500 });
+          await markWebhookFailed(
+            supabaseAdmin,
+            webhookEventId,
+            "Confirmação do reembolso de suporte pendente."
+          );
+          return NextResponse.json(
+            { error: "Confirmação do reembolso de suporte pendente." },
+            { status: 500 }
+          );
         }
       }
     }

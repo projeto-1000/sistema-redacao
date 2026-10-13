@@ -1,17 +1,8 @@
 "use client";
 
 import { cn } from "@repo/ui/lib/utils";
-import {
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@repo/ui/components/accordion"
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@repo/ui/components/form";
+import { AccordionContent, AccordionItem, AccordionTrigger } from "@repo/ui/components/accordion";
+import { FormControl, FormField, FormItem, FormMessage } from "@repo/ui/components/form";
 import { RadioGroup, RadioGroupItem } from "@repo/ui/components/radio-group";
 import type { CheckoutFormInput } from "@repo/validators";
 import { CardFields } from "./card-fields";
@@ -20,10 +11,7 @@ import {
   type PaymentCardSelection,
 } from "@/components/payments/payment-card-selector";
 import type { SavedPaymentCard } from "@/types";
-import {
-  Barcode,
-  CreditCard,
-} from "lucide-react";
+import { Barcode, CreditCard } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 interface CheckoutPaymentSectionProps {
@@ -66,8 +54,7 @@ export function CheckoutPaymentSection({
   savedCards,
   onPaymentChange,
 }: CheckoutPaymentSectionProps) {
-  const { control, setValue, clearErrors } =
-    useFormContext<CheckoutFormInput>();
+  const { control, setValue, clearErrors } = useFormContext<CheckoutFormInput>();
 
   const paymentMethod = useWatch({
     control,
@@ -84,8 +71,7 @@ export function CheckoutPaymentSection({
     name: "payment.paymentCardId",
   });
 
-  const isCardPayment =
-    paymentMethod === "credit_card" || paymentMethod === "debit_card";
+  const isCardPayment = paymentMethod === "credit_card" || paymentMethod === "debit_card";
 
   const paymentCardSelection: PaymentCardSelection =
     paymentSource === "saved_card" && paymentCardId
@@ -147,11 +133,9 @@ export function CheckoutPaymentSection({
           </div>
 
           <div className="space-y-1">
-            <h2 className="text-xl font-extrabold tracking-tight">
-              Pagamento
-            </h2>
+            <h2 className="text-xl font-extrabold tracking-tight">Pagamento</h2>
 
-            <p className="text-sm font-medium leading-relaxed text-slate-500">
+            <p className="text-sm leading-relaxed font-medium text-slate-500">
               Escolha a forma de pagamento da assinatura.
             </p>
           </div>
@@ -179,16 +163,11 @@ export function CheckoutPaymentSection({
                         <FormControl>
                           <label
                             className={cn(
-                              "flex cursor-pointer gap-4 rounded-2xl border bg-white p-4 transition hover:border-primary/50 hover:bg-primary/5",
-                              isSelected
-                                ? "border-primary bg-primary/10"
-                                : "border-slate-200"
+                              "hover:border-primary/50 hover:bg-primary/5 flex cursor-pointer gap-4 rounded-2xl border bg-white p-4 transition",
+                              isSelected ? "border-primary bg-primary/10" : "border-slate-200"
                             )}
                           >
-                            <RadioGroupItem
-                              value={method.value}
-                              className="sr-only"
-                            />
+                            <RadioGroupItem value={method.value} className="sr-only" />
 
                             <div className="flex flex-1 gap-3">
                               <div
@@ -203,11 +182,9 @@ export function CheckoutPaymentSection({
                               </div>
 
                               <div>
-                                <p className="text-sm font-black ">
-                                  {method.title}
-                                </p>
+                                <p className="text-sm font-black">{method.title}</p>
 
-                                <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-500">
+                                <p className="mt-1 text-xs leading-relaxed font-semibold text-slate-500">
                                   {method.description}
                                 </p>
                               </div>
@@ -250,15 +227,14 @@ export function CheckoutPaymentSection({
         ) : (
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
             <div className="flex gap-3">
-              <Barcode className="mt-0.5 size-5 shrink-0 text-primary" />
+              <Barcode className="text-primary mt-0.5 size-5 shrink-0" />
 
               <div>
-                <p className="text-sm font-black">
-                  Pagamento por boleto
-                </p>
+                <p className="text-sm font-black">Pagamento por boleto</p>
 
-                <p className="mt-1 text-sm font-semibold leading-relaxed text-slate-600">
-                  O boleto será gerado após a confirmação da assinatura. A ativação pode depender da compensação do pagamento.
+                <p className="mt-1 text-sm leading-relaxed font-semibold text-slate-600">
+                  O boleto será gerado após a confirmação da assinatura. A ativação pode depender da
+                  compensação do pagamento.
                 </p>
               </div>
             </div>

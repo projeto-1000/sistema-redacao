@@ -25,30 +25,30 @@ export default async function MyEssaysPage({
   const suspenseKey = JSON.stringify(resolvedParams);
 
   return (
-    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div className="min-h-dvh px-4 py-4 md:px-10 lg:px-12">
+      <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <PageHeader
           title="Minha redações"
           subtitle="Acompanhe seu progresso e evolução na escrita."
           className="w-full"
         >
-          <Button asChild
-            className="rounded-3xl h-12 w-full sm:w-auto  shadow-lg shadow-yellow-400/20 font-bold">
+          <Button
+            asChild
+            className="h-12 w-full rounded-3xl font-bold shadow-lg shadow-yellow-400/20 sm:w-auto"
+          >
             <Link href="/temas">
               <Plus className="size-5" />
               Enviar nova redação
             </Link>
           </Button>
         </PageHeader>
-
-
       </div>
 
       <EssayFiltersBar />
 
       <Suspense
         key={suspenseKey}
-        fallback={<Skeleton className="rounded-3xl min-h-[250px] bg-slate-200 mt-6" />}
+        fallback={<Skeleton className="mt-6 min-h-[250px] rounded-3xl bg-slate-200" />}
       >
         <EssayGrid filters={filters} page={page} />
       </Suspense>

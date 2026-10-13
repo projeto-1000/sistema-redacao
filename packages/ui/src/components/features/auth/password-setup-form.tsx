@@ -13,28 +13,21 @@ import {
 } from "@repo/ui/components/form";
 import { Input } from "@repo/ui/components/input";
 import { PasswordRequirements } from "@repo/ui/components/password-requirements";
-import {
-  passwordSetupSchema,
-  type PasswordSetupSchema,
-} from "@repo/validators";
+import { passwordSetupSchema, type PasswordSetupSchema } from "@repo/validators";
 import { LockKeyhole } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 type PasswordSetupResult =
-  | { success: true; redirectTo: string }
-  | { success: false; error: string };
+  { success: true; redirectTo: string } | { success: false; error: string };
 
 interface PasswordSetupFormProps {
   onSubmitAction: (values: PasswordSetupSchema) => Promise<PasswordSetupResult>;
   loginHref: string;
 }
 
-export function PasswordSetupForm({
-  onSubmitAction,
-  loginHref,
-}: PasswordSetupFormProps) {
+export function PasswordSetupForm({ onSubmitAction, loginHref }: PasswordSetupFormProps) {
   const router = useRouter();
   const form = useForm<PasswordSetupSchema>({
     resolver: zodResolver(passwordSetupSchema),
@@ -70,10 +63,7 @@ export function PasswordSetupForm({
       footer={
         <p>
           Já possui uma conta?&nbsp;
-          <Link
-            href={loginHref}
-            className="font-semibold text-primary hover:underline"
-          >
+          <Link href={loginHref} className="text-primary font-semibold hover:underline">
             Entrar
           </Link>
         </p>
@@ -90,7 +80,7 @@ export function PasswordSetupForm({
                   Senha
                 </FormLabel>
                 <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                  <LockKeyhole className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-slate-400" />
                   <FormControl>
                     <Input
                       type="password"
@@ -117,7 +107,7 @@ export function PasswordSetupForm({
                   Confirmar senha
                 </FormLabel>
                 <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                  <LockKeyhole className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-slate-400" />
                   <FormControl>
                     <Input
                       type="password"

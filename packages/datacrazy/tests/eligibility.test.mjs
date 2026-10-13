@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  getDataCrazyEligibility,
-  getDataCrazyPaymentStatus,
-} from "../src/eligibility.ts";
+import { getDataCrazyEligibility, getDataCrazyPaymentStatus } from "../src/eligibility.ts";
 
 const FREE_PLAN = "internal_free_trial";
 const ESSENTIAL_PLAN = "plan_essential";
@@ -20,7 +17,7 @@ test("Free student is eligible for a new draft event", () => {
       event: "essay_status_updated",
       currentPlanExternalId: FREE_PLAN,
     }),
-    true,
+    true
   );
 });
 
@@ -35,28 +32,21 @@ test("updating the same draft remains suppressed by the action trigger", () => {
 });
 
 test("Free student is eligible for submitted and corrected essay events", () => {
-  for (const essayStatus of [
-    "pending",
-    "corrected_by_teacher",
-    "corrected_by_admin",
-  ]) {
+  for (const essayStatus of ["pending", "corrected_by_teacher", "corrected_by_admin"]) {
     assert.equal(
       isEligible({
         event: "essay_status_updated",
         currentPlanExternalId: FREE_PLAN,
       }),
       true,
-      essayStatus,
+      essayStatus
     );
   }
 });
 
 test("paid students are not eligible for essay events", () => {
   for (const currentPlanExternalId of [ESSENTIAL_PLAN, ADVANCED_PLAN]) {
-    assert.equal(
-      isEligible({ event: "essay_status_updated", currentPlanExternalId }),
-      false,
-    );
+    assert.equal(isEligible({ event: "essay_status_updated", currentPlanExternalId }), false);
   }
 });
 
@@ -68,7 +58,7 @@ test("Free to Essential and Free to Advanced transitions are eligible", () => {
         currentPlanExternalId,
         previousPlanExternalId: FREE_PLAN,
       }),
-      true,
+      true
     );
   }
 });
@@ -80,7 +70,7 @@ test("paid plan changes and later subscription updates are not eligible", () => 
       currentPlanExternalId: ADVANCED_PLAN,
       previousPlanExternalId: ESSENTIAL_PLAN,
     }),
-    false,
+    false
   );
 
   assert.equal(
@@ -88,7 +78,7 @@ test("paid plan changes and later subscription updates are not eligible", () => 
       event: "subscription_updated",
       currentPlanExternalId: ESSENTIAL_PLAN,
     }),
-    false,
+    false
   );
 });
 
@@ -99,7 +89,7 @@ test("initial refused payment while still Free is eligible as Recusado", () => {
       currentPlanExternalId: FREE_PLAN,
       paymentAttempt: "initial_refused",
     }),
-    true,
+    true
   );
   assert.equal(getDataCrazyPaymentStatus("initial_refused"), "Recusado");
 });
@@ -110,7 +100,7 @@ test("initial approved payment does not require a payment status event", () => {
       event: "payment_status_updated",
       currentPlanExternalId: FREE_PLAN,
     }),
-    false,
+    false
   );
 });
 
@@ -120,7 +110,7 @@ test("refused renewal for a paid student is not eligible", () => {
       event: "payment_status_updated",
       currentPlanExternalId: ESSENTIAL_PLAN,
     }),
-    false,
+    false
   );
 });
 
@@ -130,7 +120,7 @@ test("approved renewal for a paid student is not eligible", () => {
       event: "payment_status_updated",
       currentPlanExternalId: ADVANCED_PLAN,
     }),
-    false,
+    false
   );
 });
 
@@ -140,7 +130,7 @@ test("Mentoria is not eligible for the Free acquisition funnel", () => {
       event: "user_signup",
       currentPlanExternalId: "internal_mentoria_free",
     }),
-    false,
+    false
   );
 
   assert.equal(
@@ -149,7 +139,7 @@ test("Mentoria is not eligible for the Free acquisition funnel", () => {
       currentPlanExternalId: "internal_mentoria_free",
       previousPlanExternalId: FREE_PLAN,
     }),
-    false,
+    false
   );
 
   assert.equal(
@@ -158,6 +148,6 @@ test("Mentoria is not eligible for the Free acquisition funnel", () => {
       currentPlanExternalId: "internal_mentoria_free",
       paymentAttempt: "initial_refused",
     }),
-    false,
+    false
   );
 });

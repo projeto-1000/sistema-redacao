@@ -1,12 +1,5 @@
 import type { ReactNode } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { cn } from "../lib/utils";
 
 interface AuthFormCardProps {
@@ -28,13 +21,11 @@ export function AuthFormCard({
     <Card
       className={cn(
         "w-full max-w-[520px] gap-0 rounded-[28px] border border-slate-200/80 bg-white/95 px-5 py-7 shadow-[0_24px_70px_-38px_rgba(15,23,42,0.45)] backdrop-blur-sm md:px-8 md:py-9",
-        className,
+        className
       )}
     >
       <CardHeader className="gap-2 px-0 pb-7 text-left">
-        <CardTitle className="text-3xl font-bold leading-tight text-slate-950">
-          {title}
-        </CardTitle>
+        <CardTitle className="text-3xl leading-tight font-bold text-slate-950">{title}</CardTitle>
 
         {description && (
           <CardDescription className="text-sm leading-relaxed text-slate-500 sm:text-base">

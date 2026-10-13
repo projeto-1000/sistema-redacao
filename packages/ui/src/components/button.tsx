@@ -1,9 +1,9 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@repo/ui/lib/utils"
-import { Loader2 } from "lucide-react"
+import { cn } from "@repo/ui/lib/utils";
+import { Loader2 } from "lucide-react";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -17,11 +17,10 @@ const buttonVariants = cva(
           "border border-slate-200 bg-white shadow-xs hover:bg-slate-50 hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-secondary/20",
-        ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
-        calendar: '',
-        dark: 'bg-[#0F172A] hover:bg-[#1E293B] text-white shadow-[#0F172A]/20'
+        calendar: "",
+        dark: "bg-[#0F172A] hover:bg-[#1E293B] text-white shadow-[#0F172A]/20",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-4",
@@ -39,10 +38,8 @@ const buttonVariants = cva(
       size: "default",
     },
   }
-)
-interface ButtonProps
-  extends React.ComponentProps<"button">,
-  VariantProps<typeof buttonVariants> {
+);
+interface ButtonProps extends React.ComponentProps<"button">, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   isLoading?: boolean;
   loadingText?: string;
@@ -59,7 +56,7 @@ function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const Comp = asChild && !isLoading ? Slot : "button"
+  const Comp = asChild && !isLoading ? Slot : "button";
 
   return (
     <Comp
@@ -79,7 +76,7 @@ function Button({
         children
       )}
     </Comp>
-  )
+  );
 }
 
-export { Button, buttonVariants }
+export { Button, buttonVariants };

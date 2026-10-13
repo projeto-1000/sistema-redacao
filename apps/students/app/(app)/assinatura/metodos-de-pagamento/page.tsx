@@ -32,9 +32,7 @@ export default async function PaymentMethodsPage() {
         title="Métodos de pagamento"
         subtitle="Gerencie os cartões usados nas suas compras e assinatura."
       >
-        <AddPaymentCardDialog
-          hasActiveCardSubscription={hasActiveCardSubscription}
-        />
+        <AddPaymentCardDialog hasActiveCardSubscription={hasActiveCardSubscription} />
       </PageHeader>
 
       <PaymentMethodsManager cards={cards} hasActiveCardSubscription={hasActiveCardSubscription} />

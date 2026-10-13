@@ -26,23 +26,18 @@ interface StudentProfileContextValue {
   markOnboardingCompleted: () => void;
 }
 
-const StudentProfileContext =
-  createContext<StudentProfileContextValue | null>(null);
+const StudentProfileContext = createContext<StudentProfileContextValue | null>(null);
 
 interface StudentProfileProviderProps {
   children: ReactNode;
 }
 
-export function StudentProfileProvider({
-  children,
-}: StudentProfileProviderProps) {
+export function StudentProfileProvider({ children }: StudentProfileProviderProps) {
   const [supabase] = useState(() => createClient());
 
-  const [profile, setProfile] =
-    useState<StudentProfile | null>(null);
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
 
-  const [isAuthenticated, setIsAuthenticated] =
-    useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,10 +74,7 @@ export function StudentProfileProvider({
         }
 
         if (profileError) {
-          console.error(
-            "[LOAD_STUDENT_PROFILE_ERROR]",
-            profileError
-          );
+          console.error("[LOAD_STUDENT_PROFILE_ERROR]", profileError);
 
           failedUserIdRef.current = authenticatedUserId;
           setProfile(null);
@@ -101,8 +93,7 @@ export function StudentProfileProvider({
         failedUserIdRef.current = null;
         setProfile({
           id: data.id,
-          onboarding_completed:
-            data.onboarding_completed ?? false,
+          onboarding_completed: data.onboarding_completed ?? false,
         });
       } catch (profileError) {
         if (
@@ -112,10 +103,7 @@ export function StudentProfileProvider({
           return;
         }
 
-        console.error(
-          "[LOAD_STUDENT_PROFILE_FATAL_ERROR]",
-          profileError
-        );
+        console.error("[LOAD_STUDENT_PROFILE_FATAL_ERROR]", profileError);
 
         failedUserIdRef.current = authenticatedUserId;
         setProfile(null);
@@ -153,8 +141,7 @@ export function StudentProfileProvider({
       }
 
       const authenticatedUserId = authenticatedUser.id;
-      const userChanged =
-        activeUserIdRef.current !== authenticatedUserId;
+      const userChanged = activeUserIdRef.current !== authenticatedUserId;
 
       setIsAuthenticated(true);
 
@@ -215,30 +202,17 @@ export function StudentProfileProvider({
       retryProfile,
       markOnboardingCompleted,
     }),
-    [
-      profile,
-      isAuthenticated,
-      isLoading,
-      error,
-      retryProfile,
-      markOnboardingCompleted,
-    ]
+    [profile, isAuthenticated, isLoading, error, retryProfile, markOnboardingCompleted]
   );
 
-  return (
-    <StudentProfileContext.Provider value={value}>
-      {children}
-    </StudentProfileContext.Provider>
-  );
+  return <StudentProfileContext.Provider value={value}>{children}</StudentProfileContext.Provider>;
 }
 
 export function useStudentProfile() {
   const context = useContext(StudentProfileContext);
 
   if (!context) {
-    throw new Error(
-      "useStudentProfile deve ser utilizado dentro de StudentProfileProvider."
-    );
+    throw new Error("useStudentProfile deve ser utilizado dentro de StudentProfileProvider.");
   }
 
   return context;

@@ -1,6 +1,12 @@
-'use client'
+"use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@repo/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@repo/ui/components/dialog";
 import { MotivationalTexts } from "./motivational-texts";
 import { EssayTopicDetail } from "@repo/types";
 import { Button } from "@repo/ui/components/button";
@@ -13,14 +19,13 @@ interface Props {
 }
 export default function MobileMotivationalTexts({ isOpen, onClose, topic }: Props) {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} >
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogTrigger asChild>
-        <Button className="flex lg:hidden mb-4 pt-4 pb-4 h-16 text-[16px] border border-slate-200 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-bold justify-start">
-          <div className="flex items-center rounded-xl bg-primary p-2 shadow-sm shadow-yellow-200 shrink-0">
+        <Button className="mb-4 flex h-16 justify-start rounded-2xl border border-slate-200 bg-white pt-4 pb-4 text-[16px] font-bold text-slate-800 hover:bg-slate-100 lg:hidden">
+          <div className="bg-primary flex shrink-0 items-center rounded-xl p-2 shadow-sm shadow-yellow-200">
             <FileText className="size-5" />
           </div>
           Ver textos motivadores
-
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -33,5 +38,5 @@ export default function MobileMotivationalTexts({ isOpen, onClose, topic }: Prop
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

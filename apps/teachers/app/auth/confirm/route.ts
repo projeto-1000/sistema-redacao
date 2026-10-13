@@ -7,7 +7,10 @@ export async function GET(request: Request) {
 
   if (tokenHash) {
     const supabase = await createClient();
-    const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" });
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: "recovery",
+    });
 
     if (!error && data.user?.user_metadata?.teacher_invitation_pending === true) {
       return NextResponse.redirect(`${origin}/cadastro/senha`);

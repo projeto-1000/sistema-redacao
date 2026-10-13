@@ -7,7 +7,7 @@ import { FileCheck } from "lucide-react";
 import { StartEssayCorrectionButton } from "./start-essay-correction-button";
 
 export async function NextEssays() {
-  const { essays } = await getEssaysByStatus({ status: ['pending', 'correcting'], limit: 3 });
+  const { essays } = await getEssaysByStatus({ status: ["pending", "correcting"], limit: 3 });
 
   if (essays.length === 0) {
     return (
@@ -20,52 +20,58 @@ export async function NextEssays() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {essays.map((essay) => {
-        const deadline = getDeadlineStatus(
-          essay.due_date,
-          essay.essay_remaining_business_seconds
-        );
-        const style = DEADLINE_STATUS_STYLES[deadline.status as keyof typeof DEADLINE_STATUS_STYLES];
+        const deadline = getDeadlineStatus(essay.due_date, essay.essay_remaining_business_seconds);
+        const style =
+          DEADLINE_STATUS_STYLES[deadline.status as keyof typeof DEADLINE_STATUS_STYLES];
 
         return (
           <div
             key={essay.id}
-            className={`bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col h-full hover:shadow-md transition-shadow`}
+            className={`flex h-full flex-col rounded-3xl border border-slate-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md`}
           >
-            <div className="flex justify-between items-start mb-4 gap-2">
-              <div className="flex gap-2 min-w-0">
-
-                <Avatar src={essay.avatar_url} name={essay.student_name} className="size-10 rounded-full" />
+            <div className="mb-4 flex items-start justify-between gap-2">
+              <div className="flex min-w-0 gap-2">
+                <Avatar
+                  src={essay.avatar_url}
+                  name={essay.student_name}
+                  className="size-10 rounded-full"
+                />
 
                 <div className="flex flex-col items-start gap-1 overflow-hidden">
-                  <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wide ${style.badgeBg} ${style.badgeText} whitespace-nowrap`}>
+                  <span
+                    className={`rounded-sm px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${style.badgeBg} ${style.badgeText} whitespace-nowrap`}
+                  >
                     {deadline.label}
                   </span>
-                  <h4 className="font-bold text-sm leading-tight truncate w-full" title={essay.student_name}>
+                  <h4
+                    className="w-full truncate text-sm leading-tight font-bold"
+                    title={essay.student_name}
+                  >
                     {essay.student_name}
                   </h4>
                 </div>
               </div>
 
-              <div className="text-right shrink-0">
+              <div className="shrink-0 text-right">
                 {deadline.status !== "expired" && (
-                  <span className="text-[10px] font-medium text-slate-400 block mb-0.5">
-                    {deadline.text === '1h' ? 'Resta' : 'Restam'}
+                  <span className="mb-0.5 block text-[10px] font-medium text-slate-400">
+                    {deadline.text === "1h" ? "Resta" : "Restam"}
                   </span>
                 )}
 
-                <span className={`text-2xl font-bold leading-none ${style.timeText}`}>
+                <span className={`text-2xl leading-none font-bold ${style.timeText}`}>
                   {deadline.text}
                 </span>
               </div>
             </div>
 
             <div className="mb-6 flex-1">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              <p className="mb-1.5 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                 Tema da Redação
               </p>
-              <p className="text-slate-700 font-medium text-sm leading-relaxed line-clamp-3">
+              <p className="line-clamp-3 text-sm leading-relaxed font-medium text-slate-700">
                 {essay.title}
               </p>
             </div>

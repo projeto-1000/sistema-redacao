@@ -43,11 +43,7 @@ export interface FreeCorrectionCampaignMetrics {
 }
 
 export type FreeCorrectionCampaignAudienceStage =
-  | "eligible"
-  | "exposed"
-  | "clicked"
-  | "checkout_started"
-  | "converted";
+  "eligible" | "exposed" | "clicked" | "checkout_started" | "converted";
 
 export interface FreeCorrectionCampaignAudienceStudent {
   participant_id: string;
@@ -72,12 +68,7 @@ export interface FreeCorrectionCampaignAudienceStudent {
 type FreeCorrectionCampaignPlacement = "score_card" | "footer_banner";
 
 type FreeCorrectionCampaignTimelineEventType =
-  | "eligible"
-  | "impression"
-  | "click"
-  | "dismiss"
-  | "checkout_started"
-  | "converted";
+  "eligible" | "impression" | "click" | "dismiss" | "checkout_started" | "converted";
 
 interface FreeCorrectionCampaignTimelineEvent {
   event_id: string;

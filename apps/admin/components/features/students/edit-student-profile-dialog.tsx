@@ -167,7 +167,9 @@ export function EditStudentProfileDialog({
                     <FormItem>
                       <FormLabel>CPF</FormLabel>
                       <Input
-                        value={student.document ? formatDocument(student.document) : "Não informado"}
+                        value={
+                          student.document ? formatDocument(student.document) : "Não informado"
+                        }
                         disabled
                         className="h-11 rounded-xl bg-slate-100 text-slate-500"
                       />
@@ -210,7 +212,13 @@ export function EditStudentProfileDialog({
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" className="h-11 rounded-xl px-5" disabled={!canSave} isLoading={form.formState.isSubmitting} loadingText="Salvando...">
+                <Button
+                  type="submit"
+                  className="h-11 rounded-xl px-5"
+                  disabled={!canSave}
+                  isLoading={form.formState.isSubmitting}
+                  loadingText="Salvando..."
+                >
                   Salvar alterações
                 </Button>
               </DialogFooter>

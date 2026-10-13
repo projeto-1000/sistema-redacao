@@ -32,11 +32,8 @@ export function CancelPlanChangeDialog({
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(
-    null
-  );
-  const [isPending, startTransition] =
-    useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   function handleOpenChange(nextOpen: boolean) {
     if (isPending) {
@@ -54,8 +51,7 @@ export function CancelPlanChangeDialog({
     setError(null);
 
     startTransition(async () => {
-      const result =
-        await cancelScheduledPlanChange();
+      const result = await cancelScheduledPlanChange();
 
       if (!result.success) {
         setError(result.message);
@@ -68,50 +64,32 @@ export function CancelPlanChangeDialog({
   }
 
   return (
-    <AlertDialog
-      open={open}
-      onOpenChange={handleOpenChange}
-    >
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="h-11 w-full rounded-xl font-medium md:w-auto"
-        >
+        <Button variant="outline" className="h-11 w-full rounded-xl font-medium md:w-auto">
           Desfazer mudança de plano
         </Button>
       </AlertDialogTrigger>
 
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            Desfazer mudança de plano de plano?
-          </AlertDialogTitle>
+          <AlertDialogTitle>Desfazer mudança de plano de plano?</AlertDialogTitle>
 
           <AlertDialogDescription>
-            A alteração para o plano{" "}
-            <strong>{pendingPlanName}</strong>,
-            agendada para{" "}
-            <strong>
-              {formatDate(effectiveAt, "numeric")}
-            </strong>
-            , será cancelada. Você continuará no
-            plano{" "}
-            <strong>{currentPlanName}</strong>.
+            A alteração para o plano <strong>{pendingPlanName}</strong>, agendada para{" "}
+            <strong>{formatDate(effectiveAt, "numeric")}</strong>, será cancelada. Você continuará
+            no plano <strong>{currentPlanName}</strong>.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         {error && (
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-            <p className="text-sm font-medium text-red-700">
-              {error}
-            </p>
+            <p className="text-sm font-medium text-red-700">{error}</p>
           </div>
         )}
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>
-            Voltar
-          </AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>Voltar</AlertDialogCancel>
 
           <Button
             variant="destructive"

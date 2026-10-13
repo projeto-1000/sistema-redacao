@@ -11,7 +11,7 @@ import { PostRedirectToast } from "@repo/ui/components/post-redirect-toast";
 
 const lexend = Lexend({
   subsets: ["latin"],
-  variable: "--font-lexend"
+  variable: "--font-lexend",
 });
 
 export const metadata: Metadata = {
@@ -22,18 +22,12 @@ export const metadata: Metadata = {
   description: "Sistema de correção de redações para o ENEM",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
         <TooltipProvider>
-          <RouteTransition>
-            {children}
-          </RouteTransition>
+          <RouteTransition>{children}</RouteTransition>
           <Footer />
           <PostRedirectToast />
           <Toaster />

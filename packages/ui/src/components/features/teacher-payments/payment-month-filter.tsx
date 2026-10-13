@@ -35,7 +35,7 @@ function PaymentMonthFilterContent() {
 
   return (
     <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm xl:flex-row xl:items-center">
-      <span className="ml-2 shrink-0 text-xs font-bold uppercase tracking-widest text-slate-400">
+      <span className="ml-2 shrink-0 text-xs font-bold tracking-widest text-slate-400 uppercase">
         Ciclo de faturamento:
       </span>
 
@@ -46,10 +46,10 @@ function PaymentMonthFilterContent() {
             type="button"
             onClick={() => select(month.value)}
             className={cn(
-              "shrink-0 whitespace-nowrap rounded-full border px-5 py-2.5 text-xs font-bold capitalize transition-colors",
+              "shrink-0 rounded-full border px-5 py-2.5 text-xs font-bold whitespace-nowrap capitalize transition-colors",
               current === month.value
                 ? "border-primary/30 bg-primary/10 text-primary shadow-sm"
-                : "border-slate-200 bg-white text-slate-500 hover:border-primary/30 hover:bg-primary/10 hover:text-slate-800",
+                : "hover:border-primary/30 hover:bg-primary/10 border-slate-200 bg-white text-slate-500 hover:text-slate-800"
             )}
           >
             {month.label}
@@ -63,7 +63,11 @@ function PaymentMonthFilterContent() {
 
 export function PaymentMonthFilter() {
   return (
-    <Suspense fallback={<div className="h-[74px] w-full animate-pulse rounded-2xl border border-slate-100 bg-slate-50" />}>
+    <Suspense
+      fallback={
+        <div className="h-[74px] w-full animate-pulse rounded-2xl border border-slate-100 bg-slate-50" />
+      }
+    >
       <PaymentMonthFilterContent />
     </Suspense>
   );

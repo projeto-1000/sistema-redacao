@@ -12,10 +12,7 @@ import {
 } from "../../types";
 import { revalidatePath } from "next/cache";
 import { PostgrestError } from "@supabase/supabase-js";
-import {
-  createUpdateTeacherProfileSchema,
-  type UpdateTeacherProfileInput,
-} from "@repo/validators";
+import { createUpdateTeacherProfileSchema, type UpdateTeacherProfileInput } from "@repo/validators";
 import { onlyDigits } from "@repo/utils";
 
 interface GetTeachersParams {
@@ -215,9 +212,9 @@ export async function updateTeacherProfile(
     return { success: false, error: "Professor não encontrado." };
   }
 
-  const validationResult = createUpdateTeacherProfileSchema(
-    currentTeacher.document
-  ).safeParse(input);
+  const validationResult = createUpdateTeacherProfileSchema(currentTeacher.document).safeParse(
+    input
+  );
 
   if (!validationResult.success) {
     return {

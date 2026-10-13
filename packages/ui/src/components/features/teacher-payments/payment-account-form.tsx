@@ -24,18 +24,10 @@ import { BankNameInput } from "./bank-name-input";
 interface PaymentAccountFormProps {
   initialData?: TeacherPaymentAccount | null;
   onCancel: () => void;
-  onSubmit: (
-    values: AccountFormValues,
-  ) => Promise<{ success: boolean; error?: string }>;
+  onSubmit: (values: AccountFormValues) => Promise<{ success: boolean; error?: string }>;
 }
 
-type FieldName =
-  | "pixKey"
-  | "bankName"
-  | "agency"
-  | "accountNumber"
-  | "ownerName"
-  | "ownerDocument";
+type FieldName = "pixKey" | "bankName" | "agency" | "accountNumber" | "ownerName" | "ownerDocument";
 
 type FieldErrors = Partial<Record<FieldName, string>>;
 
@@ -55,35 +47,21 @@ const pixMaxLength: Record<TeacherPaymentPixType, number> = {
   random: 36,
 };
 
-export function PaymentAccountForm({
-  initialData,
-  onCancel,
-  onSubmit,
-}: PaymentAccountFormProps) {
-  const [type, setType] = useState<TeacherPaymentAccountType>(
-    initialData?.type ?? "pix",
-  );
-  const [pixType, setPixType] = useState<TeacherPaymentPixType>(
-    initialData?.pix_type ?? "cpf",
-  );
+export function PaymentAccountForm({ initialData, onCancel, onSubmit }: PaymentAccountFormProps) {
+  const [type, setType] = useState<TeacherPaymentAccountType>(initialData?.type ?? "pix");
+  const [pixType, setPixType] = useState<TeacherPaymentPixType>(initialData?.pix_type ?? "cpf");
   const [pixKey, setPixKey] = useState(
-    initialData?.pix_key
-      ? maskPixKey(initialData.pix_key, initialData.pix_type ?? "cpf")
-      : "",
+    initialData?.pix_key ? maskPixKey(initialData.pix_key, initialData.pix_type ?? "cpf") : ""
   );
   const [bankName, setBankName] = useState(initialData?.bank_name ?? "");
   const [accountVariant, setAccountVariant] = useState<"corrente" | "poupanca">(
-    initialData?.account_variant ?? "corrente",
+    initialData?.account_variant ?? "corrente"
   );
   const [agency, setAgency] = useState(initialData?.agency ?? "");
-  const [accountNumber, setAccountNumber] = useState(
-    initialData?.account_number ?? "",
-  );
+  const [accountNumber, setAccountNumber] = useState(initialData?.account_number ?? "");
   const [ownerName, setOwnerName] = useState(initialData?.owner_name ?? "");
   const [ownerDocument, setOwnerDocument] = useState(
-    initialData?.owner_document
-      ? formatDocument(initialData.owner_document)
-      : "",
+    initialData?.owner_document ? formatDocument(initialData.owner_document) : ""
   );
   const [isDefault, setIsDefault] = useState(initialData?.is_default ?? false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -109,23 +87,21 @@ export function PaymentAccountForm({
     type === "pix"
       ? { type, pixType, pixKey, ownerName, ownerDocument, isDefault }
       : {
-        type,
-        bankName,
-        accountVariant,
-        agency,
-        accountNumber,
-        ownerName,
-        ownerDocument,
-        isDefault,
-      };
+          type,
+          bankName,
+          accountVariant,
+          agency,
+          accountNumber,
+          ownerName,
+          ownerDocument,
+          isDefault,
+        };
 
   const validateField = (field: FieldName) => {
     const parsed = accountFormSchema.safeParse(getCandidate());
     const issue = parsed.success
       ? undefined
-      : parsed.error.issues.find(
-        (currentIssue) => currentIssue.path[0] === field,
-      );
+      : parsed.error.issues.find((currentIssue) => currentIssue.path[0] === field);
 
     setFieldErrors((current) => ({ ...current, [field]: issue?.message }));
   };
@@ -151,8 +127,7 @@ export function PaymentAccountForm({
     setError(null);
     startTransition(async () => {
       const result = await onSubmit(parsed.data);
-      if (!result.success)
-        setError(result.error ?? "Não foi possível salvar a conta.");
+      if (!result.success) setError(result.error ?? "Não foi possível salvar a conta.");
     });
   };
 
@@ -228,9 +203,7 @@ export function PaymentAccountForm({
             <Field label="Tipo de conta">
               <Select
                 value={accountVariant}
-                onValueChange={(value) =>
-                  setAccountVariant(value as "corrente" | "poupanca")
-                }
+                onValueChange={(value) => setAccountVariant(value as "corrente" | "poupanca")}
               >
                 <SelectTrigger className="min-h-12 w-full rounded-xl">
                   <SelectValue placeholder="Selecione o tipo" />
@@ -257,16 +230,11 @@ export function PaymentAccountForm({
                 className="h-12 rounded-xl"
               />
             </Field>
-            <Field
-              label="Conta (incluindo dígito)"
-              error={fieldErrors.accountNumber}
-            >
+            <Field label="Conta (incluindo dígito)" error={fieldErrors.accountNumber}>
               <Input
                 value={accountNumber}
                 onChange={(event) => {
-                  setAccountNumber(
-                    event.target.value.replace(/\D/g, "").slice(0, 20),
-                  );
+                  setAccountNumber(event.target.value.replace(/\D/g, "").slice(0, 20));
                   clearFieldError("accountNumber");
                 }}
                 placeholder="Ex.: 123456789"
@@ -330,10 +298,7 @@ export function PaymentAccountForm({
       </label>
 
       {error && (
-        <p
-          role="alert"
-          className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-700"
-        >
+        <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-700">
           {error}
         </p>
       )}
@@ -373,7 +338,7 @@ function Field({
 }) {
   return (
     <div className="min-w-0 space-y-2">
-      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-600">
+      <Label className="text-[10px] font-black tracking-widest text-slate-600 uppercase">
         {label}
       </Label>
       {children}

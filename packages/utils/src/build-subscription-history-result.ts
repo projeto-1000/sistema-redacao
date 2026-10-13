@@ -23,42 +23,21 @@ export function buildSubscriptionHistoryResult({
 }: BuildSubscriptionHistoryResultParams): SubscriptionHistoryResult {
   const normalizedRows = rows ?? [];
 
-  const normalizedLimit = Math.min(
-    Math.max(limit, 1),
-    100
-  );
+  const normalizedLimit = Math.min(Math.max(limit, 1), 100);
 
   const events = normalizedRows
     .map(mapSubscriptionHistoryRpcRow)
-    .filter(
-      (
-        event
-      ): event is SubscriptionHistoryEvent =>
-        event !== null
-    );
+    .filter((event): event is SubscriptionHistoryEvent => event !== null);
 
-  const items = events.map(
-    mapSubscriptionHistoryItem
-  );
+  const items = events.map(mapSubscriptionHistoryItem);
 
-  const parsedTotalCount = Number(
-    normalizedRows[0]?.total_count ?? 0
-  );
+  const parsedTotalCount = Number(normalizedRows[0]?.total_count ?? 0);
 
-  const totalCount = Number.isFinite(
-    parsedTotalCount
-  )
-    ? Math.max(parsedTotalCount, 0)
-    : 0;
+  const totalCount = Number.isFinite(parsedTotalCount) ? Math.max(parsedTotalCount, 0) : 0;
 
   return {
     items,
 
-    totalPages:
-      totalCount > 0
-        ? Math.ceil(
-            totalCount / normalizedLimit
-          )
-        : 0,
+    totalPages: totalCount > 0 ? Math.ceil(totalCount / normalizedLimit) : 0,
   };
 }

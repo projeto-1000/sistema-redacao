@@ -11,7 +11,7 @@ export function SubmitEssayButton({ disabled }: { disabled: boolean }) {
     <Button
       type="submit"
       disabled={disabled || pending}
-      className="w-full sm:w-auto bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-full h-12 shadow-lg shadow-green-500/20 gap-2 transition-all hover:scale-105"
+      className="h-12 w-full gap-2 rounded-full bg-[#10B981] font-bold text-white shadow-lg shadow-green-500/20 transition-all hover:scale-105 hover:bg-[#059669] sm:w-auto"
       isLoading={pending}
       loadingText="Enviando..."
     >

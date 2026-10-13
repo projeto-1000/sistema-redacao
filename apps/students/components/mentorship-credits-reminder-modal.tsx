@@ -20,18 +20,13 @@ export function MentorshipCreditsReminderModal({
   open,
   onClose,
 }: MentorshipCreditsReminderModalProps) {
-
   return (
     <Dialog open={open}>
       <DialogContent
         className="w-[calc(100%-4rem)] max-w-140 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-2xl"
         showCloseButton={false}
-        onInteractOutside={(event) =>
-          event.preventDefault()
-        }
-        onEscapeKeyDown={(event) =>
-          event.preventDefault()
-        }
+        onInteractOutside={(event) => event.preventDefault()}
+        onEscapeKeyDown={(event) => event.preventDefault()}
       >
         <div className="bg-linear-to-br from-[#0f55de] to-[#042060] px-6 py-6 text-center text-white sm:px-8">
           <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20">
@@ -44,8 +39,8 @@ export function MentorshipCreditsReminderModal({
             </DialogTitle>
 
             <DialogDescription className="text-sm leading-relaxed text-blue-100">
-              Use seus créditos nas redações propostas durante a
-              mentoria e acompanhe sua evolução a cada correção.
+              Use seus créditos nas redações propostas durante a mentoria e acompanhe sua evolução a
+              cada correção.
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -58,57 +53,40 @@ export function MentorshipCreditsReminderModal({
 
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-xl border border-blue-100 bg-blue-50 px-2 py-3 text-center">
-                <p className="text-xs text-slate-500">
-                  Agora
-                </p>
+                <p className="text-xs text-slate-500">Agora</p>
 
-                <p className="mt-0.5 text-sm font-bold text-[#0A4BCC]">
-                  2 créditos
-                </p>
+                <p className="mt-0.5 text-sm font-bold text-[#0A4BCC]">2 créditos</p>
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-center">
-                <p className="text-xs text-slate-500">
-                  Próximo mês
-                </p>
+                <p className="text-xs text-slate-500">Próximo mês</p>
 
-                <p className="mt-0.5 text-sm font-bold text-slate-800">
-                  2 créditos
-                </p>
+                <p className="mt-0.5 text-sm font-bold text-slate-800">2 créditos</p>
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-center">
-                <p className="text-xs text-slate-500">
-                  Último mês
-                </p>
+                <p className="text-xs text-slate-500">Último mês</p>
 
-                <p className="mt-0.5 text-sm font-bold text-slate-800">
-                  1 crédito
-                </p>
+                <p className="mt-0.5 text-sm font-bold text-slate-800">1 crédito</p>
               </div>
             </div>
           </div>
 
           <div className="rounded-2xl bg-slate-50 px-4 py-3 text-center">
-            <p className="text-sm font-semibold text-slate-800">
-              1 crédito = 1 correção
-            </p>
+            <p className="text-sm font-semibold text-slate-800">1 crédito = 1 correção</p>
 
             <p className="mt-1 text-xs leading-relaxed text-slate-500">
-              Os créditos não acumulam para o próximo
-              ciclo.
+              Os créditos não acumulam para o próximo ciclo.
             </p>
           </div>
 
           <div className="flex items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3">
             <div>
-              <h3 className="text-sm font-bold">
-                Quer continuar praticando?
-              </h3>
+              <h3 className="text-sm font-bold">Quer continuar praticando?</h3>
 
               <p className="mt-0.5 text-xs leading-relaxed text-slate-600 sm:text-sm">
-                Assine um plano para receber mais créditos e enviar
-                outras redações além das propostas na mentoria.
+                Assine um plano para receber mais créditos e enviar outras redações além das
+                propostas na mentoria.
               </p>
             </div>
 
@@ -116,13 +94,10 @@ export function MentorshipCreditsReminderModal({
               type="button"
               variant="outline"
               size="sm"
-              className="shrink-0 rounded-xl bg-transparent! font-bold text-[#0A4BCC] border-none shadow-none"
+              className="shrink-0 rounded-xl border-none bg-transparent! font-bold text-[#0A4BCC] shadow-none"
               asChild
             >
-              <Link
-                href="/assinatura/planos"
-                onClick={onClose}
-              >
+              <Link href="/assinatura/planos" onClick={onClose}>
                 Ver planos
                 <ArrowRight className="ml-1 size-3.5" />
               </Link>

@@ -15,17 +15,10 @@ export type RequestSubscriptionCancellationResult =
   | {
       success: true;
       kind:
-        | "ordinary"
-        | "withdrawal_automatic"
-        | "withdrawal_manual"
-        | "withdrawal_operational_issue";
+        "ordinary" | "withdrawal_automatic" | "withdrawal_manual" | "withdrawal_operational_issue";
       effectiveAt: string | null;
       alreadyScheduled: boolean;
-      withdrawalStatus?:
-        | "under_review"
-        | "refund_processing"
-        | "refunded"
-        | "operational_issue";
+      withdrawalStatus?: "under_review" | "refund_processing" | "refunded" | "operational_issue";
     }
   | {
       success: false;

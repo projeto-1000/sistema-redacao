@@ -35,7 +35,8 @@ export function PaymentOverview({
 }: PaymentOverviewProps) {
   const isPaid = metrics.status === "paid";
   const deliveryTotal = metrics.onTime + metrics.delayed;
-  const onTimePercentage = deliveryTotal > 0 ? Math.round((metrics.onTime / deliveryTotal) * 100) : 0;
+  const onTimePercentage =
+    deliveryTotal > 0 ? Math.round((metrics.onTime / deliveryTotal) * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -119,7 +120,9 @@ export function PaymentOverview({
             </span>
             <div>
               <h2 className="text-xl font-black">Conta principal</h2>
-              <p className="text-sm font-medium text-slate-500">Usada para os próximos pagamentos</p>
+              <p className="text-sm font-medium text-slate-500">
+                Usada para os próximos pagamentos
+              </p>
             </div>
           </div>
 
@@ -128,7 +131,9 @@ export function PaymentOverview({
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-bold">
-                    {account.type === "pix" ? `PIX • ${account.pix_type?.toUpperCase()}` : account.bank_name}
+                    {account.type === "pix"
+                      ? `PIX • ${account.pix_type?.toUpperCase()}`
+                      : account.bank_name}
                   </p>
                   <p className="mt-1 truncate text-sm font-medium text-slate-500">
                     {account.type === "pix"
@@ -147,10 +152,18 @@ export function PaymentOverview({
           )}
 
           <div className="mt-auto flex flex-col gap-2 pt-6">
-            <Button asChild variant="outline" className="h-12 w-full rounded-xl font-bold text-blue-600">
+            <Button
+              asChild
+              variant="outline"
+              className="h-12 w-full rounded-xl font-bold text-blue-600"
+            >
               <Link href={accountsHref}>Gerenciar contas</Link>
             </Button>
-            <Button asChild variant="ghost" className="h-11 w-full rounded-xl font-bold text-slate-600">
+            <Button
+              asChild
+              variant="ghost"
+              className="h-11 w-full rounded-xl font-bold text-slate-600"
+            >
               <Link href={historyHref}>Ver histórico completo</Link>
             </Button>
           </div>
@@ -178,7 +191,9 @@ function MetricCard({
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-center gap-4">
-        <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${iconClassName}`}>
+        <span
+          className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${iconClassName}`}
+        >
           {icon}
         </span>
         <div className="min-w-0">
@@ -186,7 +201,9 @@ function MetricCard({
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <p className="text-2xl font-black">{value}</p>
             {badge && (
-              <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${badgeClassName}`}>
+              <span
+                className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${badgeClassName}`}
+              >
                 {badge}
               </span>
             )}

@@ -18,14 +18,10 @@ interface CheckoutPageProps {
   }>;
 }
 
-export default async function CheckoutPage({
-  searchParams,
-}: CheckoutPageProps) {
+export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
   const params = await searchParams;
 
-  const planId = Array.isArray(params.planId)
-    ? params.planId[0]
-    : params.planId;
+  const planId = Array.isArray(params.planId) ? params.planId[0] : params.planId;
 
   if (!planId) {
     redirect("/assinatura/planos");
@@ -38,14 +34,14 @@ export default async function CheckoutPage({
   }
 
   return (
-    <div className="space-y-8 min-h-dvh px-2 md:px-10 lg:px-12 py-4">
+    <div className="min-h-dvh space-y-8 px-2 py-4 md:px-10 lg:px-12">
       <Button
         asChild
         variant="ghost"
-        className="text-slate-500 hover:text-primary hover:bg-transparent!"
+        className="hover:text-primary text-slate-500 hover:bg-transparent!"
       >
         <Link href="/assinatura/planos">
-          <ArrowLeft className="size-4 mr-2" />
+          <ArrowLeft className="mr-2 size-4" />
           Voltar para planos
         </Link>
       </Button>
@@ -55,12 +51,9 @@ export default async function CheckoutPage({
         subtitle="Revise seu plano e preencha os dados para ativar sua assinatura."
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px] gap-8">
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_400px]">
         <main className="space-y-6">
-          <CheckoutForm
-            planId={data.plan.id}
-            savedCards={data.savedPaymentCards}
-          />
+          <CheckoutForm planId={data.plan.id} savedCards={data.savedPaymentCards} />
         </main>
 
         <aside className="xl:sticky xl:top-6 xl:self-start">

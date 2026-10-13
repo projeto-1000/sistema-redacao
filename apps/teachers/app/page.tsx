@@ -1,7 +1,3 @@
 export default function Page() {
-  return (
-    <main className="flex flex-col items-center justify-between min-h-dvh p-24">
-
-    </main>
-  );
+  return <main className="flex min-h-dvh flex-col items-center justify-between p-24"></main>;
 }

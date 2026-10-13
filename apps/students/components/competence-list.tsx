@@ -15,27 +15,21 @@ export function CompetenceList({ scores }: CompetenceListProps) {
 
         return (
           <div key={item.id} className="flex flex-col gap-1.5">
-            <div className="flex justify-between md:items-center min-w-max text-sm gap-2">
-              <span className="font-bold text-foreground/80">
-                <strong className="text-foreground font-extrabold mr-1.5">
-                  {item.id}:
-                </strong>
+            <div className="flex min-w-max justify-between gap-2 text-sm md:items-center">
+              <span className="text-foreground/80 font-bold">
+                <strong className="text-foreground mr-1.5 font-extrabold">{item.id}:</strong>
                 {item.title}
               </span>
 
               <span className="font-bold md:w-min lg:w-max">
-                <span className="text-primary">
-                  {score}
-                </span>
-                <span className="text-muted-foreground/60 text-xs ml-0.5">
-                  / {max}
-                </span>
+                <span className="text-primary">{score}</span>
+                <span className="text-muted-foreground/60 ml-0.5 text-xs">/ {max}</span>
               </span>
             </div>
 
-            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
               <div
-                className="h-full rounded-full transition-all duration-1000 bg-primary"
+                className="bg-primary h-full rounded-full transition-all duration-1000"
                 style={{ width: `${percentage}%` }}
               />
             </div>

@@ -47,9 +47,7 @@ interface FinalizeCheckoutSubscriptionResult {
 }
 
 type CheckoutBlockReason =
-  | "active_paid_subscription"
-  | "payment_issue"
-  | "unsupported_subscription";
+  "active_paid_subscription" | "payment_issue" | "unsupported_subscription";
 
 type CheckoutAccess =
   | {

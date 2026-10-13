@@ -4,7 +4,10 @@ export function maskPaymentAccountNumber(value: string | null | undefined) {
   return `${"•".repeat(Math.max(4, value.length - visible.length))}${visible}`;
 }
 
-export function maskPaymentPixKey(value: string | null | undefined, type: string | null | undefined) {
+export function maskPaymentPixKey(
+  value: string | null | undefined,
+  type: string | null | undefined
+) {
   if (!value) return "Não informada";
 
   if (type === "email") {

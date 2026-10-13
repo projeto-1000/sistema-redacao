@@ -11,23 +11,21 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const data = await getProfileData()
+  const data = await getProfileData();
 
   if (!data) return null;
 
   return (
-    <div className="space-y-8 px-4 md:px-10 lg:px-12 py-4">
+    <div className="space-y-8 px-4 py-4 md:px-10 lg:px-12">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Olá, {data.user.name}!
-        </h1>
-        <div className="flex items-center gap-2 text-slate-500 mt-1">
+        <h1 className="text-3xl font-bold tracking-tight">Olá, {data.user.name}!</h1>
+        <div className="mt-1 flex items-center gap-2 text-slate-500">
           <Calendar className="size-4" />
-          <span className="capitalize">{formatDate(new Date(), 'full')}</span>
+          <span className="capitalize">{formatDate(new Date(), "full")}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <ActionCard
           href="/redacoes-pendentes"
           title="Ver Pendentes"
@@ -46,18 +44,20 @@ export default async function DashboardPage() {
         />
       </div>
 
-
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-slate-800 text-lg">Próximas Redações</h3>
-          <Link href="/redacoes-pendentes" prefetch={false} className="text-sm font-semibold text-blue-600 hover:underline flex items-center gap-1">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-slate-800">Próximas Redações</h3>
+          <Link
+            href="/redacoes-pendentes"
+            prefetch={false}
+            className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:underline"
+          >
             Ver todas <ArrowRight className="size-4" />
           </Link>
         </div>
 
         <NextEssays />
-
       </div>
-    </div >
+    </div>
   );
 }

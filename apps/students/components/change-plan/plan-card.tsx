@@ -156,7 +156,7 @@ export function PlanCard({
           Recomendado
         </span>
       )}
-      <h2 className="text-3xl font-bold leading-tight tracking-tight text-slate-800">
+      <h2 className="text-3xl leading-tight font-bold tracking-tight text-slate-800">
         {plan.name}
       </h2>
 

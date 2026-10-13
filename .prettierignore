@@ -1,0 +1,18 @@
+# Dependencies and package-manager state
+**/node_modules/
+pnpm-lock.yaml
+
+# Generated build and test output
+**/.next/
+**/.temp/
+**/.turbo/
+**/.vercel/
+**/out/
+**/build/
+**/dist/
+**/coverage/
+**/next-env.d.ts
+
+# Static assets and generated snapshots
+**/public/
+**/*.snap

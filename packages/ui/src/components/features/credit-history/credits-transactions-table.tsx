@@ -19,19 +19,18 @@ export default function CreditTransactionsTable({ data }: CreditsHistoryListProp
 
   if (error) {
     return (
-      <div className="bg-red-50 text-red-600 border border-red-100 rounded-4xl p-6 md:p-8 shadow-sm">
+      <div className="rounded-4xl border border-red-100 bg-red-50 p-6 text-red-600 shadow-sm md:p-8">
         <h3 className="font-bold">Não foi possível carregar o histórico</h3>
-        <p className="text-sm mt-1">{error.message}</p>
+        <p className="mt-1 text-sm">{error.message}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-4xl shadow-sm overflow-hidden space-y-8">
-
+    <div className="space-y-8 overflow-hidden rounded-4xl border border-slate-200 bg-white shadow-sm">
       <div className="space-y-4 pt-6 md:pt-8">
         <div className="flex items-center gap-4 px-6 md:px-8">
-          <div className="size-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
             <History className="size-5" />
           </div>
           <div>
@@ -50,7 +49,7 @@ export default function CreditTransactionsTable({ data }: CreditsHistoryListProp
       </div>
 
       {totalPages > 0 && (
-        <div className="py-4 border-t border-slate-100 bg-slate-50">
+        <div className="border-t border-slate-100 bg-slate-50 py-4">
           <TablePagination totalPages={totalPages} />
         </div>
       )}

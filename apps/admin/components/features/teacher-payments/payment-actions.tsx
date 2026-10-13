@@ -19,9 +19,9 @@ export function PaymentActions({ teacherId, month, metrics, accounts }: PaymentA
     return (
       <Button
         onClick={() => metrics.receiptUrl && window.open(metrics.receiptUrl, "_blank")}
-        className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm"
+        className="h-14 w-full rounded-2xl bg-blue-600 text-sm font-bold text-white shadow-sm hover:bg-blue-700"
       >
-        <FileText className="size-5 mr-2" /> Ver Comprovante de Pagamento
+        <FileText className="mr-2 size-5" /> Ver Comprovante de Pagamento
       </Button>
     );
   }

@@ -12,7 +12,10 @@ import { formatDate, formatShortId } from "@repo/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { STUDENTS_TABLE_GRID } from "./students-table-layout";
-import { isStudentCancellationScheduled, SCHEDULED_CANCELLATION_BADGE } from "@/utils/student-subscription-status";
+import {
+  isStudentCancellationScheduled,
+  SCHEDULED_CANCELLATION_BADGE,
+} from "@/utils/student-subscription-status";
 
 const CREDIT_STYLES: Record<string, string> = {
   Plano: "border-blue-100 bg-blue-50/60 text-blue-700",
@@ -84,8 +87,9 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
     }
 
     if (studentItem.plan.interval === "day" && studentItem.plan.interval_count) {
-      return `${studentItem.plan.interval_count} dia${studentItem.plan.interval_count > 1 ? "s" : ""
-        }`;
+      return `${studentItem.plan.interval_count} dia${
+        studentItem.plan.interval_count > 1 ? "s" : ""
+      }`;
     }
 
     return null;
@@ -113,12 +117,13 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
   const validityLabel = isFreePlan
     ? hasValidFreeCreditExpiration
       ? `${freeCreditExpirationTime <= Date.now() ? "Expirou" : "Expira"} em ${formatDate(
-        freeCreditExpiresAt,
-        "compact"
-      )}`
+          freeCreditExpiresAt,
+          "compact"
+        )}`
       : legacyFreeCreditExpiration
-        ? `${legacyFreeCreditExpiration.hasExpired ? "Expirou" : "Expira"} em ${legacyFreeCreditExpiration.label
-        }`
+        ? `${legacyFreeCreditExpiration.hasExpired ? "Expirou" : "Expira"} em ${
+            legacyFreeCreditExpiration.label
+          }`
         : "Validade indisponível"
     : hasValidity
       ? `${periodStart} – ${periodEnd}`
@@ -145,7 +150,10 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
     }
 
     if (isStudentCancellationScheduled(studentItem.subscription)) {
-      return { label: SCHEDULED_CANCELLATION_BADGE.label, colors: SCHEDULED_CANCELLATION_BADGE.classes };
+      return {
+        label: SCHEDULED_CANCELLATION_BADGE.label,
+        colors: SCHEDULED_CANCELLATION_BADGE.classes,
+      };
     }
 
     switch (studentItem.subscription?.status) {
@@ -250,9 +258,7 @@ export function StudentsTableRow({ student }: { student: StudentsListItem }) {
                   aria-hidden="true"
                 />
 
-                <span className="shrink-0 text-xs font-semibold text-blue-600">
-                  {periodLabel}
-                </span>
+                <span className="shrink-0 text-xs font-semibold text-blue-600">{periodLabel}</span>
               </>
             )}
           </div>

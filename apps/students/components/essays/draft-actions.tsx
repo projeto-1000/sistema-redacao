@@ -1,4 +1,14 @@
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogFooter, AlertDialogCancel, AlertDialogAction, AlertDialogHeader, AlertDialogDescription, AlertDialogTitle } from "@repo/ui/components/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+  AlertDialogHeader,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@repo/ui/components/alert-dialog";
 import { Button } from "@repo/ui/components/button";
 import { ArrowRight, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -11,10 +21,10 @@ interface DraftActionsProps {
 
 export function DraftActions({ topicId, isPending, onConfirmDelete }: DraftActionsProps) {
   return (
-    <div className="flex min-w-0 gap-2 w-full">
+    <div className="flex w-full min-w-0 gap-2">
       <Button
         asChild
-        className="min-w-0 flex-1 bg-amber-100 text-amber-700 hover:bg-amber-200 font-bold rounded-xl h-10 gap-2 px-3 has-[>svg]:px-3 sm:px-4 sm:has-[>svg]:px-4"
+        className="h-10 min-w-0 flex-1 gap-2 rounded-xl bg-amber-100 px-3 font-bold text-amber-700 hover:bg-amber-200 has-[>svg]:px-3 sm:px-4 sm:has-[>svg]:px-4"
       >
         <Link href={`/minhas-redacoes/nova-redacao?id=${topicId}`}>
           Continuar Redação <ArrowRight className="size-4" />
@@ -23,7 +33,7 @@ export function DraftActions({ topicId, isPending, onConfirmDelete }: DraftActio
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button className="h-10 bg-red-100 shrink-0 hover:bg-red-200 transition-colors rounded-lg">
+          <Button className="h-10 shrink-0 rounded-lg bg-red-100 transition-colors hover:bg-red-200">
             <Trash2 className="size-4 text-red-600" />
           </Button>
         </AlertDialogTrigger>
@@ -32,7 +42,8 @@ export function DraftActions({ topicId, isPending, onConfirmDelete }: DraftActio
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir rascunho?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Você perderá todo o progresso feito nesta redação até agora.
+              Esta ação não pode ser desfeita. Você perderá todo o progresso feito nesta redação até
+              agora.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -40,7 +51,7 @@ export function DraftActions({ topicId, isPending, onConfirmDelete }: DraftActio
             <AlertDialogAction
               onClick={onConfirmDelete}
               disabled={isPending}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold"
+              className="rounded-xl bg-red-600 font-bold text-white hover:bg-red-700"
             >
               {isPending ? "Excluindo..." : "Sim, excluir"}
             </AlertDialogAction>

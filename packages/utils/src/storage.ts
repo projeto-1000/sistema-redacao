@@ -1,7 +1,7 @@
 export function getPublicStorageObjectPath(
   publicUrl: string | null | undefined,
   bucket: string,
-  ownerId?: string,
+  ownerId?: string
 ): string | null {
   if (!publicUrl) return null;
 
@@ -14,9 +14,7 @@ export function getPublicStorageObjectPath(
     const objectPath = decodeURIComponent(url.pathname.slice(bucketPathPrefix.length));
 
     const belongsToOwner =
-      !ownerId ||
-      objectPath.startsWith(`${ownerId}/`) ||
-      objectPath.startsWith(`${ownerId}-`);
+      !ownerId || objectPath.startsWith(`${ownerId}/`) || objectPath.startsWith(`${ownerId}-`);
 
     if (!objectPath || !belongsToOwner) {
       return null;

@@ -25,7 +25,7 @@ export function PendingEssayRow({ essay, action }: PendingEssayRowProps) {
             className="size-9 shrink-0 rounded-full border border-slate-200"
           />
           <div className="min-w-0">
-            <h4 className="truncate text-sm font-bold leading-snug transition-colors group-hover:text-[#1E3A8A]">
+            <h4 className="truncate text-sm leading-snug font-bold transition-colors group-hover:text-[#1E3A8A]">
               {essay.student_name}
             </h4>
             <span className="text-xs text-slate-500">
@@ -35,13 +35,10 @@ export function PendingEssayRow({ essay, action }: PendingEssayRowProps) {
         </div>
 
         <div className="col-span-2 mt-2 min-w-0 lg:col-span-1 lg:mt-0">
-          <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400 lg:hidden">
+          <span className="mb-1 block text-[10px] font-bold tracking-widest text-slate-400 uppercase lg:hidden">
             Tema
           </span>
-          <p
-            className="line-clamp-2 text-sm font-medium leading-snug"
-            title={essay.title}
-          >
+          <p className="line-clamp-2 text-sm leading-snug font-medium" title={essay.title}>
             {essay.title}
           </p>
         </div>

@@ -37,9 +37,10 @@ function parsePaymentDate(value: string) {
   const month = Number(monthPart);
   const day = Number(dayPart);
   const calendarDate = new Date(Date.UTC(year, month - 1, day));
-  const isValidDate = calendarDate.getUTCFullYear() === year
-    && calendarDate.getUTCMonth() === month - 1
-    && calendarDate.getUTCDate() === day;
+  const isValidDate =
+    calendarDate.getUTCFullYear() === year &&
+    calendarDate.getUTCMonth() === month - 1 &&
+    calendarDate.getUTCDate() === day;
 
   if (!isValidDate || value > getTodayInSaoPaulo()) return null;
 
@@ -229,7 +230,9 @@ export async function createTeacherPayment(formData: FormData) {
   const paymentDateStr = formData.get("paymentDate");
   const file = formData.get("receipt") as File;
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(teacherId)) {
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(teacherId)
+  ) {
     return { success: false, error: "Professor inválido." };
   }
 
@@ -239,7 +242,10 @@ export async function createTeacherPayment(formData: FormData) {
 
   const processedAt = parsePaymentDate(typeof paymentDateStr === "string" ? paymentDateStr : "");
   if (!processedAt) {
-    return { success: false, error: "Informe uma data de pagamento válida, sem usar uma data futura." };
+    return {
+      success: false,
+      error: "Informe uma data de pagamento válida, sem usar uma data futura.",
+    };
   }
 
   if (!file || file.size === 0) {
@@ -316,7 +322,10 @@ export async function createTeacherPayment(formData: FormData) {
     const { error: updateError } = await supabase
       .from("essays")
       .update({ payment_id: payment.id })
-      .in("id", payableEssays.map((essay) => essay.id))
+      .in(
+        "id",
+        payableEssays.map((essay) => essay.id)
+      )
       .is("payment_id", null);
 
     if (updateError) {

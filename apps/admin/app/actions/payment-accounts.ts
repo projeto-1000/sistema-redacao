@@ -13,13 +13,14 @@ function sanitizeAccount(values: AccountFormValues) {
     owner_name: data.ownerName,
     owner_document: normalizeDocument(data.ownerDocument),
     pix_type: data.type === "pix" ? data.pixType : null,
-    pix_key: data.type === "pix"
-      ? (data.pixType === "cnpj"
+    pix_key:
+      data.type === "pix"
+        ? data.pixType === "cnpj"
           ? normalizeCNPJ(data.pixKey)
           : ["cpf", "phone"].includes(data.pixType)
             ? data.pixKey.replace(/\D/g, "")
-            : data.pixKey)
-      : null,
+            : data.pixKey
+        : null,
     bank_name: data.type === "bank_account" ? data.bankName : null,
     account_variant: data.type === "bank_account" ? data.accountVariant : null,
     agency: data.type === "bank_account" ? data.agency : null,
@@ -63,7 +64,9 @@ export async function createPaymentAccount(teacherId: string, data: AccountFormV
     if (error) throw error;
 
     if (parsed.isDefault || count === 0) {
-      const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: account.id });
+      const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", {
+        p_account_id: account.id,
+      });
       if (defaultError) {
         await supabase.from("teacher_payment_accounts").delete().eq("id", account.id);
         throw defaultError;
@@ -96,7 +99,9 @@ export async function updatePaymentAccount(
     if (error) throw error;
 
     if (parsed.isDefault) {
-      const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: accountId });
+      const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", {
+        p_account_id: accountId,
+      });
       if (defaultError) throw defaultError;
     }
 
@@ -111,7 +116,9 @@ export async function updatePaymentAccount(
 export async function deletePaymentAccount(accountId: string, teacherId: string) {
   const supabase = await createClient();
   try {
-    const { error } = await supabase.rpc("delete_teacher_payment_account", { p_account_id: accountId });
+    const { error } = await supabase.rpc("delete_teacher_payment_account", {
+      p_account_id: accountId,
+    });
     if (error) throw error;
 
     revalidatePath(`/professores/${teacherId}/pagamentos`);
@@ -126,7 +133,9 @@ export async function setDefaultPaymentAccount(accountId: string, teacherId: str
   const supabase = await createClient();
 
   try {
-    const { error } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: accountId });
+    const { error } = await supabase.rpc("set_teacher_default_payment_account", {
+      p_account_id: accountId,
+    });
     if (error) throw error;
 
     revalidatePath(`/professores/${teacherId}/pagamentos`);

@@ -33,9 +33,7 @@ export function isValidCardNumber(value: string) {
   return sum % 10 === 0;
 }
 
-export function parseCardExpiration(
-  value: string
-): ParsedCardExpiration | null {
+export function parseCardExpiration(value: string): ParsedCardExpiration | null {
   const match = value.match(/^(\d{2})\/(\d{2})$/);
 
   if (!match) {

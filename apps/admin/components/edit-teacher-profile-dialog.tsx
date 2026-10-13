@@ -31,15 +31,12 @@ import {
   FormMessage,
 } from "@repo/ui/components/form";
 import { Input } from "@repo/ui/components/input";
-import {
-  createUpdateTeacherProfileSchema,
-  type UpdateTeacherProfileInput,
-} from "@repo/validators";
+import { createUpdateTeacherProfileSchema, type UpdateTeacherProfileInput } from "@repo/validators";
 import { formatDocument, formatPhone } from "@repo/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldCheck, UserRoundCog } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -66,8 +63,7 @@ export function EditTeacherProfileDialog({
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDisableOpen, setConfirmDisableOpen] = useState(false);
-  const [pendingValues, setPendingValues] =
-    useState<UpdateTeacherProfileInput | null>(null);
+  const [pendingValues, setPendingValues] = useState<UpdateTeacherProfileInput | null>(null);
   const profileSchema = useMemo(
     () => createUpdateTeacherProfileSchema(teacher.document),
     [teacher.document]
@@ -78,14 +74,6 @@ export function EditTeacherProfileDialog({
     defaultValues: getDefaultValues(teacher),
     mode: "onChange",
   });
-
-  useEffect(() => {
-    if (open) {
-      form.reset(getDefaultValues(teacher));
-      setPendingValues(null);
-      setConfirmDisableOpen(false);
-    }
-  }, [form, open, teacher]);
 
   const saveProfile = async (values: UpdateTeacherProfileInput) => {
     setIsSaving(true);
@@ -112,10 +100,7 @@ export function EditTeacherProfileDialog({
   };
 
   const handleSubmit = async (values: UpdateTeacherProfileInput) => {
-    if (
-      teacher.correction_review_required &&
-      !values.correction_review_required
-    ) {
+    if (teacher.correction_review_required && !values.correction_review_required) {
       setPendingValues(values);
       setConfirmDisableOpen(true);
       return;
@@ -138,9 +123,7 @@ export function EditTeacherProfileDialog({
       <Dialog open={open} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden rounded-3xl border-none bg-slate-50 p-0 shadow-2xl sm:max-w-4xl">
           <DialogHeader className="border-b border-slate-200 bg-white px-6 py-5 pr-14">
-            <DialogTitle className="text-xl font-black ">
-              Editar perfil do professor
-            </DialogTitle>
+            <DialogTitle className="text-xl font-black">Editar perfil do professor</DialogTitle>
             <DialogDescription>
               Atualize os dados pessoais e as configurações de correção.
             </DialogDescription>
@@ -159,12 +142,8 @@ export function EditTeacherProfileDialog({
                     className="size-14 shrink-0 rounded-full border-2 border-slate-200"
                   />
                   <div className="min-w-0">
-                    <p className="truncate font-black ">
-                      {teacher.full_name}
-                    </p>
-                    <p className="truncate text-sm text-slate-500">
-                      {teacher.email}
-                    </p>
+                    <p className="truncate font-black">{teacher.full_name}</p>
+                    <p className="truncate text-sm text-slate-500">{teacher.email}</p>
                   </div>
                 </div>
 
@@ -172,7 +151,7 @@ export function EditTeacherProfileDialog({
                   <section className="rounded-3xl border border-slate-200 bg-white p-5 md:col-span-3">
                     <div className="mb-5 flex items-center gap-2">
                       <UserRoundCog className="size-5 text-blue-600" />
-                      <h3 className="font-black ">Dados pessoais</h3>
+                      <h3 className="font-black">Dados pessoais</h3>
                     </div>
 
                     <div className="space-y-4">
@@ -185,11 +164,7 @@ export function EditTeacherProfileDialog({
                               Nome completo
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                {...field}
-                                className={inputClassName}
-                                autoComplete="name"
-                              />
+                              <Input {...field} className={inputClassName} autoComplete="name" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -201,9 +176,7 @@ export function EditTeacherProfileDialog({
                         name="document"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-bold text-slate-600">
-                              CPF
-                            </FormLabel>
+                            <FormLabel className="font-bold text-slate-600">CPF</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
@@ -225,9 +198,7 @@ export function EditTeacherProfileDialog({
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-bold text-slate-600">
-                              Telefone
-                            </FormLabel>
+                            <FormLabel className="font-bold text-slate-600">Telefone</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
@@ -250,9 +221,7 @@ export function EditTeacherProfileDialog({
                   <section className="rounded-3xl border border-slate-200 bg-white p-5 md:col-span-2">
                     <div className="mb-5 flex items-center gap-2">
                       <ShieldCheck className="size-5 text-indigo-600" />
-                      <h3 className="font-black ">
-                        Configurações de correção
-                      </h3>
+                      <h3 className="font-black">Configurações de correção</h3>
                     </div>
 
                     <FormField
@@ -261,16 +230,15 @@ export function EditTeacherProfileDialog({
                       render={({ field }) => (
                         <FormItem className="space-y-0">
                           <div
-                            className={`rounded-2xl border p-4 transition-colors ${field.value
-                              ? "border-indigo-200 bg-indigo-50/70"
-                              : "border-slate-200 bg-slate-50"
-                              }`}
+                            className={`rounded-2xl border p-4 transition-colors ${
+                              field.value
+                                ? "border-indigo-200 bg-indigo-50/70"
+                                : "border-slate-200 bg-slate-50"
+                            }`}
                           >
                             <div className="flex items-start justify-between gap-4">
                               <div>
-                                <p className="font-bold ">
-                                  Exigir revisão
-                                </p>
+                                <p className="font-bold">Exigir revisão</p>
                                 <p className="mt-1 text-sm leading-relaxed text-slate-600">
                                   As correções passam por revisão antes de chegar ao aluno.
                                 </p>
@@ -283,20 +251,22 @@ export function EditTeacherProfileDialog({
                                   aria-checked={field.value}
                                   aria-label="Ativar supervisão de correções"
                                   onClick={() => field.onChange(!field.value)}
-                                  className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${field.value ? "bg-blue-600" : "bg-slate-300"
-                                    }`}
+                                  className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none ${
+                                    field.value ? "bg-blue-600" : "bg-slate-300"
+                                  }`}
                                 >
                                   <span
-                                    className={`absolute top-1 size-5 rounded-full bg-white shadow-sm transition-transform ${field.value ? "left-6" : "left-1"
-                                      }`}
+                                    className={`absolute top-1 size-5 rounded-full bg-white shadow-sm transition-transform ${
+                                      field.value ? "left-6" : "left-1"
+                                    }`}
                                   />
                                 </button>
                               </FormControl>
                             </div>
-
                           </div>
                           <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                            A mudança vale para os próximos envios. Correções que já aguardam revisão não serão alteradas.
+                            A mudança vale para os próximos envios. Correções que já aguardam
+                            revisão não serão alteradas.
                           </p>
                         </FormItem>
                       )}
@@ -318,9 +288,7 @@ export function EditTeacherProfileDialog({
                 <Button
                   type="submit"
                   className="rounded-xl"
-                  disabled={
-                    isSaving || !form.formState.isDirty || !form.formState.isValid
-                  }
+                  disabled={isSaving || !form.formState.isDirty || !form.formState.isValid}
                   isLoading={isSaving}
                   loadingText="Salvando..."
                 >
@@ -337,7 +305,8 @@ export function EditTeacherProfileDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>Desativar supervisão?</AlertDialogTitle>
             <AlertDialogDescription className="leading-relaxed">
-              As próximas correções deste professor serão publicadas diretamente para o aluno, sem revisão administrativa. Correções que já aguardam revisão não serão alteradas.
+              As próximas correções deste professor serão publicadas diretamente para o aluno, sem
+              revisão administrativa. Correções que já aguardam revisão não serão alteradas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

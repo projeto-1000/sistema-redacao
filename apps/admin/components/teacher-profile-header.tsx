@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { updateTeacherStatus } from "@/app/actions/teachers";
 import { useToggleUserStatus } from "@/hooks/use-toggle-user-status";
@@ -9,33 +9,38 @@ import Link from "next/link";
 import { useState } from "react";
 import { EditTeacherProfileDialog } from "./edit-teacher-profile-dialog";
 interface TeacherProfileHeaderProps {
-  teacher: TeacherProfile
+  teacher: TeacherProfile;
 }
 
 export default function TeacherProfileHeader({ teacher }: TeacherProfileHeaderProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const { entity: teacherItem, toggleStatus } = useToggleUserStatus(
-    teacher,
-    updateTeacherStatus
-  );
+  const [editSession, setEditSession] = useState(0);
+  const { entity: teacherItem, toggleStatus } = useToggleUserStatus(teacher, updateTeacherStatus);
+
+  const handleEdit = () => {
+    setEditSession((currentSession) => currentSession + 1);
+    setIsEditOpen(true);
+  };
 
   return (
     <>
       <UserProfileHeader
         user={teacherItem}
-        onEdit={() => setIsEditOpen(true)}
+        onEdit={handleEdit}
         onToggleStatus={toggleStatus}
-        statusBadge={teacherItem.correction_review_required ? (
-          <span className="flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-700">
-            <ShieldCheck className="size-3" />
-            Supervisionado
-          </span>
-        ) : null}
+        statusBadge={
+          teacherItem.correction_review_required ? (
+            <span className="flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] font-bold tracking-wider text-violet-700 uppercase">
+              <ShieldCheck className="size-3" />
+              Supervisionado
+            </span>
+          ) : null
+        }
         footer={
-          <div className=" bg-slate-100 p-4 px-8">
+          <div className="bg-slate-100 p-4 px-8">
             <Link
               href={`/professores/${teacher.id}/pagamentos`}
-              className="flex items-center justify-between w-full text-sm font-bold hover:text-blue-600 transition-colors group"
+              className="group flex w-full items-center justify-between text-sm font-bold transition-colors hover:text-blue-600"
             >
               <span className="flex items-center gap-2">
                 <CreditCard className="size-4.5 text-slate-400 group-hover:text-blue-600" />
@@ -44,15 +49,15 @@ export default function TeacherProfileHeader({ teacher }: TeacherProfileHeaderPr
 
               <ChevronRight className="size-4.5 text-slate-400 group-hover:text-blue-600" />
             </Link>
-
           </div>
         }
       />
       <EditTeacherProfileDialog
+        key={`${teacherItem.id}-${editSession}`}
         teacher={teacherItem}
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
       />
     </>
-  )
+  );
 }

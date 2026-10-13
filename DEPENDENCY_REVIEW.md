@@ -15,50 +15,50 @@ A configuração de segurança de pnpm-workspace.yaml permaneceu igual à origin
 Esta tabela compara as declarações dos manifests, não apenas o que estava instalado.
 Os valores com ^ continuam permitindo atualizações compatíveis; o lockfile fixa a resolução.
 
-| Dependência | Faixas anteriores nos manifests | Faixa atual | Workspaces |
-| --- | --- | --- | --- |
-| @eslint/js | ^9.39.1 | ^9.39.5 | @repo/eslint-config |
-| @hookform/resolvers | ^5.2.2 | ^5.9.1 | admin, students, website, @repo/ui |
-| @next/eslint-plugin-next | ^15.4.6 | ^16.3.8 | @repo/eslint-config |
-| @radix-ui/react-label | ^2.1.8 | ^2.1.16 | @repo/ui |
-| @radix-ui/react-slot | ^1.2.4 | ^1.4.0 | @repo/ui |
-| @supabase/ssr | ^0.8.0 | ^0.12.7 | admin, students, teachers |
-| @supabase/supabase-js | ^2.93.3 | ^2.117.2 | admin, students, teachers, website |
-| @tailwindcss/postcss | ^4.1.5 | ^4.3.3 | admin, students, teachers |
-| @types/node | ^22.15.30, ^20.0.0 | ^22.20.5 | admin, students, teachers, website, @repo/datacrazy, @repo/email, @repo/payments |
-| @types/react | ^19.1.0, ^18.0.0 | ^19.3.0 | admin, students, teachers, website, @repo/hooks, @repo/ui |
-| @types/react-dom | ^19.1.1 | ^19.3.0 | admin, students, teachers, website |
-| date-fns | ^4.1.0, ^3.6.0, ^3.0.0 | ^4.4.0 | admin, @repo/ui, @repo/utils |
-| eslint | ^9.39.1, 9.39.1 | ^9.39.5 | admin, students, teachers, website, @repo/datacrazy, @repo/email, @repo/eslint-config, @repo/payments, @repo/types, @repo/ui, @repo/utils |
-| eslint-config-prettier | ^10.1.1 | ^10.1.8 | @repo/eslint-config |
-| eslint-plugin-only-warn | ^1.1.0 | ^1.2.1 | @repo/eslint-config |
-| eslint-plugin-react | ^7.37.4 | ^7.37.5 | @repo/eslint-config |
-| eslint-plugin-react-hooks | ^5.2.0 | ^7.1.1 | @repo/eslint-config |
-| eslint-plugin-turbo | ^2.6.0 | ^2.11.7 | @repo/eslint-config |
-| globals | ^16.5.0 | ^17.13.0 | @repo/eslint-config |
-| libphonenumber-js | ^1.13.8 | ^1.13.14 | @repo/utils |
-| lucide-react | ^0.563.0 | ^1.52.0 | admin, students, teachers, website, @repo/ui |
-| next | 16.0.10, latest | 16.3.8 | admin, students, teachers, website, @repo/hooks, @repo/ui |
-| postcss | ^8.5.3 | ^8.5.29 | admin, students, teachers, @repo/tailwind-config |
-| prettier | ^3.6.0, ^3.2.5 | ^3.9.9 | sistema-redacao, @repo/prettier-config |
-| prettier-plugin-tailwindcss | ^0.7.1, ^0.5.11 | ^0.8.1 | sistema-redacao, @repo/prettier-config |
-| radix-ui | ^1.4.3 | ^1.7.0 | @repo/ui |
-| react | ^19.2.0, ^18.0.0, ^19 | ^19.3.0 | admin, students, teachers, website, @repo/hooks, @repo/ui |
-| react-avatar-editor | ^15.1.0 | ^16.0.0 | @repo/ui |
-| react-day-picker | ^9.14.0 | ^10.0.2 | admin, students, teachers, @repo/ui |
-| react-dom | ^19.1.0, ^18.0.0 | ^19.3.0 | admin, students, teachers, website, @repo/hooks |
-| react-hook-form | ^7.75.0 | ^7.89.0 | admin, students, website, @repo/ui |
-| recharts | ^3.7.0 | ^3.10.1 | admin, students |
-| resend | ^6.17.2 | ^6.32.0 | students |
-| sonner | ^2.0.7 | ^2.0.8 | admin, students, teachers, @repo/ui |
-| supabase | ^2.111.0 | 2.119.0 | sistema-redacao |
-| tailwind-merge | ^3.4.0 | ^3.7.0 | @repo/ui |
-| tailwindcss | ^4.1.5 | ^4.3.3 | admin, students, teachers, website, @repo/tailwind-config, @repo/ui |
-| turbo | ^2.7.6 | ^2.11.7 | sistema-redacao |
-| typescript | 5.9.2, ^5.0.0, ^5.9.2, latest | 6.0.3 | admin, students, teachers, website, @repo/constants, @repo/datacrazy, @repo/email, @repo/eslint-config, @repo/hooks, @repo/payments, @repo/ui, @repo/utils |
-| typescript-eslint | ^8.39.0 | ^8.71.1 | @repo/eslint-config |
-| use-debounce | ^10.1.0 | ^10.1.1 | admin, students, teachers |
-| zod | ^3.25.76, ^3.24.1 | ^4.6.5 | @repo/ui, @repo/validators |
+| Dependência                 | Faixas anteriores nos manifests | Faixa atual | Workspaces                                                                                                                                                 |
+| --------------------------- | ------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| @eslint/js                  | ^9.39.1                         | ^9.39.5     | @repo/eslint-config                                                                                                                                        |
+| @hookform/resolvers         | ^5.2.2                          | ^5.9.1      | admin, students, website, @repo/ui                                                                                                                         |
+| @next/eslint-plugin-next    | ^15.4.6                         | ^16.3.8     | @repo/eslint-config                                                                                                                                        |
+| @radix-ui/react-label       | ^2.1.8                          | ^2.1.16     | @repo/ui                                                                                                                                                   |
+| @radix-ui/react-slot        | ^1.2.4                          | ^1.4.0      | @repo/ui                                                                                                                                                   |
+| @supabase/ssr               | ^0.8.0                          | ^0.12.7     | admin, students, teachers                                                                                                                                  |
+| @supabase/supabase-js       | ^2.93.3                         | ^2.117.2    | admin, students, teachers, website                                                                                                                         |
+| @tailwindcss/postcss        | ^4.1.5                          | ^4.3.3      | admin, students, teachers                                                                                                                                  |
+| @types/node                 | ^22.15.30, ^20.0.0              | ^22.20.5    | admin, students, teachers, website, @repo/datacrazy, @repo/email, @repo/payments                                                                           |
+| @types/react                | ^19.1.0, ^18.0.0                | ^19.3.0     | admin, students, teachers, website, @repo/hooks, @repo/ui                                                                                                  |
+| @types/react-dom            | ^19.1.1                         | ^19.3.0     | admin, students, teachers, website                                                                                                                         |
+| date-fns                    | ^4.1.0, ^3.6.0, ^3.0.0          | ^4.4.0      | admin, @repo/ui, @repo/utils                                                                                                                               |
+| eslint                      | ^9.39.1, 9.39.1                 | ^9.39.5     | admin, students, teachers, website, @repo/datacrazy, @repo/email, @repo/eslint-config, @repo/payments, @repo/types, @repo/ui, @repo/utils                  |
+| eslint-config-prettier      | ^10.1.1                         | ^10.1.8     | @repo/eslint-config                                                                                                                                        |
+| eslint-plugin-only-warn     | ^1.1.0                          | ^1.2.1      | @repo/eslint-config                                                                                                                                        |
+| eslint-plugin-react         | ^7.37.4                         | ^7.37.5     | @repo/eslint-config                                                                                                                                        |
+| eslint-plugin-react-hooks   | ^5.2.0                          | ^7.1.1      | @repo/eslint-config                                                                                                                                        |
+| eslint-plugin-turbo         | ^2.6.0                          | ^2.11.7     | @repo/eslint-config                                                                                                                                        |
+| globals                     | ^16.5.0                         | ^17.13.0    | @repo/eslint-config                                                                                                                                        |
+| libphonenumber-js           | ^1.13.8                         | ^1.13.14    | @repo/utils                                                                                                                                                |
+| lucide-react                | ^0.563.0                        | ^1.52.0     | admin, students, teachers, website, @repo/ui                                                                                                               |
+| next                        | 16.0.10, latest                 | 16.3.8      | admin, students, teachers, website, @repo/hooks, @repo/ui                                                                                                  |
+| postcss                     | ^8.5.3                          | ^8.5.29     | admin, students, teachers, @repo/tailwind-config                                                                                                           |
+| prettier                    | ^3.6.0, ^3.2.5                  | ^3.9.9      | sistema-redacao, @repo/prettier-config                                                                                                                     |
+| prettier-plugin-tailwindcss | ^0.7.1, ^0.5.11                 | ^0.8.1      | sistema-redacao, @repo/prettier-config                                                                                                                     |
+| radix-ui                    | ^1.4.3                          | ^1.7.0      | @repo/ui                                                                                                                                                   |
+| react                       | ^19.2.0, ^18.0.0, ^19           | ^19.3.0     | admin, students, teachers, website, @repo/hooks, @repo/ui                                                                                                  |
+| react-avatar-editor         | ^15.1.0                         | ^16.0.0     | @repo/ui                                                                                                                                                   |
+| react-day-picker            | ^9.14.0                         | ^10.0.2     | admin, students, teachers, @repo/ui                                                                                                                        |
+| react-dom                   | ^19.1.0, ^18.0.0                | ^19.3.0     | admin, students, teachers, website, @repo/hooks                                                                                                            |
+| react-hook-form             | ^7.75.0                         | ^7.89.0     | admin, students, website, @repo/ui                                                                                                                         |
+| recharts                    | ^3.7.0                          | ^3.10.1     | admin, students                                                                                                                                            |
+| resend                      | ^6.17.2                         | ^6.32.0     | students                                                                                                                                                   |
+| sonner                      | ^2.0.7                          | ^2.0.8      | admin, students, teachers, @repo/ui                                                                                                                        |
+| supabase                    | ^2.111.0                        | 2.119.0     | sistema-redacao                                                                                                                                            |
+| tailwind-merge              | ^3.4.0                          | ^3.7.0      | @repo/ui                                                                                                                                                   |
+| tailwindcss                 | ^4.1.5                          | ^4.3.3      | admin, students, teachers, website, @repo/tailwind-config, @repo/ui                                                                                        |
+| turbo                       | ^2.7.6                          | ^2.11.7     | sistema-redacao                                                                                                                                            |
+| typescript                  | 5.9.2, ^5.0.0, ^5.9.2, latest   | 6.0.3       | admin, students, teachers, website, @repo/constants, @repo/datacrazy, @repo/email, @repo/eslint-config, @repo/hooks, @repo/payments, @repo/ui, @repo/utils |
+| typescript-eslint           | ^8.39.0                         | ^8.71.1     | @repo/eslint-config                                                                                                                                        |
+| use-debounce                | ^10.1.0                         | ^10.1.1     | admin, students, teachers                                                                                                                                  |
+| zod                         | ^3.25.76, ^3.24.1               | ^4.6.5      | @repo/ui, @repo/validators                                                                                                                                 |
 
 ## Remoções e reorganização
 
@@ -174,4 +174,3 @@ Não foram executados build completo, teste em navegador ou operações em servi
 Antes de publicação, fazer smoke em DEV de login/sessão, formulários de plano e tema,
 seleção de datas, recorte de avatar e cancelamento/reembolso com mocks ou loja de testes.
 As atualizações são compartilhadas pelas quatro aplicações.
-

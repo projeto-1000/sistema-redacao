@@ -24,7 +24,7 @@ const actions = [
     buttonText: "Começar Agora",
     icon: NotebookPen,
     variant: "default" as const,
-    href: '/temas'
+    href: "/temas",
   },
   {
     title: "Temas Disponíveis",
@@ -32,7 +32,7 @@ const actions = [
     buttonText: "Explorar Temas",
     icon: BookOpen,
     variant: "secondary" as const,
-    href: '/temas'
+    href: "/temas",
   },
   {
     title: "Minhas Redações",
@@ -40,7 +40,7 @@ const actions = [
     buttonText: "Ver Histórico",
     icon: FileCheck,
     variant: "dark" as const,
-    href: '/minhas-redacoes'
+    href: "/minhas-redacoes",
   },
 ];
 
@@ -53,17 +53,12 @@ export default async function DashboardPage() {
   const { user, credits, competencies, globalStats, evolution, hasData } = data;
 
   return (
-    <div className="space-y-8 min-h-dvh px-2 md:px-10 lg:px-12 py-4">
-      <Suspense fallback={
-        <Skeleton className="h-12 w-full rounded-lg bg-slate-200" />
-      }>
-        <div className="flex flex-col md:flex-row justify-start md:justify-between md:items-center gap-6">
-
+    <div className="min-h-dvh space-y-8 px-2 py-4 md:px-10 lg:px-12">
+      <Suspense fallback={<Skeleton className="h-12 w-full rounded-lg bg-slate-200" />}>
+        <div className="flex flex-col justify-start gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col text-left">
-            <h1 className="text-3xl font-bold tracking-tight">
-              Olá, {user.name}!
-            </h1>
-            <p className="text-slate-500 text-base mt-1">
+            <h1 className="text-3xl font-bold tracking-tight">Olá, {user.name}!</h1>
+            <p className="mt-1 text-base text-slate-500">
               Vamos escrever sua próxima redação nota 1000?
             </p>
           </div>
@@ -74,15 +69,14 @@ export default async function DashboardPage() {
         </div>
       </Suspense>
 
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-3">
         {actions.map((action, index) => (
           <ActionCard key={index} {...action} />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Suspense fallback={<Skeleton className="min-h-40 bg-slate-200 rounded-3xl" />}>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <Suspense fallback={<Skeleton className="min-h-40 rounded-3xl bg-slate-200" />}>
           <StatCard
             title="Média Geral"
             variant="yellow"
@@ -91,8 +85,7 @@ export default async function DashboardPage() {
           />
         </Suspense>
 
-
-        <Suspense fallback={<Skeleton className="min-h-40 bg-slate-200 rounded-3xl" />}>
+        <Suspense fallback={<Skeleton className="min-h-40 rounded-3xl bg-slate-200" />}>
           <StatCard
             title="Última Nota"
             variant="blue"
@@ -100,11 +93,10 @@ export default async function DashboardPage() {
             helperText="Sua nota aparecerá aqui"
           />
         </Suspense>
-
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Suspense fallback={<Skeleton className="rounded-3xl min-h-75 bg-slate-200" />}>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <Suspense fallback={<Skeleton className="min-h-75 rounded-3xl bg-slate-200" />}>
           <SectionCard
             title="Média por Competência"
             icon={FileText}
@@ -115,7 +107,7 @@ export default async function DashboardPage() {
           </SectionCard>
         </Suspense>
 
-        <Suspense fallback={<Skeleton className="rounded-3xl min-h-75 bg-slate-200" />}>
+        <Suspense fallback={<Skeleton className="min-h-75 rounded-3xl bg-slate-200" />}>
           <SectionCard
             title="Evolução no Tempo"
             icon={TrendingUp}
@@ -127,10 +119,9 @@ export default async function DashboardPage() {
         </Suspense>
       </div>
 
-      <Suspense fallback={
-        <Skeleton className="rounded-3xl min-h-62.5 bg-slate-200" />}>
+      <Suspense fallback={<Skeleton className="min-h-62.5 rounded-3xl bg-slate-200" />}>
         <RecentEssaysList />
       </Suspense>
-    </div >
+    </div>
   );
 }

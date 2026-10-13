@@ -1,4 +1,3 @@
-
 import { notFound } from "next/navigation";
 import { getGradedEssay } from "@/app/actions/essays";
 import EssayHeader from "@repo/ui/components/features/essays/components/essay-header";
@@ -10,11 +9,7 @@ export const metadata: Metadata = {
   title: "Detalhes da Redação",
 };
 
-export default async function GradedEssayPage({
-  params
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function GradedEssayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const essay = await getGradedEssay(id);
 
@@ -37,12 +32,8 @@ export default async function GradedEssayPage({
   };
 
   return (
-    <div className="px-4 md:px-10 lg:px-12 py-4">
-      <EssayHeader
-        title={essay.title}
-        date={essay.submittedAt}
-        studentName={essay.studentName}
-      />
+    <div className="px-4 py-4 md:px-10 lg:px-12">
+      <EssayHeader title={essay.title} date={essay.submittedAt} studentName={essay.studentName} />
 
       <CorrectionReviewHistory
         audience="teacher"

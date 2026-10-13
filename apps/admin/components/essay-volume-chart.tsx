@@ -9,7 +9,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@repo/ui/components/select";
 
 interface ChartData {
@@ -27,7 +27,6 @@ export default function EssayVolumeChart({ initialData }: EssayVolumeChartProps)
   const [weeksAgo, setWeeksAgo] = useState("0");
   const [isPending, startTransition] = useTransition();
 
-
   const weekOptions = [
     { value: "0", label: "Semana atual" },
     { value: "1", label: "Semana anterior" },
@@ -35,7 +34,6 @@ export default function EssayVolumeChart({ initialData }: EssayVolumeChartProps)
     { value: "3", label: "3 semanas atrás" },
     { value: "4", label: "4 semanas atrás" },
   ];
-
 
   const handleWeekChange = (value: string) => {
     setWeeksAgo(value);
@@ -46,38 +44,38 @@ export default function EssayVolumeChart({ initialData }: EssayVolumeChartProps)
   };
 
   return (
-    <div className="bg-white rounded-4xl p-6 md:p-8 shadow-sm border border-slate-200 min-h-100 flex flex-col relative">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
-
+    <div className="relative flex min-h-100 flex-col rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row">
         <div>
           <div className="flex items-center gap-3">
             <h3 className="text-lg font-black">Volume de Redações</h3>
-            {isPending && <Loader2 className="size-4 text-primary animate-spin" />}
+            {isPending && <Loader2 className="text-primary size-4 animate-spin" />}
           </div>
-          <p className="text-sm font-medium text-slate-500 mt-1">Comparativo semanal de envios vs. correções finalizadas</p>
+          <p className="mt-1 text-sm font-medium text-slate-500">
+            Comparativo semanal de envios vs. correções finalizadas
+          </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex gap-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
-            <div className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-secondary" /> Enviadas</div>
-            <div className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-primary" /> Corrigidas</div>
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+          <div className="flex gap-4 text-xs font-bold tracking-widest text-slate-500 uppercase">
+            <div className="flex items-center gap-1.5">
+              <span className="bg-secondary size-2.5 rounded-full" /> Enviadas
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="bg-primary size-2.5 rounded-full" /> Corrigidas
+            </div>
           </div>
 
-
-          <Select
-            value={weeksAgo}
-            onValueChange={handleWeekChange}
-            disabled={isPending}
-          >
-            <SelectTrigger className="w-42.5 h-9 bg-slate-50 border-slate-200 text-sm font-bold text-slate-600 focus:ring-2 focus:ring-blue-500/50 outline-none rounded-lg shadow-sm transition-colors">
+          <Select value={weeksAgo} onValueChange={handleWeekChange} disabled={isPending}>
+            <SelectTrigger className="h-9 w-42.5 rounded-lg border-slate-200 bg-slate-50 text-sm font-bold text-slate-600 shadow-sm transition-colors outline-none focus:ring-2 focus:ring-blue-500/50">
               <SelectValue placeholder="Selecione a semana" />
             </SelectTrigger>
-            <SelectContent className="border-slate-200 rounded-xl shadow-lg">
+            <SelectContent className="rounded-xl border-slate-200 shadow-lg">
               {weekOptions.map((option) => (
                 <SelectItem
                   key={option.value}
                   value={option.value}
-                  className="text-sm font-medium text-slate-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer"
+                  className="cursor-pointer text-sm font-medium text-slate-700 focus:bg-blue-50 focus:text-blue-700"
                 >
                   {option.label}
                 </SelectItem>
@@ -85,12 +83,11 @@ export default function EssayVolumeChart({ initialData }: EssayVolumeChartProps)
             </SelectContent>
           </Select>
         </div>
-
       </div>
 
-      <div className="w-full h-75 mt-4">
-        {(!data || data.length === 0) ? (
-          <div className="h-full flex items-center justify-center text-sm font-bold text-slate-400">
+      <div className="mt-4 h-75 w-full">
+        {!data || data.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-sm font-bold text-slate-400">
             Sem dados para exibir nesta semana.
           </div>
         ) : (
@@ -100,15 +97,19 @@ export default function EssayVolumeChart({ initialData }: EssayVolumeChartProps)
                 dataKey="name"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}
+                tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: "bold" }}
                 dy={10}
                 interval={0}
                 padding={{ left: 15, right: 15 }}
               />
 
               <Tooltip
-                contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                itemStyle={{ fontWeight: 'bold' }}
+                contentStyle={{
+                  borderRadius: "12px",
+                  border: "1px solid #e2e8f0",
+                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                }}
+                itemStyle={{ fontWeight: "bold" }}
               />
 
               <Line

@@ -149,17 +149,14 @@ function SelectOptionContent({
         <Icon className="size-4.5" />
       </span>
       <span className="min-w-0 text-left">
-        <span className="block text-sm font-semibold leading-5 text-slate-800">{label}</span>
+        <span className="block text-sm leading-5 font-semibold text-slate-800">{label}</span>
         <span className="block text-xs leading-4 text-slate-500">{description}</span>
       </span>
     </span>
   );
 }
 
-function getCreditTypeDescription(
-  type: ManualCreditGrantType,
-  context: ManualCreditGrantContext
-) {
+function getCreditTypeDescription(type: ManualCreditGrantType, context: ManualCreditGrantContext) {
   const availability = context.options[type];
 
   if (!availability.available) {
@@ -367,7 +364,7 @@ export function GrantCreditsDialog({
                   }
                 }}
               >
-                <SelectTrigger className="h-auto min-h-11 w-full rounded-xl py-1.5 **:data-[slot=select-value]:flex-1 **:data-[slot=select-value]:line-clamp-none">
+                <SelectTrigger className="h-auto min-h-11 w-full rounded-xl py-1.5 **:data-[slot=select-value]:line-clamp-none **:data-[slot=select-value]:flex-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent
@@ -426,7 +423,7 @@ export function GrantCreditsDialog({
                   setError(null);
                 }}
               >
-                <SelectTrigger className="h-auto min-h-11 w-full rounded-xl py-1.5 **:data-[slot=select-value]:flex-1 **:data-[slot=select-value]:line-clamp-none">
+                <SelectTrigger className="h-auto min-h-11 w-full rounded-xl py-1.5 **:data-[slot=select-value]:line-clamp-none **:data-[slot=select-value]:flex-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent

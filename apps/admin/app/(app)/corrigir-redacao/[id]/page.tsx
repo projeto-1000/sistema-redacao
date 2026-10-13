@@ -10,10 +10,7 @@ type Props = {
 export default async function EssayCorrectionPage(props: Props) {
   const { id } = await props.params;
 
-  const [essay, draft] = await Promise.all([
-    getEssayById(id),
-    getCorrectionDraft(id)
-  ]);
+  const [essay, draft] = await Promise.all([getEssayById(id), getCorrectionDraft(id)]);
 
   if (!essay) {
     notFound();
@@ -31,6 +28,5 @@ export default async function EssayCorrectionPage(props: Props) {
       onReturnEssay={returnEssay}
       redirectPath="/redacoes-pendentes"
     />
-  )
-
+  );
 }

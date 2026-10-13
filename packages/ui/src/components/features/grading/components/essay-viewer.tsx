@@ -5,12 +5,7 @@ import { MessageSquareText, Trash2, X } from "lucide-react";
 import { HIGHLIGHT_STYLES } from "../../constants";
 import type { CorrectionHighlight, MotivationalText } from "@repo/types";
 import { Button } from "@repo/ui/components/button";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@repo/ui/components/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { EssayTextStatistics } from "../../essays/components/essay-text-statistics";
 
 const COMP_BUTTONS = [
@@ -60,11 +55,12 @@ export function EssayViewer({
   onActiveHighlightIdChange,
   readOnly = false,
 }: EssayViewerProps) {
-
-  const [popover, setPopover] = useState<PopoverState | null>(null);
+  const [popoverState, setPopover] = useState<PopoverState | null>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const highlightRefs = useRef(new Map<string, HTMLElement>());
+  const popover =
+    popoverState?.existingId && popoverState.existingId !== activeHighlightId ? null : popoverState;
 
   const activeHighlight = popover?.existingId
     ? highlights.find((highlight) => highlight.id === popover.existingId)
@@ -100,10 +96,7 @@ export function EssayViewer({
   };
 
   useEffect(() => {
-    if (!activeHighlightId) {
-      if (popover?.existingId) setPopover(null);
-      return;
-    }
+    if (!activeHighlightId) return;
 
     const highlight = highlights.find(({ id }) => id === activeHighlightId);
     const element = highlightRefs.current.get(activeHighlightId);
@@ -150,10 +143,10 @@ export function EssayViewer({
     setPopover((currentPopover) =>
       currentPopover
         ? {
-          ...currentPopover,
-          compId: compId.toLowerCase() as CorrectionHighlight["compId"],
-          comment: "",
-        }
+            ...currentPopover,
+            compId: compId.toLowerCase() as CorrectionHighlight["compId"],
+            comment: "",
+          }
         : null
     );
     onActiveHighlightChange(null);
@@ -168,9 +161,7 @@ export function EssayViewer({
     if (popover.existingId) {
       onHighlightsChange(
         highlights.map((highlight) =>
-          highlight.id === popover.existingId
-            ? { ...highlight, comment }
-            : highlight
+          highlight.id === popover.existingId ? { ...highlight, comment } : highlight
         )
       );
     } else {
@@ -200,11 +191,8 @@ export function EssayViewer({
     onActiveHighlightIdChange(null);
   };
 
-  const handleHighlightCommentKeyDown = (
-    event: React.KeyboardEvent<HTMLTextAreaElement>
-  ) => {
-    const isSaveShortcut =
-      event.key === "Enter" && (event.metaKey || event.ctrlKey);
+  const handleHighlightCommentKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const isSaveShortcut = event.key === "Enter" && (event.metaKey || event.ctrlKey);
 
     if (readOnly || event.nativeEvent.isComposing || !isSaveShortcut) {
       return;
@@ -217,7 +205,7 @@ export function EssayViewer({
   const handleRemoveHighlight = (id: string) => {
     if (readOnly) return;
 
-    onHighlightsChange(highlights.filter(h => h.id !== id));
+    onHighlightsChange(highlights.filter((h) => h.id !== id));
     window.getSelection()?.removeAllRanges();
     setPopover(null);
     onActiveHighlightIdChange(null);
@@ -226,14 +214,14 @@ export function EssayViewer({
   const handleSelectionEnd = (e: React.MouseEvent | React.TouchEvent) => {
     if (readOnly) return;
 
-    if ((e.target as HTMLElement).closest('.ignore-selection')) return;
+    if ((e.target as HTMLElement).closest(".ignore-selection")) return;
 
     setTimeout(() => {
       const selection = window.getSelection();
       const selectedText = selection?.toString().trim();
 
       if (!selection || selection.isCollapsed || !selectedText) {
-        if ((e.target as HTMLElement).tagName !== 'MARK') {
+        if ((e.target as HTMLElement).tagName !== "MARK") {
           setPopover(null);
           onActiveHighlightIdChange(null);
         }
@@ -251,8 +239,7 @@ export function EssayViewer({
           startIndex: absRange.start,
           endIndex: absRange.end,
           text: essay.content.slice(absRange.start, absRange.end),
-          compId:
-            activeHighlightComp.toLowerCase() as CorrectionHighlight["compId"],
+          compId: activeHighlightComp.toLowerCase() as CorrectionHighlight["compId"],
           comment: "",
         });
         onActiveHighlightChange(null);
@@ -311,7 +298,9 @@ export function EssayViewer({
 
     sortedHighlights.forEach((hl) => {
       if (hl.startIndex > lastIndex) {
-        elements.push(<span key={`text-${lastIndex}`}>{fullText.slice(lastIndex, hl.startIndex)}</span>);
+        elements.push(
+          <span key={`text-${lastIndex}`}>{fullText.slice(lastIndex, hl.startIndex)}</span>
+        );
       }
 
       elements.push(
@@ -327,10 +316,9 @@ export function EssayViewer({
           onClick={(e) => handleMarkClick(e, hl)}
           onKeyDown={(e) => handleMarkKeyDown(e, hl)}
           aria-pressed={activeHighlightId === hl.id}
-          className={`cursor-pointer rounded-sm pb-0.5 transition-all hover:opacity-80 ${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]} ${activeHighlightId === hl.id
-            ? "ring-2 ring-slate-700/70 ring-offset-2"
-            : ""
-            }`}
+          className={`cursor-pointer rounded-sm pb-0.5 transition-all hover:opacity-80 ${HIGHLIGHT_STYLES[hl.compId as keyof typeof HIGHLIGHT_STYLES]} ${
+            activeHighlightId === hl.id ? "ring-2 ring-slate-700/70 ring-offset-2" : ""
+          }`}
         >
           {fullText.slice(hl.startIndex, hl.endIndex)}
         </mark>
@@ -356,13 +344,11 @@ export function EssayViewer({
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <MessageSquareText className="size-4 text-indigo-500" />
-                <span className="text-xs font-black uppercase tracking-wider text-slate-700">
+                <span className="text-xs font-black tracking-wider text-slate-700 uppercase">
                   Comentário específico · {popover.compId.toUpperCase()}
                 </span>
               </div>
-              <p className="mt-1 truncate text-xs text-slate-500">
-                “{popover.text}”
-              </p>
+              <p className="mt-1 truncate text-xs text-slate-500">“{popover.text}”</p>
             </div>
 
             <button
@@ -375,10 +361,7 @@ export function EssayViewer({
             </button>
           </div>
 
-          <label
-            htmlFor={`highlight-comment-${popover.existingId ?? "new"}`}
-            className="sr-only"
-          >
+          <label htmlFor={`highlight-comment-${popover.existingId ?? "new"}`} className="sr-only">
             Comentário específico do trecho
           </label>
           <textarea
@@ -390,9 +373,7 @@ export function EssayViewer({
             onChange={(event) => {
               const comment = event.target.value;
               setPopover((currentPopover) =>
-                currentPopover
-                  ? { ...currentPopover, comment }
-                  : currentPopover
+                currentPopover ? { ...currentPopover, comment } : currentPopover
               );
             }}
             onKeyDown={handleHighlightCommentKeyDown}
@@ -403,12 +384,8 @@ export function EssayViewer({
           />
 
           <div className="mt-1.5 flex items-center justify-between gap-3 text-[10px] text-slate-400">
-            <span>
-              {popover.comment.length}/2000
-            </span>
-            {!readOnly && (
-              <span className="hidden sm:inline">⌘/Ctrl + Enter para salvar</span>
-            )}
+            <span>{popover.comment.length}/2000</span>
+            {!readOnly && <span className="hidden sm:inline">⌘/Ctrl + Enter para salvar</span>}
           </div>
 
           {!readOnly && (
@@ -441,7 +418,7 @@ export function EssayViewer({
 
     return (
       <>
-        <span className="text-[10px] font-black uppercase tracking-widest opacity-50 mr-1 hidden sm:block">
+        <span className="mr-1 hidden text-[10px] font-black tracking-widest uppercase opacity-50 sm:block">
           Vincular
         </span>
 
@@ -450,15 +427,19 @@ export function EssayViewer({
             type="button"
             key={btn.id}
             onClick={() => handleSelectCompetency(btn.id)}
-            className={`size-8 md:size-7 rounded-full text-[11px] md:text-[10px] font-black hover:scale-110 transition-transform ${btn.bg} text-white opacity-90 hover:opacity-100 shadow-md`}
+            className={`size-8 rounded-full text-[11px] font-black transition-transform hover:scale-110 md:size-7 md:text-[10px] ${btn.bg} text-white opacity-90 shadow-md hover:opacity-100`}
           >
             {btn.id.toUpperCase()}
           </button>
         ))}
 
-        <div className="w-px h-5 md:h-4 bg-slate-700 mx-1 md:mx-2"></div>
+        <div className="mx-1 h-5 w-px bg-slate-700 md:mx-2 md:h-4"></div>
 
-        <button type="button" onClick={handleClosePopover} className="p-2 md:p-1.5 text-slate-400 hover:bg-slate-700 rounded-lg transition-colors">
+        <button
+          type="button"
+          onClick={handleClosePopover}
+          className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-700 md:p-1.5"
+        >
           <X className="size-5 md:size-4" />
         </button>
       </>
@@ -466,25 +447,21 @@ export function EssayViewer({
   };
 
   return (
-    <div className="lg:col-span-7 bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-fit relative">
-      <Tabs
-        defaultValue="student-text"
-        onValueChange={handleTabChange}
-        className="gap-0"
-      >
+    <div className="relative flex h-fit flex-col overflow-hidden rounded-4xl border border-slate-200 bg-white shadow-sm lg:col-span-7">
+      <Tabs defaultValue="student-text" onValueChange={handleTabChange} className="gap-0">
         <TabsList
           variant="line"
           className="h-auto w-full justify-start gap-6 rounded-none border-b border-slate-100 px-6 py-4 md:gap-8 md:px-8 md:py-6"
         >
           <TabsTrigger
             value="student-text"
-            className="h-auto flex-none rounded-none p-0 uppercase tracking-widest text-[10px] font-bold text-slate-400 data-[state=active]:text-slate-700 after:bg-primary"
+            className="after:bg-primary h-auto flex-none rounded-none p-0 text-[10px] font-bold tracking-widest text-slate-400 uppercase data-[state=active]:text-slate-700"
           >
             Texto do aluno
           </TabsTrigger>
           <TabsTrigger
             value="motivational-texts"
-            className="h-auto flex-none rounded-none p-0 uppercase tracking-widest text-[10px] font-bold text-slate-400 data-[state=active]:text-slate-700 after:bg-primary"
+            className="after:bg-primary h-auto flex-none rounded-none p-0 text-[10px] font-bold tracking-widest text-slate-400 uppercase data-[state=active]:text-slate-700"
           >
             Textos motivadores
           </TabsTrigger>
@@ -497,13 +474,13 @@ export function EssayViewer({
               onMouseUp={handleSelectionEnd}
               onTouchEnd={handleSelectionEnd}
             >
-              <h2 className="text-lg md:text-2xl font-black mb-8 leading-tight text-center">
+              <h2 className="mb-8 text-center text-lg leading-tight font-black md:text-2xl">
                 {essay.title}
               </h2>
 
               <div
                 ref={textRef}
-                className="text-justify text-base leading-relaxed text-slate-800 whitespace-pre-wrap wrap-break-word selection:bg-amber-200/50 md:text-lg"
+                className="text-justify text-base leading-relaxed wrap-break-word whitespace-pre-wrap text-slate-800 selection:bg-amber-200/50 md:text-lg"
               >
                 {renderContent()}
               </div>
@@ -530,13 +507,13 @@ export function EssayViewer({
                     key={item.id}
                     className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-left"
                   >
-                    <h3 className="mb-3 w-fit rounded-md bg-[#EBC84C]/20 px-2 py-1 text-xs font-bold uppercase tracking-widest text-[#8B781F]">
+                    <h3 className="mb-3 w-fit rounded-md bg-[#EBC84C]/20 px-2 py-1 text-xs font-bold tracking-widest text-[#8B781F] uppercase">
                       Motivador {index + 1}
                     </h3>
 
                     <div className="space-y-4">
                       {item.body_text && (
-                        <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700 md:text-base">
+                        <p className="text-sm leading-relaxed whitespace-pre-line text-slate-700 md:text-base">
                           {item.body_text}
                         </p>
                       )}
@@ -549,7 +526,7 @@ export function EssayViewer({
                       )}
 
                       {item.source_reference && (
-                        <p className="text-right text-[10px] font-medium italic text-slate-400">
+                        <p className="text-right text-[10px] font-medium text-slate-400 italic">
                           Fonte: {item.source_reference}
                         </p>
                       )}
@@ -564,16 +541,20 @@ export function EssayViewer({
 
       {popover && (
         <>
-          <div className={`md:hidden ignore-selection fixed bottom-40 z-9999 shadow-2xl flex items-center justify-center left-1/2 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-6 duration-200 ${popover.compId ? "rounded-2xl border border-slate-200 bg-white p-4" : "w-max rounded-full border border-slate-700/50 bg-slate-900 px-4 py-3 text-white"}`}>
+          <div
+            className={`ignore-selection animate-in fade-in slide-in-from-bottom-6 fixed bottom-40 left-1/2 z-9999 flex -translate-x-1/2 items-center justify-center shadow-2xl duration-200 md:hidden ${popover.compId ? "rounded-2xl border border-slate-200 bg-white p-4" : "w-max rounded-full border border-slate-700/50 bg-slate-900 px-4 py-3 text-white"}`}
+          >
             {renderPopoverContent()}
           </div>
 
           <div
-            className={`hidden md:flex ignore-selection fixed z-9999 w-max rounded-2xl shadow-2xl items-center gap-2 -translate-x-1/2 animate-in fade-in zoom-in-95 duration-200 ${popover.compId ? "border border-slate-200 bg-white p-4" : "bg-slate-900 px-3 py-2.5 text-white"} ${popover.placement === "above" ? "-translate-y-full" : ""}`}
+            className={`ignore-selection animate-in fade-in zoom-in-95 fixed z-9999 hidden w-max -translate-x-1/2 items-center gap-2 rounded-2xl shadow-2xl duration-200 md:flex ${popover.compId ? "border border-slate-200 bg-white p-4" : "bg-slate-900 px-3 py-2.5 text-white"} ${popover.placement === "above" ? "-translate-y-full" : ""}`}
             style={{ top: popover.y, left: popover.x }}
           >
             {renderPopoverContent()}
-            <div className={`absolute left-1/2 size-3 -translate-x-1/2 rotate-45 ${popover.compId ? "border-slate-200 bg-white" : "bg-slate-900"} ${popover.placement === "above" ? "-bottom-1.5 border-b border-r" : "-top-1.5 border-l border-t"}`}></div>
+            <div
+              className={`absolute left-1/2 size-3 -translate-x-1/2 rotate-45 ${popover.compId ? "border-slate-200 bg-white" : "bg-slate-900"} ${popover.placement === "above" ? "-bottom-1.5 border-r border-b" : "-top-1.5 border-t border-l"}`}
+            ></div>
           </div>
         </>
       )}

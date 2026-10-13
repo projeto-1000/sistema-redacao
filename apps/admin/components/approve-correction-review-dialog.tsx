@@ -48,10 +48,7 @@ export function ApproveCorrectionReviewDialog({
 
       const destinationPath = "/redacoes-pendentes?tab=revisoes";
 
-      queuePostRedirectSuccessToast(
-        "Correção aprovada e enviada ao aluno.",
-        destinationPath
-      );
+      queuePostRedirectSuccessToast("Correção aprovada e enviada ao aluno.", destinationPath);
       redirectStarted = true;
       router.push(destinationPath);
     } catch (error) {

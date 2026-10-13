@@ -6,11 +6,7 @@ import { Header } from "@repo/ui/components/header";
 import { useEffect, useState } from "react";
 import { CircleCheckBig, FileClock, Home, UserRound } from "lucide-react";
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [supabase] = useState(() => createClient());
@@ -53,26 +49,17 @@ export default function AppLayout({
   ];
 
   const handleLogout = async () => {
-    const { error } =
-      await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
 
     if (error) {
       throw error;
     }
-
   };
 
   return (
-    <div className="min-h-dvh flex flex-col">
-      <Header
-        items={navItems}
-        activePath={pathname}
-        onLogout={handleLogout}
-        collapseAt="lg"
-      />
-      <main className="flex-1 w-full p-6 md:p-8 bg-slate-50">
-        {children}
-      </main>
+    <div className="flex min-h-dvh flex-col">
+      <Header items={navItems} activePath={pathname} onLogout={handleLogout} collapseAt="lg" />
+      <main className="w-full flex-1 bg-slate-50 p-6 md:p-8">{children}</main>
     </div>
   );
 }

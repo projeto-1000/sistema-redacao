@@ -16,6 +16,4 @@ export const updateStudentProfileSchema = z.object({
     }, "Informe um telefone válido com DDD."),
 });
 
-export type UpdateStudentProfileInput = z.infer<
-  typeof updateStudentProfileSchema
->;
+export type UpdateStudentProfileInput = z.infer<typeof updateStudentProfileSchema>;

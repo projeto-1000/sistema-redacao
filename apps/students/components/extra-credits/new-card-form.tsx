@@ -113,9 +113,11 @@ export const NewCardForm = forwardRef<NewCardFormRef, NewCardFormProps>(function
   { cardError = null, compact = false },
   ref
 ) {
-  const [isFetchingCep, setIsFetchingCep] = useState(false);
-  const [isCepResolved, setIsCepResolved] = useState(false);
-  const [cepLookupError, setCepLookupError] = useState<string | null>(null);
+  const [cepLookup, setCepLookup] = useState<{
+    zipCode: string;
+    status: "idle" | "fetching" | "resolved" | "error";
+    error: string | null;
+  }>({ zipCode: "", status: "idle", error: null });
   const [isAddressOpen, setIsAddressOpen] = useState(!compact);
   const cardErrorRef = useRef<HTMLDivElement>(null);
 
@@ -182,6 +184,10 @@ export const NewCardForm = forwardRef<NewCardFormRef, NewCardFormProps>(function
   });
 
   const sanitizedZipCode = (zipCode ?? "").replace(/\D/g, "");
+  const isCurrentLookup = cepLookup.zipCode === sanitizedZipCode;
+  const isFetchingCep = isCurrentLookup && cepLookup.status === "fetching";
+  const isCepResolved = isCurrentLookup && cepLookup.status === "resolved";
+  const cepLookupError = isCurrentLookup ? cepLookup.error : null;
 
   const clearResolvedAddress = useCallback(() => {
     form.setValue("address.street", "");
@@ -207,8 +213,6 @@ export const NewCardForm = forwardRef<NewCardFormRef, NewCardFormProps>(function
   useEffect(() => {
     if (sanitizedZipCode.length !== 8) {
       clearResolvedAddress();
-      setIsCepResolved(false);
-      setCepLookupError(null);
       return;
     }
 
@@ -216,9 +220,11 @@ export const NewCardForm = forwardRef<NewCardFormRef, NewCardFormProps>(function
 
     async function fetchCep() {
       try {
-        setIsFetchingCep(true);
-        setIsCepResolved(false);
-        setCepLookupError(null);
+        setCepLookup({
+          zipCode: sanitizedZipCode,
+          status: "fetching",
+          error: null,
+        });
 
         const address = await getAddressByCep(sanitizedZipCode, abortController.signal);
 
@@ -242,22 +248,22 @@ export const NewCardForm = forwardRef<NewCardFormRef, NewCardFormProps>(function
           shouldValidate: true,
         });
 
-        setIsCepResolved(true);
+        setCepLookup({
+          zipCode: sanitizedZipCode,
+          status: "resolved",
+          error: null,
+        });
       } catch (error) {
         if (abortController.signal.aborted) {
           return;
         }
 
         clearResolvedAddress();
-        setIsCepResolved(false);
-
-        setCepLookupError(
-          error instanceof Error ? error.message : "Não foi possível buscar o CEP."
-        );
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsFetchingCep(false);
-        }
+        setCepLookup({
+          zipCode: sanitizedZipCode,
+          status: "error",
+          error: error instanceof Error ? error.message : "Não foi possível buscar o CEP.",
+        });
       }
     }
 

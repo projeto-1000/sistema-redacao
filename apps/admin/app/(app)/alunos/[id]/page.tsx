@@ -42,7 +42,6 @@ export default async function StudentProfilePage({
   ]);
   const { student, error, hasSubscriptionError, hasCreditsError } = studentResult;
 
-
   if (!student || error) {
     notFound();
   }
@@ -76,41 +75,34 @@ export default async function StudentProfilePage({
   );
 
   return (
-    <div className="min-h-dvh px-4 md:px-10 lg:px-12 pb-8 space-y-8">
-
-      <Button asChild variant='ghost' className="text-slate-500">
+    <div className="min-h-dvh space-y-8 px-4 pb-8 md:px-10 lg:px-12">
+      <Button asChild variant="ghost" className="text-slate-500">
         <Link href="/alunos">
-          <ArrowLeft className="size-4 mr-2" />
+          <ArrowLeft className="mr-2 size-4" />
           Voltar para lista de alunos
         </Link>
       </Button>
 
-
       <Suspense
         key={suspenseKey}
-        fallback={<Skeleton className="rounded-3xl min-h-auto bg-slate-200 mt-6" />}
+        fallback={<Skeleton className="mt-6 min-h-auto rounded-3xl bg-slate-200" />}
       >
         <StudentProfileHeader student={student} subscriptionCard={subscriptionCardContent} />
       </Suspense>
 
       <StudentStatsCards studentId={student.id} />
 
-      <StudentEssaysTable
-        studentId={studentId}
-        filters={filters}
-        page={page}
+      <StudentEssaysTable studentId={studentId} filters={filters} page={page} />
+
+      <HistoryList
+        data={historyData}
+        title="Histórico de créditos e cobranças"
+        description="Acompanhe pagamentos, créditos recebidos, envios de redação e expirações."
+        pageParam="historyPage"
       />
 
-      <HistoryList data={historyData} title="Histórico de créditos e cobranças"
-        description="Acompanhe pagamentos, créditos recebidos, envios de redação e expirações."
-        pageParam="historyPage" />
-
       {essayId && (
-        <ModalWrapper
-          key={essayId}
-          param="essayId"
-          title="Visualizar Redação"
-        >
+        <ModalWrapper key={essayId} param="essayId" title="Visualizar Redação">
           <GradedEssayView essayId={essayId} />
         </ModalWrapper>
       )}

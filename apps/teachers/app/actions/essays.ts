@@ -173,12 +173,11 @@ export async function getEssaysByStatus({
     redirect("/login");
   }
 
-  const { data: pendingReviewSubmissions, error: pendingReviewSubmissionsError } =
-    await supabase
-      .from("correction_review_submissions")
-      .select("essay_id")
-      .eq("teacher_id", user.id)
-      .eq("status", "pending_review");
+  const { data: pendingReviewSubmissions, error: pendingReviewSubmissionsError } = await supabase
+    .from("correction_review_submissions")
+    .select("essay_id")
+    .eq("teacher_id", user.id)
+    .eq("status", "pending_review");
 
   if (pendingReviewSubmissionsError) {
     console.error(

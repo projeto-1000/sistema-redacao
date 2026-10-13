@@ -16,10 +16,7 @@ import {
 } from "@repo/ui/components/form";
 import { toast } from "sonner";
 import { ActionResponse } from "./profile-view";
-import {
-  updatePasswordSchema,
-  type UpdatePasswordSchema,
-} from "@repo/validators";
+import { updatePasswordSchema, type UpdatePasswordSchema } from "@repo/validators";
 import { PasswordRequirements } from "@repo/ui/components/password-requirements";
 
 interface PasswordFormProps {
@@ -64,15 +61,13 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
   };
 
   return (
-    <div className="p-8 md:p-12 max-w-md mx-auto space-y-6 py-12 animate-in fade-in duration-500">
-      <div className="text-center space-y-2">
-        <div className="size-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+    <div className="animate-in fade-in mx-auto max-w-md space-y-6 p-8 py-12 duration-500 md:p-12">
+      <div className="space-y-2 text-center">
+        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-slate-50">
           <Lock className="size-8 text-slate-400" />
         </div>
         <h3 className="text-xl font-bold">Alterar sua senha</h3>
-        <p className="text-sm text-slate-500">
-          Escolha uma senha forte para proteger sua conta.
-        </p>
+        <p className="text-sm text-slate-500">Escolha uma senha forte para proteger sua conta.</p>
       </div>
 
       <Form {...form}>
@@ -82,28 +77,26 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-bold text-slate-700">
-                  Nova Senha
-                </FormLabel>
+                <FormLabel className="text-sm font-bold text-slate-700">Nova Senha</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="Digite sua nova senha"
                       {...field}
-                      className="w-full rounded-2xl h-12 p-3.5 pr-12 focus:ring-1 focus:ring-primary border-[#e8e4ce]"
+                      className="focus:ring-primary h-12 w-full rounded-2xl border-[#e8e4ce] p-3.5 pr-12 focus:ring-1"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <EyeOff className="text-muted-foreground h-4 w-4" />
                       ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
+                        <Eye className="text-muted-foreground h-4 w-4" />
                       )}
                     </Button>
                   </div>
@@ -129,21 +122,19 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirme sua nova senha"
                       {...field}
-                      className="w-full rounded-2xl h-12 p-3.5 pr-12 focus:ring-1 focus:ring-primary border-[#e8e4ce]"
+                      className="focus:ring-primary h-12 w-full rounded-2xl border-[#e8e4ce] p-3.5 pr-12 focus:ring-1"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
+                      className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <EyeOff className="text-muted-foreground h-4 w-4" />
                       ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
+                        <Eye className="text-muted-foreground h-4 w-4" />
                       )}
                     </Button>
                   </div>
@@ -156,7 +147,7 @@ export function PasswordForm({ onUpdate }: PasswordFormProps) {
           <Button
             type="submit"
             disabled={isSubmitting || !isDirty || !isValid}
-            className="w-full h-12 rounded-xl font-bold mt-2 shadow-lg shadow-yellow-500/20"
+            className="mt-2 h-12 w-full rounded-xl font-bold shadow-lg shadow-yellow-500/20"
             isLoading={isSubmitting}
             loadingText="Salvando..."
           >

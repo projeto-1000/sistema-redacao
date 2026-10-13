@@ -4,14 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ForgotPasswordSchema, forgotPasswordSchema } from "@repo/validators";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "./form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./form";
 import { Input } from "./input";
 import { Button } from "./button";
 import { toast } from "sonner";
@@ -28,10 +21,7 @@ interface ForgotPasswordFormProps {
   backToLoginHref: string;
 }
 
-export function ForgotPasswordForm({
-  onSubmitAction,
-  backToLoginHref,
-}: ForgotPasswordFormProps) {
+export function ForgotPasswordForm({ onSubmitAction, backToLoginHref }: ForgotPasswordFormProps) {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -71,9 +61,7 @@ export function ForgotPasswordForm({
       return;
     }
 
-    setServerError(
-      result.error || "Ocorreu um erro ao processar sua solicitação.",
-    );
+    setServerError(result.error || "Ocorreu um erro ao processar sua solicitação.");
   };
 
   return (
@@ -83,7 +71,7 @@ export function ForgotPasswordForm({
       footer={
         <Link
           href={backToLoginHref}
-          className="font-semibold text-primary transition-colors hover:underline"
+          className="text-primary font-semibold transition-colors hover:underline"
         >
           Voltar para o login
         </Link>
@@ -96,15 +84,15 @@ export function ForgotPasswordForm({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                   E-mail
                 </FormLabel>
 
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                  <Mail className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-slate-400" />
                   <FormControl>
                     <Input
-                      className="h-12 w-full rounded-2xl py-3.5 pl-12 pr-4 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"
+                      className="focus-visible:border-primary focus-visible:ring-primary h-12 w-full rounded-2xl py-3.5 pr-4 pl-12 focus-visible:ring-1"
                       type="email"
                       inputMode="email"
                       autoComplete="email"
@@ -120,15 +108,13 @@ export function ForgotPasswordForm({
           />
 
           {serverError && (
-            <p className="text-xs font-medium text-red-500 text-center">
-              {serverError}
-            </p>
+            <p className="text-center text-xs font-medium text-red-500">{serverError}</p>
           )}
 
           <Button
             type="submit"
             disabled={isLoading || !isValid}
-            className="w-full font-bold h-12 rounded-xl text-[16px]"
+            className="h-12 w-full rounded-xl text-[16px] font-bold"
             isLoading={isLoading}
             loadingText={isRedirecting ? "Redirecionando..." : "Enviando..."}
           >

@@ -10,13 +10,7 @@ type Props = {
   className?: string;
 };
 
-export function Counter({
-  to,
-  duration = 1600,
-  prefix = "",
-  suffix = "",
-  className = "",
-}: Props) {
+export function Counter({ to, duration = 1600, prefix = "", suffix = "", className = "" }: Props) {
   const ref = useRef<HTMLSpanElement | null>(null);
   const [val, setVal] = useState(0);
   const started = useRef(false);
@@ -47,7 +41,7 @@ export function Counter({
 
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && start()),
-      { threshold: 0.4 },
+      { threshold: 0.4 }
     );
     io.observe(el);
     return () => io.disconnect();

@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  isDataCrazySyncEnabled,
-  runDataCrazySyncIfEnabled,
-} from "./sync-enabled.js";
+import { isDataCrazySyncEnabled, runDataCrazySyncIfEnabled } from "./sync-enabled.js";
 
 test("keeps Data Crazy sync enabled when the env is absent", () => {
   assert.equal(isDataCrazySyncEnabled(undefined), true);

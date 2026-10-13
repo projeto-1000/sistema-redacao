@@ -34,19 +34,13 @@ interface EditExtraCreditPackageDialogProps {
   packageItem: ExtraCreditPackage;
 }
 
-export function EditExtraCreditPackageDialog({
-  packageItem,
-}: EditExtraCreditPackageDialogProps) {
+export function EditExtraCreditPackageDialog({ packageItem }: EditExtraCreditPackageDialogProps) {
   const [open, setOpen] = useState(false);
 
-  const [creditsInput, setCreditsInput] = useState(
-    String(packageItem.credits_amount)
-  );
+  const [creditsInput, setCreditsInput] = useState(String(packageItem.credits_amount));
 
   const [priceInput, setPriceInput] = useState(
-    (packageItem.price_cents / 100)
-      .toFixed(2)
-      .replace(".", ",")
+    (packageItem.price_cents / 100).toFixed(2).replace(".", ",")
   );
 
   /*
@@ -80,29 +74,18 @@ export function EditExtraCreditPackageDialog({
       is_active: packageItem.is_active,
     });
 
-    setCreditsInput(
-      String(packageItem.credits_amount)
-    );
+    setCreditsInput(String(packageItem.credits_amount));
 
-    setPriceInput(
-      (packageItem.price_cents / 100)
-        .toFixed(2)
-        .replace(".", ",")
-    );
+    setPriceInput((packageItem.price_cents / 100).toFixed(2).replace(".", ","));
   }
 
-  const onSubmit = async (
-    data: CreateExtraCreditPackageInput
-  ) => {
-    const result = await updateExtraCreditPackage(
-      packageItem.id,
-      {
-        name: data.name,
-        description: data.description,
-        credits_amount: data.credits_amount,
-        price_cents: data.price_cents,
-      }
-    );
+  const onSubmit = async (data: CreateExtraCreditPackageInput) => {
+    const result = await updateExtraCreditPackage(packageItem.id, {
+      name: data.name,
+      description: data.description,
+      credits_amount: data.credits_amount,
+      price_cents: data.price_cents,
+    });
 
     if (result.success) {
       setOpen(false);
@@ -111,8 +94,7 @@ export function EditExtraCreditPackageDialog({
     }
 
     toast.error("Erro ao salvar pacote", {
-      description:
-        result.error || "Tente novamente em instantes.",
+      description: result.error || "Tente novamente em instantes.",
     });
   };
 
@@ -144,24 +126,17 @@ export function EditExtraCreditPackageDialog({
 
       <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:max-w-[600px]">
         <DialogHeader className="mb-4">
-          <DialogTitle className="text-xl font-black">
-            Editar Pacote de Créditos
-          </DialogTitle>
+          <DialogTitle className="text-xl font-black">Editar Pacote de Créditos</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={labelClass}>
-                    Nome do pacote
-                  </FormLabel>
+                  <FormLabel className={labelClass}>Nome do pacote</FormLabel>
 
                   <FormControl>
                     <Input
@@ -181,9 +156,7 @@ export function EditExtraCreditPackageDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={labelClass}>
-                    Descrição
-                  </FormLabel>
+                  <FormLabel className={labelClass}>Descrição</FormLabel>
 
                   <FormControl>
                     <Textarea
@@ -337,9 +310,7 @@ export function EditExtraCreditPackageDialog({
                 name="credits_amount"
                 render={({ field }) => (
                   <FormItem className="grid grid-rows-[20px_44px_20px] gap-2 space-y-0">
-                    <FormLabel className={labelClass}>
-                      Quantidade de créditos
-                    </FormLabel>
+                    <FormLabel className={labelClass}>Quantidade de créditos</FormLabel>
 
                     <FormControl>
                       <Input
@@ -351,19 +322,12 @@ export function EditExtraCreditPackageDialog({
                         value={creditsInput}
                         onBlur={field.onBlur}
                         onKeyDown={(event) => {
-                          if (
-                            ["e", "E", "+", "-", ".", ","].includes(
-                              event.key
-                            )
-                          ) {
+                          if (["e", "E", "+", "-", ".", ","].includes(event.key)) {
                             event.preventDefault();
                           }
                         }}
                         onChange={(event) => {
-                          const value = event.target.value.replace(
-                            /\D/g,
-                            ""
-                          );
+                          const value = event.target.value.replace(/\D/g, "");
 
                           setCreditsInput(value);
 
@@ -389,9 +353,7 @@ export function EditExtraCreditPackageDialog({
                 name="price_cents"
                 render={({ field }) => (
                   <FormItem className="grid grid-rows-[20px_44px_20px] gap-2 space-y-0">
-                    <FormLabel className={labelClass}>
-                      Valor do pacote
-                    </FormLabel>
+                    <FormLabel className={labelClass}>Valor do pacote</FormLabel>
 
                     <FormControl>
                       <div className="relative h-11">
@@ -407,9 +369,7 @@ export function EditExtraCreditPackageDialog({
                           value={priceInput}
                           onBlur={field.onBlur}
                           onKeyDown={(event) => {
-                            if (
-                              ["e", "E", "+", "-"].includes(event.key)
-                            ) {
+                            if (["e", "E", "+", "-"].includes(event.key)) {
                               event.preventDefault();
                             }
                           }}
@@ -427,10 +387,7 @@ export function EditExtraCreditPackageDialog({
                               return;
                             }
 
-                            const normalizedValue = value.replace(
-                              ",",
-                              "."
-                            );
+                            const normalizedValue = value.replace(",", ".");
 
                             const price = Number(normalizedValue);
 
@@ -439,9 +396,7 @@ export function EditExtraCreditPackageDialog({
                               return;
                             }
 
-                            field.onChange(
-                              Math.round(price * 100)
-                            );
+                            field.onChange(Math.round(price * 100));
                           }}
                         />
                       </div>

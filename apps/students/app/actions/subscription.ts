@@ -97,8 +97,7 @@ export async function getSubscriptionHistory({
 
     const enrichedRows = rows.map((row) => {
       const requestId = row.metadata?.withdrawal_request_id;
-      const rejection =
-        typeof requestId === "string" ? rejectionDetails.get(requestId) : undefined;
+      const rejection = typeof requestId === "string" ? rejectionDetails.get(requestId) : undefined;
 
       if (!rejection) {
         return row;
@@ -274,8 +273,7 @@ export async function getSubscriptionData() {
     subscription.status === "active" &&
     !subscription.active_withdrawal_request_id;
   const withdrawalProcessingMode =
-    activeWithdrawalResult.data?.processing_mode ??
-    (withdrawalEligible ? "automatic" : null);
+    activeWithdrawalResult.data?.processing_mode ?? (withdrawalEligible ? "automatic" : null);
 
   let pendingPlanName: string | null = null;
 
@@ -394,7 +392,6 @@ export async function getSubscriptionData() {
           total_credits: plan.credits_included,
         }
       : null,
-
   };
 }
 

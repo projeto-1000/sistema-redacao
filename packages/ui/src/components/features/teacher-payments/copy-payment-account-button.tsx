@@ -5,11 +5,7 @@ import { Check, Copy } from "lucide-react";
 import type { TeacherPaymentAccount } from "@repo/types";
 import { Button } from "@repo/ui/components/button";
 
-export function CopyPaymentAccountButton({
-  account,
-}: {
-  account: TeacherPaymentAccount;
-}) {
+export function CopyPaymentAccountButton({ account }: { account: TeacherPaymentAccount }) {
   const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPix = account.type === "pix";
@@ -32,12 +28,12 @@ export function CopyPaymentAccountButton({
     const content = isPix
       ? (account.pix_key ?? "")
       : [
-        `Banco: ${account.bank_name ?? ""}`,
-        `Agência: ${account.agency ?? ""}`,
-        `Conta ${account.account_variant ?? ""}: ${account.account_number ?? ""}`,
-        `Titular: ${account.owner_name}`,
-        `CPF/CNPJ: ${account.owner_document}`,
-      ].join("\n");
+          `Banco: ${account.bank_name ?? ""}`,
+          `Agência: ${account.agency ?? ""}`,
+          `Conta ${account.account_variant ?? ""}: ${account.account_number ?? ""}`,
+          `Titular: ${account.owner_name}`,
+          `CPF/CNPJ: ${account.owner_document}`,
+        ].join("\n");
 
     try {
       await navigator.clipboard.writeText(content);
@@ -65,13 +61,9 @@ export function CopyPaymentAccountButton({
       type="button"
       variant="outline"
       onClick={copy}
-      className="h-10 shrink-0 rounded-xl px-3 font-bold text-primary"
+      className="text-primary h-10 shrink-0 rounded-xl px-3 font-bold"
     >
-      {status === "copied" ? (
-        <Check className="size-4" />
-      ) : (
-        <Copy className="size-4" />
-      )}
+      {status === "copied" ? <Check className="size-4" /> : <Copy className="size-4" />}
       <span aria-live="polite">{label}</span>
     </Button>
   );

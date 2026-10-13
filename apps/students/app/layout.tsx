@@ -10,7 +10,7 @@ import Script from "next/script";
 
 const lexend = Lexend({
   subsets: ["latin"],
-  variable: "--font-lexend"
+  variable: "--font-lexend",
 });
 
 export const metadata: Metadata = {
@@ -51,9 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
         </noscript>
         <TooltipProvider>
-          <RouteTransition>
-            {children}
-          </RouteTransition>
+          <RouteTransition>{children}</RouteTransition>
           <Footer />
           <Toaster />
         </TooltipProvider>

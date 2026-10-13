@@ -23,9 +23,7 @@ interface ReturnCorrectionReviewDialogProps {
   submissionId: string;
 }
 
-export function ReturnCorrectionReviewDialog({
-  submissionId,
-}: ReturnCorrectionReviewDialogProps) {
+export function ReturnCorrectionReviewDialog({ submissionId }: ReturnCorrectionReviewDialogProps) {
   const router = useRouter();
   const submittingRef = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -48,10 +46,7 @@ export function ReturnCorrectionReviewDialog({
     setIsSubmitting(true);
 
     try {
-      const result = await returnSupervisedCorrectionToTeacher(
-        submissionId,
-        normalizedFeedback
-      );
+      const result = await returnSupervisedCorrectionToTeacher(submissionId, normalizedFeedback);
 
       if (!result.success) {
         toast.error(result.error ?? "Não foi possível devolver a correção ao professor.");
@@ -88,7 +83,7 @@ export function ReturnCorrectionReviewDialog({
         <Button
           type="button"
           variant="ghost"
-          className="h-11 rounded-xl font-bold text-red-700! hover:bg-red-50! transform transition duration-200"
+          className="h-11 transform rounded-xl font-bold text-red-700! transition duration-200 hover:bg-red-50!"
         >
           <RotateCcw className="size-4" />
           Devolver
@@ -113,7 +108,7 @@ export function ReturnCorrectionReviewDialog({
             onChange={(event) => setFeedback(event.target.value)}
             disabled={isSubmitting}
             rows={5}
-            className="w-full min-h-20 resize-none rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none mt-2"
+            className="mt-2 min-h-20 w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none"
             placeholder="Descreva os ajustes necessários..."
           />
         </div>

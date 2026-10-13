@@ -23,17 +23,10 @@ export const manualCreditGrantSchema = z
       .min(1, "Informe pelo menos 1 crédito.")
       .max(100, "O limite é de 100 créditos por vez."),
     reason: z.enum(manualCreditGrantReasons),
-    internalNote: z
-      .string()
-      .trim()
-      .max(1000, "Use no máximo 1000 caracteres.")
-      .optional(),
+    internalNote: z.string().trim().max(1000, "Use no máximo 1000 caracteres.").optional(),
   })
   .superRefine((input, context) => {
-    if (
-      input.reason === "mentorship_bonus" &&
-      input.creditType !== "mentorship"
-    ) {
+    if (input.reason === "mentorship_bonus" && input.creditType !== "mentorship") {
       context.addIssue({
         code: "custom",
         path: ["reason"],
@@ -48,8 +41,7 @@ export const manualCreditGrantSchema = z
       context.addIssue({
         code: "custom",
         path: ["internalNote"],
-        message:
-          "A observação interna é obrigatória para o motivo selecionado.",
+        message: "A observação interna é obrigatória para o motivo selecionado.",
       });
     }
   });

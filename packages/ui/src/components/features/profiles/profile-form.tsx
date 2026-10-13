@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useRef, ChangeEvent, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -27,7 +27,12 @@ interface ProfileFormProps {
   onDirtyStateChange?: (isDirty: boolean) => void;
 }
 
-export function ProfileForm({ initialData, onSave, onUpload, onDirtyStateChange }: ProfileFormProps) {
+export function ProfileForm({
+  initialData,
+  onSave,
+  onUpload,
+  onDirtyStateChange,
+}: ProfileFormProps) {
   const editor = useAvatarEditor();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,7 +42,12 @@ export function ProfileForm({ initialData, onSave, onUpload, onDirtyStateChange 
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(initialData.avatarUrl);
   const [isUploading, setIsUploading] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { isDirty, isSubmitting } } = useForm<{ name: string }>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isDirty, isSubmitting },
+  } = useForm<{ name: string }>({
     defaultValues: { name: initialData.name },
   });
 
@@ -114,18 +124,16 @@ export function ProfileForm({ initialData, onSave, onUpload, onDirtyStateChange 
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="p-8 md:p-12 space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-8 md:p-12">
         <div className="flex flex-col items-center gap-4">
-          <div className="relative group">
+          <div className="group relative">
             {isUploading ? (
-              <Skeleton
-                className="size-28 md:size-40 rounded-full border-4 border-slate-50 shadow-xl bg-slate-400"
-              />
+              <Skeleton className="size-28 rounded-full border-4 border-slate-50 bg-slate-400 shadow-xl md:size-40" />
             ) : (
               <Avatar
                 src={currentAvatarUrl}
                 name={initialData.name}
-                className="size-28 md:size-40 border-4 border-slate-50 shadow-xl md:text-5xl"
+                className="size-28 border-4 border-slate-50 shadow-xl md:size-40 md:text-5xl"
               />
             )}
 
@@ -133,9 +141,13 @@ export function ProfileForm({ initialData, onSave, onUpload, onDirtyStateChange 
               type="button"
               onClick={() => !isUploading && fileInputRef.current?.click()}
               disabled={isUploading}
-              className="absolute bottom-1 right-1 p-3 bg-slate-900 text-white rounded-full border-4 border-white hover:scale-110 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+              className="absolute right-1 bottom-1 rounded-full border-4 border-white bg-slate-900 p-3 text-white transition-transform hover:scale-110 disabled:opacity-50 disabled:hover:scale-100"
             >
-              {isUploading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
+              {isUploading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Camera className="size-4" />
+              )}
             </button>
             <input
               type="file"
@@ -145,23 +157,36 @@ export function ProfileForm({ initialData, onSave, onUpload, onDirtyStateChange 
               onChange={handleFileChange}
             />
           </div>
-          <p className="text-xs font-medium text-slate-400">* Formato: JPG, PNG ou WEBP (Máximo 10MB)</p>
+          <p className="text-xs font-medium text-slate-400">
+            * Formato: JPG, PNG ou WEBP (Máximo 10MB)
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-700">Nome Completo</label>
-            <Input {...register("name", { required: true })} className="h-12 bg-slate-50 border-slate-200 rounded-xl font-medium text-slate-700" />
+            <Input
+              {...register("name", { required: true })}
+              className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700"
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-700">E-mail</label>
-            <Input value={initialData.email} disabled className="h-12 bg-slate-100 border-slate-100 text-slate-400 rounded-xl" />
+            <Input
+              value={initialData.email}
+              disabled
+              className="h-12 rounded-xl border-slate-100 bg-slate-100 text-slate-400"
+            />
           </div>
         </div>
 
         <div className="flex justify-end pt-4">
-          <Button type="submit" disabled={isSubmitting || !isDirty} className="px-8 h-12 rounded-2xl font-bold">
-            <Save className="size-4 mr-2" /> Salvar Alterações
+          <Button
+            type="submit"
+            disabled={isSubmitting || !isDirty}
+            className="h-12 rounded-2xl px-8 font-bold"
+          >
+            <Save className="mr-2 size-4" /> Salvar Alterações
           </Button>
         </div>
       </form>
@@ -169,10 +194,12 @@ export function ProfileForm({ initialData, onSave, onUpload, onDirtyStateChange 
       <AlertDialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
         <AlertDialogContent className="rounded-3xl sm:max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-center font-bold">Ajustar Foto de Perfil</AlertDialogTitle>
+            <AlertDialogTitle className="text-center font-bold">
+              Ajustar Foto de Perfil
+            </AlertDialogTitle>
           </AlertDialogHeader>
 
-          <div className="flex flex-col items-center justify-center my-4">
+          <div className="my-4 flex flex-col items-center justify-center">
             {imageSrc && (
               <AvatarEditor
                 ref={editor.ref}
@@ -189,7 +216,7 @@ export function ProfileForm({ initialData, onSave, onUpload, onDirtyStateChange 
             )}
           </div>
 
-          <div className="flex items-center gap-4 px-4 w-full">
+          <div className="flex w-full items-center gap-4 px-4">
             <ZoomOut className="size-5 text-slate-400" />
             <input
               type="range"
@@ -198,16 +225,22 @@ export function ProfileForm({ initialData, onSave, onUpload, onDirtyStateChange 
               max={3}
               step={0.1}
               onChange={(e) => setScale(Number(e.target.value))}
-              className="w-full accent-primary"
+              className="accent-primary w-full"
             />
             <ZoomIn className="size-5 text-slate-400" />
           </div>
 
           <AlertDialogFooter className="mt-6 flex gap-2">
-            <AlertDialogCancel className="h-12 flex-1 rounded-xl font-bold m-0" onClick={() => setImageSrc(null)}>
+            <AlertDialogCancel
+              className="m-0 h-12 flex-1 rounded-xl font-bold"
+              onClick={() => setImageSrc(null)}
+            >
               Cancelar
             </AlertDialogCancel>
-            <Button onClick={handleSaveAvatar} className="h-12 flex-1 rounded-xl font-bold shadow-lg">
+            <Button
+              onClick={handleSaveAvatar}
+              className="h-12 flex-1 rounded-xl font-bold shadow-lg"
+            >
               Salvar Foto
             </Button>
           </AlertDialogFooter>

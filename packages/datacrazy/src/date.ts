@@ -25,10 +25,8 @@ export function formatDataCrazyDateInSaoPaulo(value: string | Date): string {
   return `${year}-${month}-${day}`;
 }
 
-export function buildDataCrazyTokensExpirationField(
-  expiresAt: string | null | undefined,
-): { tokens_expire_at?: string } {
-  return expiresAt
-    ? { tokens_expire_at: formatDataCrazyDateInSaoPaulo(expiresAt) }
-    : {};
+export function buildDataCrazyTokensExpirationField(expiresAt: string | null | undefined): {
+  tokens_expire_at?: string;
+} {
+  return expiresAt ? { tokens_expire_at: formatDataCrazyDateInSaoPaulo(expiresAt) } : {};
 }

@@ -34,9 +34,7 @@ const remoteSubscription: PagarmeSubscription = {
   next_billing_at: "2026-04-01T00:00:00Z",
 };
 
-function buildInvoice(
-  overrides: Partial<PagarmeInvoice> = {}
-): PagarmeInvoice {
+function buildInvoice(overrides: Partial<PagarmeInvoice> = {}): PagarmeInvoice {
   return {
     id: "in_reconciliation_test",
     amount: 10000,
@@ -64,9 +62,10 @@ test("selects a paid invoice when an expired local subscription missed its webho
   assert.equal(decision.kind, "renew");
 
   if (decision.kind === "renew") {
-    assert.deepEqual(decision.invoices.map((invoice) => invoice.id), [
-      "in_reconciliation_test",
-    ]);
+    assert.deepEqual(
+      decision.invoices.map((invoice) => invoice.id),
+      ["in_reconciliation_test"]
+    );
   }
 });
 
@@ -166,10 +165,10 @@ test("orders and deduplicates two overdue paid invoices", () => {
   assert.equal(decision.kind, "renew");
 
   if (decision.kind === "renew") {
-    assert.deepEqual(decision.invoices.map((invoice) => invoice.id), [
-      "in_first",
-      "in_second",
-    ]);
+    assert.deepEqual(
+      decision.invoices.map((invoice) => invoice.id),
+      ["in_first", "in_second"]
+    );
   }
 });
 
@@ -198,11 +197,10 @@ test("orders three randomly returned overdue cycles", () => {
   assert.equal(decision.kind, "renew");
 
   if (decision.kind === "renew") {
-    assert.deepEqual(decision.invoices.map((invoice) => invoice.id), [
-      "in_february",
-      "in_march",
-      "in_april",
-    ]);
+    assert.deepEqual(
+      decision.invoices.map((invoice) => invoice.id),
+      ["in_february", "in_march", "in_april"]
+    );
   }
 });
 
@@ -289,7 +287,10 @@ test("applies a pending paid invoice without replaying an older failure", () => 
   assert.equal(decision.kind, "renew");
 
   if (decision.kind === "renew") {
-    assert.deepEqual(decision.invoices.map((invoice) => invoice.id), [laterPaid.id]);
+    assert.deepEqual(
+      decision.invoices.map((invoice) => invoice.id),
+      [laterPaid.id]
+    );
     assert.equal(decision.subsequentFailure, undefined);
   }
 });
@@ -381,16 +382,11 @@ test("skips candidates in backoff even when more than 25 precede due candidates"
   const candidates = Array.from({ length: 35 }, (_, index) => ({
     ...localSubscription,
     id: `candidate-${index}`,
-    metadata:
-      index < 25
-        ? { reconciliation_retry_after: "2026-06-02T00:00:00Z" }
-        : {},
+    metadata: index < 25 ? { reconciliation_retry_after: "2026-06-02T00:00:00Z" } : {},
   }));
 
   assert.deepEqual(
-    selectDueReconciliationCandidates(candidates, now, 25).map(
-      (candidate) => candidate.id
-    ),
+    selectDueReconciliationCandidates(candidates, now, 25).map((candidate) => candidate.id),
     Array.from({ length: 10 }, (_, index) => `candidate-${index + 25}`)
   );
 });
@@ -409,14 +405,14 @@ test("a problematic candidate in backoff does not block a later candidate", () =
     1
   );
 
-  assert.deepEqual(selected.map((candidate) => candidate.id), ["healthy"]);
+  assert.deepEqual(
+    selected.map((candidate) => candidate.id),
+    ["healthy"]
+  );
 });
 
 test("records attempts with deterministic backoff beyond the next hourly run", () => {
-  const firstAttempt = buildReconciliationAttemptMetadata(
-    {},
-    new Date("2026-06-01T00:00:00Z")
-  );
+  const firstAttempt = buildReconciliationAttemptMetadata({}, new Date("2026-06-01T00:00:00Z"));
   const secondAttempt = buildReconciliationAttemptMetadata(
     firstAttempt,
     new Date("2026-06-01T02:00:00Z")
@@ -430,24 +426,15 @@ test("records attempts with deterministic backoff beyond the next hourly run", (
 
 test("accepts exact or one-second cycle boundaries and rejects larger gaps", () => {
   assert.equal(
-    areSubscriptionPeriodsContinuous(
-      "2026-02-01T00:00:00Z",
-      "2026-02-01T00:00:00Z"
-    ),
+    areSubscriptionPeriodsContinuous("2026-02-01T00:00:00Z", "2026-02-01T00:00:00Z"),
     true
   );
   assert.equal(
-    areSubscriptionPeriodsContinuous(
-      "2026-01-31T23:59:59Z",
-      "2026-02-01T00:00:00Z"
-    ),
+    areSubscriptionPeriodsContinuous("2026-01-31T23:59:59Z", "2026-02-01T00:00:00Z"),
     true
   );
   assert.equal(
-    areSubscriptionPeriodsContinuous(
-      "2026-01-31T23:59:59Z",
-      "2026-02-01T00:00:01Z"
-    ),
+    areSubscriptionPeriodsContinuous("2026-01-31T23:59:59Z", "2026-02-01T00:00:01Z"),
     false
   );
 });

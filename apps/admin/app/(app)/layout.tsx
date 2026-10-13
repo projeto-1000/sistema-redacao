@@ -20,11 +20,7 @@ import {
   Users,
 } from "lucide-react";
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [supabase] = useState(() => createClient());
@@ -115,27 +111,18 @@ export default function AppLayout({
   ];
 
   const handleLogout = async () => {
-    const { error } =
-      await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
 
     if (error) {
       throw error;
     }
-
   };
 
   return (
-    <div className="min-h-dvh max-w-full flex flex-col">
-      <Header
-        items={navItems}
-        activePath={pathname}
-        onLogout={handleLogout}
-        collapseAt="xl"
-      />
+    <div className="flex min-h-dvh max-w-full flex-col">
+      <Header items={navItems} activePath={pathname} onLogout={handleLogout} collapseAt="xl" />
 
-      <main className="flex-1 w-full p-6 md:p-8 bg-slate-50">
-        {children}
-      </main>
+      <main className="w-full flex-1 bg-slate-50 p-6 md:p-8">{children}</main>
 
       <Footer />
     </div>

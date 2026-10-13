@@ -5,18 +5,9 @@ export const subscriptionSupportSchema = z
     operationId: z.string().uuid(),
     studentId: z.string().uuid(),
     paymentId: z.string().uuid(),
-    action: z.enum([
-      "cancel_only",
-      "cancel_refund",
-      "refund_courtesy",
-      "refund_only",
-    ]),
+    action: z.enum(["cancel_only", "cancel_refund", "refund_courtesy", "refund_only"]),
     amount: z.number().int().nonnegative(),
-    reason: z
-      .string()
-      .trim()
-      .min(10, "Descreva o motivo com pelo menos 10 caracteres.")
-      .max(1000),
+    reason: z.string().trim().min(10, "Descreva o motivo com pelo menos 10 caracteres.").max(1000),
     courtesyCredits: z.number().int().nonnegative().optional(),
     courtesyUntil: z.string().datetime({ offset: true }).optional(),
   })

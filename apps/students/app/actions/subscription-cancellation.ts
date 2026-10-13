@@ -49,10 +49,15 @@ export async function requestSubscriptionCancellation(
 
   const cancellationDetails = input.details?.trim() || null;
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.operationId)) {
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      input.operationId
+    )
+  ) {
     return {
       success: false,
-      message: "Não foi possível identificar esta solicitação. Atualize a página e tente novamente.",
+      message:
+        "Não foi possível identificar esta solicitação. Atualize a página e tente novamente.",
     };
   }
 
@@ -308,9 +313,7 @@ export async function requestSubscriptionCancellation(
     return {
       success: true,
       kind:
-        withdrawal.processing_mode === "automatic"
-          ? "withdrawal_automatic"
-          : "withdrawal_manual",
+        withdrawal.processing_mode === "automatic" ? "withdrawal_automatic" : "withdrawal_manual",
       effectiveAt: null,
       alreadyScheduled: withdrawal.duplicate ?? false,
       withdrawalStatus: withdrawal.status,
@@ -719,8 +722,7 @@ export async function reactivateScheduledSubscription(): Promise<ReactivateSched
         cancellation_provider_status: null,
         provider_canceled_at: null,
         canceled_at: null,
-        next_billing_at:
-          futureSubscription.next_billing_at ?? `${scheduledDate}T00:00:00-03:00`,
+        next_billing_at: futureSubscription.next_billing_at ?? `${scheduledDate}T00:00:00-03:00`,
         metadata: {
           ...previousMetadata,
           pagarme_subscription_id: futureSubscription.id,

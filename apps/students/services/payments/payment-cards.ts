@@ -362,14 +362,11 @@ export async function setPaymentCardAsDefaultAtomically({
     throw new Error("Não foi possível ativar o cartão aprovado.");
   }
 
-  const { error: promoteCardError } = await supabaseAdmin.rpc(
-    "set_student_default_payment_card",
-    {
-      p_user_id: userId,
-      p_payment_card_id: paymentCardId,
-      p_expected_subscription_id: expectedSubscriptionId,
-    }
-  );
+  const { error: promoteCardError } = await supabaseAdmin.rpc("set_student_default_payment_card", {
+    p_user_id: userId,
+    p_payment_card_id: paymentCardId,
+    p_expected_subscription_id: expectedSubscriptionId,
+  });
 
   if (promoteCardError) {
     console.error("[PAYMENT_CARD_ATOMIC_PROMOTION_ERROR]", promoteCardError);

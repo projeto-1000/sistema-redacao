@@ -126,9 +126,7 @@ export async function StudentStatsCards({ studentId }: StudentStatsCardsProps) {
                 {stats.lastActivityDetail}
               </p>
             </div>
-            <p className="truncate text-sm font-black text-slate-900">
-              {stats.lastActivityValue}
-            </p>
+            <p className="truncate text-sm font-black text-slate-900">{stats.lastActivityValue}</p>
           </div>
         </div>
       </article>

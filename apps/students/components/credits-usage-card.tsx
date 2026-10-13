@@ -1,14 +1,6 @@
-import {
-  StudentCredits,
-  StudentSubscription,
-} from "@repo/types";
+import { StudentCredits, StudentSubscription } from "@repo/types";
 import { formatDate } from "@repo/utils";
-import {
-  Gift,
-  Plus,
-  PlusCircle,
-  RefreshCcw,
-} from "lucide-react";
+import { Gift, Plus, PlusCircle, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 
 interface CreditsUsageCardProps {
@@ -30,60 +22,36 @@ export function CreditsUsageCard({
   subscription,
   extraCreditPurchaseEligible,
 }: CreditsUsageCardProps) {
-  const isFreeTrial =
-    subscription.plan_external_id ===
-    "internal_free_trial";
+  const isFreeTrial = subscription.plan_external_id === "internal_free_trial";
 
-  const isMentorshipPlan =
-    subscription.plan_external_id ===
-    "internal_mentoria_free";
+  const isMentorshipPlan = subscription.plan_external_id === "internal_mentoria_free";
 
   const hasMentorshipCycle =
-    subscription.mentorship_cycle_number !== null &&
-    subscription.mentorship_cycle_total !== null;
+    subscription.mentorship_cycle_number !== null && subscription.mentorship_cycle_total !== null;
 
-  const isLifetime =
-    subscription.interval === "lifetime" &&
-    !isFreeTrial &&
-    !isMentorshipPlan;
+  const isLifetime = subscription.interval === "lifetime" && !isFreeTrial && !isMentorshipPlan;
 
-  const planCredits =
-    credits.plan_credits ?? 0;
+  const planCredits = credits.plan_credits ?? 0;
 
-  const freeCredits =
-    credits.free_credits ?? 0;
+  const freeCredits = credits.free_credits ?? 0;
 
-  const freeCreditExpiresAt =
-    credits.free_credit_expires_at;
+  const freeCreditExpiresAt = credits.free_credit_expires_at;
 
-  const hasFreeCredit =
-    freeCredits > 0 &&
-    freeCreditExpiresAt !== null;
+  const hasFreeCredit = freeCredits > 0 && freeCreditExpiresAt !== null;
 
-  const mentorshipAvailableCredits =
-    subscription.mentorship_cycle_remaining ?? 0;
+  const mentorshipAvailableCredits = subscription.mentorship_cycle_remaining ?? 0;
 
-  const mentorshipTotalCredits =
-    subscription.mentorship_cycle_total;
+  const mentorshipTotalCredits = subscription.mentorship_cycle_total;
 
-  const mentorshipCycleNumber =
-    subscription.mentorship_cycle_number;
+  const mentorshipCycleNumber = subscription.mentorship_cycle_number;
 
-  const mentorshipCycleEnd =
-    subscription.mentorship_cycle_end;
+  const mentorshipCycleEnd = subscription.mentorship_cycle_end;
 
-  const mentorshipDescription =
-    mentorshipCycleEnd
-      ? mentorshipCycleNumber === 3
-        ? `Último ciclo disponível até ${formatDate(
-          mentorshipCycleEnd,
-          "numeric"
-        )}`
-        : `Próxima liberação em ${formatDate(
-          mentorshipCycleEnd,
-          "numeric"
-        )}`
-      : "Créditos liberados por ciclos";
+  const mentorshipDescription = mentorshipCycleEnd
+    ? mentorshipCycleNumber === 3
+      ? `Último ciclo disponível até ${formatDate(mentorshipCycleEnd, "numeric")}`
+      : `Próxima liberação em ${formatDate(mentorshipCycleEnd, "numeric")}`
+    : "Créditos liberados por ciclos";
 
   function getPlanCreditsContent(): PlanCreditsContent {
     if (isFreeTrial) {
@@ -93,10 +61,7 @@ export function CreditsUsageCard({
         description:
           freeCredits > 0
             ? freeCreditExpiresAt
-              ? `Válida até ${formatDate(
-                freeCreditExpiresAt,
-                "numeric"
-              )}`
+              ? `Válida até ${formatDate(freeCreditExpiresAt, "numeric")}`
               : "Validade não disponível"
             : "Crédito gratuito utilizado ou expirado",
 
@@ -111,14 +76,11 @@ export function CreditsUsageCard({
         title: "Créditos da Mentoria",
         description: mentorshipDescription,
 
-        availableCredits:
-          mentorshipAvailableCredits,
+        availableCredits: mentorshipAvailableCredits,
 
-        totalCredits:
-          mentorshipTotalCredits,
+        totalCredits: mentorshipTotalCredits,
 
-        showProgress:
-          mentorshipTotalCredits !== null,
+        showProgress: mentorshipTotalCredits !== null,
       };
     }
 
@@ -129,98 +91,60 @@ export function CreditsUsageCard({
 
         availableCredits: planCredits,
 
-        totalCredits:
-          subscription.credits_included || null,
+        totalCredits: subscription.credits_included || null,
 
-        showProgress:
-          subscription.credits_included > 0,
+        showProgress: subscription.credits_included > 0,
       };
     }
 
     return {
       title: "Créditos do Plano",
 
-      description:
-        subscription.current_period_end
-          ? `Válidos até ${formatDate(
-            subscription.current_period_end,
-            "numeric"
-          )}`
-          : "Data de renovação não disponível",
+      description: subscription.current_period_end
+        ? `Válidos até ${formatDate(subscription.current_period_end, "numeric")}`
+        : "Data de renovação não disponível",
 
       availableCredits: planCredits,
 
-      totalCredits:
-        subscription.credits_included || null,
+      totalCredits: subscription.credits_included || null,
 
-      showProgress:
-        subscription.credits_included > 0,
+      showProgress: subscription.credits_included > 0,
     };
   }
 
-  const {
-    title,
-    description,
-    availableCredits,
-    totalCredits,
-    showProgress,
-  } = getPlanCreditsContent();
+  const { title, description, availableCredits, totalCredits, showProgress } =
+    getPlanCreditsContent();
 
   const planPercentage =
     totalCredits && totalCredits > 0
-      ? Math.min(
-        Math.max(
-          (availableCredits / totalCredits) *
-          100,
-          0
-        ),
-        100
-      )
+      ? Math.min(Math.max((availableCredits / totalCredits) * 100, 0), 100)
       : 0;
 
   const mentorshipPercentage =
-    mentorshipTotalCredits &&
-      mentorshipTotalCredits > 0
-      ? Math.min(
-        Math.max(
-          (mentorshipAvailableCredits /
-            mentorshipTotalCredits) *
-          100,
-          0
-        ),
-        100
-      )
+    mentorshipTotalCredits && mentorshipTotalCredits > 0
+      ? Math.min(Math.max((mentorshipAvailableCredits / mentorshipTotalCredits) * 100, 0), 100)
       : 0;
 
-  const PlanIcon =
-    isFreeTrial || isMentorshipPlan
-      ? Gift
-      : RefreshCcw;
+  const PlanIcon = isFreeTrial || isMentorshipPlan ? Gift : RefreshCcw;
 
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
-      <div className="flex  flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h4 className="flex items-center gap-2 font-bold">
-              <PlanIcon className="size-4 text-primary" />
+              <PlanIcon className="text-primary size-4" />
               {title}
             </h4>
 
-            <p className="mt-1 text-xs text-slate-500">
-              {description}
-            </p>
+            <p className="mt-1 text-xs text-slate-500">{description}</p>
           </div>
 
           <div className="shrink-0 text-right">
-            <span className="text-3xl font-bold">
-              {availableCredits}
-            </span>
+            <span className="text-3xl font-bold">{availableCredits}</span>
 
             {totalCredits !== null && (
-              <span className="ml-1 text-sm font-medium text-slate-400">
-                / {totalCredits}
-              </span>
+              <span className="ml-1 text-sm font-medium text-slate-400">/ {totalCredits}</span>
             )}
           </div>
         </div>
@@ -229,7 +153,7 @@ export function CreditsUsageCard({
           <div className="mt-auto pt-6">
             <div className="h-2.5 w-full rounded-full bg-slate-100">
               <div
-                className="h-2.5 rounded-full bg-primary transition-all duration-500"
+                className="bg-primary h-2.5 rounded-full transition-all duration-500"
                 style={{
                   width: `${planPercentage}%`,
                 }}
@@ -244,40 +168,28 @@ export function CreditsUsageCard({
           <div className="flex items-start justify-between gap-4">
             <div>
               <h4 className="flex items-center gap-2 font-bold">
-                <Gift className="size-4 text-primary" />
-
+                <Gift className="text-primary size-4" />
                 Correção gratuita
               </h4>
 
               <p className="mt-1 text-xs text-slate-500">
-                Válida até{" "}
-                {formatDate(
-                  freeCreditExpiresAt,
-                  "numeric"
-                )}
+                Válida até {formatDate(freeCreditExpiresAt, "numeric")}
               </p>
             </div>
 
             <div className="shrink-0 text-right">
-              <span className="text-3xl font-bold">
-                {freeCredits}
-              </span>
+              <span className="text-3xl font-bold">{freeCredits}</span>
 
-              <span className="ml-1 text-sm font-medium text-slate-400">
-                / 1
-              </span>
+              <span className="ml-1 text-sm font-medium text-slate-400">/ 1</span>
             </div>
           </div>
 
           <div className="mt-auto pt-6">
             <div className="h-2.5 w-full rounded-full bg-slate-100">
               <div
-                className="h-2.5 rounded-full bg-primary transition-all duration-500"
+                className="bg-primary h-2.5 rounded-full transition-all duration-500"
                 style={{
-                  width: `${Math.min(
-                    freeCredits * 100,
-                    100
-                  )}%`,
+                  width: `${Math.min(freeCredits * 100, 100)}%`,
                 }}
               />
             </div>
@@ -285,75 +197,62 @@ export function CreditsUsageCard({
         </div>
       )}
 
-      {hasMentorshipCycle &&
-        !isMentorshipPlan && (
-          <div className="flex  flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h4 className="flex items-center gap-2 font-bold">
-                  <Gift className="size-4 text-primary" />
+      {hasMentorshipCycle && !isMentorshipPlan && (
+        <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h4 className="flex items-center gap-2 font-bold">
+                <Gift className="text-primary size-4" />
+                Créditos da Mentoria
+              </h4>
 
-                  Créditos da Mentoria
-                </h4>
-
-                <p className="mt-1 text-xs text-slate-500">
-                  {mentorshipDescription}
-                </p>
-              </div>
-
-              <div className="shrink-0 text-right">
-                <span className="text-3xl font-bold">
-                  {mentorshipAvailableCredits}
-                </span>
-
-                {mentorshipTotalCredits !==
-                  null && (
-                    <span className="ml-1 text-sm font-medium text-slate-400">
-                      / {mentorshipTotalCredits}
-                    </span>
-                  )}
-              </div>
+              <p className="mt-1 text-xs text-slate-500">{mentorshipDescription}</p>
             </div>
 
-            {mentorshipTotalCredits !==
-              null && (
-                <div className="mt-auto pt-6">
-                  <div className="h-2.5 w-full rounded-full bg-slate-100">
-                    <div
-                      className="h-2.5 rounded-full bg-primary transition-all duration-500"
-                      style={{
-                        width: `${mentorshipPercentage}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-          </div>
-        )}
+            <div className="shrink-0 text-right">
+              <span className="text-3xl font-bold">{mentorshipAvailableCredits}</span>
 
-      <div className="flex  flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              {mentorshipTotalCredits !== null && (
+                <span className="ml-1 text-sm font-medium text-slate-400">
+                  / {mentorshipTotalCredits}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {mentorshipTotalCredits !== null && (
+            <div className="mt-auto pt-6">
+              <div className="h-2.5 w-full rounded-full bg-slate-100">
+                <div
+                  className="bg-primary h-2.5 rounded-full transition-all duration-500"
+                  style={{
+                    width: `${mentorshipPercentage}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h4 className="flex items-center gap-2 font-bold">
-              <PlusCircle className="size-4 text-secondary" />
-
+              <PlusCircle className="text-secondary size-4" />
               Créditos Extra
             </h4>
 
-            <p className="mt-1 text-xs text-slate-500">
-              Não expiram
-            </p>
+            <p className="mt-1 text-xs text-slate-500">Não expiram</p>
           </div>
 
-          <span className="text-3xl font-bold">
-            {credits.extra_credits ?? 0}
-          </span>
+          <span className="text-3xl font-bold">{credits.extra_credits ?? 0}</span>
         </div>
 
         {extraCreditPurchaseEligible ? (
           <Link
             href="/assinatura/comprar-creditos"
-            className="mt-auto flex items-center justify-end gap-2 pt-6 text-[13px] font-medium text-slate-700 transition-colors hover:font-bold hover:text-secondary"
+            className="hover:text-secondary mt-auto flex items-center justify-end gap-2 pt-6 text-[13px] font-medium text-slate-700 transition-colors hover:font-bold"
           >
             <Plus className="size-4" />
             Comprar mais créditos
@@ -366,7 +265,7 @@ export function CreditsUsageCard({
             {(isFreeTrial || isMentorshipPlan) && (
               <Link
                 href="/assinatura/planos"
-                className="mt-2 inline-flex items-center gap-2 text-[13px] font-medium text-slate-700 transition-colors hover:font-bold hover:text-secondary"
+                className="hover:text-secondary mt-2 inline-flex items-center gap-2 text-[13px] font-medium text-slate-700 transition-colors hover:font-bold"
               >
                 <Plus className="size-4" />
                 Conhecer planos

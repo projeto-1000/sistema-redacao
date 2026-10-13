@@ -6,13 +6,7 @@ import {
   formatCardNumber,
   normalizeCardHolderName,
 } from "@/lib/checkout/card-formatters";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@repo/ui/components/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/components/form";
 import { Input } from "@repo/ui/components/input";
 import { formatCPF } from "@repo/utils";
 import type { Control, FieldValues, Path } from "react-hook-form";
@@ -27,8 +21,7 @@ interface CardFieldsProps<TFieldValues extends FieldValues> {
   onChange?: () => void;
 }
 
-const formItemClassName =
-  "grid grid-rows-[20px_48px_20px] gap-2 space-y-0";
+const formItemClassName = "grid grid-rows-[20px_48px_20px] gap-2 space-y-0";
 
 const formMessageWrapperClassName = "h-5 overflow-hidden";
 
@@ -89,11 +82,9 @@ export function CardFields<TFieldValues extends FieldValues>({
                   value={(field.value as string | undefined) ?? ""}
                   autoComplete="cc-name"
                   placeholder="Nome completo"
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 font-semibold uppercase text-slate-700"
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 font-semibold text-slate-700 uppercase"
                   onChange={(event) => {
-                    field.onChange(
-                      normalizeCardHolderName(event.target.value)
-                    );
+                    field.onChange(normalizeCardHolderName(event.target.value));
                     onChange?.();
                   }}
                 />
@@ -154,9 +145,7 @@ export function CardFields<TFieldValues extends FieldValues>({
                   placeholder="MM/AA"
                   className="h-12 rounded-xl border-slate-200 bg-slate-50 font-semibold text-slate-700"
                   onChange={(event) => {
-                    field.onChange(
-                      formatCardExpiration(event.target.value)
-                    );
+                    field.onChange(formatCardExpiration(event.target.value));
                     onChange?.();
                   }}
                 />

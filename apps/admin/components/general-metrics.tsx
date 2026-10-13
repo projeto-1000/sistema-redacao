@@ -38,29 +38,44 @@ export default async function GeneralMetrics() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
       {cardsData.map((card, index) => {
         const Icon = card.icon;
 
         return (
-          <div key={index} className="bg-white rounded-4xl p-8 shadow-sm border border-slate-100 flex justify-between relative overflow-hidden">
-            <div className={`absolute top-0 right-0 w-32 h-32 rounded-bl-[100px] z-0 opacity-50 ${card.decorationClass}`} />
+          <div
+            key={index}
+            className="relative flex justify-between overflow-hidden rounded-4xl border border-slate-100 bg-white p-8 shadow-sm"
+          >
+            <div
+              className={`absolute top-0 right-0 z-0 h-32 w-32 rounded-bl-[100px] opacity-50 ${card.decorationClass}`}
+            />
 
             <div className="relative z-10 flex flex-col gap-2">
               <span className="text-sm font-semibold text-slate-500">{card.title}</span>
 
               <div className="flex items-baseline gap-2">
                 <h2 className="text-5xl font-black tracking-tight">{card.value}</h2>
-                {card.suffix && <span className="text-sm font-medium text-slate-400">{card.suffix}</span>}
+                {card.suffix && (
+                  <span className="text-sm font-medium text-slate-400">{card.suffix}</span>
+                )}
               </div>
 
-              <div className={`flex items-center gap-1 w-fit px-2 py-1 rounded-md mt-2 ${card.isPositive ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50'}`}>
-                {card.isPositive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+              <div
+                className={`mt-2 flex w-fit items-center gap-1 rounded-md px-2 py-1 ${card.isPositive ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}
+              >
+                {card.isPositive ? (
+                  <TrendingUp className="size-3" />
+                ) : (
+                  <TrendingDown className="size-3" />
+                )}
                 <span className="text-xs font-bold">{card.trend}</span>
               </div>
             </div>
 
-            <div className={`relative z-10 size-12 rounded-full flex items-center justify-center ${card.iconClass}`}>
+            <div
+              className={`relative z-10 flex size-12 items-center justify-center rounded-full ${card.iconClass}`}
+            >
               <Icon className="size-5" />
             </div>
           </div>

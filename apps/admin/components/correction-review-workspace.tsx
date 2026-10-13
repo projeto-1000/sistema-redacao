@@ -13,7 +13,6 @@ import { Clock, Pencil, UserPen } from "lucide-react";
 import { useState } from "react";
 import { formatDate } from "@repo/utils";
 
-
 interface CorrectionReviewWorkspaceProps {
   review: PendingCorrectionReviewDetails;
 }
@@ -39,13 +38,13 @@ export function CorrectionReviewWorkspace({ review }: CorrectionReviewWorkspaceP
                 <span aria-hidden="true">·</span>
                 <span className="inline-flex items-center gap-1.5">
                   <Clock className="size-3.5" />
-                  Enviada em {formatDate(review.submittedAt, 'numeric')}
+                  Enviada em {formatDate(review.submittedAt, "numeric")}
                 </span>
               </p>
             </div>
           </div>
 
-          <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-violet-700">
+          <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold tracking-wide text-violet-700 uppercase">
             {isEditing ? "Editando correção" : "Aguardando revisão"}
           </span>
         </div>

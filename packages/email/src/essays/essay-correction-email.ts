@@ -415,10 +415,7 @@ export async function sendEssayCorrectionAvailableEmail({
 }: SendEssayCorrectionAvailableEmailParams) {
   const { apiKey, from } = getResendConfig();
 
-  const correctionUrl = buildEssayCorrectionUrl(
-    getStudentsAppUrl(),
-    essayId,
-  );
+  const correctionUrl = buildEssayCorrectionUrl(getStudentsAppUrl(), essayId);
 
   const content = getEssayCorrectionEmailContent({
     studentName,
@@ -440,8 +437,6 @@ export async function sendEssayCorrectionAvailableEmail({
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Resend request failed with status ${response.status}.`,
-    );
+    throw new Error(`Resend request failed with status ${response.status}.`);
   }
 }

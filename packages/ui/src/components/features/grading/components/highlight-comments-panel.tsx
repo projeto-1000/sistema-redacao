@@ -15,9 +15,7 @@ export function HighlightCommentsPanel({
   activeHighlightId,
   onSelectHighlight,
 }: HighlightCommentsPanelProps) {
-  const sortedHighlights = [...highlights].sort(
-    (a, b) => a.startIndex - b.startIndex
-  );
+  const sortedHighlights = [...highlights].sort((a, b) => a.startIndex - b.startIndex);
 
   if (sortedHighlights.length === 0) return null;
 
@@ -26,9 +24,7 @@ export function HighlightCommentsPanel({
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-slate-700">
           <MessageSquareText className="size-4 text-indigo-500" />
-          <h4 className="text-xs font-bold uppercase tracking-wider">
-            Apontamentos no texto
-          </h4>
+          <h4 className="text-xs font-bold tracking-wider uppercase">Apontamentos no texto</h4>
         </div>
 
         <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
@@ -53,7 +49,7 @@ export function HighlightCommentsPanel({
                 onSelectHighlight(highlight.id);
               }}
               aria-pressed={isActive}
-              className={`w-full cursor-pointer rounded-2xl border p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${
+              className={`w-full cursor-pointer rounded-2xl border p-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:outline-none ${
                 isActive
                   ? "border-indigo-300 bg-indigo-50/70 shadow-sm ring-1 ring-indigo-200"
                   : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
@@ -69,7 +65,7 @@ export function HighlightCommentsPanel({
                   className="text-xs leading-relaxed text-slate-600"
                 />
               ) : (
-                <p className="text-xs italic leading-relaxed text-amber-600">
+                <p className="text-xs leading-relaxed text-amber-600 italic">
                   Adicionar comentário específico
                 </p>
               )}

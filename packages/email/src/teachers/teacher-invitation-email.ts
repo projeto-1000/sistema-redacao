@@ -187,8 +187,7 @@ export async function sendTeacherInvitationEmail({
 }: TeacherInvitationParams & { to: string }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
-  if (!apiKey || !from)
-    throw new Error("Teacher invitation email is not configured.");
+  if (!apiKey || !from) throw new Error("Teacher invitation email is not configured.");
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -206,7 +205,5 @@ export async function sendTeacherInvitationEmail({
   });
 
   if (!response.ok)
-    throw new Error(
-      `Teacher invitation email failed with status ${response.status}.`,
-    );
+    throw new Error(`Teacher invitation email failed with status ${response.status}.`);
 }

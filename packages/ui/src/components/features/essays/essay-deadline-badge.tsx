@@ -7,14 +7,8 @@ interface EssayDeadlineBadgeProps {
   remainingBusinessSeconds: number;
 }
 
-export function EssayDeadlineBadge({
-  dueDate,
-  remainingBusinessSeconds,
-}: EssayDeadlineBadgeProps) {
-  const deadline = getDeadlineStatus(
-    dueDate,
-    remainingBusinessSeconds,
-  ) as DeadlineInfo;
+export function EssayDeadlineBadge({ dueDate, remainingBusinessSeconds }: EssayDeadlineBadgeProps) {
+  const deadline = getDeadlineStatus(dueDate, remainingBusinessSeconds) as DeadlineInfo;
   let classes = "border-blue-500 bg-blue-100 text-blue-700";
 
   if (deadline.status === "urgent" || deadline.status === "expired") {
@@ -25,7 +19,7 @@ export function EssayDeadlineBadge({
 
   return (
     <div
-      className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide ${classes}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold tracking-wide whitespace-nowrap uppercase ${classes}`}
       title={deadline.label}
     >
       <Clock className="size-3" />

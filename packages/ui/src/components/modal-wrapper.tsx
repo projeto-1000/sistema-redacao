@@ -30,7 +30,7 @@ export function ModalWrapper({
       params.delete(name);
       return params.toString();
     },
-    [searchParams],
+    [searchParams]
   );
 
   const handleOpenChange = (open: boolean) => {

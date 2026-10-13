@@ -8,18 +8,10 @@ import {
   getPhoneCountryCodeOptions,
   onlyDigits,
 } from "@repo/utils";
-import {
-  registrationDetailsSchema,
-  type RegistrationDetailsSchema,
-} from "@repo/validators";
+import { registrationDetailsSchema, type RegistrationDetailsSchema } from "@repo/validators";
 import { Alert, AlertDescription, AlertTitle } from "@repo/ui/components/alert";
 import { Button } from "@repo/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@repo/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/components/card";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import {
   Form,
@@ -37,21 +29,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/components/select";
-import {
-  ArrowRight,
-  Check,
-  CircleAlert,
-  LogIn,
-  MessageCircle,
-} from "lucide-react";
+import { ArrowRight, Check, CircleAlert, LogIn, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { getStudentsUrl, SUPPORT_URL } from "@/lib/site-links";
 
 const countryCodeOptions = getPhoneCountryCodeOptions();
-const fieldLabelClassName =
-  "text-xs font-bold uppercase tracking-wide text-foreground/70";
+const fieldLabelClassName = "text-xs font-bold uppercase tracking-wide text-foreground/70";
 const fieldControlClassName =
   "h-[50px]! rounded-[1rem] border-border bg-background px-[1.1rem] py-[0.9rem] text-[0.95rem]! shadow-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20";
 
@@ -68,9 +53,7 @@ interface SignupFormProps {
 }
 
 export function SignupForm({ loginUrl }: SignupFormProps) {
-  const [duplicateCode, setDuplicateCode] = useState<DuplicateCode | null>(
-    null,
-  );
+  const [duplicateCode, setDuplicateCode] = useState<DuplicateCode | null>(null);
   const form = useForm({
     resolver: zodResolver(registrationDetailsSchema),
     mode: "onChange",
@@ -94,8 +77,7 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
 
     if (!studentsUrl) {
       form.setError("root", {
-        message:
-          "O cadastro está temporariamente indisponível. Tente novamente em instantes.",
+        message: "O cadastro está temporariamente indisponível. Tente novamente em instantes.",
       });
       return;
     }
@@ -120,8 +102,7 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
       if (!response.ok || !result.continuationUrl) {
         form.setError("root", {
           message:
-            result.error ??
-            "Não foi possível iniciar o cadastro no momento. Tente novamente.",
+            result.error ?? "Não foi possível iniciar o cadastro no momento. Tente novamente.",
         });
         return;
       }
@@ -129,8 +110,7 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
       window.location.assign(result.continuationUrl);
     } catch {
       form.setError("root", {
-        message:
-          "Não foi possível conectar ao cadastro no momento. Tente novamente.",
+        message: "Não foi possível conectar ao cadastro no momento. Tente novamente.",
       });
     }
   }
@@ -141,40 +121,36 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
     return (
       <Card className="border-border bg-card shadow-(--shadow-card)">
         <CardHeader>
-          <span className="icon-bubble mb-3 h-12 w-12 bg-pastel-yellow">
-            <CircleAlert className="h-6 w-6 text-foreground" />
+          <span className="icon-bubble bg-pastel-yellow mb-3 h-12 w-12">
+            <CircleAlert className="text-foreground h-6 w-6" />
           </span>
           <CardTitle className="font-display text-2xl">
             {isDocument ? "CPF já cadastrado" : "E-mail já cadastrado"}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <p className="leading-relaxed text-muted-foreground">
+          <p className="text-muted-foreground leading-relaxed">
             {isDocument
               ? "Encontramos uma conta do Projeto 1000 associada a este CPF."
               : "Encontramos uma conta do Projeto 1000 associada a este e-mail."}{" "}
-            Se você já possui conta, entre normalmente. Se não reconhece o
-            cadastro ou não lembra qual e-mail utilizou, fale com nosso suporte.
+            Se você já possui conta, entre normalmente. Se não reconhece o cadastro ou não lembra
+            qual e-mail utilizou, fale com nosso suporte.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <a
               href={loginUrl}
-              className="press-fx inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground"
+              className="press-fx bg-primary text-primary-foreground inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold"
             >
               <LogIn className="h-4 w-4" /> Entrar na minha conta
             </a>
             <a
               href={SUPPORT_URL}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-3.5 text-sm font-semibold text-foreground hover:border-primary/50"
+              className="border-border text-foreground hover:border-primary/50 inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3.5 text-sm font-semibold"
             >
               <MessageCircle className="h-4 w-4" /> Falar com o suporte
             </a>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setDuplicateCode(null)}
-          >
+          <Button type="button" variant="ghost" onClick={() => setDuplicateCode(null)}>
             Corrigir meus dados
           </Button>
         </CardContent>
@@ -185,27 +161,22 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
   return (
     <Card className="card-soft gap-0 p-6 sm:p-8">
       <CardHeader className="gap-0 p-0">
-        <CardTitle className="font-display text-2xl font-extrabold leading-normal">
+        <CardTitle className="font-display text-2xl leading-normal font-extrabold">
           Criar minha conta grátis
         </CardTitle>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-2 text-sm">
           1 crédito de correção humana. Sem cartão de crédito.
         </p>
       </CardHeader>
       <CardContent className="mt-6 p-0">
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="grid gap-4"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem className="gap-1.5">
-                  <FormLabel className={fieldLabelClassName}>
-                    NOME COMPLETO
-                  </FormLabel>
+                  <FormLabel className={fieldLabelClassName}>NOME COMPLETO</FormLabel>
                   <FormControl>
                     <Input
                       autoComplete="name"
@@ -243,9 +214,7 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
               name="phoneCountryCode"
               render={({ field: countryCodeField }) => (
                 <FormItem className="gap-1.5">
-                  <FormLabel className={fieldLabelClassName}>
-                    WHATSAPP
-                  </FormLabel>
+                  <FormLabel className={fieldLabelClassName}>WHATSAPP</FormLabel>
                   <div className="grid grid-cols-[108px_minmax(0,1fr)] items-start gap-3">
                     <Select
                       value={countryCodeField.value}
@@ -265,8 +234,7 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
                           <SelectValue placeholder="+55">
                             {
                               countryCodeOptions.find(
-                                (option) =>
-                                  option.value === countryCodeField.value,
+                                (option) => option.value === countryCodeField.value
                               )?.display
                             }
                           </SelectValue>
@@ -276,13 +244,13 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
                         position="popper"
                         align="start"
                         sideOffset={6}
-                        className="max-h-[300px]! w-[min(20rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] overflow-y-auto border-primary/20"
+                        className="border-primary/20 max-h-[300px]! w-[min(20rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] overflow-y-auto"
                       >
                         {countryCodeOptions.map((option) => (
                           <SelectItem
                             key={option.value}
                             value={option.value}
-                            className="min-h-10 px-3 py-2.5 pr-9 focus:bg-primary/10 focus:text-primary data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold data-[state=checked]:text-primary [&>span:last-child]:min-w-0 [&>span:last-child]:flex-1 [&>span:last-child]:overflow-hidden"
+                            className="focus:bg-primary/10 focus:text-primary data-[state=checked]:bg-primary/10 data-[state=checked]:text-primary min-h-10 px-3 py-2.5 pr-9 data-[state=checked]:font-semibold [&>span:last-child]:min-w-0 [&>span:last-child]:flex-1 [&>span:last-child]:overflow-hidden"
                           >
                             <span
                               className="block truncate"
@@ -304,21 +272,14 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
                               aria-label="WhatsApp"
                               inputMode="numeric"
                               maxLength={isBrazil ? 15 : 20}
-                              placeholder={
-                                isBrazil
-                                  ? "(11) 91234-5678"
-                                  : "Digite somente números"
-                              }
+                              placeholder={isBrazil ? "(11) 91234-5678" : "Digite somente números"}
                               className={fieldControlClassName}
                               {...field}
                               onChange={(event) =>
                                 field.onChange(
                                   isBrazil
                                     ? formatPhone(event.target.value)
-                                    : onlyDigits(event.target.value).slice(
-                                      0,
-                                      20,
-                                    ),
+                                    : onlyDigits(event.target.value).slice(0, 20)
                                 )
                               }
                             />
@@ -345,9 +306,7 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
                       placeholder="000.000.000-00"
                       className={fieldControlClassName}
                       {...field}
-                      onChange={(event) =>
-                        field.onChange(formatCPF(event.target.value))
-                      }
+                      onChange={(event) => field.onChange(formatCPF(event.target.value))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -364,18 +323,15 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
                       <Checkbox
                         className="mt-0.5"
                         checked={field.value}
-                        onCheckedChange={(checked) =>
-                          field.onChange(checked === true)
-                        }
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="min-w-0">
-                      <FormLabel className="block text-xs font-normal leading-relaxed text-muted-foreground">
-                        Autorizo o contato do Projeto 1000 por WhatsApp e e-mail
-                        e aceito a{" "}
+                      <FormLabel className="text-muted-foreground block text-xs leading-relaxed font-normal">
+                        Autorizo o contato do Projeto 1000 por WhatsApp e e-mail e aceito a{" "}
                         <Link
                           href="/privacidade"
-                          className="font-semibold text-primary hover:underline"
+                          className="text-primary font-semibold hover:underline"
                         >
                           Política de Privacidade
                         </Link>
@@ -390,9 +346,7 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
             {form.formState.errors.root?.message && (
               <Alert variant="destructive">
                 <AlertTitle>Não foi possível continuar</AlertTitle>
-                <AlertDescription>
-                  {form.formState.errors.root.message}
-                </AlertDescription>
+                <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
               </Alert>
             )}
             <Button
@@ -405,25 +359,22 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
               Criar minha conta gratuita <ArrowRight className="h-4 w-4" />
             </Button>
 
-            <ul className="mt-1 grid gap-2 text-xs text-muted-foreground">
+            <ul className="text-muted-foreground mt-1 grid gap-2 text-xs">
               {[
                 "Correção individual feita por professor",
                 "Nota nas cinco competências do Enem",
                 "Próximos passos e tarefa de reescrita",
               ].map((benefit) => (
                 <li key={benefit} className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
+                  <Check className="text-primary h-3.5 w-3.5 shrink-0" />
                   {benefit}
                 </li>
               ))}
             </ul>
 
-            <p className="mt-1 text-center text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-center text-xs">
               Já tem uma conta?{" "}
-              <a
-                href={loginUrl}
-                className="font-semibold text-primary hover:underline"
-              >
+              <a href={loginUrl} className="text-primary font-semibold hover:underline">
                 Entrar na plataforma
               </a>
             </p>

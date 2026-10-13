@@ -7,10 +7,13 @@ export const createPlanSchema = z.object({
     .min(3, "O nome deve ter no mínimo 3 caracteres.")
     .max(64, "O nome deve ter no máximo 64 caracteres."),
   interval: z.enum(["day", "week", "month", "year", "lifetime"], {
-    error: (issue) => issue.input === undefined ? "Selecione o intervalo de cobrança." : undefined,
+    error: (issue) =>
+      issue.input === undefined ? "Selecione o intervalo de cobrança." : undefined,
   }),
   interval_count: z.coerce
-    .number<number | string>({ error: (issue) => issue.input === undefined ? "Selecione a recorrência." : undefined })
+    .number<number | string>({
+      error: (issue) => (issue.input === undefined ? "Selecione a recorrência." : undefined),
+    })
     .min(1),
   price: z.coerce.number<number | string>().min(0, "O valor não pode ser negativo."),
   credits_included: z.coerce
@@ -29,11 +32,7 @@ export const createPlanSchema = z.object({
     .max(100, "O desconto não pode ser maior que 100%.")
     .nullable()
     .default(null),
-  subtitle: z
-    .string()
-    .trim()
-    .max(160, "O subtítulo deve ter no máximo 160 caracteres.")
-    .optional(),
+  subtitle: z.string().trim().max(160, "O subtítulo deve ter no máximo 160 caracteres.").optional(),
   description: z
     .string()
     .trim()

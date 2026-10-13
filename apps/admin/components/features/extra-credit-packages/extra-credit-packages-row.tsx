@@ -30,19 +30,14 @@ interface ExtraCreditPackagesRowProps {
   packageItem: ExtraCreditPackage;
 }
 
-export default function ExtraCreditPackagesRow({
-  packageItem,
-}: ExtraCreditPackagesRowProps) {
+export default function ExtraCreditPackagesRow({ packageItem }: ExtraCreditPackagesRowProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleUpdateStatus = () => {
     startTransition(async () => {
       const nextStatus = !packageItem.is_active;
 
-      const result = await setExtraCreditPackageStatus(
-        packageItem.id,
-        nextStatus
-      );
+      const result = await setExtraCreditPackageStatus(packageItem.id, nextStatus);
 
       if (!result.success) {
         toast.error("Não foi possível alterar o status", {
@@ -51,30 +46,21 @@ export default function ExtraCreditPackagesRow({
         return;
       }
 
-      toast.success(
-        nextStatus ? "Pacote reativado" : "Pacote desativado"
-      );
+      toast.success(nextStatus ? "Pacote reativado" : "Pacote desativado");
     });
   };
 
   return (
     <div className="group grid grid-cols-1 items-center gap-2 px-4 py-5 transition-colors hover:bg-slate-50 sm:gap-3 sm:px-8 lg:grid-cols-12 lg:gap-4">
       <div className="flex flex-col lg:col-span-4">
-        <span className="text-sm font-bold text-slate-700">
-          {packageItem.name}
-        </span>
+        <span className="text-sm font-bold text-slate-700">{packageItem.name}</span>
 
         {packageItem.description ? (
-          <span
-            className="line-clamp-2 text-sm text-slate-500"
-            title={packageItem.description}
-          >
+          <span className="line-clamp-2 text-sm text-slate-500" title={packageItem.description}>
             {packageItem.description}
           </span>
         ) : (
-          <span className="text-sm text-slate-400">
-            Sem descrição
-          </span>
+          <span className="text-sm text-slate-400">Sem descrição</span>
         )}
       </div>
 
@@ -95,10 +81,9 @@ export default function ExtraCreditPackagesRow({
         </span>
 
         <span
-          className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-black tracking-wider uppercase ${packageItem.is_active
-            ? "bg-emerald-50 text-emerald-600"
-            : "bg-slate-100 text-slate-500"
-            }`}
+          className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-black tracking-wider uppercase ${
+            packageItem.is_active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
+          }`}
         >
           {packageItem.is_active ? "Ativo" : "Inativo"}
         </span>
@@ -109,9 +94,7 @@ export default function ExtraCreditPackagesRow({
           Valor:
         </span>
 
-        <span className="text-sm font-bold">
-          {formatCurrency(packageItem.price_cents)}
-        </span>
+        <span className="text-sm font-bold">{formatCurrency(packageItem.price_cents)}</span>
       </div>
 
       <div className="col-span-2 flex justify-end gap-2">
@@ -126,16 +109,13 @@ export default function ExtraCreditPackagesRow({
                     variant="ghost"
                     size="icon"
                     disabled={isPending}
-                    className={`size-8 rounded-lg ${packageItem.is_active
-                      ? "text-red-400 hover:bg-red-50 hover:text-red-600"
-                      : "text-emerald-500 hover:bg-emerald-50 hover:text-emerald-700"
-                      }`}
-                    isLoading={isPending}
-                    loadingText={
+                    className={`size-8 rounded-lg ${
                       packageItem.is_active
-                        ? "Desativando..."
-                        : "Reativando..."
-                    }
+                        ? "text-red-400 hover:bg-red-50 hover:text-red-600"
+                        : "text-emerald-500 hover:bg-emerald-50 hover:text-emerald-700"
+                    }`}
+                    isLoading={isPending}
+                    loadingText={packageItem.is_active ? "Desativando..." : "Reativando..."}
                   >
                     {packageItem.is_active ? (
                       <PowerOff className="size-4" />
@@ -147,11 +127,7 @@ export default function ExtraCreditPackagesRow({
               </TooltipTrigger>
 
               <TooltipContent className="rounded-lg border-none bg-slate-800 text-xs font-semibold text-white">
-                <p>
-                  {packageItem.is_active
-                    ? "Desativar pacote"
-                    : "Reativar pacote"}
-                </p>
+                <p>{packageItem.is_active ? "Desativar pacote" : "Reativar pacote"}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -159,9 +135,7 @@ export default function ExtraCreditPackagesRow({
           <AlertDialogContent className="rounded-3xl border-none">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-xl font-black">
-                {packageItem.is_active
-                  ? "Desativar pacote?"
-                  : "Reativar pacote?"}
+                {packageItem.is_active ? "Desativar pacote?" : "Reativar pacote?"}
               </AlertDialogTitle>
 
               <AlertDialogDescription className="font-medium text-slate-500">
@@ -178,10 +152,11 @@ export default function ExtraCreditPackagesRow({
 
               <AlertDialogAction
                 onClick={handleUpdateStatus}
-                className={`rounded-xl font-bold text-white ${packageItem.is_active
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-emerald-600 hover:bg-emerald-700"
-                  }`}
+                className={`rounded-xl font-bold text-white ${
+                  packageItem.is_active
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-emerald-600 hover:bg-emerald-700"
+                }`}
               >
                 {packageItem.is_active ? "Desativar" : "Reativar"}
               </AlertDialogAction>

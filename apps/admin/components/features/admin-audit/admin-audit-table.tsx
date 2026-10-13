@@ -3,12 +3,7 @@
 import type { AdminAuditEventItem } from "@/app/actions/admin-audit";
 import { TablePagination } from "@/components/table-pagination";
 import { Badge } from "@repo/ui/components/badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetTitle,
-} from "@repo/ui/components/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@repo/ui/components/sheet";
 import {
   Activity,
   Banknote,
@@ -451,7 +446,7 @@ export function AdminAuditTable({
       </div>
 
       <Sheet open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <SheetContent className="gap-0 overflow-hidden p-0 xl:hidden sm:max-w-xl">
+        <SheetContent className="gap-0 overflow-hidden p-0 sm:max-w-xl xl:hidden">
           <SheetTitle className="sr-only">Detalhes da atividade</SheetTitle>
           <SheetDescription className="sr-only">
             Informações completas da atividade administrativa selecionada.
@@ -467,7 +462,13 @@ export function AdminAuditTable({
   );
 }
 
-function AuditDetailsContent({ event, sheet = false }: { event: AdminAuditEventItem; sheet?: boolean }) {
+function AuditDetailsContent({
+  event,
+  sheet = false,
+}: {
+  event: AdminAuditEventItem;
+  sheet?: boolean;
+}) {
   const status = STATUS_LABELS[event.status];
   const actionLabel = ACTION_LABELS[event.action] ?? event.summary;
   const isCorrectionReview = event.resource_type === "correction_review";
@@ -525,7 +526,9 @@ function AuditDetailsContent({ event, sheet = false }: { event: AdminAuditEventI
             label="Tipo"
             value={RESOURCE_LABELS[event.resource_type] ?? event.resource_type}
           />
-          {event.resource_id && <DetailRow label="Referência" value={event.resource_id} breakValue />}
+          {event.resource_id && (
+            <DetailRow label="Referência" value={event.resource_id} breakValue />
+          )}
         </dl>
 
         {changes.length > 0 && (
@@ -545,14 +548,14 @@ function AuditDetailsContent({ event, sheet = false }: { event: AdminAuditEventI
                   <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_20px_minmax(0,1fr)] sm:items-start">
                     <div className="min-w-0 rounded-xl bg-slate-50 p-3">
                       <p className="text-[9px] font-black text-slate-400 uppercase">Antes</p>
-                      <p className="mt-1 whitespace-pre-wrap break-words text-xs font-medium text-slate-600">
+                      <p className="mt-1 text-xs font-medium break-words whitespace-pre-wrap text-slate-600">
                         {detail.before}
                       </p>
                     </div>
                     <ChevronRight className="mx-auto size-4 rotate-90 text-slate-300 sm:mt-5 sm:rotate-0" />
                     <div className="min-w-0 rounded-xl bg-blue-50 p-3">
                       <p className="text-[9px] font-black text-blue-500 uppercase">Depois</p>
-                      <p className="mt-1 whitespace-pre-wrap break-words text-xs font-bold text-slate-800">
+                      <p className="mt-1 text-xs font-bold break-words whitespace-pre-wrap text-slate-800">
                         {detail.after}
                       </p>
                     </div>
@@ -608,10 +611,12 @@ function DetailRow({
   return (
     <div className="grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-4">
       <dt className="text-xs font-bold text-slate-400">{label}</dt>
-      <dd className={`text-sm font-bold text-slate-800 ${breakValue ? "break-all" : "break-words"}`}>
+      <dd
+        className={`text-sm font-bold text-slate-800 ${breakValue ? "break-all" : "break-words"}`}
+      >
         {value}
         {supportingValue && (
-          <span className="mt-0.5 block break-all text-xs font-medium text-slate-500">
+          <span className="mt-0.5 block text-xs font-medium break-all text-slate-500">
             {supportingValue}
           </span>
         )}

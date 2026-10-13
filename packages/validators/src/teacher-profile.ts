@@ -26,21 +26,14 @@ const teacherProfileFieldsSchema = z.object({
   correction_review_required: z.boolean(),
 });
 
-export function createUpdateTeacherProfileSchema(
-  currentDocument?: string | null
-) {
+export function createUpdateTeacherProfileSchema(currentDocument?: string | null) {
   const currentDocumentDigits = onlyDigits(currentDocument ?? "");
 
   return teacherProfileFieldsSchema.superRefine((values, context) => {
     const documentDigits = onlyDigits(values.document);
-    const documentWasPreserved =
-      documentDigits !== "" && documentDigits === currentDocumentDigits;
+    const documentWasPreserved = documentDigits !== "" && documentDigits === currentDocumentDigits;
 
-    if (
-      documentDigits !== "" &&
-      !documentWasPreserved &&
-      !isValidCPF(documentDigits)
-    ) {
+    if (documentDigits !== "" && !documentWasPreserved && !isValidCPF(documentDigits)) {
       context.addIssue({
         code: "custom",
         path: ["document"],
@@ -50,9 +43,6 @@ export function createUpdateTeacherProfileSchema(
   });
 }
 
-export const updateTeacherProfileSchema =
-  createUpdateTeacherProfileSchema();
+export const updateTeacherProfileSchema = createUpdateTeacherProfileSchema();
 
-export type UpdateTeacherProfileInput = z.infer<
-  typeof updateTeacherProfileSchema
->;
+export type UpdateTeacherProfileInput = z.infer<typeof updateTeacherProfileSchema>;

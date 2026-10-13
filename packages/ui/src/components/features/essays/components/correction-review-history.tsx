@@ -7,14 +7,7 @@ import type {
   CorrectionReviewHistoryRound,
 } from "@repo/types";
 import { useMemo, useState } from "react";
-import {
-  CheckCircle2,
-  Clock3,
-  History,
-  MessageSquareText,
-  RotateCcw,
-  Send,
-} from "lucide-react";
+import { CheckCircle2, Clock3, History, MessageSquareText, RotateCcw, Send } from "lucide-react";
 import EssayContent from "./essay-content";
 import EssayImprovementPlan from "./essay-improvement-plan";
 import { EssayHighlightNavigationProvider } from "./essay-highlight-navigation";
@@ -46,10 +39,7 @@ function formatReviewDate(value: string) {
 }
 
 function getTotalScore(payload: CorrectionPayload) {
-  return Object.values(payload.scores).reduce(
-    (total, score) => total + score,
-    0,
-  );
+  return Object.values(payload.scores).reduce((total, score) => total + score, 0);
 }
 
 function getBestScores(payload: CorrectionPayload) {
@@ -104,19 +94,13 @@ interface HighlightChange {
 
 interface ReviewTimelineEvent {
   id: string;
-  type:
-  | "submitted"
-  | "returned_to_teacher"
-  | "approved"
-  | "approved_with_changes";
+  type: "submitted" | "returned_to_teacher" | "approved" | "approved_with_changes";
   createdAt: string;
   feedback: string | null;
   adminName: string | null;
 }
 
-function getReviewTimeline(
-  rounds: CorrectionReviewHistoryRound[],
-): ReviewTimelineEvent[] {
+function getReviewTimeline(rounds: CorrectionReviewHistoryRound[]): ReviewTimelineEvent[] {
   return rounds
     .flatMap((round, index) => {
       const submissionEvent: ReviewTimelineEvent = {
@@ -142,21 +126,16 @@ function getReviewTimeline(
     })
     .sort(
       (firstEvent, secondEvent) =>
-        new Date(firstEvent.createdAt).getTime() -
-        new Date(secondEvent.createdAt).getTime(),
+        new Date(firstEvent.createdAt).getTime() - new Date(secondEvent.createdAt).getTime()
     );
 }
 
 function getHighlightChanges(
   originalHighlights: CorrectionHighlight[],
-  publishedHighlights: CorrectionHighlight[],
+  publishedHighlights: CorrectionHighlight[]
 ): HighlightChange[] {
-  const originalById = new Map(
-    originalHighlights.map((highlight) => [highlight.id, highlight]),
-  );
-  const publishedById = new Map(
-    publishedHighlights.map((highlight) => [highlight.id, highlight]),
-  );
+  const originalById = new Map(originalHighlights.map((highlight) => [highlight.id, highlight]));
+  const publishedById = new Map(publishedHighlights.map((highlight) => [highlight.id, highlight]));
   const changes: HighlightChange[] = [];
 
   originalHighlights.forEach((before) => {
@@ -187,21 +166,11 @@ function getHighlightChanges(
   return changes;
 }
 
-function VersionValue({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function VersionValue({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="min-w-0 p-4 first:border-b first:border-slate-100 md:first:border-r md:first:border-b-0">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-        {label}
-      </p>
-      <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-        {children}
-      </div>
+      <p className="mb-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">{label}</p>
+      <div className="text-sm leading-relaxed whitespace-pre-wrap text-slate-700">{children}</div>
     </div>
   );
 }
@@ -210,10 +179,7 @@ function VersionList({ items }: { items: string[] }) {
   return (
     <ul className="space-y-2">
       {items.map((item, index) => (
-        <li
-          key={`${item}-${index}`}
-          className="flex min-w-0 items-start gap-3"
-        >
+        <li key={`${item}-${index}`} className="flex min-w-0 items-start gap-3">
           <span className="mt-2 size-1.5 shrink-0 rounded-full bg-indigo-600" />
           <span className="min-w-0 break-words">{item}</span>
         </li>
@@ -237,7 +203,7 @@ function ChangeCard({
     <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
         <h4 className="font-bold text-slate-800">{title}</h4>
-        <span className="rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+        <span className="rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-bold tracking-wider text-indigo-700 uppercase">
           {badge}
         </span>
       </div>
@@ -255,11 +221,7 @@ function HighlightChangeCard({ change }: { change: HighlightChange }) {
   if (!highlight) return null;
 
   const badge =
-    change.kind === "added"
-      ? "Adicionado"
-      : change.kind === "removed"
-        ? "Removido"
-        : "Alterado";
+    change.kind === "added" ? "Adicionado" : change.kind === "removed" ? "Removido" : "Alterado";
 
   const emptyLabel =
     change.kind === "added"
@@ -273,7 +235,7 @@ function HighlightChangeCard({ change }: { change: HighlightChange }) {
           “{value.text}”
         </blockquote>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500">
+          <p className="text-[10px] font-bold tracking-wider text-indigo-500 uppercase">
             {COMPETENCY_LABELS[value.compId]}
           </p>
           <p className="mt-1">{value.comment}</p>
@@ -304,21 +266,14 @@ function CorrectionChanges({
   published: CorrectionPayload;
   rounds: CorrectionReviewHistoryRound[];
 }) {
-  const competencyIds = Object.keys(
-    original.scores,
-  ) as CorrectionCompetencyId[];
+  const competencyIds = Object.keys(original.scores) as CorrectionCompetencyId[];
   const scoreChanges = competencyIds.filter(
-    (competency) =>
-      original.scores[competency] !== published.scores[competency],
+    (competency) => original.scores[competency] !== published.scores[competency]
   );
   const commentChanges = competencyIds.filter(
-    (competency) =>
-      original.comments[competency] !== published.comments[competency],
+    (competency) => original.comments[competency] !== published.comments[competency]
   );
-  const highlightChanges = getHighlightChanges(
-    original.highlights,
-    published.highlights,
-  );
+  const highlightChanges = getHighlightChanges(original.highlights, published.highlights);
   const timeline = getReviewTimeline(rounds);
 
   const hasChanges =
@@ -327,18 +282,15 @@ function CorrectionChanges({
     original.general_comment !== published.general_comment ||
     original.main_bottleneck !== published.main_bottleneck ||
     JSON.stringify(original.next_essay_priorities) !==
-    JSON.stringify(published.next_essay_priorities) ||
-    JSON.stringify(original.rewrite_tasks) !==
-    JSON.stringify(published.rewrite_tasks) ||
+      JSON.stringify(published.next_essay_priorities) ||
+    JSON.stringify(original.rewrite_tasks) !== JSON.stringify(published.rewrite_tasks) ||
     highlightChanges.length > 0;
 
   return (
     <div className="grid items-start gap-8 lg:grid-cols-5">
       <section className="space-y-4 lg:col-span-3">
         <div>
-          <h3 className="text-xl font-black">
-            Ajustes realizados na revisão
-          </h3>
+          <h3 className="text-xl font-black">Ajustes realizados na revisão</h3>
           <p className="mt-1 text-sm text-slate-500">
             {audience === "teacher"
               ? "Compare sua correção com a versão final disponibilizada ao aluno."
@@ -349,9 +301,7 @@ function CorrectionChanges({
         {!hasChanges && (
           <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
             <p className="font-bold">Aprovada sem alterações</p>
-            <p className="mt-1 text-sm">
-              A correção do professor foi publicada como enviada.
-            </p>
+            <p className="mt-1 text-sm">A correção do professor foi publicada como enviada.</p>
           </div>
         )}
 
@@ -391,21 +341,20 @@ function CorrectionChanges({
 
         {JSON.stringify(original.next_essay_priorities) !==
           JSON.stringify(published.next_essay_priorities) && (
-            <ChangeCard
-              title="Prioridades para a próxima redação"
-              before={<VersionList items={original.next_essay_priorities} />}
-              after={<VersionList items={published.next_essay_priorities} />}
-            />
-          )}
+          <ChangeCard
+            title="Prioridades para a próxima redação"
+            before={<VersionList items={original.next_essay_priorities} />}
+            after={<VersionList items={published.next_essay_priorities} />}
+          />
+        )}
 
-        {JSON.stringify(original.rewrite_tasks) !==
-          JSON.stringify(published.rewrite_tasks) && (
-            <ChangeCard
-              title="Tarefas de reescrita"
-              before={<VersionList items={original.rewrite_tasks} />}
-              after={<VersionList items={published.rewrite_tasks} />}
-            />
-          )}
+        {JSON.stringify(original.rewrite_tasks) !== JSON.stringify(published.rewrite_tasks) && (
+          <ChangeCard
+            title="Tarefas de reescrita"
+            before={<VersionList items={original.rewrite_tasks} />}
+            after={<VersionList items={published.rewrite_tasks} />}
+          />
+        )}
 
         {highlightChanges.map((change, index) => (
           <HighlightChangeCard
@@ -427,8 +376,7 @@ function CorrectionChanges({
               const isReturned = event.type === "returned_to_teacher";
               const isSubmission = event.type === "submitted";
               const previousEvent = timeline[index - 1];
-              const isResubmission =
-                isSubmission && previousEvent?.type === "returned_to_teacher";
+              const isResubmission = isSubmission && previousEvent?.type === "returned_to_teacher";
 
               const title = isSubmission
                 ? isResubmission
@@ -441,19 +389,17 @@ function CorrectionChanges({
                     : "Correção aprovada";
 
               return (
-                <div
-                  key={event.id}
-                  className="relative flex gap-3 pb-6 last:pb-0"
-                >
+                <div key={event.id} className="relative flex gap-3 pb-6 last:pb-0">
                   {!isLastEvent && (
-                    <span className="absolute bottom-0 left-4 top-8 w-px bg-slate-200" />
+                    <span className="absolute top-8 bottom-0 left-4 w-px bg-slate-200" />
                   )}
 
                   <span
-                    className={`relative z-10 mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border ${isReturned
-                      ? "border-slate-200 bg-slate-100 text-slate-500"
-                      : "border-indigo-100 bg-indigo-50 text-indigo-600"
-                      }`}
+                    className={`relative z-10 mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border ${
+                      isReturned
+                        ? "border-slate-200 bg-slate-100 text-slate-500"
+                        : "border-indigo-100 bg-indigo-50 text-indigo-600"
+                    }`}
                   >
                     {isSubmission ? (
                       <Send className="size-3.5" />
@@ -472,29 +418,26 @@ function CorrectionChanges({
                     </p>
 
                     {audience === "admin" && event.adminName && (
-                      <p className="mt-1 text-xs text-slate-500">
-                        Por {event.adminName}
-                      </p>
+                      <p className="mt-1 text-xs text-slate-500">Por {event.adminName}</p>
                     )}
 
                     {isReturned && event.feedback && (
                       <div className="mt-3 rounded-r-xl border-l-2 border-indigo-300 bg-slate-50 px-3 py-3">
-                        <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        <p className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
                           <MessageSquareText className="size-3.5 text-indigo-500" />
                           Detalhes da devolução
                         </p>
-                        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                        <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-slate-700">
                           {event.feedback}
                         </p>
                       </div>
                     )}
 
-                    {(event.type === "approved" ||
-                      event.type === "approved_with_changes") && (
-                        <p className="mt-1.5 text-xs text-slate-500">
-                          Versão final publicada para o aluno.
-                        </p>
-                      )}
+                    {(event.type === "approved" || event.type === "approved_with_changes") && (
+                      <p className="mt-1.5 text-xs text-slate-500">
+                        Versão final publicada para o aluno.
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -516,23 +459,16 @@ export function CorrectionReviewHistory({
     () =>
       [...rounds]
         .reverse()
-        .find(
-          (round) =>
-            round.status === "approved" ||
-            round.status === "approved_with_changes",
-        ),
-    [rounds],
+        .find((round) => round.status === "approved" || round.status === "approved_with_changes"),
+    [rounds]
   );
   const [view, setView] = useState<ReviewHistoryView>("published");
 
   if (!approvedRound) {
-    return (
-      <CorrectionPayloadView essayText={essayText} payload={publishedPayload} />
-    );
+    return <CorrectionPayloadView essayText={essayText} payload={publishedPayload} />;
   }
 
-  const originalLabel =
-    audience === "teacher" ? "Minha correção" : "Versão do professor";
+  const originalLabel = audience === "teacher" ? "Minha correção" : "Versão do professor";
 
   return (
     <div className="space-y-8">
@@ -551,30 +487,27 @@ export function CorrectionReviewHistory({
           <button
             type="button"
             onClick={() => setView("original")}
-            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${view === "original"
-              ? "bg-white shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
-              }`}
+            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
+              view === "original" ? "bg-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+            }`}
           >
             {originalLabel}
           </button>
           <button
             type="button"
             onClick={() => setView("published")}
-            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${view === "published"
-              ? "bg-white shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
-              }`}
+            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
+              view === "published" ? "bg-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+            }`}
           >
             Versão revisada
           </button>
           <button
             type="button"
             onClick={() => setView("changes")}
-            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${view === "changes"
-              ? "bg-white shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
-              }`}
+            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
+              view === "changes" ? "bg-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+            }`}
           >
             Alterações
           </button>
@@ -582,16 +515,10 @@ export function CorrectionReviewHistory({
       </div>
 
       {view === "original" && (
-        <CorrectionPayloadView
-          essayText={essayText}
-          payload={approvedRound.payload}
-        />
+        <CorrectionPayloadView essayText={essayText} payload={approvedRound.payload} />
       )}
       {view === "published" && (
-        <CorrectionPayloadView
-          essayText={essayText}
-          payload={publishedPayload}
-        />
+        <CorrectionPayloadView essayText={essayText} payload={publishedPayload} />
       )}
       {view === "changes" && (
         <CorrectionChanges

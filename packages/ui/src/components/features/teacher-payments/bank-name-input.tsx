@@ -4,11 +4,7 @@ import { useEffect, useId, useState } from "react";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@repo/ui/components/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
 
 let cachedBanks: string[] | null = null;
 let banksRequest: Promise<string[]> | null = null;
@@ -19,28 +15,22 @@ function loadBanks() {
   if (!banksRequest) {
     banksRequest = fetch("https://brasilapi.com.br/api/banks/v1")
       .then((response) => {
-        if (!response.ok)
-          throw new Error("Não foi possível carregar os bancos.");
+        if (!response.ok) throw new Error("Não foi possível carregar os bancos.");
         return response.json() as Promise<unknown>;
       })
       .then((response) => {
-        if (!Array.isArray(response))
-          throw new Error("Lista de bancos inválida.");
+        if (!Array.isArray(response)) throw new Error("Lista de bancos inválida.");
 
         cachedBanks = [
           ...new Set(
             response
               .map((bank) =>
-                bank && typeof bank === "object" && "name" in bank
-                  ? bank.name
-                  : null,
+                bank && typeof bank === "object" && "name" in bank ? bank.name : null
               )
               .filter(
                 (name): name is string =>
-                  typeof name === "string" &&
-                  name.length > 1 &&
-                  name.length <= 120,
-              ),
+                  typeof name === "string" && name.length > 1 && name.length <= 120
+              )
           ),
         ].sort((a, b) => a.localeCompare(b, "pt-BR"));
 
@@ -84,8 +74,7 @@ export function BankNameInput({ value, onChange }: BankNameInputProps) {
     .slice(0, 50);
   const customName = search.trim().slice(0, 120);
   const hasExactMatch = banks.some(
-    (bank) =>
-      bank.toLocaleLowerCase("pt-BR") === customName.toLocaleLowerCase("pt-BR"),
+    (bank) => bank.toLocaleLowerCase("pt-BR") === customName.toLocaleLowerCase("pt-BR")
   );
 
   const selectBank = (name: string) => {
@@ -111,9 +100,7 @@ export function BankNameInput({ value, onChange }: BankNameInputProps) {
           aria-controls={listId}
           className="h-12 w-full justify-between gap-2 overflow-hidden rounded-xl px-3 font-normal"
         >
-          <span
-            className={`truncate text-left ${value ? "" : "text-slate-400"}`}
-          >
+          <span className={`truncate text-left ${value ? "" : "text-slate-400"}`}>
             {value || "Selecione ou busque o banco"}
           </span>
           <ChevronsUpDown className="size-4 shrink-0 text-slate-500" />
@@ -135,9 +122,8 @@ export function BankNameInput({ value, onChange }: BankNameInputProps) {
                 selectBank(
                   banks.find(
                     (bank) =>
-                      bank.toLocaleLowerCase("pt-BR") ===
-                      customName.toLocaleLowerCase("pt-BR"),
-                  ) ?? customName,
+                      bank.toLocaleLowerCase("pt-BR") === customName.toLocaleLowerCase("pt-BR")
+                  ) ?? customName
                 );
               }
             }}
@@ -163,15 +149,11 @@ export function BankNameInput({ value, onChange }: BankNameInputProps) {
               className="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 focus-visible:bg-blue-50 focus-visible:outline-none"
             >
               <span className="truncate">{bank}</span>
-              {value === bank && (
-                <Check className="size-4 shrink-0 text-blue-600" />
-              )}
+              {value === bank && <Check className="size-4 shrink-0 text-blue-600" />}
             </button>
           ))}
           {matchingBanks.length === 0 && (
-            <p className="px-3 py-3 text-sm text-slate-500">
-              Nenhum banco encontrado.
-            </p>
+            <p className="px-3 py-3 text-sm text-slate-500">Nenhum banco encontrado.</p>
           )}
         </div>
         {customName && !hasExactMatch && (

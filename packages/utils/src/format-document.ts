@@ -1,10 +1,10 @@
 export const formatCPF = (value: string) => {
   return value
-    .replace(/\D/g, "") 
-    .replace(/(\d{3})(\d)/, "$1.$2") 
-    .replace(/(\d{3})(\d)/, "$1.$2") 
-    .replace(/(\d{3})(\d{1,2})/, "$1-$2") 
-    .slice(0, 14); 
+    .replace(/\D/g, "")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+    .slice(0, 14);
 };
 
 export const normalizeCNPJ = (value: string) => {
@@ -17,7 +17,8 @@ export const formatCNPJ = (value: string) => {
   if (cnpj.length <= 2) return cnpj;
   if (cnpj.length <= 5) return `${cnpj.slice(0, 2)}.${cnpj.slice(2)}`;
   if (cnpj.length <= 8) return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5)}`;
-  if (cnpj.length <= 12) return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/${cnpj.slice(8)}`;
+  if (cnpj.length <= 12)
+    return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/${cnpj.slice(8)}`;
 
   return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/${cnpj.slice(8, 12)}-${cnpj.slice(12)}`;
 };
@@ -42,15 +43,24 @@ export const formatDocument = (value: string) => {
 
 export const maskPixKey = (value: string, type: string) => {
   if (type === "cpf") {
-    return value.replace(/\D/g, "").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})/, "$1-$2").slice(0, 14);
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+      .slice(0, 14);
   }
   if (type === "cnpj") {
     return formatCNPJ(value);
   }
   if (type === "phone") {
-    return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d{1,4})/, "$1-$2").slice(0, 15);
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d{1,4})/, "$1-$2")
+      .slice(0, 15);
   }
-  return value.trim(); 
+  return value.trim();
 };
 
 export const onlyDigits = (value: string) => {
@@ -61,8 +71,7 @@ function calculateCPFVerificationDigit(base: string, initialWeight: number) {
   const sum = base
     .split("")
     .reduce(
-      (accumulator, digit, index) =>
-        accumulator + Number(digit) * (initialWeight - index),
+      (accumulator, digit, index) => accumulator + Number(digit) * (initialWeight - index),
       0
     );
 
@@ -103,9 +112,8 @@ export const isValidCNPJ = (value: string) => {
     const sum = base
       .split("")
       .reduce(
-        (total, character, index) =>
-          total + (character.charCodeAt(0) - 48) * weights[index]!,
-        0,
+        (total, character, index) => total + (character.charCodeAt(0) - 48) * weights[index]!,
+        0
       );
     const remainder = sum % 11;
 

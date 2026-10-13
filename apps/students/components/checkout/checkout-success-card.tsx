@@ -6,12 +6,7 @@ import {
 } from "@/utils/checkout-success-labels";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@repo/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/components/card";
 import { formatCurrency } from "@repo/utils";
 import {
   ArrowRight,
@@ -34,11 +29,11 @@ export function CheckoutSuccessCard({ data }: CheckoutSuccessCardProps) {
     <Card className="w-full overflow-hidden rounded-3xl border-slate-100 bg-white p-0 shadow-sm">
       <CardHeader className="bg-slate-950 p-8 text-white md:p-10">
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-          <div className="flex size-16 items-center justify-center rounded-3xl bg-primary/20 text-primary">
+          <div className="bg-primary/20 text-primary flex size-16 items-center justify-center rounded-3xl">
             <CheckCircle2 className="size-8" />
           </div>
 
-          <Badge className="w-fit rounded-full bg-primary px-4 py-1.5 text-sm font-black text-amber-950 hover:bg-primary">
+          <Badge className="bg-primary hover:bg-primary w-fit rounded-full px-4 py-1.5 text-sm font-black text-amber-950">
             {getSubscriptionStatusLabel(subscription.status)}
           </Badge>
         </div>
@@ -48,11 +43,8 @@ export function CheckoutSuccessCard({ data }: CheckoutSuccessCardProps) {
             Assinatura criada com sucesso
           </CardTitle>
 
-          <p className="max-w-2xl text-base font-semibold leading-relaxed text-slate-300">
-            {getCheckoutSuccessDescription(
-              subscription.paymentMethod,
-              subscription.status
-            )}
+          <p className="max-w-2xl text-base leading-relaxed font-semibold text-slate-300">
+            {getCheckoutSuccessDescription(subscription.paymentMethod, subscription.status)}
           </p>
         </div>
       </CardHeader>
@@ -75,9 +67,7 @@ export function CheckoutSuccessCard({ data }: CheckoutSuccessCardProps) {
             label="Pagamento"
             value={getPaymentMethodLabel(subscription.paymentMethod)}
             description={
-              plan
-                ? `${formatCurrency(plan.price)} no total`
-                : "Pagamento vinculado à assinatura"
+              plan ? `${formatCurrency(plan.price)} no total` : "Pagamento vinculado à assinatura"
             }
           />
         </div>
@@ -85,10 +75,9 @@ export function CheckoutSuccessCard({ data }: CheckoutSuccessCardProps) {
         <div className="rounded-3xl border border-slate-100 bg-slate-50 p-5">
           <p className="text-sm font-black text-slate-900">Próximos passos</p>
 
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-500">
-            Você pode voltar para o início e acompanhar seu plano pela área de
-            assinatura. Os créditos devem ser liberados conforme a confirmação
-            do pagamento.
+          <p className="mt-2 text-sm leading-relaxed font-semibold text-slate-500">
+            Você pode voltar para o início e acompanhar seu plano pela área de assinatura. Os
+            créditos devem ser liberados conforme a confirmação do pagamento.
           </p>
         </div>
 
@@ -100,11 +89,7 @@ export function CheckoutSuccessCard({ data }: CheckoutSuccessCardProps) {
             </Link>
           </Button>
 
-          <Button
-            asChild
-            variant="outline"
-            className="h-12 rounded-2xl px-6 font-bold sm:flex-1"
-          >
+          <Button asChild variant="outline" className="h-12 rounded-2xl px-6 font-bold sm:flex-1">
             <Link href="/assinatura">
               Ver assinatura
               <ArrowRight className="ml-2 size-4" />
@@ -132,20 +117,16 @@ function CheckoutSuccessInfoCard({
   return (
     <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
       <div className="flex gap-4">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+        <div className="bg-primary/15 text-primary flex size-11 shrink-0 items-center justify-center rounded-2xl">
           <Icon className="size-5" />
         </div>
 
         <div>
-          <p className="text-xs font-black uppercase tracking-widest text-slate-400">
-            {label}
-          </p>
+          <p className="text-xs font-black tracking-widest text-slate-400 uppercase">{label}</p>
 
           <p className="mt-1 text-base font-black text-slate-900">{value}</p>
 
-          <p className="mt-1 text-sm font-semibold leading-relaxed text-slate-500">
-            {description}
-          </p>
+          <p className="mt-1 text-sm leading-relaxed font-semibold text-slate-500">{description}</p>
         </div>
       </div>
     </div>

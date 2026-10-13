@@ -1,7 +1,4 @@
-import type {
-  HistoryDisplayItem,
-  HistoryValueTone,
-} from "@repo/types";
+import type { HistoryDisplayItem, HistoryValueTone } from "@repo/types";
 import { ChevronDown } from "lucide-react";
 import { formatDate } from "@repo/utils";
 
@@ -22,19 +19,13 @@ export function HistoryRow({ item }: HistoryRowProps) {
   return (
     <div className="flex items-start justify-between gap-6 py-4">
       <div className="min-w-0">
-        <p className="font-bold text-slate-800">
-          {item.title}
-        </p>
+        <p className="font-bold text-slate-800">{item.title}</p>
 
         {item.description && (
-          <p className="mt-1 text-sm font-medium text-slate-500">
-            {item.description}
-          </p>
+          <p className="mt-1 text-sm font-medium text-slate-500">{item.description}</p>
         )}
 
-        <p className="mt-1 text-[13px] font-medium capitalize text-slate-400">
-          {formattedDate}
-        </p>
+        <p className="mt-1 text-[13px] font-medium text-slate-400 capitalize">{formattedDate}</p>
 
         {item.details && (
           <details className="group mt-3 max-w-2xl rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
@@ -48,7 +39,10 @@ export function HistoryRow({ item }: HistoryRowProps) {
               {item.details.summary && (
                 <dl className="space-y-3 text-sm leading-relaxed">
                   {item.details.summary.map(({ label, value }) => (
-                    <div key={label} className="grid gap-1 sm:grid-cols-[145px_minmax(0,1fr)] sm:gap-4">
+                    <div
+                      key={label}
+                      className="grid gap-1 sm:grid-cols-[145px_minmax(0,1fr)] sm:gap-4"
+                    >
                       <dt className="font-semibold text-slate-600">{label}</dt>
                       <dd className="text-slate-700">{value}</dd>
                     </div>
@@ -56,9 +50,7 @@ export function HistoryRow({ item }: HistoryRowProps) {
                 </dl>
               )}
               {item.details.title && (
-                <p className="text-sm font-bold text-slate-800">
-                  {item.details.title}
-                </p>
+                <p className="text-sm font-bold text-slate-800">{item.details.title}</p>
               )}
 
               {item.details.description && (
@@ -68,7 +60,7 @@ export function HistoryRow({ item }: HistoryRowProps) {
               )}
 
               {item.details.startedAt && (
-                <p className="mt-4 text-xs font-medium leading-relaxed text-slate-500">
+                <p className="mt-4 text-xs leading-relaxed font-medium text-slate-500">
                   Solicitado em {formatDate(item.details.startedAt, "numeric")}
                   {item.details.completedAt && (
                     <> · Concluído em {formatDate(item.details.completedAt, "numeric")}</>
@@ -83,11 +75,11 @@ export function HistoryRow({ item }: HistoryRowProps) {
               )}
 
               <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
-                <p className="text-sm font-semibold leading-relaxed text-amber-700">
+                <p className="text-sm leading-relaxed font-semibold text-amber-700">
                   {item.details.reasonLabel}
                 </p>
 
-                <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-slate-700">
                   {item.details.reason}
                 </p>
               </div>
@@ -97,14 +89,10 @@ export function HistoryRow({ item }: HistoryRowProps) {
       </div>
 
       <div className="flex shrink-0 flex-col items-end text-right">
-        <span className={valueToneClassNames[item.valueTone]}>
-          {item.primaryValue}
-        </span>
+        <span className={valueToneClassNames[item.valueTone]}>{item.primaryValue}</span>
 
         {item.secondaryValue && (
-          <span className="mt-1 text-xs font-medium text-slate-600/90">
-            {item.secondaryValue}
-          </span>
+          <span className="mt-1 text-xs font-medium text-slate-600/90">{item.secondaryValue}</span>
         )}
       </div>
     </div>

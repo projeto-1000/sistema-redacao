@@ -2,10 +2,7 @@ export const DATA_CRAZY_FREE_PLAN_EXTERNAL_ID = "internal_free_trial";
 export const DATA_CRAZY_MENTORSHIP_PLAN_EXTERNAL_ID = "internal_mentoria_free";
 
 export type DataCrazyEvent =
-  | "user_signup"
-  | "essay_status_updated"
-  | "subscription_updated"
-  | "payment_status_updated";
+  "user_signup" | "essay_status_updated" | "subscription_updated" | "payment_status_updated";
 
 export type DataCrazyEligibilityReason =
   | "current_plan_is_free"
@@ -52,9 +49,7 @@ export function getDataCrazyEligibility({
 
     return {
       eligible,
-      reason: eligible
-        ? "free_to_paid_transition"
-        : "transition_did_not_start_from_free",
+      reason: eligible ? "free_to_paid_transition" : "transition_did_not_start_from_free",
     };
   }
 
@@ -64,14 +59,12 @@ export function getDataCrazyEligibility({
 
   return {
     eligible,
-    reason: eligible
-      ? "initial_payment_refused_while_free"
-      : "payment_event_not_eligible",
+    reason: eligible ? "initial_payment_refused_while_free" : "payment_event_not_eligible",
   };
 }
 
 export function getDataCrazyPaymentStatus(
-  paymentAttempt: DataCrazySyncContext["paymentAttempt"],
+  paymentAttempt: DataCrazySyncContext["paymentAttempt"]
 ): "Recusado" | null {
   return paymentAttempt === "initial_refused" ? "Recusado" : null;
 }

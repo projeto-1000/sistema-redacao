@@ -1,7 +1,4 @@
-export function getMonthlyEquivalentCents(
-  totalPriceCents: number,
-  months: number,
-) {
+export function getMonthlyEquivalentCents(totalPriceCents: number, months: number) {
   if (!Number.isInteger(totalPriceCents) || totalPriceCents < 0) {
     throw new Error("O preço total deve ser informado em centavos.");
   }

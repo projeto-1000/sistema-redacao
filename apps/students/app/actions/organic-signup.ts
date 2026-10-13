@@ -16,10 +16,7 @@ interface CompleteOrganicSignupInput {
 }
 
 type SignupAttemptErrorCode =
-  | "DOCUMENT_CHECK_FAILED"
-  | "EMAIL_CHECK_FAILED"
-  | "AUTH_SIGNUP_FAILED"
-  | "COMPLETION_FAILED";
+  "DOCUMENT_CHECK_FAILED" | "EMAIL_CHECK_FAILED" | "AUTH_SIGNUP_FAILED" | "COMPLETION_FAILED";
 
 const PROCESSING_LOCK_DURATION_MS = 5 * 60 * 1_000;
 
@@ -60,8 +57,7 @@ async function recordSignupAttemptError({
 }
 
 export type CompleteOrganicSignupResult =
-  | { success: true; redirectTo: string }
-  | { success: false; error: string };
+  { success: true; redirectTo: string } | { success: false; error: string };
 
 export async function completeOrganicSignup(
   input: CompleteOrganicSignupInput

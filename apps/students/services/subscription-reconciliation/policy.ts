@@ -270,9 +270,7 @@ export function decideSubscriptionReconciliation({
   let failureIsCausallyLatest = Boolean(latestFailedInvoice);
 
   if (latestFailedInvoice && localPeriodEnd !== null) {
-    const failurePeriodEnd = parseTimestamp(
-      getPagarmeInvoicePeriod(latestFailedInvoice)?.end_at
-    );
+    const failurePeriodEnd = parseTimestamp(getPagarmeInvoicePeriod(latestFailedInvoice)?.end_at);
 
     if (failurePeriodEnd !== null && failurePeriodEnd < localPeriodEnd) {
       failureIsCausallyLatest = false;
@@ -306,8 +304,7 @@ export function decideSubscriptionReconciliation({
   }
 
   if (latestFailedInvoice && failureIsCausallyLatest) {
-    const lastFailureInvoiceId =
-      localSubscription.metadata?.last_payment_failure_invoice_id;
+    const lastFailureInvoiceId = localSubscription.metadata?.last_payment_failure_invoice_id;
 
     if (
       localSubscription.status === "past_due" &&

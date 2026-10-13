@@ -33,8 +33,7 @@ export default async function EssayCorrectionPage(props: Props) {
   }
 
   const isPendingReview = reviewState?.status === "pending_review";
-  const correctionReviewRequired =
-    profileData?.user.correction_review_required === true;
+  const correctionReviewRequired = profileData?.user.correction_review_required === true;
   const draft = isPendingReview ? null : await getCorrectionDraft(id);
 
   const boundAutoSave = saveCorrectionDraft.bind(null, id);
@@ -47,7 +46,7 @@ export default async function EssayCorrectionPage(props: Props) {
           <MessageSquareWarning className="mt-0.5 size-5 shrink-0 text-amber-700" />
           <div>
             <p className="font-bold">Correção devolvida para ajustes</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">
+            <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap">
               {reviewState.feedback}
             </p>
           </div>
@@ -57,22 +56,16 @@ export default async function EssayCorrectionPage(props: Props) {
       <EssayCorrectionWorkspace
         essay={essay}
         initialDraft={
-          isPendingReview
-            ? reviewState.payload
-            : draft ?? reviewState?.payload ?? null
+          isPendingReview ? reviewState.payload : (draft ?? reviewState?.payload ?? null)
         }
         onAutoSave={isPendingReview ? undefined : boundAutoSave}
         onSaveCorrection={boundFinalSave}
         onReturnEssay={reviewState ? undefined : returnEssay}
         redirectPath="/redacoes-pendentes"
         readOnly={isPendingReview}
-        saveButtonLabel={
-          correctionReviewRequired ? "Enviar para revisão" : undefined
-        }
-        savingLabel={
-          correctionReviewRequired ? "Enviando para revisão..." : undefined
-        }
+        saveButtonLabel={correctionReviewRequired ? "Enviar para revisão" : undefined}
+        savingLabel={correctionReviewRequired ? "Enviando para revisão..." : undefined}
       />
     </div>
-  )
+  );
 }

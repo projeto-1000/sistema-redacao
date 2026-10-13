@@ -63,14 +63,14 @@ export function SetPasswordForm({
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                   Senha
                 </FormLabel>
                 <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                  <LockKeyhole className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-slate-400" />
                   <FormControl>
                     <Input
-                      className="h-12 w-full rounded-2xl py-3.5 pl-12 pr-12 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"
+                      className="focus-visible:border-primary focus-visible:ring-primary h-12 w-full rounded-2xl py-3.5 pr-12 pl-12 focus-visible:ring-1"
                       type={showPassword ? "text" : "password"}
                       autoComplete="new-password"
                       placeholder="Crie uma senha segura"
@@ -81,16 +81,14 @@ export function SetPasswordForm({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    aria-label={
-                      showPassword ? "Ocultar senha" : "Mostrar senha"
-                    }
+                    className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      <EyeOff className="text-muted-foreground h-4 w-4" />
                     ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <Eye className="text-muted-foreground h-4 w-4" />
                     )}
                   </Button>
                 </div>
@@ -106,14 +104,14 @@ export function SetPasswordForm({
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                   Confirmar Senha
                 </FormLabel>
                 <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                  <LockKeyhole className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-slate-400" />
                   <FormControl>
                     <Input
-                      className="h-12 w-full rounded-2xl py-3.5 pl-12 pr-12 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"
+                      className="focus-visible:border-primary focus-visible:ring-primary h-12 w-full rounded-2xl py-3.5 pr-12 pl-12 focus-visible:ring-1"
                       type={showConfirmPassword ? "text" : "password"}
                       autoComplete="new-password"
                       placeholder="Confirme sua senha"
@@ -124,7 +122,7 @@ export function SetPasswordForm({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                     aria-label={
                       showConfirmPassword
                         ? "Ocultar confirmação de senha"
@@ -133,9 +131,9 @@ export function SetPasswordForm({
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      <EyeOff className="text-muted-foreground h-4 w-4" />
                     ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <Eye className="text-muted-foreground h-4 w-4" />
                     )}
                   </Button>
                 </div>
@@ -149,18 +147,17 @@ export function SetPasswordForm({
               control={form.control}
               name="terms"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start my-6">
+                <FormItem className="my-6 flex flex-row items-start">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      className="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5"
                     />
                   </FormControl>
                   <div className="space-y-2 leading-none">
-                    <FormLabel className="text-slate-600 font-medium leading-relaxed">
-                      Eu concordo com os Termos de Uso e Políticas de
-                      Privacidade da plataforma.
+                    <FormLabel className="leading-relaxed font-medium text-slate-600">
+                      Eu concordo com os Termos de Uso e Políticas de Privacidade da plataforma.
                     </FormLabel>
                     <FormMessage />
                   </div>
@@ -171,7 +168,7 @@ export function SetPasswordForm({
 
           <Button
             type="submit"
-            className="w-full font-medium h-12 rounded-2xl text-[16px]"
+            className="h-12 w-full rounded-2xl text-[16px] font-medium"
             disabled={isSubmitting || !isValid}
             isLoading={isSubmitting}
             loadingText="Salvando..."

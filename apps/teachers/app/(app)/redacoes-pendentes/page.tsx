@@ -20,9 +20,7 @@ export default async function PendingEssaysPage({
 }) {
   const resolvedParams = await searchParams;
   const filters = parsePendingEssaysFilters(resolvedParams);
-  const tabParam = Array.isArray(resolvedParams.tab)
-    ? resolvedParams.tab[0]
-    : resolvedParams.tab;
+  const tabParam = Array.isArray(resolvedParams.tab) ? resolvedParams.tab[0] : resolvedParams.tab;
   const activeTab = tabParam === "revisoes" ? "revisoes" : "pendentes";
 
   const page = Number(resolvedParams?.page) || 1;
@@ -30,7 +28,7 @@ export default async function PendingEssaysPage({
   const reviewQueueResult = await getPendingTeacherCorrectionReviews({ page });
 
   return (
-    <div className="min-h-dvh px-2 md:px-10 lg:px-12 py-4 space-y-4">
+    <div className="min-h-dvh space-y-4 px-2 py-4 md:px-10 lg:px-12">
       <PageHeader
         title="Redações Pendentes"
         subtitle="Acompanhe suas filas de correção e de revisão administrativa."
@@ -45,10 +43,9 @@ export default async function PendingEssaysPage({
           href="/redacoes-pendentes"
           role="tab"
           aria-selected={activeTab === "pendentes"}
-          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${activeTab === "pendentes"
-            ? "bg-white shadow-sm"
-            : "text-slate-500 hover:text-slate-700"
-            }`}
+          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
+            activeTab === "pendentes" ? "bg-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+          }`}
         >
           Redações pendentes
         </Link>
@@ -56,10 +53,9 @@ export default async function PendingEssaysPage({
           href="/redacoes-pendentes?tab=revisoes"
           role="tab"
           aria-selected={activeTab === "revisoes"}
-          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${activeTab === "revisoes"
-            ? "bg-white shadow-sm"
-            : "text-slate-500 hover:text-slate-700"
-            }`}
+          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
+            activeTab === "revisoes" ? "bg-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+          }`}
         >
           Aguardando revisão ({reviewQueueResult.totalCount})
         </Link>
@@ -71,9 +67,7 @@ export default async function PendingEssaysPage({
 
           <Suspense
             key={suspenseKey}
-            fallback={
-              <Skeleton className="mt-6 min-h-62.5 rounded-3xl bg-slate-200" />
-            }
+            fallback={<Skeleton className="mt-6 min-h-62.5 rounded-3xl bg-slate-200" />}
           >
             <PendingEssaysGrid filters={filters} page={page} />
           </Suspense>

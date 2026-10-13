@@ -36,14 +36,18 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: userRole } = user
-    ? await supabase.rpc("get_my_role")
-    : { data: null };
+  const { data: userRole } = user ? await supabase.rpc("get_my_role") : { data: null };
 
   const publicRoutes = ["/login", "/esqueci-minha-senha", "/cadastro/senha", "/auth/confirm", "/"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  if (user && userRole === ALLOWED_ROLE && user.user_metadata?.teacher_invitation_pending === true && pathname !== "/cadastro/senha" && pathname !== "/auth/confirm") {
+  if (
+    user &&
+    userRole === ALLOWED_ROLE &&
+    user.user_metadata?.teacher_invitation_pending === true &&
+    pathname !== "/cadastro/senha" &&
+    pathname !== "/auth/confirm"
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/cadastro/senha";
     url.search = "";

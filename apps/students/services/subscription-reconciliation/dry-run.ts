@@ -30,9 +30,7 @@ function getInvoicesThatWouldBeApplied(decision: SubscriptionReconciliationDecis
   if (decision.kind === "renew") {
     return [
       ...decision.invoices.map(summarizeInvoice),
-      ...(decision.subsequentFailure
-        ? [summarizeInvoice(decision.subsequentFailure)]
-        : []),
+      ...(decision.subsequentFailure ? [summarizeInvoice(decision.subsequentFailure)] : []),
     ];
   }
 

@@ -3,13 +3,21 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@repo/ui/components/page-header";
-import { PaymentDashboardNav, type TeacherPaymentsTab } from "@repo/ui/components/features/teacher-payments/payment-dashboard-nav";
+import {
+  PaymentDashboardNav,
+  type TeacherPaymentsTab,
+} from "@repo/ui/components/features/teacher-payments/payment-dashboard-nav";
 import { PaymentOverview } from "@repo/ui/components/features/teacher-payments/payment-overview";
 import { PaymentMonthFilter } from "@repo/ui/components/features/teacher-payments/payment-month-filter";
 import { PaymentHistory } from "@repo/ui/components/features/teacher-payments/payment-history";
 import { getTeacherById } from "@/app/actions/teachers";
 import { getPaymentAccounts } from "@/app/actions/payment-accounts";
-import { getEssaysByPeriod, getPaymentMetrics, getTeacherPaymentHistory, exportTeacherPaymentsCsv } from "@/app/actions/teacher-payments";
+import {
+  getEssaysByPeriod,
+  getPaymentMetrics,
+  getTeacherPaymentHistory,
+  exportTeacherPaymentsCsv,
+} from "@/app/actions/teacher-payments";
 import { AdminPaymentAccountsManager } from "@/components/features/teacher-payments/admin-payment-accounts-manager";
 import { PaymentActions } from "@/components/features/teacher-payments/payment-actions";
 import { EssaysPeriodModal } from "@/components/features/teacher-payments/essays-period-modal";
@@ -50,7 +58,9 @@ export default async function TeacherPaymentsPage({ params, searchParams }: Teac
   return (
     <div className="min-h-dvh space-y-6 px-4 pb-8 md:px-10 lg:px-12">
       <Button asChild variant="ghost" className="text-slate-500">
-        <Link href={`/professores/${teacherId}`}><ArrowLeft className="size-4" /> Voltar para o professor</Link>
+        <Link href={`/professores/${teacherId}`}>
+          <ArrowLeft className="size-4" /> Voltar para o professor
+        </Link>
       </Button>
 
       <PageHeader
@@ -74,10 +84,7 @@ export default async function TeacherPaymentsPage({ params, searchParams }: Teac
       )}
 
       {activeTab === "accounts" && (
-        <AdminPaymentAccountsManager
-          teacherId={teacherId}
-          accounts={accounts}
-        />
+        <AdminPaymentAccountsManager teacherId={teacherId} accounts={accounts} />
       )}
 
       {activeTab === "history" && <AdminHistory teacherId={teacherId} page={pageNumber} />}
@@ -92,7 +99,13 @@ export default async function TeacherPaymentsPage({ params, searchParams }: Teac
 }
 
 async function AdminOverview({
-  teacherId, month, monthLabel, baseHref, accounts, from, to,
+  teacherId,
+  month,
+  monthLabel,
+  baseHref,
+  accounts,
+  from,
+  to,
 }: {
   teacherId: string;
   month: string;
@@ -115,8 +128,23 @@ async function AdminOverview({
       allowCopyAccount
       accountsHref={`${baseHref}&tab=accounts`}
       historyHref={`${baseHref}&tab=history`}
-      essaysAction={<EssaysPeriodModal teacherId={teacherId} essays={essayResult.essays} totalPages={essayResult.totalPages} />}
-      adminAction={metrics.totalEssays > 0 ? <PaymentActions teacherId={teacherId} month={month} metrics={metrics} accounts={accounts} /> : undefined}
+      essaysAction={
+        <EssaysPeriodModal
+          teacherId={teacherId}
+          essays={essayResult.essays}
+          totalPages={essayResult.totalPages}
+        />
+      }
+      adminAction={
+        metrics.totalEssays > 0 ? (
+          <PaymentActions
+            teacherId={teacherId}
+            month={month}
+            metrics={metrics}
+            accounts={accounts}
+          />
+        ) : undefined
+      }
     />
   );
 }
@@ -125,14 +153,24 @@ async function AdminHistory({ teacherId, page }: { teacherId: string; page: numb
   const result = await getTeacherPaymentHistory(teacherId, page);
 
   if (result.error) {
-    return <div className="rounded-3xl border border-red-100 bg-red-50 p-8 text-center font-medium text-red-700">Não foi possível carregar o histórico.</div>;
+    return (
+      <div className="rounded-3xl border border-red-100 bg-red-50 p-8 text-center font-medium text-red-700">
+        Não foi possível carregar o histórico.
+      </div>
+    );
   }
 
   return (
     <div className="space-y-5">
       <PaymentHistory
         payments={result.payments}
-        headerAction={<ExportCsvButton action={exportTeacherPaymentsCsv} payload={{ teacherId }} fileName="Historico_Pagamentos" />}
+        headerAction={
+          <ExportCsvButton
+            action={exportTeacherPaymentsCsv}
+            payload={{ teacherId }}
+            fileName="Historico_Pagamentos"
+          />
+        }
       />
       {result.totalPages > 1 && <TablePagination totalPages={result.totalPages} />}
     </div>

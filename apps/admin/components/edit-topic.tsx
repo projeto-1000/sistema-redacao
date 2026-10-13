@@ -20,7 +20,7 @@ export default function EditTopic({ initialData }: EditTopicClientProps) {
   const { form, isPending, onSubmit, isValid } = useTopicForm(initialData);
 
   return (
-    <div className="min-h-dvh px-4 md:px-10 lg:px-12 py-4 space-y-8">
+    <div className="min-h-dvh space-y-8 px-4 py-4 md:px-10 lg:px-12">
       <PageHeader
         title="Editar Tema"
         subtitle="Atualize os detalhes da proposta de redação e os textos de apoio."
@@ -28,28 +28,27 @@ export default function EditTopic({ initialData }: EditTopicClientProps) {
 
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-8">
-
           <TopicInfoForm />
 
-          <div className="flex items-center justify-between mt-12 mb-4 px-2">
-            <h2 className="text-xl font-black flex items-center gap-3">
-              <div className="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-sm">
+          <div className="mt-12 mb-4 flex items-center justify-between px-2">
+            <h2 className="flex items-center gap-3 text-xl font-black">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
                 <FileText className="size-4" />
               </div>
               Textos Motivadores
             </h2>
-            <span className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase px-3 py-1.5 rounded-full tracking-wider">
+            <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
               Mínimo 1 obrigatório
             </span>
           </div>
 
           <MotivationalTextList />
 
-          <div className="flex items-center justify-end gap-3 pt-8 mt-8 border-t border-slate-200">
+          <div className="mt-8 flex items-center justify-end gap-3 border-t border-slate-200 pt-8">
             <Button
               type="button"
               variant="ghost"
-              className="h-12 px-6 rounded-xl font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+              className="h-12 rounded-xl px-6 font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-900"
               onClick={() => router.back()}
             >
               Cancelar

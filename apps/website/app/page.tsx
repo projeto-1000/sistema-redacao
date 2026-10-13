@@ -13,11 +13,7 @@ import { NumberedCard } from "@/components/site/NumberedCard";
 import { Reveal } from "@/components/site/Reveal";
 import { CadernoMockup } from "@/components/site/CadernoMockup";
 import { EvolutionChart } from "@/components/site/EvolutionChart";
-import {
-  MockCompetencias,
-  MockGargalo,
-  MockReescrita,
-} from "@/components/site/PlatformMock";
+import { MockCompetencias, MockGargalo, MockReescrita } from "@/components/site/PlatformMock";
 const fernando = "/images/fernando.jpg";
 
 const pilares = [
@@ -85,9 +81,9 @@ export default function HomePage() {
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="float-blob absolute -left-32 -top-24 h-80 w-80 rounded-full bg-pastel-blue blur-3xl" />
+          <div className="float-blob bg-pastel-blue absolute -top-24 -left-32 h-80 w-80 rounded-full blur-3xl" />
           <div
-            className="float-blob absolute -right-24 top-32 h-80 w-80 rounded-full bg-pastel-yellow blur-3xl"
+            className="float-blob bg-pastel-yellow absolute top-32 -right-24 h-80 w-80 rounded-full blur-3xl"
             style={{ animationDelay: "-4s" }}
           />
         </div>
@@ -95,43 +91,36 @@ export default function HomePage() {
         <Container className="relative grid gap-12 py-14 md:grid-cols-[1.1fr_1fr] md:items-center md:py-24">
           <div>
             <Reveal>
-              <h1 className="font-display text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl md:text-7xl">
-                Correção que te mostra a{" "}
-                <span className="text-primary">direção</span>
+              <h1 className="font-display text-foreground text-4xl font-extrabold tracking-tight sm:text-6xl md:text-7xl">
+                Correção que te mostra a <span className="text-primary">direção</span>
               </h1>
             </Reveal>
             <Reveal delay={140}>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                O Projeto 1000 corrige sua redação nas cinco competências do
-                Enem, identifica o que mais está travando sua evolução e mostra
-                exatamente o que fazer a seguir.
+              <p className="text-muted-foreground mt-6 max-w-xl text-base leading-relaxed md:text-lg">
+                O Projeto 1000 corrige sua redação nas cinco competências do Enem, identifica o que
+                mais está travando sua evolução e mostra exatamente o que fazer a seguir.
               </p>
             </Reveal>
             <Reveal delay={200}>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <CTAButton href="/cadastro" dataCta="signup-hero">
                   <span className="arrow-slide">
-                    Corrigir minha redação grátis{" "}
-                    <ArrowRight className="h-4 w-4" />
+                    Corrigir minha redação grátis <ArrowRight className="h-4 w-4" />
                   </span>
                 </CTAButton>
                 <a
                   href="#plataforma"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-6 py-3.5 text-sm font-semibold text-foreground transition-all hover:border-primary/50 hover:text-primary"
+                  className="border-border bg-background text-foreground hover:border-primary/50 hover:text-primary inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3.5 text-sm font-semibold transition-all"
                 >
                   Ver como funciona <ArrowDown className="h-4 w-4" />
                 </a>
               </div>
             </Reveal>
             <Reveal delay={260}>
-              <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-                {[
-                  "1 crédito grátis",
-                  "Sem cartão de crédito",
-                  "Correção 100% humana",
-                ].map((t) => (
+              <ul className="text-muted-foreground mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                {["1 crédito grátis", "Sem cartão de crédito", "Correção 100% humana"].map((t) => (
                   <li key={t} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 shrink-0 text-primary" />
+                    <Check className="text-primary h-4 w-4 shrink-0" />
                     {t}
                   </li>
                 ))}
@@ -146,16 +135,16 @@ export default function HomePage() {
       </section>
 
       {/* 4 ETAPAS */}
-      <section className="border-t border-border">
+      <section className="border-border border-t">
         <Container className="py-20">
           <Reveal>
             <div className="max-w-2xl">
-              <h2 className="font-display text-3xl font-extrabold text-foreground sm:text-4xl">
+              <h2 className="font-display text-foreground text-3xl font-extrabold sm:text-4xl">
                 Quatro etapas para que sua correção se transforme em caminho
               </h2>
-              <p className="mt-4 text-muted-foreground">
-                Entenda sua nota, identifique o que melhorar primeiro,
-                transforme a orientação em prática e acompanhe sua evolução.
+              <p className="text-muted-foreground mt-4">
+                Entenda sua nota, identifique o que melhorar primeiro, transforme a orientação em
+                prática e acompanhe sua evolução.
               </p>
             </div>
           </Reveal>
@@ -174,20 +163,20 @@ export default function HomePage() {
       </section>
 
       {/* POR DENTRO DO PROJETO */}
-      <section id="plataforma" className="scroll-mt-24 bg-secondary">
+      <section id="plataforma" className="bg-secondary scroll-mt-24">
         <Container className="py-20">
           <Reveal>
             <div className="max-w-3xl">
               <span className="pill bg-pastel-blue text-primary">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                <span className="bg-primary h-1.5 w-1.5 rounded-full" />
                 Por dentro do Projeto 1000
               </span>
-              <h2 className="mt-6 font-display text-3xl font-extrabold text-foreground sm:text-5xl">
+              <h2 className="font-display text-foreground mt-6 text-3xl font-extrabold sm:text-5xl">
                 Veja como é a sua correção no Projeto 1000.
               </h2>
-              <p className="mt-5 text-muted-foreground">
-                Notas, comentários, gargalo, prioridades e tarefas de reescrita
-                aparecem reunidos no mesmo lugar.
+              <p className="text-muted-foreground mt-5">
+                Notas, comentários, gargalo, prioridades e tarefas de reescrita aparecem reunidos no
+                mesmo lugar.
               </p>
             </div>
           </Reveal>
@@ -197,15 +186,13 @@ export default function HomePage() {
               <Reveal key={m.title} delay={80}>
                 <div className="grid items-center gap-8 md:grid-cols-[1fr_1.05fr]">
                   <div>
-                    <span className="font-display text-sm font-extrabold text-primary/50">
+                    <span className="font-display text-primary/50 text-sm font-extrabold">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="mt-2 font-display text-2xl font-extrabold text-foreground sm:text-3xl">
+                    <h3 className="font-display text-foreground mt-2 text-2xl font-extrabold sm:text-3xl">
                       {m.title}
                     </h3>
-                    <p className="mt-4 max-w-xl leading-relaxed text-muted-foreground">
-                      {m.body}
-                    </p>
+                    <p className="text-muted-foreground mt-4 max-w-xl leading-relaxed">{m.body}</p>
                   </div>
                   <div>{m.mock}</div>
                 </div>
@@ -220,26 +207,23 @@ export default function HomePage() {
         <Container className="grid gap-12 py-20 md:grid-cols-[1fr_1.1fr] md:items-center">
           <Reveal>
             <div>
-              <span className="pill bg-pastel-blue text-primary">
-                Histórico e evolução
-              </span>
-              <h2 className="mt-5 font-display text-3xl font-extrabold text-foreground sm:text-5xl">
+              <span className="pill bg-pastel-blue text-primary">Histórico e evolução</span>
+              <h2 className="font-display text-foreground mt-5 text-3xl font-extrabold sm:text-5xl">
                 Veja como seu desempenho muda ao longo das redações.
               </h2>
-              <p className="mt-5 max-w-lg text-muted-foreground">
-                O dashboard reúne suas notas, médias e correções anteriores para
-                que você acompanhe seu desempenho geral e em cada competência ao
-                longo do tempo.
+              <p className="text-muted-foreground mt-5 max-w-lg">
+                O dashboard reúne suas notas, médias e correções anteriores para que você acompanhe
+                seu desempenho geral e em cada competência ao longo do tempo.
               </p>
-              <ul className="mt-6 grid gap-3 text-sm text-foreground/85">
+              <ul className="text-foreground/85 mt-6 grid gap-3 text-sm">
                 {[
                   "Média geral e por competência",
                   "Evolução das notas ao longo das redações",
                   "Histórico completo de redações e correções",
                 ].map((t) => (
                   <li key={t} className="flex items-center gap-3">
-                    <span className="icon-bubble h-6 w-6 shrink-0 bg-pastel-blue">
-                      <Check className="h-3.5 w-3.5 text-primary" />
+                    <span className="icon-bubble bg-pastel-blue h-6 w-6 shrink-0">
+                      <Check className="text-primary h-3.5 w-3.5" />
                     </span>
                     <span className="min-w-0">{t}</span>
                   </li>
@@ -259,7 +243,7 @@ export default function HomePage() {
           <Reveal>
             <div className="mx-auto md:mx-0">
               <div className="relative">
-                <div className="absolute -inset-3 -z-10 rounded-4xl bg-pastel-yellow" />
+                <div className="bg-pastel-yellow absolute -inset-3 -z-10 rounded-4xl" />
                 <Image
                   src={fernando}
                   alt="Fernando Entratice, professor de redação e criador do Projeto 1000"
@@ -268,10 +252,10 @@ export default function HomePage() {
                   className="h-72 w-60 rounded-[1.75rem] object-cover shadow-(--shadow-card)"
                 />
               </div>
-              <p className="mt-6 font-display text-lg font-extrabold uppercase tracking-wide text-foreground">
+              <p className="font-display text-foreground mt-6 text-lg font-extrabold tracking-wide uppercase">
                 Fernando Entratice
               </p>
-              <p className="mt-1 max-w-60 text-sm text-muted-foreground">
+              <p className="text-muted-foreground mt-1 max-w-60 text-sm">
                 Professor de redação e criador do Projeto 1000
               </p>
             </div>
@@ -281,22 +265,18 @@ export default function HomePage() {
               <span className="pill bg-pastel-yellow text-foreground">
                 Correção humana e individual
               </span>
-              <h2 className="mt-4 font-display text-3xl font-extrabold sm:text-5xl">
+              <h2 className="font-display mt-4 text-3xl font-extrabold sm:text-5xl">
                 Cada redação é corrigida individualmente por um{" "}
-                <span className="highlight-mark highlight-thick">
-                  professor
-                </span>
-                .
+                <span className="highlight-mark highlight-thick">professor</span>.
               </h2>
-              <p className="mt-5 max-w-xl text-muted-foreground">
-                O sistema de correção do Projeto 1000 foi criado a partir de 14
-                anos de experiência com leitura, avaliação e ensino de redação.
+              <p className="text-muted-foreground mt-5 max-w-xl">
+                O sistema de correção do Projeto 1000 foi criado a partir de 14 anos de experiência
+                com leitura, avaliação e ensino de redação.
               </p>
-              <p className="mt-4 max-w-xl text-muted-foreground">
-                A leitura considera o texto por inteiro, da construção dos
-                argumentos à proposta de intervenção, para produzir comentários
-                específicos, identificar o principal gargalo e orientar os
-                próximos passos. Sempre de forma individualizada.
+              <p className="text-muted-foreground mt-4 max-w-xl">
+                A leitura considera o texto por inteiro, da construção dos argumentos à proposta de
+                intervenção, para produzir comentários específicos, identificar o principal gargalo
+                e orientar os próximos passos. Sempre de forma individualizada.
               </p>
             </div>
           </Reveal>
@@ -308,32 +288,29 @@ export default function HomePage() {
         <Container className="py-20">
           <Reveal>
             <div className="max-w-3xl">
-              <h2 className="font-display text-3xl font-extrabold text-foreground sm:text-4xl">
+              <h2 className="font-display text-foreground text-3xl font-extrabold sm:text-4xl">
                 Relatos de alunos
               </h2>
-              <p className="mt-4 text-muted-foreground">
-                Quem já recebeu uma correção do Projeto 1000 conta como foi a
-                experiência.
+              <p className="text-muted-foreground mt-4">
+                Quem já recebeu uma correção do Projeto 1000 conta como foi a experiência.
               </p>
             </div>
           </Reveal>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {depoimentos.map((t, i) => (
               <Reveal key={t.nome} delay={i * 100}>
-                <figure className="press-fx h-full rounded-2xl border border-border bg-card p-8 shadow-(--shadow-soft)">
+                <figure className="press-fx border-border bg-card h-full rounded-2xl border p-8 shadow-(--shadow-soft)">
                   <span
                     aria-hidden
-                    className="block font-display text-5xl leading-none text-accent"
+                    className="font-display text-accent block text-5xl leading-none"
                   >
                     “
                   </span>
-                  <blockquote className="mt-3 text-base leading-relaxed text-foreground/90">
+                  <blockquote className="text-foreground/90 mt-3 text-base leading-relaxed">
                     {t.q}
                   </blockquote>
                   <figcaption className="mt-5 text-sm">
-                    <span className="block font-bold text-foreground">
-                      {t.nome}
-                    </span>
+                    <span className="text-foreground block font-bold">{t.nome}</span>
                     <span className="text-muted-foreground">{t.cidade}</span>
                   </figcaption>
                 </figure>
@@ -348,25 +325,25 @@ export default function HomePage() {
         <Container className="py-20">
           <Reveal>
             <div className="on-navy relative overflow-hidden rounded-4xl p-10 text-center shadow-(--shadow-card) md:p-14">
-              <div className="float-blob pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
-              <h2 className="relative font-display text-3xl font-extrabold sm:text-4xl">
+              <div className="float-blob bg-accent/20 pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full blur-3xl" />
+              <h2 className="font-display relative text-3xl font-extrabold sm:text-4xl">
                 Comece pela primeira correção gratuita. Descubra seu caminho
               </h2>
-              <p className="relative mx-auto mt-4 max-w-2xl text-foreground/75">
-                1 crédito grátis, sem cartão de crédito. Escreva, envie e receba
-                o diagnóstico do seu texto.
+              <p className="text-foreground/75 relative mx-auto mt-4 max-w-2xl">
+                1 crédito grátis, sem cartão de crédito. Escreva, envie e receba o diagnóstico do
+                seu texto.
               </p>
               <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
                 <a
                   href="/cadastro"
                   data-cta="signup-final"
-                  className="press-fx inline-flex items-center justify-center rounded-full bg-accent px-7 py-4 text-sm font-bold text-accent-foreground"
+                  className="press-fx bg-accent text-accent-foreground inline-flex items-center justify-center rounded-full px-7 py-4 text-sm font-bold"
                 >
                   Corrigir grátis agora
                 </a>
                 <a
                   href="/planos"
-                  className="press-fx inline-flex items-center justify-center rounded-full border border-white/25 px-7 py-4 text-sm font-bold text-foreground hover:border-accent hover:text-accent"
+                  className="press-fx text-foreground hover:border-accent hover:text-accent inline-flex items-center justify-center rounded-full border border-white/25 px-7 py-4 text-sm font-bold"
                 >
                   Ver planos
                 </a>

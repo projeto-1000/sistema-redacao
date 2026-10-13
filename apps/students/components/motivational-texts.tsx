@@ -4,14 +4,14 @@ import type { EssayTopicDetail, MotivationalText } from "@repo/types";
 
 function MotivatingTextItem({ item }: { item: MotivationalText }) {
   return (
-    <div className="mb-6 last:mb-0 text-left">
-      <span className="inline-block px-2 py-1 mb-2 text-[10px] font-bold uppercase tracking-widest text-[#8B781F] bg-[#EBC84C]/20 rounded-md">
+    <div className="mb-6 text-left last:mb-0">
+      <span className="mb-2 inline-block rounded-md bg-[#EBC84C]/20 px-2 py-1 text-[10px] font-bold tracking-widest text-[#8B781F] uppercase">
         Texto {item.text_number}
       </span>
 
-      <div className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 text-left">
+      <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-left text-sm leading-relaxed text-slate-600">
         {item.body_text && (
-          <p className="whitespace-pre-line hover:line-clamp-none transition-all">
+          <p className="whitespace-pre-line transition-all hover:line-clamp-none">
             {item.body_text}
           </p>
         )}
@@ -21,15 +21,13 @@ function MotivatingTextItem({ item }: { item: MotivationalText }) {
           <img
             src={item.image_url}
             alt={`Texto motivador ${item.text_number}`}
-            className="w-full h-auto mt-2 rounded-md"
+            className="mt-2 h-auto w-full rounded-md"
           />
         )}
 
         {item.source_reference && (
-          <div className="mt-2 pt-2 border-t border-slate-200">
-            <p className="text-[10px] text-slate-400 italic">
-              Fonte: {item.source_reference}
-            </p>
+          <div className="mt-2 border-t border-slate-200 pt-2">
+            <p className="text-[10px] text-slate-400 italic">Fonte: {item.source_reference}</p>
           </div>
         )}
       </div>
@@ -44,39 +42,38 @@ export function MotivationalTexts({ topic }: { topic: EssayTopicDetail }) {
 
   return (
     <div className="py-4 lg:p-5">
-
       <div className="mb-6 flex flex-col items-start">
-        <span className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">
+        <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
           Tema Selecionado
         </span>
-        <h2 className="text-lg font-bold leading-tight text-left mt-1">
-          {topic.title}
-        </h2>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded-sm font-semibold uppercase">
+        <h2 className="mt-1 text-left text-lg leading-tight font-bold">{topic.title}</h2>
+        <div className="mt-2 flex items-center gap-2">
+          <span className="rounded-sm bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500 uppercase">
             {topic.source_type} {topic.source_year}
           </span>
-          <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-600 rounded-sm font-semibold uppercase">
+          <span className="rounded-sm bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 uppercase">
             {topic.axis}
           </span>
         </div>
       </div>
 
-      <div className="mb-8 p-4 bg-[#FFFDF5] border-l-4 border-[#EBC84C] rounded-r-xl text-sm text-left">
-        <h5 className="text-[10px] font-bold uppercase tracking-widest text-[#8B781F] mb-2">
+      <div className="mb-8 rounded-r-xl border-l-4 border-[#EBC84C] bg-[#FFFDF5] p-4 text-left text-sm">
+        <h5 className="mb-2 text-[10px] font-bold tracking-widest text-[#8B781F] uppercase">
           Comando da Proposta
         </h5>
-        <p className="text-slate-700 leading-relaxed text-xs md:text-sm">
-          A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema:
+        <p className="text-xs leading-relaxed text-slate-700 md:text-sm">
+          A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao
+          longo de sua formação, redija texto dissertativo-argumentativo em modalidade escrita
+          formal da língua portuguesa sobre o tema:
           <span className="font-bold text-[#1E3A8A]">“{topic.title}”</span>.
         </p>
       </div>
 
       <div className="mb-4 flex items-center gap-2">
-        <span className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">
+        <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
           Textos Motivadores
         </span>
-        <div className="h-px bg-slate-100 flex-1"></div>
+        <div className="h-px flex-1 bg-slate-100"></div>
       </div>
 
       <div>

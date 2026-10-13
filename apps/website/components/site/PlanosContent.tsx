@@ -22,23 +22,16 @@ export type PublicPlan = {
   isRecommended: boolean;
 };
 
-const brl = (cents: number) =>
-  `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
+const brl = (cents: number) => `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
 
 const getSavingsCents = (
   totalPriceCents: number,
   monthlyReferencePriceCents: number | null,
   months: number,
-  discountPercentage: number | null,
+  discountPercentage: number | null
 ) => {
-  if (
-    discountPercentage !== null &&
-    discountPercentage > 0 &&
-    discountPercentage < 100
-  ) {
-    const fullPriceCents = Math.round(
-      totalPriceCents / (1 - discountPercentage / 100),
-    );
+  if (discountPercentage !== null && discountPercentage > 0 && discountPercentage < 100) {
+    const fullPriceCents = Math.round(totalPriceCents / (1 - discountPercentage / 100));
 
     return fullPriceCents - totalPriceCents;
   }
@@ -106,7 +99,7 @@ interface PlanosContentProps {
 export function PlanosContent({ plans }: PlanosContentProps) {
   const [quarterly, setQuarterly] = useState(false);
   const hasQuarterlyPlans = plans.some(
-    (plan) => plan.interval === "month" && plan.intervalCount === 3,
+    (plan) => plan.interval === "month" && plan.intervalCount === 3
   );
   const quarterlyDiscounts = plans
     .filter((plan) => plan.interval === "month" && plan.intervalCount === 3)
@@ -118,8 +111,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
       ? quarterlyDiscounts[0]
       : null;
   const selectedPlans = plans.filter(
-    (plan) =>
-      plan.interval === "month" && plan.intervalCount === (quarterly ? 3 : 1),
+    (plan) => plan.interval === "month" && plan.intervalCount === (quarterly ? 3 : 1)
   );
   const visiblePlans = [freePlan, ...selectedPlans];
 
@@ -128,25 +120,24 @@ export function PlanosContent({ plans }: PlanosContentProps) {
       <section className="relative overflow-hidden">
         <div
           aria-hidden
-          className="float-blob pointer-events-none absolute -right-32 -top-28 -z-10 h-80 w-80 rounded-full bg-pastel-blue blur-3xl"
+          className="float-blob bg-pastel-blue pointer-events-none absolute -top-28 -right-32 -z-10 h-80 w-80 rounded-full blur-3xl"
         />
         <Container className="py-16 sm:py-20">
-          <h1 className="max-w-3xl font-display text-4xl font-extrabold text-foreground sm:text-6xl">
+          <h1 className="font-display text-foreground max-w-3xl text-4xl font-extrabold sm:text-6xl">
             Escolha o plano que acompanha seu ritmo de treino.
           </h1>
-          <p className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            Comece com uma correção completa, sem pagar e sem informar cartão.
-            Para continuar, escolha a oferta que melhor acompanha seu ritmo, sem
-            fidelidade.
+          <p className="text-muted-foreground mt-6 max-w-2xl text-base sm:text-lg">
+            Comece com uma correção completa, sem pagar e sem informar cartão. Para continuar,
+            escolha a oferta que melhor acompanha seu ritmo, sem fidelidade.
           </p>
         </Container>
       </section>
 
       <section>
-        <Container className="pb-16 pt-4">
+        <Container className="pt-4 pb-16">
           {hasQuarterlyPlans && (
             <div className="flex flex-col items-center gap-3">
-              <div className="inline-flex items-center gap-4 rounded-full border border-border bg-card px-5 py-3 shadow-(--shadow-soft)">
+              <div className="border-border bg-card inline-flex items-center gap-4 rounded-full border px-5 py-3 shadow-(--shadow-soft)">
                 <span
                   className={`text-sm font-bold transition-colors ${
                     quarterly ? "text-muted-foreground" : "text-primary"
@@ -165,7 +156,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                   }`}
                 >
                   <span
-                    className={`absolute top-1 h-5 w-5 rounded-full bg-card shadow-sm transition-all duration-300 ${
+                    className={`bg-card absolute top-1 h-5 w-5 rounded-full shadow-sm transition-all duration-300 ${
                       quarterly ? "left-8" : "left-1"
                     }`}
                   />
@@ -177,7 +168,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                 >
                   Trimestral
                   {quarterlyDiscounts.length > 0 && (
-                    <span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-accent-foreground">
+                    <span className="bg-accent text-accent-foreground rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase">
                       {sharedQuarterlyDiscount !== null
                         ? `-${sharedQuarterlyDiscount}%`
                         : "Economize"}
@@ -185,7 +176,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                   )}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 {sharedQuarterlyDiscount !== null
                   ? `No plano trimestral você paga ${sharedQuarterlyDiscount}% menos no total, cobrado a cada 3 meses.`
                   : "No plano trimestral você paga menos no total, cobrado a cada 3 meses."}
@@ -196,28 +187,23 @@ export function PlanosContent({ plans }: PlanosContentProps) {
           <div className="grid items-stretch gap-6 pt-10 md:grid-cols-3">
             {visiblePlans.map((p) => {
               const isFree = p.id === "free";
-              const isQuarterly =
-                p.interval === "month" && p.intervalCount === 3;
+              const isQuarterly = p.interval === "month" && p.intervalCount === 3;
               const hasSubtitle = Boolean(p.subtitle?.trim());
-              const shouldShowSubtitle =
-                hasSubtitle && (isFree || p.isRecommended);
+              const shouldShowSubtitle = hasSubtitle && (isFree || p.isRecommended);
               const benefits =
                 p.description
                   ?.split(/\r?\n/)
                   .map((benefit) => benefit.trim())
                   .filter(Boolean) ?? [];
               const displayedPrice = isQuarterly
-                ? getMonthlyEquivalentCents(
-                    p.priceCents,
-                    p.intervalCount ?? 1,
-                  )
+                ? getMonthlyEquivalentCents(p.priceCents, p.intervalCount ?? 1)
                 : p.priceCents;
               const monthlyReferencePriceCents = isQuarterly
                 ? (plans.find(
                     (candidate) =>
                       candidate.name === p.name &&
                       candidate.interval === "month" &&
-                      candidate.intervalCount === 1,
+                      candidate.intervalCount === 1
                   )?.priceCents ?? null)
                 : null;
               const discountSavingsCents = isQuarterly
@@ -225,7 +211,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                     p.priceCents,
                     monthlyReferencePriceCents,
                     p.intervalCount ?? 1,
-                    p.discountPercentage,
+                    p.discountPercentage
                   )
                 : null;
 
@@ -233,14 +219,14 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                 <TiltCard
                   key={p.id}
                   intensity={6}
-                  className={`relative flex h-full flex-col rounded-[1.75rem] bg-card p-8 ${
+                  className={`bg-card relative flex h-full flex-col rounded-[1.75rem] p-8 ${
                     p.isRecommended
-                      ? "border-2 border-primary shadow-(--shadow-card)"
-                      : "border border-border shadow-(--shadow-soft)"
+                      ? "border-primary border-2 shadow-(--shadow-card)"
+                      : "border-border border shadow-(--shadow-soft)"
                   }`}
                 >
                   {p.isRecommended && (
-                    <span className="absolute -top-3 left-8 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary-foreground shadow-[0_8px_20px_-8px_rgba(25,96,234,0.8)]">
+                    <span className="bg-primary text-primary-foreground absolute -top-3 left-8 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase shadow-[0_8px_20px_-8px_rgba(25,96,234,0.8)]">
                       <Image
                         src={icone}
                         alt=""
@@ -251,22 +237,22 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                       Recomendado
                     </span>
                   )}
-                  <h2 className="mt-2 font-display text-2xl font-extrabold text-card-foreground">
+                  <h2 className="font-display text-card-foreground mt-2 text-2xl font-extrabold">
                     {p.name}
                   </h2>
                   {shouldShowSubtitle && (
-                    <p className="mt-1 text-sm text-muted-foreground">{p.subtitle}</p>
+                    <p className="text-muted-foreground mt-1 text-sm">{p.subtitle}</p>
                   )}
                   <p className="mt-4 flex flex-wrap items-baseline gap-x-2">
-                    <span className="font-display text-4xl font-extrabold text-card-foreground">
+                    <span className="font-display text-card-foreground text-4xl font-extrabold">
                       {isFree ? "R$ 0" : brl(displayedPrice)}
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-muted-foreground text-sm">
                       {isFree ? "sem cartão de crédito" : "por mês"}
                     </span>
                   </p>
                   {isQuarterly && (
-                    <p className="mt-1 text-xs font-semibold text-primary">
+                    <p className="text-primary mt-1 text-xs font-semibold">
                       {brl(p.priceCents)} cobrados a cada 3 meses
                       {discountSavingsCents !== null &&
                         `, economia de ${brl(discountSavingsCents)}`}
@@ -276,10 +262,10 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                     {benefits.map((benefit) => (
                       <li
                         key={benefit}
-                        className="flex items-center gap-3 text-sm text-foreground/90"
+                        className="text-foreground/90 flex items-center gap-3 text-sm"
                       >
-                        <span className="icon-bubble h-6 w-6 shrink-0 bg-pastel-blue">
-                          <Check className="h-3.5 w-3.5 text-primary" />
+                        <span className="icon-bubble bg-pastel-blue h-6 w-6 shrink-0">
+                          <Check className="text-primary h-3.5 w-3.5" />
                         </span>
                         <span className="min-w-0">{benefit}</span>
                       </li>
@@ -291,7 +277,7 @@ export function PlanosContent({ plans }: PlanosContentProps) {
                     className={`press-fx mt-8 inline-flex justify-center rounded-full px-5 py-3.5 text-sm font-bold transition-all ${
                       p.isRecommended
                         ? "bg-primary text-primary-foreground"
-                        : "border border-border text-foreground hover:border-primary hover:text-primary"
+                        : "border-border text-foreground hover:border-primary hover:text-primary border"
                     }`}
                   >
                     {isFree ? "Começar grátis" : `Assinar ${p.name}`}
@@ -300,9 +286,9 @@ export function PlanosContent({ plans }: PlanosContentProps) {
               );
             })}
           </div>
-          <p className="mt-8 text-center text-sm text-muted-foreground">
-            Créditos avulsos também podem ser comprados fora da assinatura.
-            Cancele quando quiser, sem fidelidade.
+          <p className="text-muted-foreground mt-8 text-center text-sm">
+            Créditos avulsos também podem ser comprados fora da assinatura. Cancele quando quiser,
+            sem fidelidade.
           </p>
 
           <div className="mt-14">
@@ -316,22 +302,20 @@ export function PlanosContent({ plans }: PlanosContentProps) {
 
       <section className="bg-secondary">
         <Container className="py-20">
-          <h2 className="font-display text-3xl font-extrabold text-foreground">
+          <h2 className="font-display text-foreground text-3xl font-extrabold">
             Dúvidas sobre os planos
           </h2>
           <div className="mt-8 space-y-3">
             {faq.map((f) => (
               <details
                 key={f.q}
-                className="group rounded-2xl border border-border bg-card p-6 shadow-(--shadow-soft) open:border-primary/40"
+                className="group border-border bg-card open:border-primary/40 rounded-2xl border p-6 shadow-(--shadow-soft)"
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-bold text-card-foreground marker:hidden">
+                <summary className="font-display text-card-foreground flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-bold marker:hidden">
                   <span className="min-w-0">{f.q}</span>
-                  <ChevronDown className="h-5 w-5 shrink-0 text-primary transition-transform duration-300 group-open:rotate-180" />
+                  <ChevronDown className="text-primary h-5 w-5 shrink-0 transition-transform duration-300 group-open:rotate-180" />
                 </summary>
-                <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                  {f.a}
-                </p>
+                <p className="text-muted-foreground mt-4 text-base leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>

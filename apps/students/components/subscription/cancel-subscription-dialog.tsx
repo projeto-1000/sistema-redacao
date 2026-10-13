@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  useState,
-  useTransition,
-} from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertTriangle,
-  CheckCircle2,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 import { requestSubscriptionCancellation } from "@/app/actions/subscription-cancellation";
 import {
@@ -43,9 +37,7 @@ interface CancelSubscriptionDialogProps {
   withdrawalProcessingMode: "automatic" | "manual" | null;
 }
 
-type DialogState =
-  | "confirmation"
-  | "success";
+type DialogState = "confirmation" | "success";
 
 export function CancelSubscriptionDialog({
   planName,
@@ -54,34 +46,23 @@ export function CancelSubscriptionDialog({
 }: CancelSubscriptionDialogProps) {
   const router = useRouter();
 
-
   const [open, setOpen] = useState(false);
   const [details, setDetails] = useState("");
   const [operationId, setOperationId] = useState(() => crypto.randomUUID());
 
-  const [dialogState, setDialogState] =
-    useState<DialogState>("confirmation");
+  const [dialogState, setDialogState] = useState<DialogState>("confirmation");
 
-  const [reason, setReason] =
-    useState<SubscriptionCancellationReason | null>(
-      null
-    );
+  const [reason, setReason] = useState<SubscriptionCancellationReason | null>(null);
 
-  const [errorMessage, setErrorMessage] =
-    useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [confirmedEffectiveAt, setConfirmedEffectiveAt] =
-    useState<string | null>(effectiveAt);
+  const [confirmedEffectiveAt, setConfirmedEffectiveAt] = useState<string | null>(effectiveAt);
 
   const [resultKind, setResultKind] = useState<
-    | "ordinary"
-    | "withdrawal_automatic"
-    | "withdrawal_manual"
-    | "withdrawal_operational_issue"
+    "ordinary" | "withdrawal_automatic" | "withdrawal_manual" | "withdrawal_operational_issue"
   >("ordinary");
 
-  const [isPending, startTransition] =
-    useTransition();
+  const [isPending, startTransition] = useTransition();
 
   function resetDialog() {
     setDialogState("confirmation");
@@ -109,24 +90,18 @@ export function CancelSubscriptionDialog({
     setErrorMessage(null);
 
     startTransition(async () => {
-      const result =
-        await requestSubscriptionCancellation({
-          operationId,
-          reason,
-          details:
-            reason === "other" && details.trim()
-              ? details.trim()
-              : undefined,
-        });
+      const result = await requestSubscriptionCancellation({
+        operationId,
+        reason,
+        details: reason === "other" && details.trim() ? details.trim() : undefined,
+      });
 
       if (!result.success) {
         setErrorMessage(result.message);
         return;
       }
 
-      setConfirmedEffectiveAt(
-        result.effectiveAt
-      );
+      setConfirmedEffectiveAt(result.effectiveAt);
       setResultKind(result.kind);
 
       setDialogState("success");
@@ -140,10 +115,7 @@ export function CancelSubscriptionDialog({
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={handleOpenChange}
-    >
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -161,16 +133,10 @@ export function CancelSubscriptionDialog({
                 <AlertTriangle className="size-5 text-amber-700" />
               </div>
 
-              <DialogTitle className="text-2xl font-bold">
-                Cancelar assinatura?
-              </DialogTitle>
+              <DialogTitle className="text-2xl font-bold">Cancelar assinatura?</DialogTitle>
 
               <DialogDescription className="leading-relaxed text-slate-500">
-                Você está cancelando o plano{" "}
-                <strong className="text-slate-700">
-                  {planName}
-                </strong>
-                .
+                Você está cancelando o plano <strong className="text-slate-700">{planName}</strong>.
               </DialogDescription>
             </DialogHeader>
 
@@ -183,7 +149,10 @@ export function CancelSubscriptionDialog({
                     </p>
 
                     <p className="mt-2 text-sm leading-relaxed text-amber-900/80">
-                      O cancelamento será imediato e o reembolso integral será iniciado, mesmo que você já tenha feito uma solicitação anterior. Os créditos restantes desta assinatura serão bloqueados; créditos extras e gratuitos válidos continuam disponíveis.
+                      O cancelamento será imediato e o reembolso integral será iniciado, mesmo que
+                      você já tenha feito uma solicitação anterior. Os créditos restantes desta
+                      assinatura serão bloqueados; créditos extras e gratuitos válidos continuam
+                      disponíveis.
                     </p>
                   </>
                 ) : (
@@ -193,8 +162,8 @@ export function CancelSubscriptionDialog({
                     </p>
 
                     <p className="mt-2 text-sm leading-relaxed text-amber-900/80">
-                      Depois dessa data, não haverá nova cobrança e os créditos restantes do plano expirarão.
-                      Créditos adicionais serão mantidos.
+                      Depois dessa data, não haverá nova cobrança e os créditos restantes do plano
+                      expirarão. Créditos adicionais serão mantidos.
                     </p>
                   </>
                 )}
@@ -206,9 +175,7 @@ export function CancelSubscriptionDialog({
                   className="mb-2 block text-sm font-bold text-slate-800"
                 >
                   Motivo do cancelamento{" "}
-                  <span className="font-normal text-slate-400">
-                    (opcional)
-                  </span>
+                  <span className="font-normal text-slate-400">(opcional)</span>
                 </label>
 
                 <Select
@@ -216,9 +183,7 @@ export function CancelSubscriptionDialog({
                   disabled={isPending}
                   onValueChange={(value) => {
                     const selectedReason =
-                      value === "not_informed"
-                        ? null
-                        : (value as SubscriptionCancellationReason);
+                      value === "not_informed" ? null : (value as SubscriptionCancellationReason);
 
                     setReason(selectedReason);
 
@@ -235,20 +200,13 @@ export function CancelSubscriptionDialog({
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="not_informed">
-                      Prefiro não informar
-                    </SelectItem>
+                    <SelectItem value="not_informed">Prefiro não informar</SelectItem>
 
-                    {subscriptionCancellationReasons.map(
-                      (option) => (
-                        <SelectItem
-                          key={option.value}
-                          value={option.value}
-                        >
-                          {option.label}
-                        </SelectItem>
-                      )
-                    )}
+                    {subscriptionCancellationReasons.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
 
@@ -258,10 +216,7 @@ export function CancelSubscriptionDialog({
                       htmlFor="cancellation-details"
                       className="mb-2 block text-sm font-bold text-slate-800"
                     >
-                      Conte o motivo {" "}
-                      <span className="font-normal text-slate-400">
-                        (opcional)
-                      </span>
+                      Conte o motivo <span className="font-normal text-slate-400">(opcional)</span>
                     </label>
 
                     <Textarea
@@ -269,16 +224,12 @@ export function CancelSubscriptionDialog({
                       value={details}
                       maxLength={500}
                       disabled={isPending}
-                      onChange={(event) =>
-                        setDetails(event.target.value)
-                      }
+                      onChange={(event) => setDetails(event.target.value)}
                       placeholder="Conte um pouco mais sobre sua decisão."
                       className="min-h-24 resize-none rounded-xl"
                     />
 
-                    <p className="mt-1 text-right text-xs text-slate-400">
-                      {details.length}/500
-                    </p>
+                    <p className="mt-1 text-right text-xs text-slate-400">{details.length}/500</p>
                   </div>
                 )}
               </div>
@@ -298,9 +249,7 @@ export function CancelSubscriptionDialog({
                 type="button"
                 variant="outline"
                 disabled={isPending}
-                onClick={() =>
-                  handleOpenChange(false)
-                }
+                onClick={() => handleOpenChange(false)}
                 className="h-11 rounded-xl"
               >
                 Manter assinatura
@@ -311,7 +260,7 @@ export function CancelSubscriptionDialog({
                 variant="destructive"
                 disabled={isPending}
                 onClick={handleCancellation}
-                className="h-11 rounded-xl bg-destructive! text-white"
+                className="bg-destructive! h-11 rounded-xl text-white"
                 isLoading={isPending}
                 loadingText="Cancelando..."
               >
@@ -353,14 +302,8 @@ export function CancelSubscriptionDialog({
                   "A assinatura foi cancelada e o reembolso integral foi iniciado. A conclusão será confirmada após o retorno do meio de pagamento."
                 )}
               </p>
-
-
             </div>
-            <Button
-              type="button"
-              onClick={handleFinish}
-              className="h-11 w-full rounded-xl"
-            >
+            <Button type="button" onClick={handleFinish} className="h-11 w-full rounded-xl">
               Entendi
             </Button>
           </div>

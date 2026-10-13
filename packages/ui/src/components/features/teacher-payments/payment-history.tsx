@@ -71,15 +71,25 @@ export function PaymentHistory({ payments, headerAction }: PaymentHistoryProps) 
                   {formatDecimalCurrency(payment.total_amount)}
                 </DataCell>
                 <div className="flex items-center justify-between lg:col-span-1 lg:justify-center">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 lg:hidden">Status</span>
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${status.className}`}>
+                  <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase lg:hidden">
+                    Status
+                  </span>
+                  <span
+                    className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${status.className}`}
+                  >
                     {status.label}
                   </span>
                 </div>
                 <div className="flex items-center justify-between lg:col-span-2 lg:justify-end">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 lg:hidden">Comprovante</span>
+                  <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase lg:hidden">
+                    Comprovante
+                  </span>
                   {payment.receipt_url ? (
-                    <Button asChild variant="ghost" className="rounded-xl font-bold text-blue-600 hover:bg-blue-50">
+                    <Button
+                      asChild
+                      variant="ghost"
+                      className="rounded-xl font-bold text-blue-600 hover:bg-blue-50"
+                    >
                       <a href={payment.receipt_url} target="_blank" rel="noopener noreferrer">
                         <FileText className="size-4" /> Ver comprovante
                       </a>
@@ -98,7 +108,11 @@ export function PaymentHistory({ payments, headerAction }: PaymentHistoryProps) 
 }
 
 function HeaderCell({ className, children }: { className?: string; children: React.ReactNode }) {
-  return <div className={`text-[10px] font-black uppercase tracking-widest text-slate-400 ${className}`}>{children}</div>;
+  return (
+    <div className={`text-[10px] font-black tracking-widest text-slate-400 uppercase ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 function DataCell({
@@ -111,8 +125,12 @@ function DataCell({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`flex items-center justify-between text-sm font-bold text-slate-700 lg:block ${className}`}>
-      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 lg:hidden">{label}</span>
+    <div
+      className={`flex items-center justify-between text-sm font-bold text-slate-700 lg:block ${className}`}
+    >
+      <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase lg:hidden">
+        {label}
+      </span>
       <span>{children}</span>
     </div>
   );

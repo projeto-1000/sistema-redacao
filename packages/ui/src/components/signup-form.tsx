@@ -3,23 +3,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { registerSchema, type RegisterSchema } from "@repo/validators";
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "./form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "./form";
 import { Input } from "./input";
 import { Logo } from "./logo";
 import Link from "next/link";
@@ -32,13 +18,7 @@ import {
   onlyDigits,
 } from "@repo/utils";
 import { Checkbox } from "./checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import { toast } from "sonner";
 import { PasswordRequirements } from "./password-requirements";
 
@@ -47,8 +27,7 @@ type AppType = "admin" | "teacher" | "student";
 const APP_CONFIG: Record<AppType, { title: string; description: string }> = {
   student: {
     title: "Crie sua conta",
-    description:
-      "Junte-se aos nossos estudantes e melhore suas redações hoje mesmo.",
+    description: "Junte-se aos nossos estudantes e melhore suas redações hoje mesmo.",
   },
   teacher: {
     title: "Cadastro de Professor",
@@ -63,10 +42,7 @@ const APP_CONFIG: Record<AppType, { title: string; description: string }> = {
 const PHONE_COUNTRY_CODE_OPTIONS = getPhoneCountryCodeOptions();
 
 type SignUpInitialValues = Partial<
-  Pick<
-    RegisterSchema,
-    "name" | "email" | "document" | "phoneCountryCode" | "phone"
-  >
+  Pick<RegisterSchema, "name" | "email" | "document" | "phoneCountryCode" | "phone">
 >;
 
 interface SignUpLockedFields {
@@ -111,8 +87,7 @@ export function SignUpForm({
       name: initialValues?.name ?? "",
       email: initialValues?.email ?? "",
       document: initialValues?.document ?? "",
-      phoneCountryCode:
-        initialValues?.phoneCountryCode ?? DEFAULT_PHONE_COUNTRY_CODE,
+      phoneCountryCode: initialValues?.phoneCountryCode ?? DEFAULT_PHONE_COUNTRY_CODE,
       phone: initialValues?.phone ?? "",
       password: "",
       confirmPassword: "",
@@ -126,8 +101,7 @@ export function SignUpForm({
 
   const selectedPhoneCountryCode = form.watch("phoneCountryCode");
   const password = form.watch("password");
-  const isBrazilianPhone =
-    selectedPhoneCountryCode === DEFAULT_PHONE_COUNTRY_CODE;
+  const isBrazilianPhone = selectedPhoneCountryCode === DEFAULT_PHONE_COUNTRY_CODE;
 
   const handleSubmit = async (values: RegisterSchema) => {
     try {
@@ -147,37 +121,32 @@ export function SignUpForm({
     "focus-visible:ring-primary focus-visible:border-primary focus-visible:ring-1";
 
   return (
-    <div className="w-full max-w-[500px] flex flex-col items-center">
-      <Logo className="h-20 md:h-22 mb-8" />
+    <div className="flex w-full max-w-[500px] flex-col items-center">
+      <Logo className="mb-8 h-20 md:h-22" />
 
-      <Card className="w-full bg-white rounded-xl shadow-xl border border-slate-100 px-5 py-6 md:py-8 md:px-6">
-        <CardHeader className="text-center gap-2">
-          <CardTitle className="text-2xl font-bold leading-tight">
-            {text.title}
-          </CardTitle>
-          <CardDescription className="text-slate-500 text-sm sm:text-base md:text-[16px]">
+      <Card className="w-full rounded-xl border border-slate-100 bg-white px-5 py-6 shadow-xl md:px-6 md:py-8">
+        <CardHeader className="gap-2 text-center">
+          <CardTitle className="text-2xl leading-tight font-bold">{text.title}</CardTitle>
+          <CardDescription className="text-sm text-slate-500 sm:text-base md:text-[16px]">
             {text.description}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="p-0">
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleSubmit)}
-              className="space-y-5"
-            >
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                    <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                       Nome Completo
                     </FormLabel>
 
                     <FormControl>
                       <Input
-                        className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                        className={`h-12 w-full rounded-2xl p-3.5 ${inputFocusClass}`}
                         placeholder="Digite seu nome completo"
                         {...field}
                       />
@@ -192,12 +161,12 @@ export function SignUpForm({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                    <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                       E-mail
                     </FormLabel>
                     <FormControl>
                       <Input
-                        className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                        className={`h-12 w-full rounded-2xl p-3.5 ${inputFocusClass}`}
                         placeholder="seu@email.com"
                         readOnly={lockedFields?.email}
                         aria-readonly={lockedFields?.email}
@@ -214,13 +183,13 @@ export function SignUpForm({
                 name="document"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                    <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                       CPF
                     </FormLabel>
 
                     <FormControl>
                       <Input
-                        className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                        className={`h-12 w-full rounded-2xl p-3.5 ${inputFocusClass}`}
                         placeholder="000.000.000-00"
                         maxLength={14}
                         inputMode="numeric"
@@ -243,7 +212,7 @@ export function SignUpForm({
                   name="phoneCountryCode"
                   render={({ field }) => (
                     <FormItem className="min-w-0">
-                      <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                      <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                         País
                       </FormLabel>
 
@@ -259,7 +228,7 @@ export function SignUpForm({
                       >
                         <FormControl>
                           <SelectTrigger
-                            className={`w-full rounded-2xl min-h-12 p-3.5 overflow-hidden [&>span]:truncate ${inputFocusClass}`}
+                            className={`min-h-12 w-full overflow-hidden rounded-2xl p-3.5 [&>span]:truncate ${inputFocusClass}`}
                           >
                             <SelectValue placeholder="+55" />
                           </SelectTrigger>
@@ -284,17 +253,15 @@ export function SignUpForm({
                   name="phone"
                   render={({ field }) => (
                     <FormItem className="min-w-0">
-                      <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                      <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                         Celular
                       </FormLabel>
 
                       <FormControl>
                         <Input
-                          className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                          className={`h-12 w-full rounded-2xl p-3.5 ${inputFocusClass}`}
                           placeholder={
-                            isBrazilianPhone
-                              ? "(00) 00000-0000"
-                              : "Digite somente números"
+                            isBrazilianPhone ? "(00) 00000-0000" : "Digite somente números"
                           }
                           maxLength={isBrazilianPhone ? 15 : 20}
                           inputMode="numeric"
@@ -320,13 +287,13 @@ export function SignUpForm({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                    <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                       Senha
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
-                          className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                          className={`h-12 w-full rounded-2xl p-3.5 ${inputFocusClass}`}
                           type={showPassword ? "text" : "password"}
                           placeholder="Crie uma senha segura"
                           {...field}
@@ -335,13 +302,13 @@ export function SignUpForm({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            <EyeOff className="text-muted-foreground h-4 w-4" />
                           ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
+                            <Eye className="text-muted-foreground h-4 w-4" />
                           )}
                         </Button>
                       </div>
@@ -358,13 +325,13 @@ export function SignUpForm({
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                    <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                       Confirmar Senha
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
-                          className={`w-full rounded-2xl h-12 p-3.5 ${inputFocusClass}`}
+                          className={`h-12 w-full rounded-2xl p-3.5 ${inputFocusClass}`}
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="Confirme sua senha"
                           {...field}
@@ -373,15 +340,13 @@ export function SignUpForm({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() =>
-                            setShowConfirmPassword(!showConfirmPassword)
-                          }
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         >
                           {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            <EyeOff className="text-muted-foreground h-4 w-4" />
                           ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
+                            <Eye className="text-muted-foreground h-4 w-4" />
                           )}
                         </Button>
                       </div>
@@ -395,18 +360,17 @@ export function SignUpForm({
                 control={form.control}
                 name="terms"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start my-6">
+                  <FormItem className="my-6 flex flex-row items-start">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5"
                       />
                     </FormControl>
                     <div className="space-y-2 leading-none">
-                      <FormLabel className="text-slate-600 font-medium leading-relaxed">
-                        Eu concordo com os Termos de Uso e Políticas de
-                        Privacidade da plataforma.
+                      <FormLabel className="leading-relaxed font-medium text-slate-600">
+                        Eu concordo com os Termos de Uso e Políticas de Privacidade da plataforma.
                       </FormLabel>
                       <FormMessage />
                     </div>
@@ -416,7 +380,7 @@ export function SignUpForm({
 
               <Button
                 type="submit"
-                className="w-full font-bold h-12 rounded-xl text-[16px]"
+                className="h-12 w-full rounded-xl text-[16px] font-bold"
                 disabled={isLoading || !isValid}
                 isLoading={isLoading}
                 loadingText={loadingText}
@@ -428,13 +392,10 @@ export function SignUpForm({
         </CardContent>
 
         <CardFooter className="flex flex-col justify-center p-0">
-          <div className="w-full pt-4 border-t border-[#e8e4ce] text-center text-sm">
+          <div className="w-full border-t border-[#e8e4ce] pt-4 text-center text-sm">
             <p>
               Já tem uma conta?
-              <Link
-                href="/login"
-                className="text-primary font-medium hover:underline ml-1"
-              >
+              <Link href="/login" className="text-primary ml-1 font-medium hover:underline">
                 Faça login
               </Link>
             </p>

@@ -15,10 +15,7 @@ interface PlanDetailsCardProps {
   planCredits: number;
 }
 
-export function PlanDetailsCard({
-  subscription,
-  planCredits,
-}: PlanDetailsCardProps) {
+export function PlanDetailsCard({ subscription, planCredits }: PlanDetailsCardProps) {
   const viewModel = getPlanDetailsCardViewModel({
     subscription,
     planCredits,

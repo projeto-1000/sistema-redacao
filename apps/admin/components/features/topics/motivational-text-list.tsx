@@ -17,16 +17,18 @@ export function MotivationalTextList() {
   });
 
   return (
-    <div className="space-y-8 ml-0 md:ml-4">
+    <div className="ml-0 space-y-8 md:ml-4">
       {fields.map((field, index) => (
-        <div key={field.id} className="bg-white border border-slate-200 rounded-4xl p-6 md:p-8 shadow-sm relative">
-
-          <div className="flex justify-between items-center mb-6">
+        <div
+          key={field.id}
+          className="relative rounded-4xl border border-slate-200 bg-white p-6 shadow-sm md:p-8"
+        >
+          <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="size-8 bg-amber-400 rounded-full flex items-center justify-center font-black text-sm shadow-sm">
-                {String(index + 1).padStart(2, '0')}
+              <div className="flex size-8 items-center justify-center rounded-full bg-amber-400 text-sm font-black shadow-sm">
+                {String(index + 1).padStart(2, "0")}
               </div>
-              <span className="font-bold text-slate-700 uppercase text-[12px] tracking-widest">
+              <span className="text-[12px] font-bold tracking-widest text-slate-700 uppercase">
                 Texto Motivador
               </span>
             </div>
@@ -36,7 +38,7 @@ export function MotivationalTextList() {
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                className="rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600"
                 onClick={() => remove(index)}
               >
                 <Trash2 className="size-5" />
@@ -45,21 +47,20 @@ export function MotivationalTextList() {
           </div>
 
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               <div className="md:col-span-2">
                 <FormField
                   control={control}
                   name={`motivationalTexts.${index}.bodyText`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[11px] font-bold uppercase tracking-widest">
+                      <FormLabel className="text-[11px] font-bold tracking-widest uppercase">
                         Conteúdo do Texto
                       </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Insira aqui o conteúdo integral do texto de apoio..."
-                          className="h-44 p-4 rounded-xl resize-none leading-relaxed "
+                          className="h-44 resize-none rounded-xl p-4 leading-relaxed"
                           {...field}
                         />
                       </FormControl>
@@ -75,21 +76,25 @@ export function MotivationalTextList() {
                   name={`motivationalTexts.${index}.imageUrl`}
                   render={({ field: { value, onChange } }) => {
                     const fileValue = value as unknown as File | string | undefined;
-                    const previewUrl = fileValue instanceof File ? URL.createObjectURL(fileValue) : fileValue;
+                    const previewUrl =
+                      fileValue instanceof File ? URL.createObjectURL(fileValue) : fileValue;
 
                     return (
                       <FormItem>
-                        <FormLabel className="text-[11px] font-bold uppercase tracking-widest">
+                        <FormLabel className="text-[11px] font-bold tracking-widest uppercase">
                           Imagem
                         </FormLabel>
                         <FormControl>
-                          <div
-                            className="relative w-full h-44 rounded-xl border-2 border-dashed border-slate-200 hover:border-primary bg-slate-50 flex flex-col items-center justify-center overflow-hidden transition-all group">
+                          <div className="hover:border-primary group relative flex h-44 w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 transition-all">
                             {previewUrl ? (
                               <>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={previewUrl as string} alt="Preview" className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <img
+                                  src={previewUrl as string}
+                                  alt="Preview"
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
                                   <Button
                                     type="button"
                                     variant="destructive"
@@ -97,7 +102,7 @@ export function MotivationalTextList() {
                                     className="rounded-full font-bold"
                                     onClick={() => onChange(undefined)}
                                   >
-                                    <X className="size-4 mr-1" /> Remover
+                                    <X className="mr-1 size-4" /> Remover
                                   </Button>
                                 </div>
                               </>
@@ -106,17 +111,19 @@ export function MotivationalTextList() {
                                 <input
                                   type="file"
                                   accept="image/png, image/jpeg, image/webp"
-                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                  className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
                                   onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) onChange(file);
                                   }}
                                 />
-                                <ImagePlus className="size-8 text-slate-400 mb-2 group-hover:text-blue-500 transition-colors" />
-                                <span className="text-[12px] font-bold text-slate-500 group-hover:text-blue-600 transition-colors">
+                                <ImagePlus className="mb-2 size-8 text-slate-400 transition-colors group-hover:text-blue-500" />
+                                <span className="text-[12px] font-bold text-slate-500 transition-colors group-hover:text-blue-600">
                                   Clique ou arraste a imagem
                                 </span>
-                                <span className="text-[11px] text-slate-400 mt-1">PNG ou JPG (Máx 5MB)</span>
+                                <span className="mt-1 text-[11px] text-slate-400">
+                                  PNG ou JPG (Máx 5MB)
+                                </span>
                               </>
                             )}
                           </div>
@@ -135,9 +142,15 @@ export function MotivationalTextList() {
                 name={`motivationalTexts.${index}.sourceReference`}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[11px] font-bold uppercase tracking-widest">Fonte / Referência</FormLabel>
+                    <FormLabel className="text-[11px] font-bold tracking-widest uppercase">
+                      Fonte / Referência
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: IBGE, 2023 / G1 Notícias" className="h-12 rounded-xl " {...field} />
+                      <Input
+                        placeholder="Ex: IBGE, 2023 / G1 Notícias"
+                        className="h-12 rounded-xl"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -151,8 +164,8 @@ export function MotivationalTextList() {
       <Button
         type="button"
         onClick={() => append({ sourceReference: "", bodyText: "", imageUrl: undefined })}
-        variant='ghost'
-        className="w-full h-14 rounded-2xl border-2 border-dashed border-blue-200 text-blue-600 hover:border-blue-400 font-bold text-[16px] transition-all"
+        variant="ghost"
+        className="h-14 w-full rounded-2xl border-2 border-dashed border-blue-200 text-[16px] font-bold text-blue-600 transition-all hover:border-blue-400"
       >
         <Plus className="size-5" /> Adicionar outro texto motivador
       </Button>

@@ -1,6 +1,4 @@
-import type {
-  HistoryDisplayItem,
-} from "@repo/types";
+import type { HistoryDisplayItem } from "@repo/types";
 import { History } from "lucide-react";
 
 import { TablePagination } from "../../table-pagination";
@@ -32,22 +30,14 @@ export function HistoryList({
   emptyMessage = "Nenhuma movimentação encontrada.",
   pageParam = "page",
 }: HistoryListProps) {
-  const {
-    items,
-    totalPages,
-    error,
-  } = data;
+  const { items, totalPages, error } = data;
 
   if (error) {
     return (
       <div className="rounded-4xl border border-red-100 bg-red-50 p-6 text-red-600 shadow-sm md:p-8">
-        <h3 className="font-bold">
-          Não foi possível carregar o histórico
-        </h3>
+        <h3 className="font-bold">Não foi possível carregar o histórico</h3>
 
-        <p className="mt-1 text-sm">
-          {error.message}
-        </p>
+        <p className="mt-1 text-sm">{error.message}</p>
       </div>
     );
   }
@@ -61,40 +51,24 @@ export function HistoryList({
           </div>
 
           <div>
-            <h2 className="text-xl font-black">
-              {title}
-            </h2>
+            <h2 className="text-xl font-black">{title}</h2>
 
-            {description && (
-              <p className="text-sm font-medium text-slate-500">
-                {description}
-              </p>
-            )}
+            {description && <p className="text-sm font-medium text-slate-500">{description}</p>}
           </div>
         </div>
 
         <div className="flex flex-col divide-y divide-slate-100 px-6 md:px-8">
           {items.length > 0 ? (
-            items.map((item) => (
-              <HistoryRow
-                key={`${item.category}-${item.id}`}
-                item={item}
-              />
-            ))
+            items.map((item) => <HistoryRow key={`${item.category}-${item.id}`} item={item} />)
           ) : (
-            <p className="py-8 text-center text-sm font-medium text-slate-500">
-              {emptyMessage}
-            </p>
+            <p className="py-8 text-center text-sm font-medium text-slate-500">{emptyMessage}</p>
           )}
         </div>
       </div>
 
       {totalPages > 0 && (
         <div className="border-t border-slate-100 bg-slate-50 py-4">
-          <TablePagination
-            totalPages={totalPages}
-            pageParam={pageParam}
-          />
+          <TablePagination totalPages={totalPages} pageParam={pageParam} />
         </div>
       )}
     </div>

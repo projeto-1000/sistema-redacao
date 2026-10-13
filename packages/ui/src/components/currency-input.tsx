@@ -5,18 +5,15 @@ import { formatCurrencyInput, parseCurrencyInput } from "@repo/utils";
 import { Input } from "@repo/ui/components/input";
 import { cn } from "@repo/ui/lib/utils";
 
-interface CurrencyInputProps
-  extends Omit<ComponentProps<typeof Input>, "value" | "onChange" | "type"> {
+interface CurrencyInputProps extends Omit<
+  ComponentProps<typeof Input>,
+  "value" | "onChange" | "type"
+> {
   value: number | null;
   onValueChange?: (cents: number | null) => void;
 }
 
-export function CurrencyInput({
-  value,
-  onValueChange,
-  className,
-  ...props
-}: CurrencyInputProps) {
+export function CurrencyInput({ value, onValueChange, className, ...props }: CurrencyInputProps) {
   return (
     <div className="relative">
       <span
@@ -34,8 +31,7 @@ export function CurrencyInput({
         value={formatCurrencyInput(value)}
         onChange={(event) => {
           const cents = parseCurrencyInput(event.target.value);
-          if (cents !== null || event.target.value === "")
-            onValueChange?.(cents);
+          if (cents !== null || event.target.value === "") onValueChange?.(cents);
         }}
       />
     </div>

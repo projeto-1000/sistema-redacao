@@ -1,7 +1,12 @@
 "use server";
 
 import { createClient } from "@/lib/server";
-import type { GradedEssayListItem, TeacherPaymentAccount, TeacherPaymentHistoryItem, TeacherPaymentMetrics } from "@repo/types";
+import type {
+  GradedEssayListItem,
+  TeacherPaymentAccount,
+  TeacherPaymentHistoryItem,
+  TeacherPaymentMetrics,
+} from "@repo/types";
 import { accountFormSchema, type AccountFormValues } from "@repo/validators";
 import { normalizeCNPJ, normalizeDocument } from "@repo/utils";
 import { revalidatePath } from "next/cache";
@@ -10,11 +15,18 @@ const RECEIPT_URL_TTL_SECONDS = 60 * 60;
 
 async function getAuthenticatedTeacher() {
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
   if (error || !user) throw new Error("Usuário não autenticado.");
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
   if (profile?.role !== "TEACHER") throw new Error("Acesso permitido apenas para professores.");
 
   return { supabase, teacherId: user.id };
@@ -22,14 +34,20 @@ async function getAuthenticatedTeacher() {
 
 async function getReceiptAccessUrl(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  receiptPath: string | null,
+  receiptPath: string | null
 ) {
   if (!receiptPath) return null;
-  const { data, error } = await supabase.storage.from("receipts").createSignedUrl(receiptPath, RECEIPT_URL_TTL_SECONDS);
+  const { data, error } = await supabase.storage
+    .from("receipts")
+    .createSignedUrl(receiptPath, RECEIPT_URL_TTL_SECONDS);
   return error ? null : data.signedUrl;
 }
 
-export async function getTeacherPaymentDashboard(month: string, page = 1, limit = 10): Promise<{
+export async function getTeacherPaymentDashboard(
+  month: string,
+  page = 1,
+  limit = 10
+): Promise<{
   teacherId: string;
   metrics: TeacherPaymentMetrics;
   accounts: TeacherPaymentAccount[];
@@ -47,39 +65,49 @@ export async function getTeacherPaymentDashboard(month: string, page = 1, limit 
   const rangeStart = (page - 1) * limit;
   const rangeEnd = rangeStart + limit - 1;
 
-  const [essaysResult, paymentResult, rateResult, accountsResult, historyResult] = await Promise.all([
-    supabase
-      .from("essays_with_delivery")
-      .select("id, title, correction_date, total_score, student_name, student_avatar, is_on_late")
-      .eq("teacher_id", teacherId)
-      .eq("status", "corrected")
-      .gte("correction_date", start)
-      .lte("correction_date", end),
-    supabase
-      .from("teacher_payments")
-      .select("status, receipt_url, total_amount, essays_count, unit_value")
-      .eq("teacher_id", teacherId)
-      .eq("billing_month", start.slice(0, 10))
-      .maybeSingle(),
-    supabase.rpc("resolve_teacher_correction_rate", {
-      p_teacher_id: teacherId,
-      p_billing_month: start.slice(0, 10),
-    }),
-    supabase
-      .from("teacher_payment_accounts")
-      .select("*")
-      .eq("teacher_id", teacherId)
-      .order("is_default", { ascending: false })
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("teacher_payments")
-      .select("id, billing_month, essays_count, unit_value, total_amount, status, receipt_url, processed_at", { count: "exact" })
-      .eq("teacher_id", teacherId)
-      .order("billing_month", { ascending: false })
-      .range(rangeStart, rangeEnd),
-  ]);
+  const [essaysResult, paymentResult, rateResult, accountsResult, historyResult] =
+    await Promise.all([
+      supabase
+        .from("essays_with_delivery")
+        .select("id, title, correction_date, total_score, student_name, student_avatar, is_on_late")
+        .eq("teacher_id", teacherId)
+        .eq("status", "corrected")
+        .gte("correction_date", start)
+        .lte("correction_date", end),
+      supabase
+        .from("teacher_payments")
+        .select("status, receipt_url, total_amount, essays_count, unit_value")
+        .eq("teacher_id", teacherId)
+        .eq("billing_month", start.slice(0, 10))
+        .maybeSingle(),
+      supabase.rpc("resolve_teacher_correction_rate", {
+        p_teacher_id: teacherId,
+        p_billing_month: start.slice(0, 10),
+      }),
+      supabase
+        .from("teacher_payment_accounts")
+        .select("*")
+        .eq("teacher_id", teacherId)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("teacher_payments")
+        .select(
+          "id, billing_month, essays_count, unit_value, total_amount, status, receipt_url, processed_at",
+          { count: "exact" }
+        )
+        .eq("teacher_id", teacherId)
+        .order("billing_month", { ascending: false })
+        .range(rangeStart, rangeEnd),
+    ]);
 
-  if (essaysResult.error || paymentResult.error || rateResult.error || accountsResult.error || historyResult.error) {
+  if (
+    essaysResult.error ||
+    paymentResult.error ||
+    rateResult.error ||
+    accountsResult.error ||
+    historyResult.error
+  ) {
     console.error("Erro ao carregar painel de pagamentos do professor:", {
       essays: essaysResult.error,
       payment: paymentResult.error,
@@ -100,7 +128,7 @@ export async function getTeacherPaymentDashboard(month: string, page = 1, limit 
       unit_value: Number(item.unit_value),
       total_amount: Number(item.total_amount),
       receipt_url: await getReceiptAccessUrl(supabase, item.receipt_url),
-    })),
+    }))
   );
 
   return {
@@ -113,7 +141,7 @@ export async function getTeacherPaymentDashboard(month: string, page = 1, limit 
       dailyAverage: totalEssays > 0 ? Number((totalEssays / daysInMonth).toFixed(1)) : 0,
       totalAmount: payment ? Number(payment.total_amount) : totalEssays * valuePerCorrection,
       status: payment?.status ?? null,
-      receiptUrl: await getReceiptAccessUrl(supabase, payment?.receipt_url ?? null) ?? undefined,
+      receiptUrl: (await getReceiptAccessUrl(supabase, payment?.receipt_url ?? null)) ?? undefined,
     },
     accounts: accountsResult.data as TeacherPaymentAccount[],
     essays: essaysResult.data.map((essay) => ({
@@ -136,17 +164,19 @@ function sanitizeAccount(values: AccountFormValues) {
     owner_name: data.ownerName,
     owner_document: normalizeDocument(data.ownerDocument),
     pix_type: data.type === "pix" ? data.pixType : null,
-    pix_key: data.type === "pix"
-      ? data.pixType === "cnpj"
-        ? normalizeCNPJ(data.pixKey)
-        : ["cpf", "phone"].includes(data.pixType)
-          ? data.pixKey.replace(/\D/g, "")
-          : data.pixKey
-      : null,
+    pix_key:
+      data.type === "pix"
+        ? data.pixType === "cnpj"
+          ? normalizeCNPJ(data.pixKey)
+          : ["cpf", "phone"].includes(data.pixType)
+            ? data.pixKey.replace(/\D/g, "")
+            : data.pixKey
+        : null,
     bank_name: data.type === "bank_account" ? data.bankName : null,
     account_variant: data.type === "bank_account" ? data.accountVariant : null,
     agency: data.type === "bank_account" ? data.agency.replace(/[^a-zA-Z0-9]/g, "") : null,
-    account_number: data.type === "bank_account" ? data.accountNumber.replace(/[^a-zA-Z0-9]/g, "") : null,
+    account_number:
+      data.type === "bank_account" ? data.accountNumber.replace(/[^a-zA-Z0-9]/g, "") : null,
   };
   return { data, payload: common };
 }
@@ -155,7 +185,10 @@ export async function createOwnPaymentAccount(values: AccountFormValues) {
   try {
     const { supabase, teacherId } = await getAuthenticatedTeacher();
     const { data, payload } = sanitizeAccount(values);
-    const { count } = await supabase.from("teacher_payment_accounts").select("id", { count: "exact", head: true }).eq("teacher_id", teacherId);
+    const { count } = await supabase
+      .from("teacher_payment_accounts")
+      .select("id", { count: "exact", head: true })
+      .eq("teacher_id", teacherId);
     const { data: account, error } = await supabase
       .from("teacher_payment_accounts")
       .insert({ ...payload, teacher_id: teacherId, is_default: false })
@@ -164,9 +197,15 @@ export async function createOwnPaymentAccount(values: AccountFormValues) {
     if (error) throw error;
 
     if (data.isDefault || count === 0) {
-      const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: account.id });
+      const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", {
+        p_account_id: account.id,
+      });
       if (defaultError) {
-        await supabase.from("teacher_payment_accounts").delete().eq("id", account.id).eq("teacher_id", teacherId);
+        await supabase
+          .from("teacher_payment_accounts")
+          .delete()
+          .eq("id", account.id)
+          .eq("teacher_id", teacherId);
         throw defaultError;
       }
     }
@@ -183,11 +222,17 @@ export async function updateOwnPaymentAccount(accountId: string, values: Account
   try {
     const { supabase, teacherId } = await getAuthenticatedTeacher();
     const { data, payload } = sanitizeAccount(values);
-    const { error } = await supabase.from("teacher_payment_accounts").update({ ...payload, updated_at: new Date().toISOString() }).eq("id", accountId).eq("teacher_id", teacherId);
+    const { error } = await supabase
+      .from("teacher_payment_accounts")
+      .update({ ...payload, updated_at: new Date().toISOString() })
+      .eq("id", accountId)
+      .eq("teacher_id", teacherId);
     if (error) throw error;
 
     if (data.isDefault) {
-      const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: accountId });
+      const { error: defaultError } = await supabase.rpc("set_teacher_default_payment_account", {
+        p_account_id: accountId,
+      });
       if (defaultError) throw defaultError;
     }
 
@@ -202,7 +247,9 @@ export async function updateOwnPaymentAccount(accountId: string, values: Account
 export async function setOwnDefaultPaymentAccount(accountId: string) {
   try {
     const { supabase } = await getAuthenticatedTeacher();
-    const { error } = await supabase.rpc("set_teacher_default_payment_account", { p_account_id: accountId });
+    const { error } = await supabase.rpc("set_teacher_default_payment_account", {
+      p_account_id: accountId,
+    });
     if (error) throw error;
     revalidatePath("/pagamentos");
     return { success: true };
@@ -215,7 +262,9 @@ export async function setOwnDefaultPaymentAccount(accountId: string) {
 export async function deleteOwnPaymentAccount(accountId: string) {
   try {
     const { supabase } = await getAuthenticatedTeacher();
-    const { error } = await supabase.rpc("delete_teacher_payment_account", { p_account_id: accountId });
+    const { error } = await supabase.rpc("delete_teacher_payment_account", {
+      p_account_id: accountId,
+    });
     if (error) throw error;
     revalidatePath("/pagamentos");
     return { success: true };

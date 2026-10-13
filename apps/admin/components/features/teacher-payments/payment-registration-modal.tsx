@@ -1,11 +1,38 @@
 "use client";
 
-import { useState, useRef, useTransition, useEffect } from "react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@repo/ui/components/dialog";
+import { useState, useRef, useTransition } from "react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@repo/ui/components/dialog";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@repo/ui/components/dropdown-menu";
-import { Banknote, CalendarDays, Copy, UploadCloud, CheckCircle2, User, Receipt, FileText, X, KeyRound, Landmark, AlertCircle, ArrowRightLeft } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu";
+import {
+  Banknote,
+  CalendarDays,
+  Copy,
+  UploadCloud,
+  CheckCircle2,
+  User,
+  Receipt,
+  FileText,
+  X,
+  KeyRound,
+  Landmark,
+  AlertCircle,
+  ArrowRightLeft,
+} from "lucide-react";
 import { createTeacherPayment } from "@/app/actions/teacher-payments";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -32,7 +59,10 @@ interface PaymentRegistrationModalProps {
 }
 
 export function PaymentRegistrationModal({
-  teacherId, month, metrics, accounts
+  teacherId,
+  month,
+  metrics,
+  accounts,
 }: PaymentRegistrationModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -42,17 +72,10 @@ export function PaymentRegistrationModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedAccount, setSelectedAccount] = useState<AccountData | null>(() => {
-    return accounts.find(a => a.is_default) || accounts[0] || null;
+    return accounts.find((a) => a.is_default) || accounts[0] || null;
   });
 
   const formattedPeriod = format(parseISO(`${month}-01`), "MMMM / yyyy", { locale: ptBR });
-
-  useEffect(() => {
-    if (isOpen) {
-      setSelectedAccount(accounts.find(a => a.is_default) || accounts[0] || null);
-      setPaymentDate(getTodayInSaoPaulo());
-    }
-  }, [isOpen, accounts]);
 
   const handleCopyPix = () => {
     if (!selectedAccount?.pix_key) return;
@@ -126,43 +149,55 @@ export function PaymentRegistrationModal({
     });
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setSelectedAccount(accounts.find((a) => a.is_default) || accounts[0] || null);
+      setPaymentDate(getTodayInSaoPaulo());
+    } else {
+      clearReceipt();
+      setIsDraggingFile(false);
+    }
+
+    setIsOpen(open);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      if (!open) {
-        clearReceipt();
-        setIsDraggingFile(false);
-      }
-    }}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button className="w-full h-14 rounded-2xl font-black text-sm shadow-sm">
-          <Banknote className="size-5 mr-2" /> Registrar Pagamento Manual
+        <Button className="h-14 w-full rounded-2xl text-sm font-black shadow-sm">
+          <Banknote className="mr-2 size-5" /> Registrar Pagamento Manual
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-md h-[90dvh] p-0 rounded-4xl border-none shadow-2xl bg-white overflow-hidden flex flex-col">
-        <DialogHeader className="p-6 pb-4 border-b border-slate-50 flex items-center shrink-0">
+      <DialogContent className="flex h-[90dvh] max-w-md flex-col overflow-hidden rounded-4xl border-none bg-white p-0 shadow-2xl">
+        <DialogHeader className="flex shrink-0 items-center border-b border-slate-50 p-6 pb-4">
           <DialogTitle className="text-xl font-black tracking-tight">
             Confirmar Pagamento
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-6 space-y-6 no-scrollbar overflow-y-auto flex-1">
-
-          <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4">
-            <div className="flex items-center gap-2 mb-4">
+        <div className="no-scrollbar flex-1 space-y-6 overflow-y-auto px-6">
+          <div className="rounded-2xl border border-slate-200 bg-slate-100 p-4">
+            <div className="mb-4 flex items-center gap-2">
               <User className="size-4 text-blue-600" />
               <h4 className="text-sm font-bold text-slate-800">Dados do Titular</h4>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nome Completo</p>
-                <p className="text-sm font-bold text-slate-700 truncate" title={selectedAccount?.owner_name}>
-                  {selectedAccount?.owner_name || 'Não cadastrado'}
+                <p className="mb-1 text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                  Nome Completo
+                </p>
+                <p
+                  className="truncate text-sm font-bold text-slate-700"
+                  title={selectedAccount?.owner_name}
+                >
+                  {selectedAccount?.owner_name || "Não cadastrado"}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">CPF / CNPJ</p>
+                <p className="mb-1 text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                  CPF / CNPJ
+                </p>
                 <p className="text-sm font-bold text-slate-700">
                   {selectedAccount?.owner_document || "Não informado"}
                 </p>
@@ -170,31 +205,39 @@ export function PaymentRegistrationModal({
             </div>
           </div>
 
-          <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4 flex flex-col">
-            <div className="flex items-center gap-2 mb-4">
-              <Receipt className="size-4 text-primary" />
+          <div className="flex flex-col rounded-2xl border border-slate-200 bg-slate-100 p-4">
+            <div className="mb-4 flex items-center gap-2">
+              <Receipt className="text-primary size-4" />
               <h4 className="text-sm font-bold text-slate-800">Resumo do Pagamento</h4>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Período Referência</p>
+                <p className="mb-1 text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                  Período Referência
+                </p>
                 <p className="text-sm font-bold text-slate-700 capitalize">{formattedPeriod}</p>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Redações Corrigidas</p>
+                <p className="mb-1 text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                  Redações Corrigidas
+                </p>
                 <p className="text-sm font-bold text-slate-700">{metrics.totalEssays}</p>
               </div>
             </div>
 
-            <div className="mt-4 rounded-xl flex justify-end gap-6 items-end">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Valor Total</p>
-              <p className="text-lg font-black text-primary">R$ {metrics.totalAmount.toFixed(2).replace(".", ",")}</p>
+            <div className="mt-4 flex items-end justify-end gap-6 rounded-xl">
+              <p className="mb-0.5 text-[10px] font-black tracking-widest text-slate-500 uppercase">
+                Valor Total
+              </p>
+              <p className="text-primary text-lg font-black">
+                R$ {metrics.totalAmount.toFixed(2).replace(".", ",")}
+              </p>
             </div>
 
             <label className="mt-4 block border-t border-slate-200 pt-4">
-              <span className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                <CalendarDays className="size-3.5 text-primary" /> Data do pagamento
+              <span className="mb-2 flex items-center gap-2 text-[10px] font-black tracking-widest text-slate-500 uppercase">
+                <CalendarDays className="text-primary size-3.5" /> Data do pagamento
               </span>
               <Input
                 type="date"
@@ -209,25 +252,37 @@ export function PaymentRegistrationModal({
 
           <div>
             {!selectedAccount ? (
-              <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-100 rounded-2xl text-orange-700">
+              <div className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-orange-700">
                 <AlertCircle className="size-5 shrink-0" />
-                <p className="text-sm font-medium">Este professor ainda não cadastrou uma conta bancária padrão.</p>
+                <p className="text-sm font-medium">
+                  Este professor ainda não cadastrou uma conta bancária padrão.
+                </p>
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                    {selectedAccount.type === 'pix' ? <KeyRound className="size-4 text-purple-600" /> : <Landmark className="size-4 text-blue-600" />}
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="flex items-center gap-2 text-sm font-black text-slate-800">
+                    {selectedAccount.type === "pix" ? (
+                      <KeyRound className="size-4 text-purple-600" />
+                    ) : (
+                      <Landmark className="size-4 text-blue-600" />
+                    )}
                     Conta de Recebimento
                     {selectedAccount.is_default && (
-                      <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-sm uppercase tracking-wider ml-1">Padrão</span>
+                      <span className="ml-1 rounded-sm bg-emerald-50 px-1.5 py-0.5 text-[9px] tracking-wider text-emerald-600 uppercase">
+                        Padrão
+                      </span>
                     )}
                   </h4>
 
                   {accounts.length > 1 && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold text-[14px]">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-[14px] font-bold text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                        >
                           <ArrowRightLeft className="size-3.5" /> Trocar conta
                         </Button>
                       </DropdownMenuTrigger>
@@ -236,18 +291,22 @@ export function PaymentRegistrationModal({
                           <DropdownMenuItem
                             key={acc.id || index}
                             onClick={() => setSelectedAccount(acc)}
-                            className={`flex flex-col items-start gap-1 p-3 cursor-pointer rounded-lg ${selectedAccount.id === acc.id ? 'bg-slate-50' : ''}`}
+                            className={`flex cursor-pointer flex-col items-start gap-1 rounded-lg p-3 ${selectedAccount.id === acc.id ? "bg-slate-50" : ""}`}
                           >
-                            <div className="flex items-center justify-between w-full">
+                            <div className="flex w-full items-center justify-between">
                               <span className="text-sm font-bold text-slate-800">
-                                {acc.type === 'pix' ? 'Chave PIX' : acc.bank_name}
+                                {acc.type === "pix" ? "Chave PIX" : acc.bank_name}
                               </span>
                               {acc.is_default && (
-                                <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Padrão</span>
+                                <span className="rounded-sm bg-emerald-50 px-1.5 py-0.5 text-[9px] tracking-wider text-emerald-600 uppercase">
+                                  Padrão
+                                </span>
                               )}
                             </div>
                             <span className="text-xs font-medium text-slate-500">
-                              {acc.type === 'pix' ? acc.pix_key : `Ag: ${acc.agency} | CC: ${acc.account_number}`}
+                              {acc.type === "pix"
+                                ? acc.pix_key
+                                : `Ag: ${acc.agency} | CC: ${acc.account_number}`}
                             </span>
                           </DropdownMenuItem>
                         ))}
@@ -258,35 +317,57 @@ export function PaymentRegistrationModal({
 
                 {selectedAccount.type === "pix" ? (
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl h-11 px-3 overflow-hidden">
-                      <span className="text-sm font-medium text-slate-600 truncate">
-                        {maskPixKey(selectedAccount.pix_key ?? "", selectedAccount.pix_type ?? "cpf")}
+                    <div className="flex h-11 flex-1 items-center justify-between overflow-hidden rounded-xl border border-slate-200 bg-slate-50 px-3">
+                      <span className="truncate text-sm font-medium text-slate-600">
+                        {maskPixKey(
+                          selectedAccount.pix_key ?? "",
+                          selectedAccount.pix_type ?? "cpf"
+                        )}
                       </span>
-                      <span className="bg-[#FDEEE3] text-[#C47E3A] text-[10px] font-black uppercase px-2 py-1 rounded-md tracking-wider shrink-0 ml-2">
+                      <span className="ml-2 shrink-0 rounded-md bg-[#FDEEE3] px-2 py-1 text-[10px] font-black tracking-wider text-[#C47E3A] uppercase">
                         {selectedAccount.pix_type}
                       </span>
                     </div>
-                    <Button onClick={handleCopyPix} className="h-11 rounded-xl shadow-sm shrink-0 text-[14px]">
+                    <Button
+                      onClick={handleCopyPix}
+                      className="h-11 shrink-0 rounded-xl text-[14px] shadow-sm"
+                    >
                       <Copy className="size-3.5" /> Copiar
                     </Button>
                   </div>
                 ) : (
-                  <div className="relative group">
-                    <Button variant="ghost" size="icon" onClick={handleCopyBank} className="absolute top-2 right-2 h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50 bg-white rounded-lg shadow-sm border border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  <div className="group relative">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleCopyBank}
+                      className="absolute top-2 right-2 z-10 h-8 w-8 rounded-lg border border-slate-100 bg-white text-slate-400 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:bg-blue-50 hover:text-blue-600"
+                    >
                       <Copy className="size-3.5" />
                     </Button>
-                    <div className="grid grid-cols-2 gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                    <div className="grid grid-cols-2 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                       <div className="col-span-2">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Banco</p>
-                        <p className="text-sm font-bold text-slate-700">{selectedAccount.bank_name}</p>
+                        <p className="mb-0.5 text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                          Banco
+                        </p>
+                        <p className="text-sm font-bold text-slate-700">
+                          {selectedAccount.bank_name}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Agência</p>
+                        <p className="mb-0.5 text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                          Agência
+                        </p>
                         <p className="text-sm font-bold text-slate-700">{selectedAccount.agency}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Conta {selectedAccount.account_variant === 'poupanca' ? 'Poupança' : 'Corrente'}</p>
-                        <p className="text-sm font-bold text-slate-700">{selectedAccount.account_number}</p>
+                        <p className="mb-0.5 text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                          Conta{" "}
+                          {selectedAccount.account_variant === "poupanca" ? "Poupança" : "Corrente"}
+                        </p>
+                        <p className="text-sm font-bold text-slate-700">
+                          {selectedAccount.account_number}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -296,8 +377,8 @@ export function PaymentRegistrationModal({
           </div>
 
           <div>
-            <h4 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
-              <FileText className="size-4 text-primary" /> Comprovante de Pagamento
+            <h4 className="mb-4 flex items-center gap-2 text-sm font-black text-slate-800">
+              <FileText className="text-primary size-4" /> Comprovante de Pagamento
             </h4>
 
             <input
@@ -317,20 +398,27 @@ export function PaymentRegistrationModal({
                     fileInputRef.current?.click();
                   }
                 }}
-                onDragEnter={(event) => { event.preventDefault(); setIsDraggingFile(true); }}
-                onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; }}
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                  setIsDraggingFile(true);
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "copy";
+                }}
                 onDragLeave={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsDraggingFile(false);
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+                    setIsDraggingFile(false);
                 }}
                 onDrop={handleFileDrop}
                 role="button"
                 tabIndex={0}
-                className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${isDraggingFile ? "border-primary bg-blue-50" : "border-slate-200 hover:bg-slate-50 hover:border-primary"}`}
+                className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors ${isDraggingFile ? "border-primary bg-blue-50" : "hover:border-primary border-slate-200 hover:bg-slate-50"}`}
               >
-                <div className="size-10 rounded-full bg-blue-50 flex items-center justify-center mb-3">
-                  <UploadCloud className="size-5 text-primary" />
+                <div className="mb-3 flex size-10 items-center justify-center rounded-full bg-blue-50">
+                  <UploadCloud className="text-primary size-5" />
                 </div>
-                <p className="text-sm font-bold text-slate-700 mb-1">
+                <p className="mb-1 text-sm font-bold text-slate-700">
                   Arraste e solte o comprovante aqui
                 </p>
                 <p className="text-xs font-medium text-slate-400">
@@ -338,20 +426,18 @@ export function PaymentRegistrationModal({
                 </p>
               </div>
             ) : (
-              <div className="border border-emerald-200 bg-emerald-50 rounded-2xl p-4 flex items-center justify-between">
+              <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="size-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-100">
                     <CheckCircle2 className="size-4 text-emerald-600" />
                   </div>
-                  <span className="text-sm font-bold text-emerald-800 truncate">
-                    {file.name}
-                  </span>
+                  <span className="truncate text-sm font-bold text-emerald-800">{file.name}</span>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={clearReceipt}
-                  className="text-emerald-600 hover:bg-emerald-100 rounded-full h-8 w-8 shrink-0"
+                  className="h-8 w-8 shrink-0 rounded-full text-emerald-600 hover:bg-emerald-100"
                 >
                   <X className="size-4" />
                 </Button>
@@ -360,11 +446,11 @@ export function PaymentRegistrationModal({
           </div>
         </div>
 
-        <DialogFooter className="p-6 border-t border-slate-100 flex items-center justify-between gap-4 bg-slate-50 shrink-0">
+        <DialogFooter className="flex shrink-0 items-center justify-between gap-4 border-t border-slate-100 bg-slate-50 p-6">
           <DialogClose asChild>
             <Button
               variant="ghost"
-              className="text-slate-500 font-bold hover:bg-slate-200 rounded-xl px-6"
+              className="rounded-xl px-6 font-bold text-slate-500 hover:bg-slate-200"
               disabled={isPending}
             >
               Cancelar
@@ -373,7 +459,7 @@ export function PaymentRegistrationModal({
           <Button
             onClick={handleSubmit}
             disabled={!file || !selectedAccount || !paymentDate || isPending}
-            className="flex-1 font-black rounded-xl h-11 shadow-sm"
+            className="h-11 flex-1 rounded-xl font-black shadow-sm"
             isLoading={isPending}
             loadingText="Enviando..."
           >

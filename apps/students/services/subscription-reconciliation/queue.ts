@@ -13,10 +13,7 @@ function getAttemptCount(metadata: Record<string, unknown> | null) {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : 0;
 }
 
-export function isReconciliationRetryDue(
-  metadata: Record<string, unknown> | null,
-  now: Date
-) {
+export function isReconciliationRetryDue(metadata: Record<string, unknown> | null, now: Date) {
   const retryAfter = metadata?.reconciliation_retry_after;
 
   if (typeof retryAfter !== "string") {
@@ -44,9 +41,7 @@ export function buildReconciliationAttemptMetadata(
 ) {
   const attemptCount = getAttemptCount(metadata) + 1;
   const backoffIndex = Math.min(attemptCount - 1, RECONCILIATION_BACKOFF_MS.length - 1);
-  const retryAfter = new Date(
-    now.getTime() + RECONCILIATION_BACKOFF_MS[backoffIndex]!
-  );
+  const retryAfter = new Date(now.getTime() + RECONCILIATION_BACKOFF_MS[backoffIndex]!);
 
   return {
     ...(metadata ?? {}),

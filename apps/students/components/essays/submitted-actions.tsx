@@ -12,7 +12,7 @@ const statusConfig: Record<Exclude<EssayStatus, "draft">, { label: string; disab
 
 interface SubmittedActionsProps {
   status: Exclude<EssayStatus, "draft">;
-  essayId: string
+  essayId: string;
 }
 
 export function SubmittedActions({ status, essayId }: SubmittedActionsProps) {
@@ -20,7 +20,7 @@ export function SubmittedActions({ status, essayId }: SubmittedActionsProps) {
 
   if (status === "pending") {
     return (
-      <div className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-accent/50 px-4 text-sm font-semibold text-secondary/70">
+      <div className="bg-accent/50 text-secondary/70 flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold">
         <Clock3 className="size-4 shrink-0" aria-hidden="true" />
         <span>Aguardando correção</span>
       </div>
@@ -32,7 +32,7 @@ export function SubmittedActions({ status, essayId }: SubmittedActionsProps) {
       <Button
         variant="ghost"
         disabled
-        className="w-full bg-accent/50 text-secondary/60 font-bold rounded-xl h-10 cursor-not-allowed"
+        className="bg-accent/50 text-secondary/60 h-10 w-full cursor-not-allowed rounded-xl font-bold"
       >
         {action.label}
       </Button>
@@ -43,11 +43,9 @@ export function SubmittedActions({ status, essayId }: SubmittedActionsProps) {
     <Button
       asChild
       variant="ghost"
-      className="w-full bg-accent text-secondary hover:bg-accent/80 font-bold rounded-xl h-10"
+      className="bg-accent text-secondary hover:bg-accent/80 h-10 w-full rounded-xl font-bold"
     >
-      <Link href={`/minhas-redacoes/${essayId}`}>
-        {action.label}
-      </Link>
+      <Link href={`/minhas-redacoes/${essayId}`}>{action.label}</Link>
     </Button>
   );
 }

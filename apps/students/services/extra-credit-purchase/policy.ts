@@ -4,10 +4,7 @@ import type { ExtraCreditPurchaseResult, ExtraCreditPurchaseStatus } from "@repo
 const PENDING_STATUSES = new Set(["pending", "processing"]);
 const FAILED_STATUSES = new Set(["failed", "canceled", "cancelled", "not_authorized", "refused"]);
 
-const INTERNAL_PLAN_EXTERNAL_IDS = new Set([
-  "internal_free_trial",
-  "internal_mentoria_free",
-]);
+const INTERNAL_PLAN_EXTERNAL_IDS = new Set(["internal_free_trial", "internal_mentoria_free"]);
 
 export type ExtraCreditEligibilityReason =
   | "NO_SUBSCRIPTION"
@@ -41,8 +38,7 @@ export function evaluateExtraCreditEligibility({
   remoteStatus,
   remoteLookupFailed = false,
 }: ExtraCreditEligibilityInput):
-  | { eligible: true; reason: null }
-  | { eligible: false; reason: ExtraCreditEligibilityReason } {
+  { eligible: true; reason: null } | { eligible: false; reason: ExtraCreditEligibilityReason } {
   if (!subscription) {
     return { eligible: false, reason: "NO_SUBSCRIPTION" };
   }
@@ -67,10 +63,7 @@ export function evaluateExtraCreditEligibility({
     return { eligible: false, reason: "NO_REMOTE_SUBSCRIPTION" };
   }
 
-  if (
-    subscription.cancelAtPeriodEnd &&
-    subscription.cancellationMode === "end_of_period"
-  ) {
+  if (subscription.cancelAtPeriodEnd && subscription.cancellationMode === "end_of_period") {
     return { eligible: true, reason: null };
   }
 

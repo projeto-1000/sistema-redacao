@@ -33,9 +33,7 @@ export function AdminAuditFiltersBar({ actors }: { actors: AuditActorOption[] })
   const [, startTransition] = useTransition();
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") ?? "");
   const [actorId, setActorId] = useState(searchParams.get("actorId") ?? "all");
-  const [resourceType, setResourceType] = useState(
-    searchParams.get("resourceType") ?? "all"
-  );
+  const [resourceType, setResourceType] = useState(searchParams.get("resourceType") ?? "all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const from = parseDateParam(searchParams.get("from"));
     const to = parseDateParam(searchParams.get("to"));

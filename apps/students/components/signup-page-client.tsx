@@ -48,22 +48,14 @@ export function SignupPageClient({ context }: SignupPageClientProps) {
           ? "Confirme seus dados para liberar seu acesso ao Projeto 1000."
           : undefined
       }
-      submitLabel={
-        isHotmartMentorship ? "Finalizar cadastro" : "Cadastrar"
-      }
-      loadingText={
-        isHotmartMentorship
-          ? "Finalizando cadastro..."
-          : "Criando conta..."
-      }
-      initialValues={
-        isHotmartMentorship ? context.initialValues : undefined
-      }
+      submitLabel={isHotmartMentorship ? "Finalizar cadastro" : "Cadastrar"}
+      loadingText={isHotmartMentorship ? "Finalizando cadastro..." : "Criando conta..."}
+      initialValues={isHotmartMentorship ? context.initialValues : undefined}
       lockedFields={
         isHotmartMentorship
           ? {
-            email: true,
-          }
+              email: true,
+            }
           : undefined
       }
       onSubmit={handleRegister}

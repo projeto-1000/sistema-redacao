@@ -20,9 +20,7 @@ export function PasswordRequirements({ password }: PasswordRequirementsProps) {
             <li
               key={requirement.id}
               className={
-                isMet
-                  ? "flex items-center gap-2 text-emerald-600"
-                  : "flex items-center gap-2"
+                isMet ? "flex items-center gap-2 text-emerald-600" : "flex items-center gap-2"
               }
             >
               <Icon className="size-3.5 shrink-0" aria-hidden="true" />

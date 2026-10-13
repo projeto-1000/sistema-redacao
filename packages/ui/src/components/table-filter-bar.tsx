@@ -49,13 +49,12 @@ export function TableFilterBar(props: TableFilterBarProps) {
 
   const hasActiveFilters =
     searchTerm !== "" ||
-    (dateRange?.from !== undefined) ||
+    dateRange?.from !== undefined ||
     filters.some((filter) => filter.value !== (filter.defaultValue ?? ""));
-
 
   const countFilterItems = () => {
     const baseFiltersCount = 1 + filters.length;
-    const hasDateRangeProp = 'dateRange' in props;
+    const hasDateRangeProp = "dateRange" in props;
 
     return hasDateRangeProp ? baseFiltersCount + 1 : baseFiltersCount;
   };
@@ -65,7 +64,7 @@ export function TableFilterBar(props: TableFilterBarProps) {
   const handleClearFilters = () => {
     onSearchChange("");
     if (onDateRangeChange) onDateRangeChange(undefined);
-    filters.forEach(filter => filter.onChange(filter.defaultValue ?? ""));
+    filters.forEach((filter) => filter.onChange(filter.defaultValue ?? ""));
     setSelectedPreset(null); // Atualizado aqui
   };
 
@@ -82,7 +81,6 @@ export function TableFilterBar(props: TableFilterBarProps) {
     return "Selecione";
   };
 
-
   const handlePresetClick = (label: string, getFromDate: (hoje: Date) => Date) => {
     const today = new Date();
     setSelectedPreset(label);
@@ -97,37 +95,41 @@ export function TableFilterBar(props: TableFilterBarProps) {
   };
 
   return (
-    <div className={`bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-8 flex gap-2 relative z-10 ${totalFilters > 2 ? 'flex-col' : 'flex-row'} md:flex-row`}>
-      <div className="relative flex-1 min-w-0 w-full">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+    <div
+      className={`relative z-10 mb-8 flex gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm ${totalFilters > 2 ? "flex-col" : "flex-row"} md:flex-row`}
+    >
+      <div className="relative w-full min-w-0 flex-1">
+        <Search className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-slate-400" />
         <Input
           suppressHydrationWarning
           type="text"
           placeholder={searchPlaceholder}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full h-12 pl-11 pr-4 rounded-xl text-sm font-medium text-slate-700 bg-slate-50 border-none outline-none placeholder:text-slate-400 transition-all"
+          className="h-12 w-full rounded-xl border-none bg-slate-50 pr-4 pl-11 text-sm font-medium text-slate-700 transition-all outline-none placeholder:text-slate-400"
         />
       </div>
 
-      <div className="flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar max-w-full pb-1 lg:pb-0">
+      <div className="no-scrollbar flex max-w-full shrink-0 items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
         {filters.map((filter) => {
           const Icon = filter.icon;
-          const selectedLabel = filter.options?.find(opt => opt.value === filter.value)?.label || filter.value;
-          const hasSelection = filter.value !== (filter.defaultValue ?? "")
+          const selectedLabel =
+            filter.options?.find((opt) => opt.value === filter.value)?.label || filter.value;
+          const hasSelection = filter.value !== (filter.defaultValue ?? "");
 
           return (
             <Select key={filter.id} value={filter.value} onValueChange={filter.onChange}>
-              <SelectTrigger
-                className="min-h-12 w-auto flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors shrink-0 border border-transparent hover:border-slate-200 shadow-none data-[state=open]:bg-slate-100">
+              <SelectTrigger className="flex min-h-12 w-auto shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-transparent bg-slate-50 p-2 shadow-none transition-colors hover:border-slate-200 hover:bg-slate-100 data-[state=open]:bg-slate-100">
                 <Icon className="size-3.5 text-slate-400" />
 
-                <span className={`text-xs font-bold text-slate-400 uppercase tracking-wider ${hasSelection ? 'hidden lg:block' : 'flex'}`}>
+                <span
+                  className={`text-xs font-bold tracking-wider text-slate-400 uppercase ${hasSelection ? "hidden lg:block" : "flex"}`}
+                >
                   {filter.label}:
                 </span>
 
                 <SelectValue>
-                  <span className="text-xs font-bold text-slate-700 items-center uppercase">
+                  <span className="items-center text-xs font-bold text-slate-700 uppercase">
                     {selectedLabel}
                   </span>
                 </SelectValue>
@@ -138,13 +140,12 @@ export function TableFilterBar(props: TableFilterBarProps) {
                   <SelectItem
                     key={opt.value}
                     value={opt.value}
-                    className="font-medium text-slate-700 cursor-pointer rounded-lg focus:bg-slate-100"
+                    className="cursor-pointer rounded-lg font-medium text-slate-700 focus:bg-slate-100"
                   >
                     {opt.label}
                   </SelectItem>
                 ))}
               </SelectContent>
-
             </Select>
           );
         })}
@@ -155,24 +156,30 @@ export function TableFilterBar(props: TableFilterBarProps) {
               <button
                 suppressHydrationWarning
                 type="button"
-                className="h-12 flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors shrink-0 border border-transparent hover:border-slate-200 outline-none">
+                className="flex h-12 shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-transparent bg-slate-50 p-2 transition-colors outline-none hover:border-slate-200 hover:bg-slate-100"
+              >
                 <CalendarDays className="size-3.5 text-slate-400" />
-                <span className={`text-xs font-bold text-slate-400 uppercase tracking-wider ${dateRange === undefined ? 'flex' : 'hidden lg:block'}`}>
+                <span
+                  className={`text-xs font-bold tracking-wider text-slate-400 uppercase ${dateRange === undefined ? "flex" : "hidden lg:block"}`}
+                >
                   {dateFilterLabel}:
                 </span>
 
-                <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                  <p className={dateRange === undefined ? 'hidden' : 'flex'}>
+                <span className="flex items-center gap-1 text-xs font-bold text-slate-700">
+                  <p className={dateRange === undefined ? "hidden" : "flex"}>
                     {formatDisplayDate()}
                   </p>
-                  <ChevronDown className="size-3.5 text-slate-400 ml-1" />
+                  <ChevronDown className="ml-1 size-3.5 text-slate-400" />
                 </span>
               </button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-auto p-0 shadow-lg rounded-xl border-slate-200" align="end">
-              <p className="ml-3 mt-3 text-[13px] text-slate-600">Filtrar por período:</p>
-              <div className="grid grid-cols-3 p-3 gap-2 justify-between border-b rounded-t-xl border-slate-100 bg-slate-50/50">
+            <PopoverContent
+              className="w-auto rounded-xl border-slate-200 p-0 shadow-lg"
+              align="end"
+            >
+              <p className="mt-3 ml-3 text-[13px] text-slate-600">Filtrar por período:</p>
+              <div className="grid grid-cols-3 justify-between gap-2 rounded-t-xl border-b border-slate-100 bg-slate-50/50 p-3">
                 {[
                   { label: "7 dias", getFrom: (today: Date) => subDays(today, 6) },
                   { label: "14 dias", getFrom: (today: Date) => subDays(today, 13) },
@@ -185,10 +192,11 @@ export function TableFilterBar(props: TableFilterBarProps) {
                     key={preset.label}
                     type="button"
                     onClick={() => handlePresetClick(preset.label, preset.getFrom)}
-                    className={`flex-1 text-xs sm:text-sm font-medium border py-2 px-2 rounded-md text-center transition-colors whitespace-nowrap 
-                      ${selectedPreset === preset.label ? 'bg-primary/5 text-primary border-primary hover:bg-primary/20 font-bold'
-                        : 'border-slate-200 text-slate-700 bg-white hover:bg-primary/10 hover:border-primary'
-                      }`}
+                    className={`flex-1 rounded-md border px-2 py-2 text-center text-xs font-medium whitespace-nowrap transition-colors sm:text-sm ${
+                      selectedPreset === preset.label
+                        ? "bg-primary/5 text-primary border-primary hover:bg-primary/20 font-bold"
+                        : "hover:bg-primary/10 hover:border-primary border-slate-200 bg-white text-slate-700"
+                    }`}
                   >
                     {preset.label}
                   </Button>
@@ -214,17 +222,17 @@ export function TableFilterBar(props: TableFilterBarProps) {
 
         {hasActiveFilters && (
           <>
-            <div className="hidden lg:block w-px h-6 bg-slate-200 mx-1 shrink-0"></div>
+            <div className="mx-1 hidden h-6 w-px shrink-0 bg-slate-200 lg:block"></div>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={handleClearFilters}
-                  className=" h-12 px-3 bg-red-50 hover:bg-red-100/80 transition-colors rounded-lg flex items-center justify-center shrink-0"
+                  className="flex h-12 shrink-0 items-center justify-center rounded-lg bg-red-50 px-3 transition-colors hover:bg-red-100/80"
                 >
                   <X className="size-4 text-red-500" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent className="bg-slate-900 text-white font-medium text-xs rounded-lg border-none">
+              <TooltipContent className="rounded-lg border-none bg-slate-900 text-xs font-medium text-white">
                 <p>Limpar filtros</p>
               </TooltipContent>
             </Tooltip>

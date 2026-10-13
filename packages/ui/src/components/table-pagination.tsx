@@ -16,10 +16,7 @@ interface TablePaginationProps {
   pageParam?: string;
 }
 
-export function TablePagination({
-  totalPages,
-  pageParam = "page",
-}: TablePaginationProps) {
+export function TablePagination({ totalPages, pageParam = "page" }: TablePaginationProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -44,26 +41,18 @@ export function TablePagination({
       return [1, "ellipsis", total - 4, total - 3, total - 2, total - 1, total];
     }
 
-    return [
-      1,
-      "ellipsis",
-      current - 1,
-      current,
-      current + 1,
-      "ellipsis",
-      total,
-    ];
+    return [1, "ellipsis", current - 1, current, current + 1, "ellipsis", total];
   };
 
   const visiblePages = getVisiblePages(currentPage, totalPages);
 
   return (
-    <Pagination className="justify-center w-full">
+    <Pagination className="w-full justify-center">
       <PaginationContent className="gap-2">
         <PaginationItem>
           <PaginationPrevious
             href={currentPage > 1 ? createPageURL(currentPage - 1) : "#"}
-            className={`rounded-full h-10 w-10 ${currentPage <= 1 ? "pointer-events-none opacity-50" : "hover:bg-slate-200/60! text-slate-800!"}`}
+            className={`h-10 w-10 rounded-full ${currentPage <= 1 ? "pointer-events-none opacity-50" : "text-slate-800! hover:bg-slate-200/60!"}`}
           />
         </PaginationItem>
 
@@ -76,7 +65,7 @@ export function TablePagination({
                 variant={currentPage === page ? "default" : "ghost"}
                 href={createPageURL(page as number)}
                 isActive={currentPage === page}
-                className={`rounded-full h-10 w-10 ${currentPage === page ? "font-bold" : "border-none font-normal hover:font-medium! hover:bg-slate-200/60! text-slate-800!"} `}
+                className={`h-10 w-10 rounded-full ${currentPage === page ? "font-bold" : "border-none font-normal text-slate-800! hover:bg-slate-200/60! hover:font-medium!"} `}
               >
                 {page}
               </PaginationLink>
@@ -86,10 +75,8 @@ export function TablePagination({
 
         <PaginationItem>
           <PaginationNext
-            href={
-              currentPage < totalPages ? createPageURL(currentPage + 1) : "#"
-            }
-            className={`rounded-full h-10 w-10 ${currentPage >= totalPages ? "pointer-events-none opacity-50" : "hover:bg-slate-200/60! text-slate-800!"}`}
+            href={currentPage < totalPages ? createPageURL(currentPage + 1) : "#"}
+            className={`h-10 w-10 rounded-full ${currentPage >= totalPages ? "pointer-events-none opacity-50" : "text-slate-800! hover:bg-slate-200/60!"}`}
           />
         </PaginationItem>
       </PaginationContent>

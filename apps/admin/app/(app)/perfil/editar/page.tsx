@@ -1,9 +1,4 @@
-import {
-  getProfileData,
-  updatePassword,
-  updateProfile,
-  uploadAvatar,
-} from "@/app/actions/profile";
+import { getProfileData, updatePassword, updateProfile, uploadAvatar } from "@/app/actions/profile";
 import { EditProfileView } from "@repo/ui/components/features/profiles/profile-view";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";

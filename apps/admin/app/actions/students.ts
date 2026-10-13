@@ -137,7 +137,8 @@ export async function getStudents({
         .in("subscriptions.status", subscriptionStatuses)
         .not("subscriptions", "is", null);
       if (filters.status === "cancellation_scheduled") {
-        query = query.eq("subscriptions.cancel_at_period_end", true)
+        query = query
+          .eq("subscriptions.cancel_at_period_end", true)
           .eq("subscriptions.cancellation_mode", "end_of_period");
       } else if (filters.status === "plan_active") {
         query = query.eq("subscriptions.cancel_at_period_end", false);

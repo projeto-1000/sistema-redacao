@@ -5,14 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircleIcon, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "./form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./form";
 import { Input } from "./input";
 import { Button } from "./button";
 import { loginSchema, type LoginSchema } from "@repo/validators";
@@ -86,7 +79,7 @@ export function LoginForm({
         submissionLockRef.current = false;
       }
     },
-    [isSubmitting, onSubmit],
+    [isSubmitting, onSubmit]
   );
 
   const syncCredentialsFromInputs = useCallback((): LoginSchema | null => {
@@ -140,32 +133,24 @@ export function LoginForm({
   const scheduleAutofillCheck = useCallback(
     (input: HTMLInputElement) => {
       window.requestAnimationFrame(() => {
-        const isAutofilled = [":autofill", ":-webkit-autofill"].some(
-          (selector) => {
-            try {
-              return input.matches(selector);
-            } catch {
-              return false;
-            }
-          },
-        );
+        const isAutofilled = [":autofill", ":-webkit-autofill"].some((selector) => {
+          try {
+            return input.matches(selector);
+          } catch {
+            return false;
+          }
+        });
 
         if (isAutofilled) {
           handleAutofill();
         }
       });
     },
-    [handleAutofill],
+    [handleAutofill]
   );
 
-  const handleLoginInputKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>,
-  ) => {
-    if (
-      event.key.length === 1 ||
-      event.key === "Backspace" ||
-      event.key === "Delete"
-    ) {
+  const handleLoginInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key.length === 1 || event.key === "Backspace" || event.key === "Delete") {
       credentialPickerInteractionRef.current = false;
     } else if (event.key === "ArrowDown") {
       credentialPickerInteractionRef.current = true;
@@ -196,10 +181,7 @@ export function LoginForm({
         appType === "student" && signupHref ? (
           <p>
             Ainda não tem uma conta?
-            <a
-              className="ml-1 font-semibold text-primary hover:underline"
-              href={signupHref}
-            >
+            <a className="text-primary ml-1 font-semibold hover:underline" href={signupHref}>
               Cadastre-se
             </a>
           </p>
@@ -218,14 +200,14 @@ export function LoginForm({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                   E-mail
                 </FormLabel>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                  <Mail className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-slate-400" />
                   <FormControl>
                     <Input
-                      className={`login-autofill-detection h-12 w-full rounded-2xl py-3.5 pl-12 pr-4 ${inputFocusClass}`}
+                      className={`login-autofill-detection h-12 w-full rounded-2xl py-3.5 pr-4 pl-12 ${inputFocusClass}`}
                       type="email"
                       inputMode="email"
                       autoComplete="username"
@@ -258,14 +240,14 @@ export function LoginForm({
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-slate-700 uppercase tracking-wider text-[13px]">
+                <FormLabel className="text-[13px] tracking-wider text-slate-700 uppercase">
                   Senha
                 </FormLabel>
                 <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                  <LockKeyhole className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-slate-400" />
                   <FormControl>
                     <Input
-                      className={`login-autofill-detection h-12 w-full rounded-2xl py-3.5 pl-12 pr-12 ${inputFocusClass}`}
+                      className={`login-autofill-detection h-12 w-full rounded-2xl py-3.5 pr-12 pl-12 ${inputFocusClass}`}
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       enterKeyHint="go"
@@ -290,16 +272,14 @@ export function LoginForm({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    aria-label={
-                      showPassword ? "Ocultar senha" : "Mostrar senha"
-                    }
+                    className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      <EyeOff className="text-muted-foreground h-4 w-4" />
                     ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <Eye className="text-muted-foreground h-4 w-4" />
                     )}
                   </Button>
                 </div>
@@ -307,7 +287,7 @@ export function LoginForm({
 
                 <Link
                   href="/esqueci-minha-senha"
-                  className="ml-auto mt-2 block w-fit text-sm font-semibold text-primary hover:underline"
+                  className="text-primary mt-2 ml-auto block w-fit text-sm font-semibold hover:underline"
                 >
                   Esqueceu sua senha?
                 </Link>
@@ -317,7 +297,7 @@ export function LoginForm({
 
           <Button
             type="submit"
-            className="w-full font-bold h-12 rounded-xl text-[16px]"
+            className="h-12 w-full rounded-xl text-[16px] font-bold"
             disabled={isSubmitting || !isValid}
             isLoading={isSubmitting}
             loadingText="Entrando..."

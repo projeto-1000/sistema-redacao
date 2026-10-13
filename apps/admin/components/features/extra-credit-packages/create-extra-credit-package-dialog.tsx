@@ -33,9 +33,7 @@ const INITIAL_CREDITS = 1;
 
 export function CreateExtraCreditPackageDialog() {
   const [open, setOpen] = useState(false);
-  const [creditsInput, setCreditsInput] = useState(
-    String(INITIAL_CREDITS)
-  );
+  const [creditsInput, setCreditsInput] = useState(String(INITIAL_CREDITS));
   const [priceInput, setPriceInput] = useState("");
 
   const form = useForm<CreateExtraCreditPackageInput>({
@@ -77,8 +75,7 @@ export function CreateExtraCreditPackageDialog() {
     }
 
     toast.error("Erro ao salvar pacote", {
-      description:
-        result.error || "Tente novamente em instantes.",
+      description: result.error || "Tente novamente em instantes.",
     });
   };
 
@@ -107,24 +104,17 @@ export function CreateExtraCreditPackageDialog() {
 
       <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:max-w-[600px]">
         <DialogHeader className="mb-4">
-          <DialogTitle className="text-xl font-black">
-            Cadastrar Pacote de Créditos
-          </DialogTitle>
+          <DialogTitle className="text-xl font-black">Cadastrar Pacote de Créditos</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={labelClass}>
-                    Nome do pacote
-                  </FormLabel>
+                  <FormLabel className={labelClass}>Nome do pacote</FormLabel>
 
                   <FormControl>
                     <Input
@@ -144,9 +134,7 @@ export function CreateExtraCreditPackageDialog() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={labelClass}>
-                    Descrição
-                  </FormLabel>
+                  <FormLabel className={labelClass}>Descrição</FormLabel>
 
                   <FormControl>
                     <Textarea
@@ -302,9 +290,7 @@ export function CreateExtraCreditPackageDialog() {
                 name="credits_amount"
                 render={({ field }) => (
                   <FormItem className="grid grid-rows-[20px_44px_20px] gap-2 space-y-0">
-                    <FormLabel className={labelClass}>
-                      Quantidade de créditos
-                    </FormLabel>
+                    <FormLabel className={labelClass}>Quantidade de créditos</FormLabel>
 
                     <FormControl>
                       <Input
@@ -316,19 +302,12 @@ export function CreateExtraCreditPackageDialog() {
                         value={creditsInput}
                         onBlur={field.onBlur}
                         onKeyDown={(event) => {
-                          if (
-                            ["e", "E", "+", "-", ".", ","].includes(
-                              event.key
-                            )
-                          ) {
+                          if (["e", "E", "+", "-", ".", ","].includes(event.key)) {
                             event.preventDefault();
                           }
                         }}
                         onChange={(event) => {
-                          const value = event.target.value.replace(
-                            /\D/g,
-                            ""
-                          );
+                          const value = event.target.value.replace(/\D/g, "");
 
                           setCreditsInput(value);
 
@@ -354,9 +333,7 @@ export function CreateExtraCreditPackageDialog() {
                 name="price_cents"
                 render={({ field }) => (
                   <FormItem className="grid grid-rows-[20px_44px_20px] gap-2 space-y-0">
-                    <FormLabel className={labelClass}>
-                      Valor do pacote
-                    </FormLabel>
+                    <FormLabel className={labelClass}>Valor do pacote</FormLabel>
 
                     <FormControl>
                       <div className="relative h-11">
@@ -372,9 +349,7 @@ export function CreateExtraCreditPackageDialog() {
                           value={priceInput}
                           onBlur={field.onBlur}
                           onKeyDown={(event) => {
-                            if (
-                              ["e", "E", "+", "-"].includes(event.key)
-                            ) {
+                            if (["e", "E", "+", "-"].includes(event.key)) {
                               event.preventDefault();
                             }
                           }}
@@ -392,10 +367,7 @@ export function CreateExtraCreditPackageDialog() {
                               return;
                             }
 
-                            const normalizedValue = value.replace(
-                              ",",
-                              "."
-                            );
+                            const normalizedValue = value.replace(",", ".");
 
                             const price = Number(normalizedValue);
 
@@ -404,9 +376,7 @@ export function CreateExtraCreditPackageDialog() {
                               return;
                             }
 
-                            field.onChange(
-                              Math.round(price * 100)
-                            );
+                            field.onChange(Math.round(price * 100));
                           }}
                         />
                       </div>

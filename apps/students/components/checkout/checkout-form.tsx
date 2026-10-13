@@ -49,9 +49,7 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ planId, savedCards }: CheckoutFormProps) {
-  const [checkoutStatus, setCheckoutStatus] = useState<
-    "idle" | "tokenized" | "error"
-  >("idle");
+  const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "tokenized" | "error">("idle");
   const router = useRouter();
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -86,15 +84,13 @@ export function CheckoutForm({ planId, savedCards }: CheckoutFormProps) {
     (payment.paymentSource === "saved_card"
       ? Boolean(payment.paymentCardId)
       : onlyDigits(payment.cardNumber ?? "").length === 16 &&
-      (payment.holderName ?? "").trim().length >= 3 &&
-      onlyDigits(payment.holderDocument ?? "").length === 11 &&
-      (payment.expirationDate ?? "").length === 5 &&
-      onlyDigits(payment.cvv ?? "").length >= 3);
+        (payment.holderName ?? "").trim().length >= 3 &&
+        onlyDigits(payment.holderDocument ?? "").length === 11 &&
+        (payment.expirationDate ?? "").length === 5 &&
+        onlyDigits(payment.cvv ?? "").length >= 3);
 
   const canContinue =
-    hasRequiredAddressFields &&
-    hasRequiredPaymentFields &&
-    !form.formState.isSubmitting;
+    hasRequiredAddressFields && hasRequiredPaymentFields && !form.formState.isSubmitting;
 
   function resetCheckoutStatus() {
     setCheckoutStatus("idle");
@@ -142,15 +138,11 @@ export function CheckoutForm({ planId, savedCards }: CheckoutFormProps) {
       setCheckoutMessage("Assinatura criada com sucesso.");
       setIsRedirecting(true);
 
-      router.push(
-        `/assinatura/checkout/sucesso?subscriptionId=${result.localSubscriptionId}`
-      );
+      router.push(`/assinatura/checkout/sucesso?subscriptionId=${result.localSubscriptionId}`);
     } catch (error) {
       setCheckoutStatus("error");
       setCheckoutMessage(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível finalizar a assinatura."
+        error instanceof Error ? error.message : "Não foi possível finalizar a assinatura."
       );
     }
   }
@@ -163,16 +155,13 @@ export function CheckoutForm({ planId, savedCards }: CheckoutFormProps) {
         <Accordion type="single" collapsible className="space-y-6">
           <CheckoutAddressSection onAddressChange={resetCheckoutStatus} />
 
-          <CheckoutPaymentSection
-            savedCards={savedCards}
-            onPaymentChange={resetCheckoutStatus}
-          />
+          <CheckoutPaymentSection savedCards={savedCards} onPaymentChange={resetCheckoutStatus} />
         </Accordion>
 
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex gap-4">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+              <div className="bg-primary/15 text-primary flex size-11 shrink-0 items-center justify-center rounded-2xl">
                 {checkoutStatus === "tokenized" ? (
                   <CheckCircle2 className="size-5" />
                 ) : checkoutStatus === "error" ? (
@@ -191,10 +180,9 @@ export function CheckoutForm({ planId, savedCards }: CheckoutFormProps) {
                       : "Revise seus dados para finalizar"}
                 </p>
 
-                <p className="mt-1 max-w-2xl text-sm font-semibold leading-relaxed text-slate-500">
+                <p className="mt-1 max-w-2xl text-sm leading-relaxed font-semibold text-slate-500">
                   {checkoutMessage ??
-                    "Ao finalizar, sua assinatura será criada com segurança pela Pagar.me."
-                  }
+                    "Ao finalizar, sua assinatura será criada com segurança pela Pagar.me."}
                 </p>
               </div>
             </div>

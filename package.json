@@ -7,7 +7,8 @@
     "lint": "turbo run lint",
     "lint:tailwind": "pnpm --filter admin lint:tailwind && pnpm --filter students lint:tailwind && pnpm --filter teachers lint:tailwind && pnpm --filter website lint:tailwind && pnpm --filter @repo/ui lint:tailwind",
     "check-types": "turbo run check-types",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write . --ignore-unknown",
+    "format:check": "prettier --check . --ignore-unknown"
   },
   "devDependencies": {
     "prettier": "^3.9.9",
