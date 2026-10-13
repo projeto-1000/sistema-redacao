@@ -4,6 +4,7 @@ import { createClient } from "@/lib/client";
 import { useRouter, usePathname } from "next/navigation";
 import { Header } from "@repo/ui/components/header";
 import { useEffect, useState } from "react";
+import { CircleCheckBig, FileClock, Home, UserRound } from "lucide-react";
 
 export default function AppLayout({
   children,
@@ -29,10 +30,26 @@ export default function AppLayout({
   }, [router, supabase]);
 
   const navItems = [
-    { label: "Início", href: "/inicio" },
-    { label: "Redações Pendentes", href: "/redacoes-pendentes" },
-    { label: "Redações Corrigidas", href: "/redacoes-corrigidas" },
-    { label: "Meu perfil", href: "/perfil" },
+    { label: "Início", href: "/inicio", icon: Home, group: "Navegação" },
+    {
+      label: "Redações Pendentes",
+      href: "/redacoes-pendentes",
+      icon: FileClock,
+      group: "Navegação",
+    },
+    {
+      label: "Redações Corrigidas",
+      href: "/redacoes-corrigidas",
+      icon: CircleCheckBig,
+      group: "Navegação",
+    },
+    {
+      label: "Meu perfil",
+      href: "/perfil",
+      icon: UserRound,
+      group: "Conta",
+      desktopPlacement: "account" as const,
+    },
   ];
 
   const handleLogout = async () => {

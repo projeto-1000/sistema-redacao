@@ -9,23 +9,33 @@ import { createClient } from "@/lib/client";
 import { Header } from "@repo/ui/components/header";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { BookOpen, FileText, Home, UserRound } from "lucide-react";
 
 const NAV_ITEMS = [
   {
     label: "Início",
     href: "/inicio",
+    icon: Home,
+    group: "Navegação",
   },
   {
     label: "Temas",
     href: "/temas",
+    icon: BookOpen,
+    group: "Navegação",
   },
   {
     label: "Minhas Redações",
     href: "/minhas-redacoes",
+    icon: FileText,
+    group: "Navegação",
   },
   {
     label: "Meu perfil",
     href: "/perfil",
+    icon: UserRound,
+    group: "Conta",
+    desktopPlacement: "account" as const,
   },
 ];
 

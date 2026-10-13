@@ -5,6 +5,20 @@ import { useRouter, usePathname } from "next/navigation";
 import { Header } from "@repo/ui/components/header";
 import { Footer } from "@repo/ui/components/footer";
 import { useEffect, useState } from "react";
+import {
+  Ban,
+  BookOpen,
+  CircleCheckBig,
+  Coins,
+  FileClock,
+  GraduationCap,
+  Home,
+  Layers3,
+  ListChecks,
+  Megaphone,
+  UserRound,
+  Users,
+} from "lucide-react";
 
 export default function AppLayout({
   children,
@@ -30,18 +44,74 @@ export default function AppLayout({
   }, [router, supabase]);
 
   const navItems = [
-    { label: "Início", href: "/inicio" },
-    { label: "Redações Pendentes", href: "/redacoes-pendentes" },
-    { label: "Redações Corrigidas", href: "/redacoes-corrigidas" },
-    { label: 'Alunos', href: '/alunos' },
-    { label: 'Professores', href: '/professores' },
-    { label: 'Temas', href: '/temas' },
-    { label: 'Planos', href: '/planos' },
-    { label: 'Créditos', href: '/creditos-extras' },
-    { label: 'Cancelamentos', href: '/cancelamentos' },
-    { label: 'Atividades', href: '/atividades-administrativas' },
-    { label: "Campanhas", href: "/campanhas" },
-    { label: "Meu perfil", href: "/perfil" },
+    { label: "Início", href: "/inicio", icon: Home, group: "Conteúdo" },
+    {
+      label: "Redações Pendentes",
+      href: "/redacoes-pendentes",
+      icon: FileClock,
+      group: "Conteúdo",
+    },
+    {
+      label: "Redações Corrigidas",
+      href: "/redacoes-corrigidas",
+      icon: CircleCheckBig,
+      group: "Conteúdo",
+    },
+    { label: "Alunos", href: "/alunos", icon: Users, group: "Pessoas" },
+    {
+      label: "Professores",
+      href: "/professores",
+      icon: GraduationCap,
+      group: "Pessoas",
+    },
+    {
+      label: "Temas",
+      href: "/temas",
+      icon: BookOpen,
+      group: "Conteúdo",
+      desktopPlacement: "overflow" as const,
+    },
+    {
+      label: "Planos",
+      href: "/planos",
+      icon: Layers3,
+      group: "Financeiro",
+      desktopPlacement: "overflow" as const,
+    },
+    {
+      label: "Créditos",
+      href: "/creditos-extras",
+      icon: Coins,
+      group: "Financeiro",
+      desktopPlacement: "overflow" as const,
+    },
+    {
+      label: "Cancelamentos",
+      href: "/cancelamentos",
+      icon: Ban,
+      group: "Financeiro",
+      desktopPlacement: "overflow" as const,
+    },
+    {
+      label: "Atividades",
+      href: "/atividades-administrativas",
+      icon: ListChecks,
+      group: "Administração",
+    },
+    {
+      label: "Campanhas",
+      href: "/campanhas",
+      icon: Megaphone,
+      group: "Administração",
+      desktopPlacement: "overflow" as const,
+    },
+    {
+      label: "Meu perfil",
+      href: "/perfil",
+      icon: UserRound,
+      group: "Administração",
+      desktopPlacement: "account" as const,
+    },
   ];
 
   const handleLogout = async () => {
@@ -58,8 +128,9 @@ export default function AppLayout({
     <div className="min-h-dvh max-w-flex flex-col">
       <Header
         items={navItems}
-        activePath={pathname.startsWith("/campanhas") ? "/campanhas" : pathname}
+        activePath={pathname}
         onLogout={handleLogout}
+        collapseAt="xl"
       />
 
       <main className="flex-1 w-full p-6 md:p-8 bg-slate-50">
