@@ -13,6 +13,7 @@ interface EssaySubmissionSuccessProps {
 export function EssaySubmissionSuccess({ topicId, topicTitle }: EssaySubmissionSuccessProps) {
   useEffect(() => {
     localStorage.removeItem(`@backup:${topicId}`);
+    localStorage.removeItem(`@backup-source:${topicId}`);
   }, [topicId]);
 
   return (

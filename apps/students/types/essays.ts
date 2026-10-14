@@ -24,4 +24,6 @@ export interface EssayDraft {
   content: string;
   updated_at: string;
   best_essay_consent: boolean;
+  pedagogical_use_consent: boolean;
+  source_file_id: string | null;
 }

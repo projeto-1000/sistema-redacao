@@ -27,7 +27,7 @@ export default async function TopicsPage({
 
         <Suspense
           key={suspenseKey}
-          fallback={<Skeleton className="mt-8 min-h-[400px] w-full rounded-4xl bg-slate-200" />}
+          fallback={<Skeleton className="mt-8 min-h-100 w-full rounded-4xl bg-slate-200" />}
         >
           <TopicsTable filters={filters} page={page} />
         </Suspense>

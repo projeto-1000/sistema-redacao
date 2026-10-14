@@ -185,7 +185,7 @@ export function TopicDetailsDialog({
           {showStartButton && (
             <Button
               asChild
-              className="bg-primary h-12 w-full gap-4 rounded-full font-bold shadow-lg shadow-yellow-500/10"
+              className="bg-primary h-12 w-full gap-4 rounded-2xl font-bold shadow-lg shadow-yellow-500/10"
             >
               <Link
                 href={`/minhas-redacoes/nova-redacao?id=${topic.id}`}

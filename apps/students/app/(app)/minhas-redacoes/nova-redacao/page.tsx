@@ -76,6 +76,8 @@ export default async function NewEssayPage(props: Props) {
             ? (returnedEssaySource?.updated_at ?? new Date().toISOString())
             : new Date().toISOString(),
         best_essay_consent: false,
+        pedagogical_use_consent: false,
+        source_file_id: null,
       }
     : null;
 
@@ -87,6 +89,8 @@ export default async function NewEssayPage(props: Props) {
           content: latestDraft.content,
           updated_at: latestDraft.updated_at,
           best_essay_consent: officialDraft?.best_essay_consent ?? false,
+          pedagogical_use_consent: officialDraft?.pedagogical_use_consent ?? false,
+          source_file_id: latestDraft.source_file_id ?? null,
         }
       : null);
 

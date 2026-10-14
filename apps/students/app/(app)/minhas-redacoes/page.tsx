@@ -45,7 +45,7 @@ export default async function MyEssaysPage({
 
       <Suspense
         key={suspenseKey}
-        fallback={<Skeleton className="mt-6 min-h-[250px] rounded-3xl bg-slate-200" />}
+        fallback={<Skeleton className="mt-6 min-h-62.5 rounded-3xl bg-slate-200" />}
       >
         <EssayGrid filters={filters} page={page} />
       </Suspense>

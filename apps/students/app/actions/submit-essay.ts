@@ -30,7 +30,8 @@ export async function submitEssay(
   }
 
   const content = formData.get("content") as string;
-  const bestEssayConsent = formData.get("best_essay_consent") === "true";
+  const pedagogicalUseConsent = formData.get("pedagogical_use_consent") === "true";
+  const sourceFileId = (formData.get("source_file_id") as string) || null;
 
   //TODO: definir caracteres mínimos
   if (!content || content.length < 100) {
@@ -38,13 +39,15 @@ export async function submitEssay(
   }
 
   try {
-    const { error } = await supabase.rpc("submit_essay", {
+    const { error } = await supabase.rpc("submit_essay_with_source", {
       p_student_id: user.id,
       p_topic_id: topic_id,
       p_title: title,
       p_thematic_axis: axis,
       p_content: content,
-      p_best_essay_consent: bestEssayConsent,
+      p_best_essay_consent: pedagogicalUseConsent,
+      p_pedagogical_use_consent: pedagogicalUseConsent,
+      p_source_file_id: sourceFileId,
     });
 
     if (error) {

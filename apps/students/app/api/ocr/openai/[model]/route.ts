@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/server";
 import {
   OPENAI_OCR_MODELS,
-  transcribeEssayWithOpenAI,
+  transcribeEssay,
   type OpenAiOcrModel,
 } from "@/lib/ocr/openai-transcription";
 
@@ -64,7 +64,7 @@ export async function POST(
       throw signedUrlError ?? new Error("Não foi possível gerar a URL.");
     }
 
-    const result = await transcribeEssayWithOpenAI({
+    const result = await transcribeEssay({
       fileUrl: data.signedUrl,
       filename,
       contentType,

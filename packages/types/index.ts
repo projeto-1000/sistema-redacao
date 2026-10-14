@@ -50,6 +50,7 @@ export interface Essay {
   thematic_axis: string;
   content: string;
   best_essay_consent: boolean;
+  pedagogical_use_consent: boolean;
   submission_date: string;
   status: EssayStatus;
   credit_cost: number;

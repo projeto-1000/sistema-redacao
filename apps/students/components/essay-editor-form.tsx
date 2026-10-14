@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { EssayDraft } from "@/types";
 import Link from "next/link";
+import { EssayTranscriptionDialog } from "./essay-transcription-dialog";
 
 interface EssayEditorFormProps {
   topic: EssayTopicDetail;
@@ -29,11 +30,15 @@ export function EssayEditorForm({
   hasAvailableCredits,
 }: EssayEditorFormProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [bestEssayConsent, setBestEssayConsent] = useState(backup?.best_essay_consent ?? false);
+  const [pedagogicalUseConsent, setPedagogicalUseConsent] = useState(
+    backup?.pedagogical_use_consent ?? false
+  );
   const router = useRouter();
   const {
     content: text,
     setContent: setText,
+    sourceFileId,
+    setSourceFileId,
     clearAutoSave,
     waitForAutoSave,
   } = useEssayEditor(topic.id, backup, !hasAvailableCredits, preferInitialBackup);
@@ -62,7 +67,8 @@ export function EssayEditorForm({
         text,
         topic.title,
         topic.axis,
-        bestEssayConsent,
+        pedagogicalUseConsent,
+        sourceFileId,
         backup?.id
       );
 
@@ -87,15 +93,33 @@ export function EssayEditorForm({
       <input type="hidden" name="topicId" value={topic.id} />
       <input type="hidden" name="title" value={topic.title} />
       <input type="hidden" name="thematicAxis" value={topic.axis} />
-      <input type="hidden" name="best_essay_consent" value={String(bestEssayConsent)} />
+      <input type="hidden" name="pedagogical_use_consent" value={String(pedagogicalUseConsent)} />
+      <input type="hidden" name="source_file_id" value={sourceFileId ?? ""} />
 
       <div className="flex flex-1 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-row justify-between gap-4 border-b border-slate-100 bg-slate-50/30 p-5 md:items-center">
-          <h3 className="text-lg font-bold md:mb-1">Folha de Redação</h3>
+        <div className="flex flex-col justify-between gap-3 border-b border-slate-100 bg-slate-50/30 p-5 sm:flex-row sm:items-center">
+          <div className="flex items-center justify-between gap-4">
+            <h3 className="text-lg font-bold">Folha de Redação</h3>
+            <span className="flex items-center rounded-md bg-[#EBC84C]/20 px-2 text-[8px] font-bold tracking-wider text-[#8B781F] uppercase sm:hidden">
+              Custa 1 crédito
+            </span>
+          </div>
 
-          <span className="flex items-center rounded-md bg-[#EBC84C]/20 px-2 text-[8px] font-bold tracking-wider text-[#8B781F] uppercase md:py-1 md:text-[10px]">
-            Custa 1 crédito
-          </span>
+          <div className="flex items-center gap-3">
+            <EssayTranscriptionDialog
+              topicId={topic.id}
+              currentText={text}
+              currentSourceFileId={sourceFileId}
+              disabled={!hasAvailableCredits}
+              onTranscribed={(result) => {
+                setText(result.text);
+                setSourceFileId(result.sourceFileId);
+              }}
+            />
+            <span className="hidden items-center rounded-md bg-[#EBC84C]/20 px-2 text-[8px] font-bold tracking-wider text-[#8B781F] uppercase sm:flex md:py-1 md:text-[10px]">
+              Custa 1 crédito
+            </span>
+          </div>
         </div>
 
         {state?.error && (
@@ -126,6 +150,16 @@ export function EssayEditorForm({
                 </Link>{" "}
                 para continuar.
               </p>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {sourceFileId && (
+          <Alert className="mx-6 mt-6 w-auto border-blue-200 bg-blue-50 text-blue-950">
+            <AlertCircle className="text-primary" />
+            <AlertDescription className="text-blue-950/90">
+              <strong>Revise a transcrição antes de enviar.</strong> Confira palavras, pontuação e
+              parágrafos comparando com a sua redação manuscrita.
             </AlertDescription>
           </Alert>
         )}
@@ -176,15 +210,15 @@ export function EssayEditorForm({
         <div className="border-t border-slate-200 p-5">
           <label className="mb-5 flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-600">
             <Checkbox
-              checked={bestEssayConsent}
+              checked={pedagogicalUseConsent}
               disabled={!hasAvailableCredits}
-              onCheckedChange={(checked) => setBestEssayConsent(checked === true)}
-              aria-describedby="best-essay-consent-description"
+              onCheckedChange={(checked) => setPedagogicalUseConsent(checked === true)}
+              aria-describedby="pedagogical-use-consent-description"
               className="mt-0.5"
             />
-            <span id="best-essay-consent-description">
-              Autorizo a adição da minha redação ao banco de melhores redações do tema, devidamente
-              anonimizada, caso ela seja considerada exemplar
+            <span id="pedagogical-use-consent-description">
+              Autorizo o uso anonimizado da minha redação e, quando enviado, do arquivo manuscrito
+              no banco de redações exemplares, em aulas e em materiais pedagógicos do Projeto 1000
             </span>
           </label>
 

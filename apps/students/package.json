@@ -13,7 +13,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
+    "@repo/constants": "workspace:*",
     "@repo/datacrazy": "workspace:*",
+    "@repo/hooks": "workspace:*",
     "@repo/payments": "workspace:*",
     "@repo/types": "workspace:*",
     "@repo/ui": "workspace:*",
@@ -30,10 +32,9 @@
     "react-hook-form": "^7.89.0",
     "recharts": "^3.10.1",
     "resend": "^6.32.0",
+    "sharp": "0.35.5",
     "sonner": "^2.0.8",
-    "use-debounce": "^10.1.1",
-    "@repo/hooks": "workspace:*",
-    "@repo/constants": "workspace:*"
+    "use-debounce": "^10.1.1"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

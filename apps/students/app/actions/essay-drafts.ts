@@ -6,6 +6,7 @@ import {
   getDataCrazySyncErrorCode,
   syncStudentToDataCrazy,
 } from "@/lib/integrations/datacrazy/sync-student";
+import { ESSAY_SOURCE_BUCKET } from "@/lib/essay-source-files";
 
 type EssayPayload = {
   student_id: string;
@@ -14,12 +15,18 @@ type EssayPayload = {
   thematic_axis: string;
   content: string;
   best_essay_consent: boolean;
+  pedagogical_use_consent: boolean;
+  source_file_id: string | null;
   status: string;
   updated_at: string;
   created_at?: string;
 };
 
-export async function saveTemporaryBackup(themeId: string, content: string) {
+export async function saveTemporaryBackup(
+  themeId: string,
+  content: string,
+  sourceFileId: string | null
+) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -31,6 +38,7 @@ export async function saveTemporaryBackup(themeId: string, content: string) {
       user_id: user.id,
       theme_id: themeId,
       content,
+      source_file_id: sourceFileId,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id,theme_id" }
@@ -47,7 +55,8 @@ export async function saveDraft(
   content: string,
   title: string,
   thematicAxis: string,
-  bestEssayConsent: boolean,
+  pedagogicalUseConsent: boolean,
+  sourceFileId: string | null,
   draftId?: string
 ) {
   const supabase = await createClient();
@@ -62,7 +71,9 @@ export async function saveDraft(
     title: title,
     thematic_axis: thematicAxis,
     content: content,
-    best_essay_consent: bestEssayConsent,
+    best_essay_consent: pedagogicalUseConsent,
+    pedagogical_use_consent: pedagogicalUseConsent,
+    source_file_id: sourceFileId,
     status: "draft",
     updated_at: new Date().toISOString(),
   };
@@ -122,7 +133,7 @@ export async function getTemporaryBackup(themeId: string) {
 
   const { data } = await supabase
     .from("essay_backups")
-    .select("content, updated_at")
+    .select("content, updated_at, source_file_id")
     .eq("user_id", user.id)
     .eq("theme_id", themeId)
     .maybeSingle();
@@ -143,7 +154,7 @@ export async function deleteDraftEssay(essayId: string) {
     .delete()
     .eq("id", essayId)
     .eq("student_id", user.id)
-    .select("topic_id")
+    .select("topic_id, source_file_id")
     .single();
 
   if (error) {
@@ -157,6 +168,20 @@ export async function deleteDraftEssay(essayId: string) {
       .delete()
       .eq("user_id", user.id)
       .eq("theme_id", deletedEssay.topic_id);
+  }
+
+  if (deletedEssay?.source_file_id) {
+    const { data: deletedSource } = await supabase
+      .from("essay_source_files")
+      .delete()
+      .eq("id", deletedEssay.source_file_id)
+      .eq("student_id", user.id)
+      .select("storage_path")
+      .maybeSingle();
+
+    if (deletedSource) {
+      await supabase.storage.from(ESSAY_SOURCE_BUCKET).remove([deletedSource.storage_path]);
+    }
   }
 
   revalidatePath("/minhas-redacoes", "layout");
@@ -173,7 +198,7 @@ export async function getDraftEssay(topicId: string) {
 
   const { data } = await supabase
     .from("essays")
-    .select("id, content, updated_at, best_essay_consent")
+    .select("id, content, updated_at, best_essay_consent, pedagogical_use_consent, source_file_id")
     .eq("student_id", user.id)
     .eq("topic_id", topicId)
     .eq("status", "draft")
