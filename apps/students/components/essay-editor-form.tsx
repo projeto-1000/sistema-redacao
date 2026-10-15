@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Save, AlertCircle } from "lucide-react";
+import { Save, AlertCircle, Coins, ScanText } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import { Alert, AlertDescription } from "@repo/ui/components/alert";
@@ -97,30 +97,48 @@ export function EssayEditorForm({
       <input type="hidden" name="source_file_id" value={sourceFileId ?? ""} />
 
       <div className="flex flex-1 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col justify-between gap-3 border-b border-slate-100 bg-slate-50/30 p-5 sm:flex-row sm:items-center">
-          <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-100 bg-slate-50/30 p-5 sm:flex-row sm:items-center">
+          <div>
             <h3 className="text-lg font-bold">Folha de Redação</h3>
-            <span className="flex items-center rounded-md bg-[#EBC84C]/20 px-2 text-[8px] font-bold tracking-wider text-[#8B781F] uppercase sm:hidden">
-              Custa 1 crédito
-            </span>
+            <p className="mt-1 text-sm text-slate-500">
+              A correção será cobrada apenas quando você concluir o envio.
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <EssayTranscriptionDialog
-              topicId={topic.id}
-              currentText={text}
-              currentSourceFileId={sourceFileId}
-              disabled={!hasAvailableCredits}
-              onTranscribed={(result) => {
-                setText(result.text);
-                setSourceFileId(result.sourceFileId);
-              }}
-            />
-            <span className="hidden items-center rounded-md bg-[#EBC84C]/20 px-2 text-[8px] font-bold tracking-wider text-[#8B781F] uppercase sm:flex md:py-1 md:text-[10px]">
-              Custa 1 crédito
-            </span>
-          </div>
+          <span className="flex w-fit items-center gap-2 rounded-xl border border-amber-100 bg-amber-50 p-2 text-[11px] font-bold text-amber-800 uppercase">
+            <Coins className="size-3.5 text-amber-800" />
+            Custo por correção: 1 crédito
+          </span>
         </div>
+
+        {!sourceFileId && (
+          <div className="mx-5 mt-5 flex flex-col gap-4 rounded-2xl bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <span className="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl">
+                <ScanText className="size-5" />
+              </span>
+              <div>
+                <p className="text-sm font-bold">Escreveu à mão?</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
+                  Transforme uma foto ou PDF em texto para revisar.
+                </p>
+              </div>
+            </div>
+
+            <div className="sm:shrink-0">
+              <EssayTranscriptionDialog
+                topicId={topic.id}
+                currentText={text}
+                currentSourceFileId={sourceFileId}
+                disabled={!hasAvailableCredits}
+                onTranscribed={(result) => {
+                  setText(result.text);
+                  setSourceFileId(result.sourceFileId);
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {state?.error && (
           <div className="animate-in slide-in-from-top-2 mx-6 mt-6 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
@@ -157,9 +175,27 @@ export function EssayEditorForm({
         {sourceFileId && (
           <Alert className="mx-6 mt-6 w-auto border-blue-200 bg-blue-50 text-blue-950">
             <AlertCircle className="text-primary" />
-            <AlertDescription className="text-blue-950/90">
-              <strong>Revise a transcrição antes de enviar.</strong> Confira palavras, pontuação e
-              parágrafos comparando com a sua redação manuscrita.
+            <AlertDescription className="flex w-full flex-col gap-4 text-blue-950/90 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 space-y-1">
+                <strong className="block">Revise a transcrição antes de enviar.</strong>
+                <span className="block leading-relaxed">
+                  Confira palavras, pontuação e parágrafos comparando com a sua redação manuscrita.
+                </span>
+              </div>
+              <div className="w-full shrink-0 sm:w-auto">
+                <EssayTranscriptionDialog
+                  topicId={topic.id}
+                  currentText={text}
+                  currentSourceFileId={sourceFileId}
+                  triggerLabel="Enviar nova transcrição"
+                  triggerTone="detail"
+                  disabled={!hasAvailableCredits}
+                  onTranscribed={(result) => {
+                    setText(result.text);
+                    setSourceFileId(result.sourceFileId);
+                  }}
+                />
+              </div>
             </AlertDescription>
           </Alert>
         )}
@@ -176,7 +212,7 @@ export function EssayEditorForm({
             suppressHydrationWarning
             id="essay-text"
             name="content"
-            className="w-full flex-1 resize-y bg-transparent text-base leading-relaxed font-medium text-slate-700 outline-none placeholder:text-slate-300"
+            className="min-h-96 w-full flex-1 resize-y bg-transparent text-base leading-relaxed font-medium text-slate-700 outline-none placeholder:text-slate-300 lg:min-h-128"
             placeholder="Primeiro, escreva sua redação à mão, como no dia da prova. Depois, transcreva-a aqui."
             value={text}
             onChange={(e) => setText(e.target.value)}

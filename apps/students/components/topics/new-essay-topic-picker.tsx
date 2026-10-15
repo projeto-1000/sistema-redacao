@@ -8,6 +8,7 @@ import {
   NotebookPen,
   RotateCcw,
   Search,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useRef, useState, type ReactElement } from "react";
@@ -15,14 +16,9 @@ import { useDebouncedCallback } from "use-debounce";
 
 import { getTopicDetails, getTopicsList } from "@/app/actions/get-topics";
 import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/ui/components/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@repo/ui/components/select";
 import {
   Sheet,
   SheetContent,
@@ -208,6 +204,8 @@ export function NewEssayTopicPicker({ children }: NewEssayTopicPickerProps) {
   };
 
   const isLoading = topicsState.status === "idle" || topicsState.status === "loading";
+  const SelectedAxisIcon =
+    filters.axisFilter === "Todos" ? ListFilter : AXIS_ICONS[filters.axisFilter];
 
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
@@ -215,7 +213,10 @@ export function NewEssayTopicPicker({ children }: NewEssayTopicPickerProps) {
         <SheetTrigger asChild>{children}</SheetTrigger>
       </span>
 
-      <SheetContent className="gap-0 p-0 sm:max-w-2xl">
+      <SheetContent
+        className="gap-0 p-0 sm:max-w-2xl"
+        onOpenAutoFocus={(event) => event.preventDefault()}
+      >
         <header className="shrink-0 border-b border-slate-200 px-5 py-4 pr-14 sm:px-6 sm:pr-16">
           <div className="flex items-center gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#FFF9E6] text-[#EBC84C]">
@@ -233,48 +234,76 @@ export function NewEssayTopicPicker({ children }: NewEssayTopicPickerProps) {
         <div className="shrink-0 border-b border-slate-100 px-5 py-4 sm:px-6">
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative min-w-0 flex-1">
-              <Search className="absolute top-1/2 left-5 size-5 -translate-y-1/2 text-slate-400" />
-              <input
+              <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-slate-400" />
+              <Input
                 type="search"
                 aria-label="Pesquisar temas"
                 placeholder="Pesquisar por título, eixo ou palavra-chave..."
-                className="focus:ring-primary/20 focus:border-primary w-full rounded-full border border-slate-200 bg-white py-4 pr-6 pl-14 text-sm font-medium text-slate-700 shadow-sm transition-all placeholder:text-slate-400 focus:ring-2 focus:outline-none"
+                className="focus-visible:border-primary focus-visible:ring-primary/20 h-14 rounded-2xl border-transparent bg-slate-50 pr-5 pl-11 font-medium text-slate-700 shadow-none hover:bg-slate-100/70"
                 value={filters.searchTerm}
                 onChange={(event) => handleSearchChange(event.target.value)}
               />
             </div>
 
-            <Select
-              value={filters.axisFilter}
-              onValueChange={(value) => handleAxisChange(value as "Todos" | ThematicAxis)}
-            >
-              <SelectTrigger
-                aria-label="Filtrar por eixo temático"
-                className="focus:ring-primary/20 focus:border-primary h-13.5! w-full cursor-pointer rounded-full border-slate-200 bg-white! px-5 font-bold text-slate-700 shadow-sm sm:w-58"
+            <div className="flex w-full items-center gap-2 sm:w-auto">
+              <Select
+                value={filters.axisFilter}
+                onValueChange={(value) => handleAxisChange(value as ThematicAxis)}
               >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent
-                position="popper"
-                align="end"
-                className="z-60 rounded-2xl border-slate-200 shadow-lg"
-              >
-                {AXIS_FILTERS.map((axis) => {
-                  const Icon = axis === "Todos" ? ListFilter : AXIS_ICONS[axis];
+                <SelectTrigger
+                  aria-label="Filtrar por eixo temático"
+                  className={`focus-visible:border-primary focus-visible:ring-primary/20 focus:border-primary focus:ring-primary/20 h-14! min-w-0 flex-1 cursor-pointer rounded-2xl px-5 shadow-none transition-colors hover:bg-slate-100 sm:w-auto sm:max-w-80 sm:flex-none ${
+                    filters.axisFilter === "Todos"
+                      ? "border-transparent bg-slate-50"
+                      : "border-primary bg-slate-50"
+                  }`}
+                >
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    <SelectedAxisIcon className="size-4 text-slate-400" />
+                    {filters.axisFilter === "Todos" ? (
+                      <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">
+                        Eixo temático
+                      </span>
+                    ) : (
+                      <span className="min-w-0 truncate text-xs font-bold text-slate-700 uppercase">
+                        {filters.axisFilter}
+                      </span>
+                    )}
+                  </span>
+                </SelectTrigger>
+                <SelectContent
+                  position="popper"
+                  align="end"
+                  className="z-60 rounded-2xl border-slate-200 shadow-lg"
+                >
+                  {AXIS_FILTERS.filter((axis) => axis !== "Todos").map((axis) => {
+                    const Icon = AXIS_ICONS[axis];
 
-                  return (
-                    <SelectItem
-                      key={axis}
-                      value={axis}
-                      className="focus:bg-primary/10 data-[state=checked]:bg-primary/30 data-[state=checked]:text-primary-foreground hover:*:text-primary hover:bg-primary/10 rounded-xl py-2.5 hover:*:font-bold"
-                    >
-                      <Icon className="size-4 text-slate-500" />
-                      {axis === "Todos" ? "Todos os eixos" : axis}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+                    return (
+                      <SelectItem
+                        key={axis}
+                        value={axis}
+                        className="focus:bg-primary/10 data-[state=checked]:bg-primary/30 data-[state=checked]:text-primary-foreground hover:*:text-primary hover:bg-primary/10 rounded-xl py-2.5 hover:*:font-bold data-[state=checked]:font-bold"
+                      >
+                        <Icon className="size-4 text-slate-500" />
+                        {axis}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+
+              {filters.axisFilter !== "Todos" && (
+                <button
+                  type="button"
+                  aria-label="Limpar filtro de eixo temático"
+                  className="flex size-14 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-red-50 text-red-500 transition-colors hover:bg-red-100/80 focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:outline-none"
+                  onClick={() => handleAxisChange("Todos")}
+                >
+                  <X className="size-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

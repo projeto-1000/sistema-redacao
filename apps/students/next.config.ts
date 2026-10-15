@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@repo/ui", "@repo/utils", "@repo/validators"],
+  logging: {
+    serverFunctions: false,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

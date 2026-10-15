@@ -159,7 +159,6 @@ function getClient() {
 
 export async function transcribeEssay({
   fileUrl,
-  filename,
   contentType,
   model,
 }: {
@@ -177,7 +176,6 @@ export async function transcribeEssay({
       ? {
           type: "input_file" as const,
           file_url: fileUrl,
-          filename,
           detail: "high" as const,
         }
       : {
@@ -327,7 +325,6 @@ export async function transcribeEssayWithRouting({
         attempts,
       };
     }
-
   }
 
   if (lastError) throw lastError;

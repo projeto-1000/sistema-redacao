@@ -25,9 +25,9 @@ export function EssayWorkspace({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="animate-in fade-in flex h-[calc(100vh-8rem)] max-w-full flex-col justify-normal duration-500">
-      <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-hidden lg:flex-row">
-        <div className="z-10 hidden h-full w-full shrink-0 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:flex lg:w-112.5">
+    <div className="animate-in fade-in flex min-h-[calc(100vh-8rem)] max-w-full flex-col justify-normal duration-500">
+      <div className="flex flex-1 flex-col gap-8 lg:flex-row lg:items-start">
+        <div className="z-10 hidden h-[calc(100vh-8rem)] w-full shrink-0 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:sticky lg:top-20 lg:flex lg:w-112.5">
           <div className="flex shrink-0 items-center gap-2 border-b border-slate-100 bg-slate-50/50 p-5 text-[#1E3A8A]">
             <FileText className="size-4" />
             <h3 className="text-sm font-bold tracking-wide uppercase">Proposta de Redação</h3>
@@ -37,7 +37,7 @@ export function EssayWorkspace({
           </ScrollArea>
         </div>
 
-        <div className="flex h-full min-w-0 flex-1 flex-col">
+        <div className="flex min-h-[calc(100vh-8rem)] min-w-0 flex-1 flex-col">
           <MobileMotivationalTexts isOpen={isOpen} onClose={setIsOpen} topic={essayTopic} />
 
           <EssayEditorForm
