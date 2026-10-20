@@ -7,6 +7,7 @@ import {
   syncStudentToDataCrazy,
 } from "@/lib/integrations/datacrazy/sync-student";
 import { ESSAY_SOURCE_BUCKET } from "@/lib/essay-source-files";
+import { deleteEssaySources } from "@/lib/server/essay-source-storage";
 
 type EssayPayload = {
   student_id: string;
@@ -176,11 +177,15 @@ export async function deleteDraftEssay(essayId: string) {
       .delete()
       .eq("id", deletedEssay.source_file_id)
       .eq("student_id", user.id)
-      .select("storage_path")
+      .select("storage_path, storage_provider")
       .maybeSingle();
 
     if (deletedSource) {
-      await supabase.storage.from(ESSAY_SOURCE_BUCKET).remove([deletedSource.storage_path]);
+      if (deletedSource.storage_provider === "r2") {
+        await deleteEssaySources([deletedSource.storage_path]);
+      } else {
+        await supabase.storage.from(ESSAY_SOURCE_BUCKET).remove([deletedSource.storage_path]);
+      }
     }
   }
 

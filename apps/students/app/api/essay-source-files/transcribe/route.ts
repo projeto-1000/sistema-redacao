@@ -1,11 +1,26 @@
 import { NextResponse } from "next/server";
 
-import { ESSAY_SOURCE_BUCKET } from "@/lib/essay-source-files";
+import {
+  ESSAY_SOURCE_BUCKET,
+  MAX_ESSAY_IMAGE_BYTES,
+  MAX_ESSAY_PDF_BYTES,
+} from "@/lib/essay-source-files";
 import {
   transcribeEssayWithRouting,
   UnusableEssaySourceError,
 } from "@/lib/ocr/openai-transcription";
 import { createClient } from "@/lib/server";
+import {
+  detectEssaySourceContentType,
+  prepareArchivedEssaySource,
+} from "@/lib/server/essay-source-processing";
+import {
+  createEssaySourceDownloadUrl,
+  deleteEssaySources,
+  downloadEssaySource,
+  getEssaySourceMetadata,
+  uploadEssaySource,
+} from "@/lib/server/essay-source-storage";
 
 export const runtime = "nodejs";
 
@@ -16,7 +31,7 @@ async function deleteUnsubmittedSourceFile(
 ) {
   const { data: sourceFile } = await supabase
     .from("essay_source_files")
-    .select("id, storage_path")
+    .select("id, storage_path, storage_provider")
     .eq("id", sourceFileId)
     .eq("student_id", studentId)
     .maybeSingle();
@@ -28,104 +43,122 @@ async function deleteUnsubmittedSourceFile(
     .delete()
     .eq("id", sourceFile.id)
     .eq("student_id", studentId)
-    .select("storage_path")
+    .select("storage_path, storage_provider")
     .maybeSingle();
 
-  if (!deleteError && deletedSource) {
-    await supabase.storage
-      .from(ESSAY_SOURCE_BUCKET)
-      .remove([deletedSource.storage_path, `${studentId}/staging/ocr-${sourceFile.id}.jpg`]);
+  if (deleteError || !deletedSource) return;
+
+  if (deletedSource.storage_provider === "r2") {
+    await deleteEssaySources([deletedSource.storage_path]);
+    return;
   }
+
+  await supabase.storage
+    .from(ESSAY_SOURCE_BUCKET)
+    .remove([deletedSource.storage_path, `${studentId}/staging/ocr-${sourceFile.id}.jpg`]);
 }
 
 export async function POST(request: Request) {
   const body = (await request.json()) as {
-    sourceFileId?: string;
+    path?: string;
+    topicId?: string;
+    originalFilename?: string;
     previousSourceFileId?: string | null;
   };
 
-  if (!body.sourceFileId) {
-    return NextResponse.json({ error: "Arquivo não informado." }, { status: 400 });
+  if (!body.path || !body.topicId || !body.originalFilename) {
+    return NextResponse.json({ error: "Dados do arquivo incompletos." }, { status: 400 });
   }
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return NextResponse.json({ error: "Usuário não autenticado." }, { status: 401 });
+  }
+
+  if (!body.path.startsWith(`staging/${user.id}/`)) {
+    return NextResponse.json({ error: "Arquivo inválido." }, { status: 403 });
+  }
+
+  let finalPath: string | null = null;
+  let persistedSourceFile = false;
+
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Usuário não autenticado." }, { status: 401 });
-    }
-
-    const { data: sourceFile, error: sourceFileError } = await supabase
-      .from("essay_source_files")
-      .select("storage_path, original_filename, mime_type")
-      .eq("id", body.sourceFileId)
-      .eq("student_id", user.id)
+    const { data: topic, error: topicError } = await supabase
+      .from("essay_topics")
+      .select("id")
+      .eq("id", body.topicId)
+      .eq("active", true)
       .maybeSingle();
 
-    if (sourceFileError || !sourceFile) {
-      return NextResponse.json({ error: "Arquivo não encontrado." }, { status: 404 });
+    if (topicError || !topic) {
+      return NextResponse.json({ error: "Tema não encontrado." }, { status: 404 });
     }
 
-    const ocrStoragePath =
-      sourceFile.mime_type === "application/pdf"
-        ? sourceFile.storage_path
-        : `${user.id}/staging/ocr-${body.sourceFileId}.jpg`;
-    let ocrContentType =
-      sourceFile.mime_type === "application/pdf" ? "application/pdf" : "image/jpeg";
-    let { data: signedUrl, error: signedUrlError } = await supabase.storage
-      .from(ESSAY_SOURCE_BUCKET)
-      .createSignedUrl(ocrStoragePath, 60 * 10);
+    const metadata = await getEssaySourceMetadata(body.path);
 
-    if ((signedUrlError || !signedUrl?.signedUrl) && ocrStoragePath !== sourceFile.storage_path) {
-      const fallbackSignedUrl = await supabase.storage
-        .from(ESSAY_SOURCE_BUCKET)
-        .createSignedUrl(sourceFile.storage_path, 60 * 10);
-
-      signedUrl = fallbackSignedUrl.data;
-      signedUrlError = fallbackSignedUrl.error;
-      ocrContentType = sourceFile.mime_type;
+    if (metadata.contentLength <= 0 || metadata.contentLength > MAX_ESSAY_IMAGE_BYTES) {
+      return NextResponse.json({ error: "O arquivo deve ter no máximo 10 MB." }, { status: 400 });
     }
 
-    if (signedUrlError || !signedUrl?.signedUrl) {
-      await deleteUnsubmittedSourceFile(supabase, body.sourceFileId, user.id);
-      throw signedUrlError ?? new Error("Não foi possível acessar o arquivo.");
+    const rawBuffer = await downloadEssaySource(body.path);
+    const detectedType = detectEssaySourceContentType(rawBuffer);
+
+    if (!detectedType) {
+      return NextResponse.json(
+        { error: "O conteúdo do arquivo não corresponde a JPG, PNG ou PDF." },
+        { status: 400 }
+      );
     }
 
-    let result;
+    const maximumSize =
+      detectedType === "application/pdf" ? MAX_ESSAY_PDF_BYTES : MAX_ESSAY_IMAGE_BYTES;
 
-    try {
-      result = await transcribeEssayWithRouting({
-        fileUrl: signedUrl.signedUrl,
-        filename: sourceFile.original_filename,
-        contentType: ocrContentType,
-      });
-    } catch (error) {
-      await deleteUnsubmittedSourceFile(supabase, body.sourceFileId, user.id);
-      throw error;
+    if (rawBuffer.byteLength > maximumSize) {
+      return NextResponse.json({ error: "O arquivo deve ter no máximo 10 MB." }, { status: 400 });
     }
+
+    const originalUrl = await createEssaySourceDownloadUrl(body.path);
+    const result = await transcribeEssayWithRouting({
+      fileUrl: originalUrl,
+      filename: body.originalFilename,
+      contentType: detectedType,
+    });
 
     if (!result.text) {
-      await deleteUnsubmittedSourceFile(supabase, body.sourceFileId, user.id);
       return NextResponse.json(
         { error: "Não foi possível identificar texto na redação." },
         { status: 422 }
       );
     }
 
-    if (ocrStoragePath !== sourceFile.storage_path) {
-      await supabase.storage.from(ESSAY_SOURCE_BUCKET).remove([ocrStoragePath]);
-    }
+    const archivedSource = await prepareArchivedEssaySource(rawBuffer, detectedType);
+    const sourceFileId = crypto.randomUUID();
+    finalPath = `${user.id}/${sourceFileId}.${archivedSource.extension}`;
 
-    if (body.previousSourceFileId && body.previousSourceFileId !== body.sourceFileId) {
-      await deleteUnsubmittedSourceFile(supabase, body.previousSourceFileId, user.id);
-    }
+    await uploadEssaySource(finalPath, archivedSource.buffer, archivedSource.mimeType);
+
+    const { error: insertError } = await supabase.from("essay_source_files").insert({
+      id: sourceFileId,
+      student_id: user.id,
+      topic_id: body.topicId,
+      storage_path: finalPath,
+      storage_provider: "r2",
+      original_filename: body.originalFilename.slice(0, 255),
+      mime_type: archivedSource.mimeType,
+      original_size_bytes: rawBuffer.byteLength,
+      stored_size_bytes: archivedSource.buffer.byteLength,
+    });
+
+    if (insertError) throw insertError;
+    persistedSourceFile = true;
 
     const { error: telemetryError } = await supabase.rpc("record_essay_source_transcription", {
-      p_source_file_id: body.sourceFileId,
+      p_source_file_id: sourceFileId,
       p_model: result.model,
       p_route: result.route,
       p_metadata: {
@@ -137,9 +170,25 @@ export async function POST(request: Request) {
       console.error("Essay transcription telemetry error:", telemetryError);
     }
 
-    return NextResponse.json({ text: result.text });
+    if (body.previousSourceFileId && body.previousSourceFileId !== sourceFileId) {
+      try {
+        await deleteUnsubmittedSourceFile(supabase, body.previousSourceFileId, user.id);
+      } catch (cleanupError) {
+        console.error("Previous essay source cleanup error:", cleanupError);
+      }
+    }
+
+    return NextResponse.json({ text: result.text, sourceFileId });
   } catch (error) {
     console.error("Essay transcription error:", error);
+
+    if (finalPath && !persistedSourceFile) {
+      try {
+        await deleteEssaySources([finalPath]);
+      } catch (cleanupError) {
+        console.error("Essay source cleanup error:", cleanupError);
+      }
+    }
 
     if (error instanceof UnusableEssaySourceError) {
       return NextResponse.json({ error: error.message }, { status: 422 });
@@ -149,6 +198,12 @@ export async function POST(request: Request) {
       { error: "Não foi possível transcrever a redação. Tente novamente." },
       { status: 500 }
     );
+  } finally {
+    try {
+      await deleteEssaySources([body.path]);
+    } catch (cleanupError) {
+      console.error("Temporary essay source cleanup error:", cleanupError);
+    }
   }
 }
 

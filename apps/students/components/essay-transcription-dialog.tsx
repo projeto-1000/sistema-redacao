@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useSyncExternalStore, type DragEvent } from "react";
+import { useRef, useState, useSyncExternalStore, type DragEvent } from "react";
 import { Camera, CheckCircle2, FileText, Loader2, ScanText, Upload } from "lucide-react";
 import { toast } from "sonner";
 
@@ -15,12 +15,7 @@ import {
   DialogTrigger,
 } from "@repo/ui/components/dialog";
 import { Progress } from "@repo/ui/components/progress";
-import { createClient } from "@/lib/client";
-import {
-  ESSAY_SOURCE_ACCEPT,
-  ESSAY_SOURCE_BUCKET,
-  validateEssaySourceFile,
-} from "@/lib/essay-source-files";
+import { ESSAY_SOURCE_ACCEPT, validateEssaySourceFile } from "@/lib/essay-source-files";
 
 type TranscriptionStatus = "idle" | "uploading" | "processing" | "transcribing";
 
@@ -79,7 +74,6 @@ export function EssayTranscriptionDialog({
   disabled = false,
   onTranscribed,
 }: EssayTranscriptionDialogProps) {
-  const supabase = useMemo(() => createClient(), []);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -160,80 +154,68 @@ export function EssayTranscriptionDialog({
     if (!file || isWorking) return;
 
     let stagingPath: string | null = null;
-    let processedSourceFileId: string | null = null;
-
     try {
       setError(null);
       setStatus("uploading");
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        throw new Error("Sua sessão expirou. Entre novamente para continuar.");
-      }
-
-      const extension =
-        file.type === "application/pdf" ? "pdf" : file.type === "image/png" ? "png" : "jpg";
-      stagingPath = `${user.id}/staging/${crypto.randomUUID()}.${extension}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from(ESSAY_SOURCE_BUCKET)
-        .upload(stagingPath, file, {
-          contentType: file.type,
-          upsert: false,
-        });
-
-      if (uploadError) throw uploadError;
-
-      setStatus("processing");
-
-      const processResponse = await fetch("/api/essay-source-files/process", {
+      const uploadUrlResponse = await fetch("/api/essay-source-files/upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          path: stagingPath,
-          topicId,
-          originalFilename: file.name,
-        }),
+        body: JSON.stringify({ contentType: file.type }),
       });
-      const processResult = (await processResponse.json()) as {
-        sourceFileId?: string;
+      const uploadUrlResult = (await uploadUrlResponse.json()) as {
+        path?: string;
+        uploadUrl?: string;
         error?: string;
       };
 
-      if (!processResponse.ok || !processResult.sourceFileId) {
-        throw new Error(processResult.error ?? "Não foi possível preparar o arquivo.");
+      if (!uploadUrlResponse.ok || !uploadUrlResult.path || !uploadUrlResult.uploadUrl) {
+        throw new Error(uploadUrlResult.error ?? "Não foi possível preparar o envio do arquivo.");
       }
 
-      processedSourceFileId = processResult.sourceFileId;
-      stagingPath = null;
+      stagingPath = uploadUrlResult.path;
+
+      const uploadResponse = await fetch(uploadUrlResult.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Não foi possível enviar o arquivo.");
+      }
+
+      setStatus("processing");
       setStatus("transcribing");
 
       const transcriptionResponse = await fetch("/api/essay-source-files/transcribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sourceFileId: processResult.sourceFileId,
+          path: stagingPath,
+          topicId,
+          originalFilename: file.name,
           previousSourceFileId: currentSourceFileId,
         }),
       });
       const transcriptionResult = (await transcriptionResponse.json()) as {
         text?: string;
+        sourceFileId?: string;
         error?: string;
       };
 
-      if (!transcriptionResponse.ok || !transcriptionResult.text) {
+      if (
+        !transcriptionResponse.ok ||
+        !transcriptionResult.text ||
+        !transcriptionResult.sourceFileId
+      ) {
         throw new Error(transcriptionResult.error ?? "Não foi possível transcrever a redação.");
       }
 
       onTranscribed({
         text: transcriptionResult.text,
-        sourceFileId: processResult.sourceFileId,
+        sourceFileId: transcriptionResult.sourceFileId,
       });
-      processedSourceFileId = null;
       setIsOpen(false);
       setFile(null);
       toast.success("Transcrição concluída", {
@@ -246,21 +228,17 @@ export function EssayTranscriptionDialog({
           : "Não foi possível transcrever a redação.";
 
       setError(message);
-
-      if (processedSourceFileId) {
-        try {
-          await fetch("/api/essay-source-files/transcribe", {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sourceFileId: processedSourceFileId }),
-          });
-        } catch (cleanupError) {
-          console.error("Essay source cleanup error:", cleanupError);
-        }
-      }
     } finally {
       if (stagingPath) {
-        await supabase.storage.from(ESSAY_SOURCE_BUCKET).remove([stagingPath]);
+        try {
+          await fetch("/api/essay-source-files/upload-url", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: stagingPath }),
+          });
+        } catch (cleanupError) {
+          console.error("Temporary essay source cleanup error:", cleanupError);
+        }
       }
 
       setStatus("idle");
