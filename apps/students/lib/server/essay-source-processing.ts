@@ -2,6 +2,8 @@ import "server-only";
 
 import sharp from "sharp";
 
+import { optimizeEssayPdf } from "./essay-pdf-processing";
+
 const MAX_ARCHIVE_IMAGE_EDGE = 3508;
 
 export type EssaySourceContentType = "image/jpeg" | "image/png" | "application/pdf";
@@ -28,7 +30,7 @@ export async function prepareArchivedEssaySource(
 ) {
   if (detectedType === "application/pdf") {
     return {
-      buffer: rawBuffer,
+      buffer: await optimizeEssayPdf(rawBuffer),
       mimeType: "application/pdf" as const,
       extension: "pdf" as const,
     };
