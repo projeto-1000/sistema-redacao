@@ -1,3 +1,5 @@
+import { RegistrationAttributionCapture } from "@repo/ui/components/registration-attribution";
+import { META_PIXEL_ID } from "@repo/utils/registration-tracking";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Poppins } from "next/font/google";
@@ -39,12 +41,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '1498795297218230');
+      fbq('init', '${META_PIXEL_ID}');
       fbq('track', 'PageView');
     `}
         </Script>
       </head>
       <body className={poppins.variable}>
+        <RegistrationAttributionCapture />
         <noscript>
           {/* O pixel da Meta precisa permanecer uma imagem direta sem JavaScript. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -52,7 +55,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             height="1"
             width="1"
             style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1498795297218230&ev=PageView&noscript=1"
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
             alt=""
           />
         </noscript>

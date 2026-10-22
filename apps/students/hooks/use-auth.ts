@@ -1,3 +1,5 @@
+import { registerStudent } from "@/app/actions/register-student";
+import { captureRegistrationAttribution } from "@repo/utils/registration-tracking";
 import { useState } from "react";
 import { createClient } from "@/lib/client";
 import { ForgotPasswordSchema, LoginSchema, RegisterSchema } from "@repo/validators";
@@ -62,50 +64,15 @@ export function useAuth() {
   };
 
   const register = async (data: RegisterSchema) => {
-    const cleanDocument = data.document.replace(/\D/g, "");
-    const cleanPhoneCountryCode = data.phoneCountryCode.replace(/\D/g, "") || "55";
-    const cleanPhone = data.phone.replace(/\D/g, "");
-    const termsAcceptedAt = data.terms ? new Date().toISOString() : null;
-
     setIsRegistering(true);
-
-    const { data: documentExists, error: rpcError } = await supabase.rpc("check_document_exists", {
-      doc_to_check: cleanDocument,
-    });
-
-    if (rpcError) {
+    try {
+      const result = await registerStudent(data, captureRegistrationAttribution());
+      trackCompleteRegistration(result.eventId);
+      router.refresh();
+      router.replace(result.redirectTo);
+    } finally {
       setIsRegistering(false);
-      throw new Error("Não foi possível verificar o CPF no momento.");
     }
-
-    if (documentExists === true) {
-      setIsRegistering(false);
-      throw new Error("Este CPF já está cadastrado.");
-    }
-
-    const { error: authError } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: {
-          full_name: data.name,
-          document: cleanDocument,
-          phone_country_code: cleanPhoneCountryCode,
-          phone: cleanPhone,
-          terms_accepted_at: termsAcceptedAt,
-        },
-      },
-    });
-
-    if (authError) {
-      setIsRegistering(false);
-      throw new Error(authError.message);
-    }
-
-    trackCompleteRegistration();
-    router.refresh();
-    router.replace("/inicio");
-    setIsRegistering(false);
   };
 
   return {

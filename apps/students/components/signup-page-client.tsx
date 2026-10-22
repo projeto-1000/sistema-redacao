@@ -1,5 +1,6 @@
 "use client";
 
+import { captureRegistrationAttribution } from "@repo/utils/registration-tracking";
 import { completeHotmartMentorshipSignup } from "@/app/actions/hotmart-mentorship";
 import { useAuth } from "@/hooks/use-auth";
 import type { SignupContext } from "@/types";
@@ -24,9 +25,10 @@ export function SignupPageClient({ context }: SignupPageClientProps) {
       return;
     }
 
-    await completeHotmartMentorshipSignup({
+    const result = await completeHotmartMentorshipSignup({
       token: context.token,
       values,
+      attribution: captureRegistrationAttribution(),
     });
 
     toast.success("Cadastro finalizado!", {
@@ -34,7 +36,7 @@ export function SignupPageClient({ context }: SignupPageClientProps) {
       duration: 5000,
     });
 
-    trackCompleteRegistration();
+    trackCompleteRegistration(result.eventId);
     router.replace("/inicio");
     router.refresh();
   };

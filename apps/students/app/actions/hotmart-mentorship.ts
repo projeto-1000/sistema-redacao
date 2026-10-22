@@ -1,5 +1,8 @@
 "use server";
 
+import { registrationContext } from "@/lib/integrations/meta/context";
+import { scheduleRegistrationDelivery } from "@/lib/integrations/meta/delivery";
+import type { RegistrationAttribution } from "@repo/utils/registration-tracking";
 import { createAdminClient } from "@/lib/admin";
 import { createClient } from "@/lib/server";
 import { registerSchema, type RegisterSchema } from "@repo/validators";
@@ -7,12 +10,14 @@ import { isValidMentorshipSignupToken } from "@/lib/hotmart/mentorship-signup";
 
 interface CompleteHotmartMentorshipSignupInput {
   token: string;
+  attribution?: RegistrationAttribution;
   values: RegisterSchema;
 }
 
 export async function completeHotmartMentorshipSignup({
   token,
   values,
+  attribution,
 }: CompleteHotmartMentorshipSignupInput) {
   const sanitizedToken = token.trim();
 
@@ -92,6 +97,8 @@ export async function completeHotmartMentorshipSignup({
     throw new Error("Plano Mentoria não encontrado.");
   }
 
+  const context = await registrationContext(attribution, "/cadastro");
+
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: submittedEmail,
     password: parsedValues.password,
@@ -103,15 +110,17 @@ export async function completeHotmartMentorshipSignup({
         phone: cleanPhone,
         terms_accepted_at: termsAcceptedAt,
         acquisition_channel: "HOTMART_MENTORIA",
+        registration_attribution: context,
       },
     },
   });
 
-  if (authError || !authData.user) {
+  if (authError || !authData.user || authData.user.identities?.length === 0) {
     throw new Error(authError?.message ?? "Não foi possível criar sua conta.");
   }
 
   const userId = authData.user.id;
+  const eventId = scheduleRegistrationDelivery(userId);
 
   const { error: profileUpdateError } = await supabaseAdmin
     .from("profiles")
@@ -192,6 +201,7 @@ export async function completeHotmartMentorshipSignup({
   return {
     success: true,
     userId,
+    eventId,
     subscriptionId: subscription.id,
   };
 }

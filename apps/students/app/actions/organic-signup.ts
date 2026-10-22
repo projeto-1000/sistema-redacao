@@ -1,5 +1,11 @@
 "use server";
 
+import { registrationContext } from "@/lib/integrations/meta/context";
+import { scheduleRegistrationDelivery } from "@/lib/integrations/meta/delivery";
+import {
+  registrationEventId,
+  type RegistrationAttribution,
+} from "@repo/utils/registration-tracking";
 import { createAdminClient } from "@/lib/admin";
 import {
   getDataCrazySyncErrorCode,
@@ -7,10 +13,11 @@ import {
 } from "@/lib/integrations/datacrazy/sync-student";
 import { authUserExistsByEmail, hashSignupToken } from "@/lib/organic-signup";
 import { createClient } from "@/lib/server";
-import { passwordSetupSchema } from "@repo/validators";
+import { parseRegistrationAttribution, passwordSetupSchema } from "@repo/validators";
 
 interface CompleteOrganicSignupInput {
   token: string;
+  attribution?: RegistrationAttribution;
   password: string;
   confirmPassword: string;
 }
@@ -57,7 +64,7 @@ async function recordSignupAttemptError({
 }
 
 export type CompleteOrganicSignupResult =
-  { success: true; redirectTo: string } | { success: false; error: string };
+  { success: true; redirectTo: string; eventId: string } | { success: false; error: string };
 
 export async function completeOrganicSignup(
   input: CompleteOrganicSignupInput
@@ -90,7 +97,7 @@ export async function completeOrganicSignup(
   const { data: attempt, error: attemptError } = await supabaseAdmin
     .from("signup_attempts")
     .select(
-      "id, name, email, document, phone_country_code, phone, terms_accepted_at, acquisition_channel, expires_at, processing_at, completed_at"
+      "id, name, email, document, phone_country_code, phone, terms_accepted_at, acquisition_channel, expires_at, processing_at, completed_at, registration_attribution"
     )
     .eq("token_hash", hashSignupToken(token))
     .maybeSingle();
@@ -198,6 +205,16 @@ export async function completeOrganicSignup(
 
   try {
     const supabase = await createClient();
+    const saved = parseRegistrationAttribution(attempt.registration_attribution);
+    const current = parseRegistrationAttribution(input.attribution);
+    const context = await registrationContext(
+      {
+        ...current,
+        ...saved,
+        ...(current.fbp ? { fbp: current.fbp } : {}),
+      },
+      "/cadastro/senha"
+    );
     const result = await supabase.auth.signUp({
       email: attempt.email,
       password: parsedPassword.data.password,
@@ -209,15 +226,17 @@ export async function completeOrganicSignup(
           phone: attempt.phone,
           terms_accepted_at: attempt.terms_accepted_at,
           acquisition_channel: "ORGANIC",
+          registration_attribution: context,
         },
       },
     });
 
-    if (result.error || !result.data.user) {
+    if (result.error || !result.data.user || result.data.user.identities?.length === 0) {
       throw new Error("AUTH_SIGNUP_FAILED");
     }
 
     authUserId = result.data.user.id;
+    scheduleRegistrationDelivery(authUserId);
     hasSession = Boolean(result.data.session);
   } catch {
     await recordSignupAttemptError({
@@ -269,6 +288,7 @@ export async function completeOrganicSignup(
 
   return {
     success: true,
+    eventId: registrationEventId(authUserId),
     redirectTo: hasSession ? "/inicio" : "/login?signup=confirm-email",
   };
 }

@@ -6,7 +6,7 @@ import {
   normalizeRegistrationDetails,
   SIGNUP_ATTEMPT_DURATION_MS,
 } from "@/lib/organic-signup";
-import { registrationDetailsSchema } from "@repo/validators";
+import { parseRegistrationAttribution, registrationDetailsSchema } from "@repo/validators";
 import { NextResponse } from "next/server";
 
 function getCorsHeaders(request: Request): Headers | null {
@@ -69,6 +69,9 @@ export async function POST(request: Request) {
       );
     }
 
+    const attribution = parseRegistrationAttribution(
+      body && typeof body === "object" && "attribution" in body ? body.attribution : undefined
+    );
     const details = normalizeRegistrationDetails(parsedBody.data);
     const supabaseAdmin = createAdminClient();
     const { data: documentExists, error: documentError } = await supabaseAdmin.rpc(
@@ -112,6 +115,7 @@ export async function POST(request: Request) {
       phone: details.phone,
       terms_accepted_at: new Date().toISOString(),
       acquisition_channel: "ORGANIC",
+      registration_attribution: attribution,
       expires_at: new Date(Date.now() + SIGNUP_ATTEMPT_DURATION_MS).toISOString(),
     });
 

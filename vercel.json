@@ -15,6 +15,10 @@
     {
       "path": "/api/subscriptions/finalize-cancellations",
       "schedule": "30 9 * * *"
+    },
+    {
+      "path": "/api/meta/registrations",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

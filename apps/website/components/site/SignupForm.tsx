@@ -1,5 +1,6 @@
 "use client";
 
+import { captureRegistrationAttribution } from "@repo/utils/registration-tracking";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   DEFAULT_PHONE_COUNTRY_CODE,
@@ -89,7 +90,7 @@ export function SignupForm({ loginUrl }: SignupFormProps) {
       const response = await fetch(studentsUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(registration),
+        body: JSON.stringify({ ...registration, attribution: captureRegistrationAttribution() }),
       });
       const result = (await response.json()) as AttemptsResponse;
 

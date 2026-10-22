@@ -13,3 +13,4 @@ export * from "./student-profile";
 export * from "./teacher-invite";
 export * from "./subscription-support";
 export * from "./manual-credit-grant";
+export * from "./registration-tracking";
