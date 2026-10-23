@@ -1,8 +1,10 @@
+import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 import {
   META_PIXEL_ID,
   REGISTRATION_EVENT_NAME,
   trackingPageUrl,
+  registrationEventId,
 } from "@repo/utils/registration-tracking";
 
 export { META_PIXEL_ID };
@@ -17,6 +19,29 @@ export interface RegistrationEvent {
   attribution: unknown;
   attempts: number;
   locked_until: string;
+}
+
+export interface CreatedRegistration {
+  userId: string;
+  createdAt: string;
+  email: string;
+  phoneCountryCode: string;
+  phone: string;
+  attribution: unknown;
+}
+
+export function buildQueuedRegistration(registration: CreatedRegistration) {
+  const hash = (value: string) => createHash("sha256").update(value).digest("hex");
+  const email = registration.email.trim().toLowerCase();
+  const phone = `${registration.phoneCountryCode}${registration.phone}`.replace(/\D/g, "");
+  return {
+    user_id: registration.userId,
+    event_id: registrationEventId(registration.userId),
+    event_time: registration.createdAt,
+    email_hash: email ? hash(email) : null,
+    phone_hash: registration.phone ? hash(phone) : null,
+    attribution: registration.attribution,
+  };
 }
 
 function object(value: unknown): Record<string, unknown> {

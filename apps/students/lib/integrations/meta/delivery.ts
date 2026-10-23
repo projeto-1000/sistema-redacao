@@ -2,8 +2,14 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/admin";
 import { after } from "next/server";
-import { registrationEventId } from "@repo/utils/registration-tracking";
-import { registrationRetryAt, sendRegistrationEvent, type RegistrationEvent } from "./payload";
+import {
+  buildQueuedRegistration,
+  registrationRetryAt,
+  sendRegistrationEvent,
+  type CreatedRegistration,
+  type RegistrationEvent,
+} from "./payload";
+import { scheduleRegistrationTask } from "./registration-task";
 
 export async function deliverRegistrationEvents(userId?: string) {
   if (process.env.META_CONVERSIONS_ENABLED !== "true")
@@ -60,13 +66,21 @@ export async function deliverRegistrationEvents(userId?: string) {
   return { status: "processed", sent, failed };
 }
 
-export function scheduleRegistrationDelivery(userId: string) {
-  after(async () => {
-    try {
-      await deliverRegistrationEvents(userId);
-    } catch {
-      console.error("[META_REGISTRATION_ERROR]", { code: "DELIVERY_FAILED" });
-    }
+export function scheduleRegistrationDelivery(registration: CreatedRegistration) {
+  return scheduleRegistrationTask({
+    userId: registration.userId,
+    schedule: (task) => after(task),
+    task: async () => {
+      const admin = createAdminClient();
+      const { error } = await admin
+        .from("meta_registration_events")
+        .upsert(buildQueuedRegistration(registration), {
+          onConflict: "user_id",
+          ignoreDuplicates: true,
+        });
+      if (error) throw new Error("META_QUEUE_INSERT_FAILED");
+      await deliverRegistrationEvents(registration.userId);
+    },
+    reportError: (code) => console.error("[META_REGISTRATION_ERROR]", { code }),
   });
-  return registrationEventId(userId);
 }

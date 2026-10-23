@@ -29,19 +29,27 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
 ## Meta registration tracking
 
-Validation status (2026-10-22): migration `20261022000001` was applied to DEV
-through the CLI after an exclusive dry-run plan. SQL regressions passed in a
-rolled-back rehearsal and again after application; no fixture rows remained.
-Website/Students changes are still local. No requests to Meta were sent.
+Validation status (2026-10-23): migrations `20261022000001` and
+`20261023000001` were applied to DEV through the CLI after exclusive dry-run
+plans. SQL regressions passed in rolled-back rehearsals and after application;
+no fixture rows remained. The isolation regression created profiles while the
+tracking table was temporarily unavailable. The queue and existing events were
+preserved, and the migration history matches the repository. All 21 local unit
+tests, Students lint, Students/Website type checks and the Students webpack
+compile-only build passed. Browser signup and Meta reception remain unverified;
+no requests to Meta were sent during these checks.
 
 Pixel ID: `1498795297218230`. The Website and Students layouts use the same
-shared constant. `CompleteRegistration` is recorded only on insertion of a new
-STUDENT profile, in the same database transaction as account creation. The
-outbox retains attribution per user, snapshots normalized SHA-256 email/phone,
-and excludes teacher invitations and existing accounts. No historical backfill.
+shared constant. After Auth confirms a new account in one of the three student
+signup flows, the application schedules outbox persistence and delivery after
+the response. `20261023000001_decouple_meta_tracking_from_signup.sql` removes
+the old profile trigger; no tracking table or API participates in account creation.
+The outbox retains attribution per user and normalized SHA-256 email/phone.
+Existing queued events remain intact; no historical accounts are backfilled.
 
-Apply `20261022000001_meta_registration_events.sql` before deploying the new
-Website/Students code. Creating the migration does not apply it to DEV or PROD.
+Apply `20261022000001_meta_registration_events.sql` and then
+`20261023000001_decouple_meta_tracking_from_signup.sql` before deploying the
+updated Students code. Creating a migration does not apply it to DEV or PROD.
 Validate it in an isolated PostgreSQL/Supabase instance with
 `supabase/tests/meta-registration-events.sql` first. This transaction rolls back
 all fixtures and never calls Meta or the CRM.
@@ -55,6 +63,13 @@ Server-only configuration on Students (never use `NEXT_PUBLIC_` for these):
 - `META_CONVERSIONS_TEST_EVENT_CODE`: Meta Test Events code. Required for local/preview
   delivery. Remove it for normal production delivery after joint validation.
 - Existing `CRON_SECRET`: protects `GET /api/meta/registrations`.
+
+Failure policy: an outbox insert, a delivery request, or even scheduling/logging
+failure must never reject a successful signup. Failed sends remain queued for
+retry. If the initial outbox write itself fails or the post-response process is
+interrupted, the account still exists but automatic delivery is not guaranteed;
+a fixed error code is logged for observed failures. Attribution also remains in
+Auth metadata. Do not represent tracking as guaranteed delivery.
 
 The Vercel cron retries once daily (12:00 UTC), compatible with the Hobby plan.
 New signups still request immediate delivery after the response. The service-only
@@ -81,7 +96,7 @@ server reception/deduplication must be checked in Events Manager. Do not trigger
 real signup emails, CRM events or payment operations just to test tracking.
 
 Rollback: disable `META_CONVERSIONS_ENABLED`, restore the previous application
-version, and disable/drop the new profile trigger and its two RPC/trigger
-functions through a reviewed migration if needed. Keep the outbox and attribution
-column to preserve collected data. Production has not been migrated and no
-application deployment has been performed.
+version if needed. Keep the outbox, its claim RPC and attribution column to
+preserve collected data. Do not restore the removed profile trigger: that would
+reintroduce a tracking dependency in account creation. No production migration
+or production deployment has been performed for this work.

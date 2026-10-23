@@ -28,7 +28,12 @@ export function parseRegistrationAttribution(value: unknown) {
   const parsed: Record<string, string> = {};
   for (const [key, schema] of Object.entries(registrationAttributionSchema.shape)) {
     const field = schema.safeParse(Reflect.get(value, key));
-    if (field.success && field.data) parsed[key] = field.data;
+    if (field.success && field.data) {
+      // PostgreSQL JSON rejects NUL and unpaired surrogates. Tracking must not invalidate Auth metadata.
+      parsed[key] = new TextDecoder()
+        .decode(new TextEncoder().encode(field.data))
+        .replace(/\u0000/g, "");
+    }
   }
   if (parsed.landing_url) {
     const safeUrl = trackingPageUrl(parsed.landing_url);

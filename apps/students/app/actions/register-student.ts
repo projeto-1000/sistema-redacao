@@ -39,7 +39,14 @@ export async function registerStudent(
     throw new Error("Não foi possível criar sua conta. Verifique os dados e tente novamente.");
   }
   return {
-    eventId: scheduleRegistrationDelivery(result.data.user.id),
+    eventId: scheduleRegistrationDelivery({
+      userId: result.data.user.id,
+      createdAt: result.data.user.created_at,
+      email: details.email,
+      phoneCountryCode: details.phoneCountryCode,
+      phone: details.phone,
+      attribution: context,
+    }),
     redirectTo: result.data.session ? "/inicio" : "/login?signup=confirm-email",
   };
 }

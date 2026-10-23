@@ -120,7 +120,14 @@ export async function completeHotmartMentorshipSignup({
   }
 
   const userId = authData.user.id;
-  const eventId = scheduleRegistrationDelivery(userId);
+  const eventId = scheduleRegistrationDelivery({
+    userId,
+    createdAt: authData.user.created_at,
+    email: submittedEmail,
+    phoneCountryCode: cleanPhoneCountryCode,
+    phone: cleanPhone,
+    attribution: context,
+  });
 
   const { error: profileUpdateError } = await supabaseAdmin
     .from("profiles")

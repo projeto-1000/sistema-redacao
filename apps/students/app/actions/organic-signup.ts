@@ -236,7 +236,14 @@ export async function completeOrganicSignup(
     }
 
     authUserId = result.data.user.id;
-    scheduleRegistrationDelivery(authUserId);
+    scheduleRegistrationDelivery({
+      userId: authUserId,
+      createdAt: result.data.user.created_at,
+      email: attempt.email,
+      phoneCountryCode: attempt.phone_country_code,
+      phone: attempt.phone,
+      attribution: context,
+    });
     hasSession = Boolean(result.data.session);
   } catch {
     await recordSignupAttemptError({

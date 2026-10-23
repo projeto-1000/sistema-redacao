@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
-import { buildRegistrationPayload, sendRegistrationEvent, registrationRetryAt } from "./payload.ts";
+import {
+  buildQueuedRegistration,
+  buildRegistrationPayload,
+  sendRegistrationEvent,
+  registrationRetryAt,
+} from "./payload.ts";
 import { trackCompleteRegistration } from "../../meta-pixel.ts";
 
 const hash = (value) => createHash("sha256").update(value).digest("hex");
@@ -120,4 +125,22 @@ test("HTTP rejection, missing acknowledgement and network errors remain retryabl
   }
   assert.equal(registrationRetryAt(1, 0), new Date(120000).toISOString());
   assert.equal(registrationRetryAt(99, 0), new Date(6 * 60 * 60 * 1000).toISOString());
+});
+
+test("post-signup persistence snapshots normalized contact hashes without raw contacts", () => {
+  const queued = buildQueuedRegistration({
+    userId: "created-user",
+    createdAt: event.event_time,
+    email: " Student@Example.Test ",
+    phoneCountryCode: "+55",
+    phone: "(11) 99999-0000",
+    attribution: event.attribution,
+  });
+  assert.equal(queued.user_id, "created-user");
+  assert.equal(queued.event_id, "registration:created-user");
+  assert.equal(queued.event_time, event.event_time);
+  assert.equal(queued.email_hash, hash("student@example.test"));
+  assert.equal(queued.phone_hash, hash("5511999990000"));
+  assert.equal(queued.email, undefined);
+  assert.equal(queued.phone, undefined);
 });
