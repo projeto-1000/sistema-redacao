@@ -56,9 +56,9 @@ Server-only configuration on Students (never use `NEXT_PUBLIC_` for these):
   delivery. Remove it for normal production delivery after joint validation.
 - Existing `CRON_SECRET`: protects `GET /api/meta/registrations`.
 
-The existing Vercel cron configuration retries every 15 minutes. New signups also
-request delivery after the response. The service-only claim RPC leases rows with
-`SKIP LOCKED`; rejected or unacknowledged deliveries retry with the original
+The Vercel cron retries once daily (12:00 UTC), compatible with the Hobby plan.
+New signups still request immediate delivery after the response. The service-only
+claim RPC leases up to five pending rows per run with `SKIP LOCKED`; rejected or unacknowledged deliveries retry with the original
 `event_id` and time. Retries stop when the event reaches Meta's seven-day age
 limit. Inspect old pending rows before enabling an environment; do not represent
 old accounts as new registrations. Responses and failures log only fixed error
