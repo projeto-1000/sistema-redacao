@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FileText } from "lucide-react";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
+import { PrintTopicButton } from "@repo/ui/components/print-topic-button";
 import { EssayEditorForm } from "@/components/essay-editor-form";
 import { MotivationalTexts } from "@/components/motivational-texts";
 import MobileMotivationalTexts from "@/components/mobile-motivational-texts";
@@ -31,6 +32,7 @@ export function EssayWorkspace({
           <div className="flex shrink-0 items-center gap-2 border-b border-slate-100 bg-slate-50/50 p-5 text-[#1E3A8A]">
             <FileText className="size-4" />
             <h3 className="text-sm font-bold tracking-wide uppercase">Proposta de Redação</h3>
+            <PrintTopicButton topic={essayTopic} className="ml-auto" />
           </div>
           <ScrollArea className="h-full w-full flex-1 bg-white">
             <MotivationalTexts topic={essayTopic} />

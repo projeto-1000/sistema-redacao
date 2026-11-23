@@ -83,6 +83,7 @@ function TopicPickerRow({ topic }: { topic: EssayTopic }) {
 
       <div className="mt-4 flex items-center justify-end gap-2">
         <TopicDetailsDialog
+          showPrintButton
           topic={topic}
           getTopicDetailsAction={getTopicDetails}
           className="min-h-9 w-auto rounded-xl px-3 md:w-auto"

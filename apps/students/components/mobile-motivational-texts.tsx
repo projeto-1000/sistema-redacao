@@ -11,6 +11,7 @@ import { MotivationalTexts } from "./motivational-texts";
 import { EssayTopicDetail } from "@repo/types";
 import { Button } from "@repo/ui/components/button";
 import { FileText } from "lucide-react";
+import { PrintTopicButton } from "@repo/ui/components/print-topic-button";
 
 interface Props {
   isOpen: boolean;
@@ -28,12 +29,13 @@ export default function MobileMotivationalTexts({ isOpen, onClose, topic }: Prop
           Ver textos motivadores
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader className="sr-only">
-          <DialogTitle>Textos Motivadores</DialogTitle>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col">
+        <DialogHeader className="flex-row items-center justify-between gap-3 pr-8 text-left">
+          <DialogTitle className="text-base">Textos Motivadores</DialogTitle>
+          <PrintTopicButton topic={topic} />
         </DialogHeader>
 
-        <div className="no-scrollbar -mx-4 max-h-150 overflow-y-auto px-4">
+        <div className="no-scrollbar -mx-4 max-h-150 min-h-0 overflow-y-auto px-4">
           <MotivationalTexts topic={topic} />
         </div>
       </DialogContent>

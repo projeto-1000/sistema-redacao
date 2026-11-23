@@ -16,11 +16,13 @@ import { BookOpenText, FileText, Info, NotebookPen, AlertCircle, Eye } from "luc
 import Link from "next/link";
 import type { EssayTopic, MotivationalText, EssayTopicDetail } from "@repo/types";
 import { cn } from "@repo/ui/lib/utils";
+import { PrintTopicButton } from "@repo/ui/components/print-topic-button";
 
 interface TopicDetailsDialogProps {
   topic: EssayTopic;
   className?: string;
   showStartButton?: boolean;
+  showPrintButton?: boolean;
   getTopicDetailsAction: (topicId: string) => Promise<EssayTopicDetail | null>;
 }
 
@@ -68,6 +70,7 @@ function MotivatingTextItem({ item }: { item: MotivationalText }) {
 export function TopicDetailsDialog({
   topic,
   showStartButton = true,
+  showPrintButton = false,
   getTopicDetailsAction,
   className = "",
 }: TopicDetailsDialogProps) {
@@ -110,13 +113,28 @@ export function TopicDetailsDialog({
       </DialogTrigger>
 
       <DialogContent className="flex h-[90vh] w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-xl outline-none focus:ring-0 focus:outline-none md:max-h-[90vh] md:min-w-4xl">
-        <DialogHeader className="shrink-0 border-b border-slate-200 bg-white px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-[#EBC84C] p-2 shadow-sm shadow-yellow-200">
+        <DialogHeader
+          className={cn(
+            "shrink-0 border-b border-slate-200 bg-white px-6 py-5",
+            showPrintButton && "flex-row items-center justify-between gap-3 pr-14"
+          )}
+        >
+          <div className="flex min-w-0 items-center gap-3">
+            <div
+              className={cn(
+                "rounded-lg bg-[#EBC84C] p-2 shadow-sm shadow-yellow-200",
+                showPrintButton && "hidden sm:block"
+              )}
+            >
               <FileText className="size-5" />
             </div>
-            <DialogTitle className="text-xl font-extrabold">Proposta de Redação</DialogTitle>
+            <DialogTitle
+              className={cn("text-xl font-extrabold", showPrintButton && "text-base sm:text-xl")}
+            >
+              Proposta de Redação
+            </DialogTitle>
           </div>
+          {showPrintButton && <PrintTopicButton topic={details} disabled={loading} />}
         </DialogHeader>
 
         <div

@@ -48,7 +48,7 @@ export default function TopicsRow({ topic }: TopicsRowProps) {
       </div>
 
       <div className="mt-4 flex flex-row justify-between gap-2 md:justify-end lg:col-span-4 lg:mt-0 xl:col-span-3">
-        <TopicDetailsDialog topic={topic} getTopicDetailsAction={getTopicDetails} />
+        <TopicDetailsDialog topic={topic} getTopicDetailsAction={getTopicDetails} showPrintButton />
 
         <Button
           asChild
