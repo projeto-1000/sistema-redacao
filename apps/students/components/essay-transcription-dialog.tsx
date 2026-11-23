@@ -361,6 +361,7 @@ export function EssayTranscriptionDialog({
             <ul className="mt-3 space-y-1.5 pl-7 text-sm leading-6 text-slate-600">
               <li className="list-disc">Enquadre toda a folha, sem cortar as margens.</li>
               <li className="list-disc">Evite sombras, reflexos e fotos inclinadas.</li>
+              <li className="list-disc">Confira se nenhuma parte do texto está desfocada ou embaçada.</li>
               <li className="list-disc">Envie apenas um arquivo JPG/JPEG, PNG ou PDF de até 10 MB.</li>
             </ul>
           </div>
