@@ -96,6 +96,37 @@ export function EssayEditorForm({
       <input type="hidden" name="pedagogical_use_consent" value={String(pedagogicalUseConsent)} />
       <input type="hidden" name="source_file_id" value={sourceFileId ?? ""} />
 
+      {!sourceFileId && (
+        <div className="flex flex-col gap-5 rounded-3xl border border-primary/70 bg-[#FFFDF5] p-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:p-4">
+          <div className="flex min-w-0 items-start gap-3 sm:flex-1 sm:basis-60">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+              <ScanText className="size-6" />
+            </span>
+            <div>
+              <h3 className="text-base font-bold">Escreveu à mão?</h3>
+              <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                Transforme uma foto ou PDF em texto para revisar antes de enviar.
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full sm:w-auto sm:shrink-0">
+            <EssayTranscriptionDialog
+              topicId={topic.id}
+              currentText={text}
+              currentSourceFileId={sourceFileId}
+              triggerLabel="Transcrever redação"
+              disabled={!hasAvailableCredits}
+              onTranscribed={(result) => {
+                setText(result.text);
+                setSourceFileId(result.sourceFileId);
+              }}
+            />
+            <p className="mt-2 text-center text-xs text-slate-500">JPG, PNG ou PDF · até 10 MB</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-1 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-100 bg-slate-50/30 p-5 sm:flex-row sm:items-center">
           <div>
@@ -110,35 +141,6 @@ export function EssayEditorForm({
             Custo por correção: 1 crédito
           </span>
         </div>
-
-        {!sourceFileId && (
-          <div className="mx-5 mt-5 flex flex-col gap-4 rounded-2xl bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <span className="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl">
-                <ScanText className="size-5" />
-              </span>
-              <div>
-                <p className="text-sm font-bold">Escreveu à mão?</p>
-                <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
-                  Transforme uma foto ou PDF em texto para revisar.
-                </p>
-              </div>
-            </div>
-
-            <div className="sm:shrink-0">
-              <EssayTranscriptionDialog
-                topicId={topic.id}
-                currentText={text}
-                currentSourceFileId={sourceFileId}
-                disabled={!hasAvailableCredits}
-                onTranscribed={(result) => {
-                  setText(result.text);
-                  setSourceFileId(result.sourceFileId);
-                }}
-              />
-            </div>
-          </div>
-        )}
 
         {state?.error && (
           <div className="animate-in slide-in-from-top-2 mx-6 mt-6 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">

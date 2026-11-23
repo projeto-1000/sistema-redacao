@@ -254,13 +254,13 @@ export function EssayTranscriptionDialog({
           type="button"
           variant={triggerTone === "detail" ? "ghost" : "default"}
           disabled={disabled}
-          className={`h-11 w-full gap-2 rounded-xl px-5 font-bold sm:w-auto ${
+          className={`w-full gap-2 rounded-xl px-5 font-bold sm:w-auto ${
             triggerTone === "detail"
               ? "h-auto rounded-none bg-transparent text-blue-900 shadow-none hover:bg-transparent hover:text-blue-700"
-              : "shadow-sm"
+              : "h-12 shadow-sm"
           }`}
         >
-          <ScanText className="size-4" />
+          <ScanText className={triggerTone === "detail" ? "size-4" : "size-5"} />
           <span>{triggerLabel}</span>
         </Button>
       </DialogTrigger>
