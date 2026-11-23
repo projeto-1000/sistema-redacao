@@ -30,9 +30,7 @@ export function EssayEditorForm({
   hasAvailableCredits,
 }: EssayEditorFormProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [pedagogicalUseConsent, setPedagogicalUseConsent] = useState(
-    backup?.pedagogical_use_consent ?? false
-  );
+  const [bestEssayConsent, setBestEssayConsent] = useState(backup?.best_essay_consent ?? false);
   const router = useRouter();
   const {
     content: text,
@@ -67,7 +65,7 @@ export function EssayEditorForm({
         text,
         topic.title,
         topic.axis,
-        pedagogicalUseConsent,
+        bestEssayConsent,
         sourceFileId,
         backup?.id
       );
@@ -93,7 +91,7 @@ export function EssayEditorForm({
       <input type="hidden" name="topicId" value={topic.id} />
       <input type="hidden" name="title" value={topic.title} />
       <input type="hidden" name="thematicAxis" value={topic.axis} />
-      <input type="hidden" name="pedagogical_use_consent" value={String(pedagogicalUseConsent)} />
+      <input type="hidden" name="best_essay_consent" value={String(bestEssayConsent)} />
       <input type="hidden" name="source_file_id" value={sourceFileId ?? ""} />
 
       {!sourceFileId && (
@@ -248,15 +246,15 @@ export function EssayEditorForm({
         <div className="border-t border-slate-200 p-5">
           <label className="mb-5 flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-600">
             <Checkbox
-              checked={pedagogicalUseConsent}
+              checked={bestEssayConsent}
               disabled={!hasAvailableCredits}
-              onCheckedChange={(checked) => setPedagogicalUseConsent(checked === true)}
-              aria-describedby="pedagogical-use-consent-description"
+              onCheckedChange={(checked) => setBestEssayConsent(checked === true)}
+              aria-describedby="best-essay-consent-description"
               className="mt-0.5"
             />
-            <span id="pedagogical-use-consent-description">
-              Autorizo o uso anonimizado da minha redação e, quando enviado, do arquivo manuscrito
-              no banco de redações exemplares, em aulas e em materiais pedagógicos do Projeto 1000
+            <span id="best-essay-consent-description">
+              Autorizo o uso anonimizado da minha redação no banco de redações exemplares, caso
+              aplicável.
             </span>
           </label>
 

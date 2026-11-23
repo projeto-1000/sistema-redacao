@@ -56,7 +56,7 @@ export async function saveDraft(
   content: string,
   title: string,
   thematicAxis: string,
-  pedagogicalUseConsent: boolean,
+  bestEssayConsent: boolean,
   sourceFileId: string | null,
   draftId?: string
 ) {
@@ -72,8 +72,8 @@ export async function saveDraft(
     title: title,
     thematic_axis: thematicAxis,
     content: content,
-    best_essay_consent: pedagogicalUseConsent,
-    pedagogical_use_consent: pedagogicalUseConsent,
+    best_essay_consent: bestEssayConsent,
+    pedagogical_use_consent: false,
     source_file_id: sourceFileId,
     status: "draft",
     updated_at: new Date().toISOString(),

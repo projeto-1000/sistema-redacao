@@ -30,7 +30,7 @@ export async function submitEssay(
   }
 
   const content = formData.get("content") as string;
-  const pedagogicalUseConsent = formData.get("pedagogical_use_consent") === "true";
+  const bestEssayConsent = formData.get("best_essay_consent") === "true";
   const sourceFileId = (formData.get("source_file_id") as string) || null;
 
   //TODO: definir caracteres mínimos
@@ -45,8 +45,8 @@ export async function submitEssay(
       p_title: title,
       p_thematic_axis: axis,
       p_content: content,
-      p_best_essay_consent: pedagogicalUseConsent,
-      p_pedagogical_use_consent: pedagogicalUseConsent,
+      p_best_essay_consent: bestEssayConsent,
+      p_pedagogical_use_consent: false,
       p_source_file_id: sourceFileId,
     });
 
