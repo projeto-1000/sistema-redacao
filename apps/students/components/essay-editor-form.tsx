@@ -120,7 +120,7 @@ export function EssayEditorForm({
                 setSourceFileId(result.sourceFileId);
               }}
             />
-            <p className="mt-2 text-center text-xs text-slate-500">JPG, PNG ou PDF · até 10 MB</p>
+            <p className="mt-2 text-center text-xs text-slate-500">JPG/JPEG, PNG ou PDF · até 10 MB</p>
           </div>
         </div>
       )}

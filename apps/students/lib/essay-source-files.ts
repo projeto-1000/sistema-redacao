@@ -16,7 +16,7 @@ export const ESSAY_SOURCE_EXTENSIONS = {
 
 export function validateEssaySourceFile(file: File) {
   if (!SUPPORTED_ESSAY_SOURCE_TYPES.includes(file.type as never)) {
-    return "Formato não suportado. Envie uma imagem JPG ou PNG, ou um arquivo PDF.";
+    return "Formato não suportado. Envie uma imagem JPG/JPEG ou PNG, ou um arquivo PDF.";
   }
 
   const maximumSize = file.type === "application/pdf" ? MAX_ESSAY_PDF_BYTES : MAX_ESSAY_IMAGE_BYTES;
