@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { Save, AlertCircle, Coins, ScanText } from "lucide-react";
+import { useActionState, useLayoutEffect, useRef, useState } from "react";
+import { Save, AlertCircle, Coins, ScanText, X } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import { Alert, AlertDescription } from "@repo/ui/components/alert";
@@ -30,6 +30,7 @@ export function EssayEditorForm({
   hasAvailableCredits,
 }: EssayEditorFormProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [dismissedReviewSourceId, setDismissedReviewSourceId] = useState<string | null>(null);
   const [bestEssayConsent, setBestEssayConsent] = useState(backup?.best_essay_consent ?? false);
   const router = useRouter();
   const {
@@ -40,6 +41,23 @@ export function EssayEditorForm({
     clearAutoSave,
     waitForAutoSave,
   } = useEssayEditor(topic.id, backup, !hasAvailableCredits, preferInitialBackup);
+
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const showReviewNotice = sourceFileId !== dismissedReviewSourceId;
+
+  useLayoutEffect(() => {
+    const textArea = textAreaRef.current;
+    if (!textArea) return;
+
+    const resizeTextArea = () => {
+      textArea.style.height = "auto";
+      textArea.style.height = `${textArea.scrollHeight}px`;
+    };
+
+    resizeTextArea();
+    window.addEventListener("resize", resizeTextArea);
+    return () => window.removeEventListener("resize", resizeTextArea);
+  }, [text]);
 
   const [state, formAction] = useActionState(async (prevState: ActionState, formData: FormData) => {
     await waitForAutoSave();
@@ -95,7 +113,7 @@ export function EssayEditorForm({
       <input type="hidden" name="source_file_id" value={sourceFileId ?? ""} />
 
       {!sourceFileId && (
-        <div className="flex flex-col gap-5 rounded-3xl border border-primary/70 bg-[#FFFDF5] p-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:p-4">
+        <div className="border-primary/70 flex flex-col gap-5 rounded-3xl border bg-[#FFFDF5] p-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:p-4">
           <div className="flex min-w-0 items-start gap-3 sm:flex-1 sm:basis-60">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
               <ScanText className="size-6" />
@@ -120,13 +138,15 @@ export function EssayEditorForm({
                 setSourceFileId(result.sourceFileId);
               }}
             />
-            <p className="mt-2 text-center text-xs text-slate-500">JPG/JPEG, PNG ou PDF · até 10 MB</p>
+            <p className="mt-2 text-center text-xs text-slate-500">
+              JPG/JPEG, PNG ou PDF · até 10 MB
+            </p>
           </div>
         </div>
       )}
 
       <div className="flex flex-1 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col justify-between gap-4 border-b border-slate-100 bg-slate-50/30 p-5 sm:flex-row sm:items-center">
+        <div className="flex flex-col justify-between gap-3 border-b border-slate-100 bg-slate-50/30 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5">
           <div>
             <h3 className="text-lg font-bold">Folha de Redação</h3>
             <p className="mt-1 text-sm text-slate-500">
@@ -173,16 +193,39 @@ export function EssayEditorForm({
         )}
 
         {sourceFileId && (
-          <Alert className="mx-6 mt-6 w-auto border-blue-200 bg-blue-50 text-blue-950">
-            <AlertCircle className="text-primary" />
-            <AlertDescription className="flex w-full flex-col gap-4 text-blue-950/90 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 space-y-1">
-                <strong className="block">Revise a transcrição antes de enviar.</strong>
-                <span className="block leading-relaxed">
-                  Confira palavras, pontuação e parágrafos comparando com a sua redação manuscrita.
-                </span>
-              </div>
-              <div className="w-full shrink-0 sm:w-auto">
+          <Alert
+            role={showReviewNotice ? "alert" : undefined}
+            className={`mx-4 w-auto text-blue-950 sm:mx-6 ${
+              showReviewNotice
+                ? "mt-4 border-blue-200 bg-blue-50 sm:mt-6"
+                : "mt-3 border-0 bg-transparent p-0"
+            }`}
+          >
+            {showReviewNotice && <AlertCircle className="text-primary" />}
+            <AlertDescription className="flex w-full flex-col gap-1 text-blue-950/90">
+              {showReviewNotice && (
+                <>
+                  <div className="flex w-full items-start justify-between gap-3">
+                    <strong className="min-w-0">Revise a transcrição antes de enviar.</strong>
+                    <button
+                      type="button"
+                      aria-label="Fechar aviso de revisão"
+                      onClick={() => {
+                        setDismissedReviewSourceId(sourceFileId);
+                      }}
+                      className="-mt-1 -mr-1 flex size-8 shrink-0 items-center justify-center rounded-md hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                    >
+                      <X className="size-4" aria-hidden="true" />
+                    </button>
+                  </div>
+                  <span className="block leading-relaxed">
+                    A transcrição automática troca palavras. Confira o que você escreveu, a pontuação e
+                    os parágrafos, comparando com sua redação manuscrita. A correção ocorrerá em relação
+                    ao texto digitado.
+                  </span>
+                </>
+              )}
+              <div className={`w-full sm:w-auto sm:self-end ${showReviewNotice ? "mt-2" : ""}`}>
                 <EssayTranscriptionDialog
                   topicId={topic.id}
                   currentText={text}
@@ -200,7 +243,11 @@ export function EssayEditorForm({
           </Alert>
         )}
 
-        <div className="relative flex flex-1 flex-col p-6">
+        <div
+          className={`relative flex flex-1 flex-col px-4 pb-4 sm:px-6 sm:pb-6 ${
+            sourceFileId && !showReviewNotice ? "pt-1" : "pt-4 sm:pt-6"
+          }`}
+        >
           <label
             htmlFor="essay-text"
             className="text-xs font-bold tracking-widest text-slate-400 uppercase"
@@ -209,10 +256,11 @@ export function EssayEditorForm({
           </label>
 
           <textarea
+            ref={textAreaRef}
             suppressHydrationWarning
             id="essay-text"
             name="content"
-            className="min-h-96 w-full flex-1 resize-y bg-transparent text-base leading-relaxed font-medium text-slate-700 outline-none placeholder:text-slate-300 lg:min-h-128"
+            className="min-h-[60svh] w-full flex-none resize-none overflow-hidden bg-transparent text-base leading-relaxed font-medium text-slate-700 outline-none placeholder:text-slate-300 lg:min-h-128"
             placeholder="Primeiro, escreva sua redação à mão, como no dia da prova. Depois, transcreva-a aqui."
             value={text}
             onChange={(e) => setText(e.target.value)}
