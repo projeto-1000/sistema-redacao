@@ -51,6 +51,21 @@ REGRAS OBRIGATÓRIAS:
    - uso de maiúsculas/minúsculas;
    - escolha de palavras.
 
+   ACENTUAÇÃO: copie somente os sinais que estão visíveis no manuscrito.
+   - A ausência de acento também faz parte do que o aluno escreveu.
+   - NÃO acrescente acento agudo, circunflexo, grave ou til apenas porque
+     a palavra deveria ter esse sinal segundo a norma da língua portuguesa.
+   - NÃO remova nem troque um sinal visível, mesmo que esteja errado.
+   - Não transforme um risco, uma mancha ou o traço de outra linha em acento.
+   - Se não for possível distinguir com segurança o sinal ou a palavra,
+     marque o trecho como [ilegível], em vez de completar pela grafia esperada.
+
+   Exemplos de cópia literal:
+   "politicas" -> "politicas", NÃO "políticas".
+   "nao" -> "nao", NÃO "não".
+   "paíz" -> "paíz", NÃO "país".
+   "políticas" -> "políticas": preserve o acento quando ele estiver escrito.
+
 3. Nunca substitua uma palavra escrita pelo aluno por uma forma que pareça
    mais correta ou mais provável pelo contexto.
 
@@ -71,7 +86,9 @@ REGRAS OBRIGATÓRIAS:
    - Não reproduza as quebras de linha físicas da folha.
    - Uma mudança de linha causada apenas pelo limite da folha NÃO representa
      um novo parágrafo.
-   - Una linhas consecutivas do mesmo parágrafo usando um espaço normal.
+   - Una linhas consecutivas do mesmo parágrafo usando um espaço normal
+     ENTRE palavras distintas. Se a mesma palavra continuar na linha seguinte,
+     una seus fragmentos SEM espaço, conforme a regra 8.
    - Só insira uma quebra de parágrafo quando houver evidência visual de que
      o aluno realmente iniciou um novo parágrafo, como recuo no início da
      linha ou separação clara entre blocos.
@@ -89,14 +106,27 @@ REGRAS OBRIGATÓRIAS:
    "O debate sobre o comércio internacional é bastante
    importante para a economia brasileira."
 
-8. Quando uma palavra estiver dividida somente porque chegou ao fim da linha
-   física da folha, reconstrua a palavra sem o hífen de quebra de linha.
+8. Diferencie a divisão física de uma palavra da separação entre palavras.
+   Quando estiver visualmente claro que a mesma palavra foi dividida apenas
+   por chegar ao fim da linha da folha:
+   - Una os fragmentos SEM espaço e SEM quebra de linha ou de parágrafo.
+   - Remova somente o hífen usado para indicar essa mudança de linha.
+   - Faça a união também quando não houver hífen, desde que a continuação
+     da mesma palavra esteja clara no manuscrito.
+   - Preserve todas as letras e todos os acentos exatamente como escritos
+     nos fragmentos. Unir fragmentos NÃO autoriza corrigir a palavra.
 
-   Exemplo:
-   "constitui-" no fim de uma linha + "ção" na linha seguinte
-   deve resultar em "constituição".
+   Exemplos: o sinal + abaixo representa a mudança de linha na folha.
+   "po-" + "líticas" -> "políticas".
+   "po-" + "liticas" -> "politicas", NÃO "políticas".
+   "iden-" + "tidade" -> "identidade", NÃO "iden- tidade".
+   "constitui-" + "ção" -> "constituição".
 
-   Porém, não altere nenhuma outra letra da palavra.
+   Preserve hífens que fazem parte da escrita do aluno, como "pode-se".
+   NÃO remova todos os hífens indiscriminadamente.
+   NÃO una palavras distintas nem corrija espaços indevidos escritos pelo aluno.
+   Se a divisão for ambígua, NÃO reconstrua pela palavra mais provável no
+   contexto: marque apenas o trecho que não conseguir identificar como [ilegível].
 
 9. Rasuras:
    - se uma palavra estiver claramente riscada e substituída por outra,
@@ -127,6 +157,13 @@ REGRAS OBRIGATÓRIAS:
     - a legibilidade da caligrafia;
     - quantos trechos precisaram ser marcados como [ilegível];
     - se um modelo mais forte deve tentar novamente.
+
+14. Antes de responder, confira a transcrição novamente contra o manuscrito:
+    - Há algum acento acrescentado, removido ou trocado sem apoio visual?
+    - Restou alguma palavra partida apenas pela mudança de linha da folha?
+    - Foi removido algum hífen legítimo ou unido algum par de palavras distintas?
+    Ajuste apenas divergências em relação ao manuscrito. NÃO faça revisão
+    ortográfica ou gramatical. Não inclua essa conferência na resposta.
 `.trim();
 
 const TRANSCRIPTION_FORMAT = {
