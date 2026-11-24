@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useSyncExternalStore, type DragEvent } from "react";
-import { Camera, CheckCircle2, FileText, Loader2, ScanText, Upload } from "lucide-react";
+import { Camera, CheckCircle2, FileText, Loader2, ScanText, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@repo/ui/components/button";
@@ -14,10 +14,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@repo/ui/components/dialog";
-import { Progress } from "@repo/ui/components/progress";
 import { ESSAY_SOURCE_ACCEPT, validateEssaySourceFile } from "@/lib/essay-source-files";
+import styles from "./essay-transcription-dialog.module.css";
 
-type TranscriptionStatus = "idle" | "uploading" | "processing" | "transcribing";
+type TranscriptionStatus = "idle" | "uploading" | "transcribing";
 
 interface EssayTranscriptionDialogProps {
   topicId: string;
@@ -29,13 +29,9 @@ interface EssayTranscriptionDialogProps {
   onTranscribed: (result: { text: string; sourceFileId: string }) => void;
 }
 
-const STATUS_DETAILS: Record<
-  Exclude<TranscriptionStatus, "idle">,
-  { label: string; progress: number }
-> = {
-  uploading: { label: "Enviando o arquivo com segurança...", progress: 25 },
-  processing: { label: "Preparando o arquivo...", progress: 55 },
-  transcribing: { label: "Transcrevendo sua redação...", progress: 85 },
+const STATUS_DETAILS: Record<Exclude<TranscriptionStatus, "idle">, { label: string }> = {
+  uploading: { label: "Enviando o arquivo com segurança..." },
+  transcribing: { label: "Transcrevendo sua redação..." },
 };
 
 const TOUCH_POINTER_QUERY = "(any-pointer: coarse)";
@@ -89,6 +85,8 @@ export function EssayTranscriptionDialog({
   const isWorking = status !== "idle";
 
   function selectFile(selectedFile: File | null) {
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
     if (!selectedFile) return;
 
     setIsDraggingFile(false);
@@ -185,7 +183,6 @@ export function EssayTranscriptionDialog({
         throw new Error("Não foi possível enviar o arquivo.");
       }
 
-      setStatus("processing");
       setStatus("transcribing");
 
       const transcriptionResponse = await fetch("/api/essay-source-files/transcribe", {
@@ -227,8 +224,11 @@ export function EssayTranscriptionDialog({
           ? transcriptionError.message
           : "Não foi possível transcrever a redação.";
 
+      setFile(null);
       setError(message);
     } finally {
+      setStatus("idle");
+
       if (stagingPath) {
         try {
           await fetch("/api/essay-source-files/upload-url", {
@@ -240,8 +240,6 @@ export function EssayTranscriptionDialog({
           console.error("Temporary essay source cleanup error:", cleanupError);
         }
       }
-
-      setStatus("idle");
     }
   }
 
@@ -361,8 +359,12 @@ export function EssayTranscriptionDialog({
             <ul className="mt-3 space-y-1.5 pl-7 text-sm leading-6 text-slate-600">
               <li className="list-disc">Enquadre toda a folha, sem cortar as margens.</li>
               <li className="list-disc">Evite sombras, reflexos e fotos inclinadas.</li>
-              <li className="list-disc">Confira se nenhuma parte do texto está desfocada ou embaçada.</li>
-              <li className="list-disc">Envie apenas um arquivo JPG/JPEG, PNG ou PDF de até 10 MB.</li>
+              <li className="list-disc">
+                Confira se nenhuma parte do texto está desfocada ou embaçada.
+              </li>
+              <li className="list-disc">
+                Envie apenas um arquivo JPG/JPEG, PNG ou PDF de até 10 MB.
+              </li>
             </ul>
           </div>
 
@@ -382,7 +384,10 @@ export function EssayTranscriptionDialog({
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-slate-800">{file.name}</p>
-                  <p className="mt-0.5 text-xs text-slate-600">
+                  <p
+                    role={statusDetails ? "status" : undefined}
+                    className="mt-0.5 text-xs text-slate-600"
+                  >
                     {statusDetails
                       ? statusDetails.label
                       : `${(file.size / 1024 / 1024).toLocaleString("pt-BR", {
@@ -390,14 +395,28 @@ export function EssayTranscriptionDialog({
                         })} MB`}
                   </p>
                 </div>
-                {statusDetails && (
-                  <span className="text-primary shrink-0 text-xs font-bold">
-                    {statusDetails.progress}%
-                  </span>
+                {!isWorking && (
+                  <button
+                    type="button"
+                    aria-label="Remover arquivo selecionado"
+                    onClick={() => {
+                      setFile(null);
+                      setError(null);
+                    }}
+                    className="flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-600"
+                  >
+                    <X className="size-4" aria-hidden="true" />
+                  </button>
                 )}
               </div>
               {statusDetails && (
-                <Progress value={statusDetails.progress} className="bg-primary/15 mt-3 h-1.5" />
+                <div
+                  role="progressbar"
+                  aria-label={statusDetails.label}
+                  className="bg-primary/15 mt-3 h-1.5 overflow-hidden rounded-full"
+                >
+                  <div className={`${styles.processingBar} bg-primary h-full rounded-full`} />
+                </div>
               )}
             </div>
           )}
@@ -408,32 +427,44 @@ export function EssayTranscriptionDialog({
               redação.
             </p>
           )}
-
-          {error && (
-            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </p>
-          )}
         </div>
 
-        <DialogFooter className="flex flex-row justify-end gap-2 border-t border-slate-100 bg-slate-50/70 p-4 sm:flex-row sm:items-center">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isWorking}
-            onClick={() => handleOpenChange(false)}
-            className="h-11 w-1/2 rounded-xl md:w-auto"
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            disabled={!file || isWorking}
-            onClick={handleTranscription}
-            className="h-11 w-1/2 rounded-xl md:w-auto"
-          >
-            Transcrever redação
-          </Button>
+        <DialogFooter className="flex shrink-0 flex-col gap-3 border-t border-slate-100 bg-slate-50/70 p-4 sm:flex-col">
+          {error && (
+            <div
+              role="alert"
+              className="w-full rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+            >
+              <p className="font-bold">Não foi possível usar esse arquivo.</p>
+              <p className="mt-1 break-words">{error}</p>
+              <p className="mt-1">Selecione um arquivo para tentar novamente.</p>
+            </div>
+          )}
+          <div className="flex w-full flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isWorking}
+              onClick={() => handleOpenChange(false)}
+              className="h-11 flex-1 rounded-xl md:flex-none"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              disabled={isWorking || (!file && !error)}
+              onClick={() => {
+                if (error && !file) {
+                  fileInputRef.current?.click();
+                  return;
+                }
+                void handleTranscription();
+              }}
+              className="h-11 flex-1 rounded-xl md:flex-none"
+            >
+              {error && !file ? "Escolher outro arquivo" : "Transcrever redação"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

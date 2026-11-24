@@ -1,0 +1,19 @@
+.processingBar {
+  width: 36%;
+  animation: processing-sweep 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes processing-sweep {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(177.7778%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .processingBar {
+    animation: none;
+  }
+}
